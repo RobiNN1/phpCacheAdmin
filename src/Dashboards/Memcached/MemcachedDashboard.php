@@ -116,7 +116,7 @@ class MemcachedDashboard implements DashboardInterface {
      *
      * @return string
      */
-    public function dashborad(): string {
+    public function dashboard(): string {
         $servers = Admin::getConfig('memcached');
 
         if (isset($_GET['moreinfo'])) {

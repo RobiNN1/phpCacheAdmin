@@ -103,7 +103,7 @@ class OPCacheDashboard implements DashboardInterface {
      *
      * @return string
      */
-    public function dashborad(): string {
+    public function dashboard(): string {
         $status = opcache_get_status();
 
         if (isset($_GET['moreinfo'])) {

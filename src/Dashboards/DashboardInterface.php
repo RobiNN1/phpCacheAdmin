@@ -32,5 +32,5 @@ interface DashboardInterface {
      *
      * @return string
      */
-    public function dashborad(): string;
+    public function dashboard(): string;
 }

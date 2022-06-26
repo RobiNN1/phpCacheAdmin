@@ -77,7 +77,7 @@ class ServerDashboard implements DashboardInterface {
      *
      * @return string
      */
-    public function dashborad(): string {
+    public function dashboard(): string {
         if (isset($_GET['moreinfo'])) {
             return $this->phpinfo();
         }

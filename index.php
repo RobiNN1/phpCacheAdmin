@@ -67,6 +67,6 @@ if (isset($_GET['ajax'])) {
         'back'       => isset($_GET['moreinfo']) || isset($_GET['view']) || isset($_GET['form']),
         'back_url'   => Admin::queryString(['db']),
         'version'    => Admin::VERSION,
-        'dashboard'  => $dashboard->dashborad(),
+        'dashboard'  => $dashboard->dashboard(),
     ]);
 }

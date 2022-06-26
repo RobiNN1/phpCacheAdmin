@@ -141,7 +141,7 @@ class RedisDashboard implements DashboardInterface {
      *
      * @return string
      */
-    public function dashborad(): string {
+    public function dashboard(): string {
         $servers = Admin::getConfig('redis');
 
         if (isset($_GET['moreinfo'])) {

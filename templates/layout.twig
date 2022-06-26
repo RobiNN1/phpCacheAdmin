@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ site_title }} - phpCacheAdmin</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon.png">
+    <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body class="bg-gray-50 text-gray-900 md:ml-64" data-dashboard="{{ current }}">
+<aside id="sidebar" class="hidden md:block">
+    <nav class="block fixed top-0 left-0 bottom-0 overflow-y-auto overflow-hidden w-64 bg-{{ color }}-500 shadow-xl shadow-gray-500 py-4 pt-6 px-6">
+        <div class="min-h-full px-0 w-full mx-auto">
+            <a class="block pb-2 text-left text-white text-lg font-bold hidden md:block" href="index.php">phpCacheAdmin</a>
+            {% for link, title in nav %}
+                <a class="block py-2 text-white hover:text-gray-200{{ current == link ? ' font-bold' : '' }}" href="?type={{ link }}">
+                    <span class="mr-1 opacity-60">{{ svg(link) }}</span> {{ title }}
+                </a>
+            {% endfor %}
+            <footer class="text-center text-white my-4">
+                <div class="font-light">
+                    &copy; {{ 'now'|date('Y') }}
+                    <a class="text-white hover:text-gray-200 font-semibold" href="https://github.com/RobiNN1/phpCacheAdmin" target="_blank" rel="noopener">
+                        phpCacheAdmin
+                    </a>
+                </div>
+                v{{ version }}
+            </footer>
+        </div>
+    </nav>
+</aside>
+<div class="relative md:ml-0" id="maincontent">
+    <header class="md:hidden">
+        <div class="container lg:max-w-7xl mx-auto px-3 py-3">
+            <div class="relative flex justify-between flex-col md:flex-row">
+                <div class="flex justify-items-stretch">
+                    <button class="block py-2 px-1 z-50" type="button" id="togglebtn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z"/>
+                        </svg>
+                    </button>
+
+                    <a class="block py-2 px-1 mx-auto text-gray-900 text-lg font-bold" href="index.php">phpCacheAdmin</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container lg:max-w-7xl mx-auto p-3 md:p-7">
+        <div class="fixed top-0 right-0 p-5 w-full md:w-1/2 z-40">
+            <div id="alerts" class="w-full md:w-96 ml-auto">{{ alerts|raw }}</div>
+        </div>
+
+        {% if back %}
+            <a class="text-xl text-{{ color }}-500 hover:text-{{ color }}-700 font-semibold inline-block mb-5 [&>svg]:align-baseline" href="{{ back_url }}">
+                {{ svg('back') }} Back
+            </a>
+        {% endif %}
+
+        {{ dashboard|raw }}
+    </div>
+</div>
+<script src="assets/js/scripts.js"></script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+<form method="post">
+    {{ include('components/input.twig', {
+        id: 'key',
+        label: 'Key',
+        value: key,
+        required: true,
+    }) }}
+
+    <div class="mb-3">
+        <label for="value" class="block text-sm font-semibold mb-2">Value</label>
+        <textarea id="value" name="value" class="input w-full rounded py-2 px-4 focus:ring-{{ color }}-100 focus:border-{{ color }}-300" required>{{ value }}</textarea>
+    </div>
+
+    <button type="submit" name="submit"
+            class="text-sm py-2 px-4 text-white bg-green-500 hover:bg-green-600 focus:ring-4 focus:ring-green-300 font-semibold rounded inline-flex items-center gap-1">
+        {{ svg('save') }} Save key
+    </button>
+</form>

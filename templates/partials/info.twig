@@ -1,0 +1,33 @@
+{% if extension_version %}
+    <div class="text-xl mb-5">
+        PHP <span class="font-semibold">{{ title }}</span> extension
+        {{ include('components/badge.twig', {text: 'v' ~ extension_version, text_sm: true, bg: 'bg-' ~ color ~ '-500'}) }}
+    </div>
+{% endif %}
+
+{% if panels_toggler is not defined %}
+    <button type="button" id="toggle-panels"
+            class="toggle-div text-xs py-1.5 px-3 text-white bg-{{ color }}-500 hover:bg-{{ color }}-600 focus:ring-4 focus:ring-{{ color }}-300 font-semibold rounded inline-flex items-center mb-3">
+        <span class="text mr-1">Hide panels</span>
+        <span class="open">{{ svg('open') }}</span>
+        <span class="close">{{ svg('close') }}</span>
+    </button>
+{% endif %}
+
+{% if info.panel %}
+    <div id="infopanels" style="display: block;">
+        <div class="md:grid {{ cols3 ? 'md:grid-cols-3' : 'md:grid-cols-2' }} md:gap-4">
+            {% for key, panel in info.panel %}
+                <div>{{ include('partials/info_table.twig', {
+                        panel_title: panel.title,
+                        selection: panel.server_selection,
+                        current_server: panel.current_server,
+                        ajax: info.ajax,
+                        array: panel.data,
+                        key,
+                        moreinfo: panel.moreinfo,
+                    }) }}</div>
+            {% endfor %}
+        </div>
+    </div>
+{% endif %}

@@ -1,0 +1,68 @@
+<form method="post">
+    <input type="hidden" name="old_value" value="{{ value }}">
+
+    <div class="mb-3">
+        <label for="type" class="block text-sm font-semibold mb-2">Type</label>
+        {{ include('components/select.twig', {
+            id: 'redis_type',
+            options: {
+                'string': 'String',
+                'set': 'Set',
+                'list': 'List',
+                'zset': 'Zset',
+                'hash': 'Hash',
+            },
+            class: 'w-full',
+            selected: type,
+        }) }}
+    </div>
+
+    {{ include('components/input.twig', {
+        id: 'key',
+        label: 'Key',
+        value: key,
+        required: true,
+    }) }}
+
+    {{ include('components/input.twig', {
+        id: 'index',
+        label: 'List Index',
+        type: 'number',
+        extra_attr: ' style="display: ' ~ (type == 'list' ? 'show' : 'none') ~ ';" id="redis_index"',
+        help: 'Empty to append, -1 to prepend.',
+        value: index,
+    }) }}
+
+    {{ include('components/input.twig', {
+        id: 'score',
+        label: 'Zset Score',
+        type: 'number',
+        extra_attr: ' style="display: ' ~ (type == 'zset' ? 'show' : 'none') ~ ';" id="redis_score"',
+        value: score,
+    }) }}
+
+    {{ include('components/input.twig', {
+        id: 'hash_key',
+        label: 'Hash Key',
+        extra_attr: ' style="display: ' ~ (type == 'hash' ? 'show' : 'none') ~ ';" id="redis_hash_key"',
+        value: hash_key,
+    }) }}
+
+    {{ include('components/input.twig', {
+        id: 'expire',
+        label: 'Expire (in seconds)',
+        type: 'number',
+        help: '-1 removes expiration (default).',
+        value: expire,
+    }) }}
+
+    <div class="mb-3">
+        <label for="value" class="block text-sm font-semibold mb-2">Value</label>
+        <textarea id="value" name="value" class="input w-full rounded py-2 px-4 focus:ring-{{ color }}-100 focus:border-{{ color }}-300" required>{{ value }}</textarea>
+    </div>
+
+    <button type="submit" name="submit"
+            class="text-sm py-2 px-4 text-white bg-green-500 hover:bg-green-600 focus:ring-4 focus:ring-green-300 font-semibold rounded inline-flex items-center gap-1">
+        {{ svg('save') }} Save key
+    </button>
+</form>

@@ -1,0 +1,17 @@
+{% macro key_type(type) %}
+    {% if type == 'string' %}
+        {% set type_color = 'bg-green-500' %}
+    {% elseif type == 'set' %}
+        {% set type_color = 'bg-sky-500' %}
+    {% elseif type == 'list' %}
+        {% set type_color = 'bg-orange-500' %}
+    {% elseif type == 'zset' %}
+        {% set type_color = 'bg-red-500' %}
+    {% elseif type == 'hash' %}
+        {% set type_color = 'bg-purple-500' %}
+    {% else %}
+        {% set type_color = 'bg-blue-500' %}
+    {% endif %}
+
+    {{ include('components/badge.twig', {text: type, pill: true, class: 'uppercase font-bold', bg: type_color}) }}
+{% endmacro %}

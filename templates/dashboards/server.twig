@@ -1,0 +1,14 @@
+{% if show_info %}
+    {{ include('partials/info.twig') }}
+{% endif %}
+
+<div class="text-xl mb-5 font-semibold">Loaded PHP extensions ({{ extensions|length }})</div>
+
+{% for extension in extensions %}
+    {{ include('components/badge.twig', {
+        text: extension,
+        pill: true,
+        bg: 'bg-slate-200 text-slate-900 font-semibold',
+        class: 'm-1'
+    }) }}
+{% endfor %}

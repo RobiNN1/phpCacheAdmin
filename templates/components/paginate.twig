@@ -1,0 +1,18 @@
+{% if paginate and paginate|length > 1 %}
+    <ul class="inline-flex">
+        {% for page in paginate %}
+            {% if page == current_page %}
+                {% set class = 'text-white bg-' ~ color ~ '-500 border-' ~ color ~ '-300 hover:bg-' ~ color ~ '-600' %}
+            {% else %}
+                {% set class = 'text-gray-500 bg-white border-gray-300 hover:bg-gray-100 hover:text-gray-700' %}
+            {% endif %}
+
+            {% set first = loop.first ? ' rounded-l' : '' %}
+            {% set last = loop.last ? ' rounded-r' : '' %}
+
+            <li>
+                <a href="{{ paginate_url ~ page }}" class="py-1.5 px-3 border {{ class }}{{ first ~ last }}">{{ page }}</a>
+            </li>
+        {% endfor %}
+    </ul>
+{% endif %}

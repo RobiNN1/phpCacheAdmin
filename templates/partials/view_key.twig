@@ -1,0 +1,65 @@
+{% import 'partials/key_type_badge.twig' as key_badge %}
+
+<div class="mb-5 flex items-center gap-2">
+    <span>Type {{ key_badge.key_type(type) }}</span>
+
+    {% if ttl %}
+        <span>TTL {{ include('components/badge.twig', {text: ttl, pill: true, class: 'uppercase font-bold', bg: 'bg-slate-500'}) }}</span>
+    {% endif %}
+</div>
+
+{% if value is iterable %}
+    {% for index, key_value in value %}
+        {% if type == 'set' %}
+            {% set param_name = 'member' %}
+            {% set title = '' %}
+        {% elseif type == 'list' %}
+            {% set param_name = 'index' %}
+            {% set title = 'Index' %}
+        {% elseif type == 'zset' %}
+            {% set param_name = 'range' %}
+            {% set title = 'Score' %}
+        {% elseif type == 'hash' %}
+            {% set param_name = 'hash_key' %}
+            {% set title = 'Key' %}
+        {% endif %}
+
+        <div class="bg-white shadow-lg px-3 pt-1.5 pb-3 mb-5 rounded">
+            <div class="flex justify-between mb-3">
+                <span>
+                    {% if type != 'set' %}
+                        {{ title }}: {{ include('components/badge.twig', {text:  index, pill: true, class: 'font-bold', bg: 'bg-slate-400'}) }}
+                    {% endif %}
+                </span>
+
+                <div>
+                    <a href="{{ edit_url }}&{{ param_name }}={{ index }}" class="text-gray-500 hover:text-gray-700 font-semibold mr-3 inline-block mr-3">
+                        {{ svg('edit', 13) }} Edit
+                    </a>
+                    <a href="{{ delete_url }}&{{ param_name }}={{ index }}" class="text-red-500 hover:text-red-700 font-semibold inline-block"
+                       onclick="return confirm('Are you sure you want to remove this item?');">
+                        {{ svg('trash', 13) }} Delete
+                    </a>
+                </div>
+            </div>
+
+            {{ key_value }}
+        </div>
+    {% endfor %}
+
+    <div class="md:grid md:grid-cols-3 mt-5">
+        <div class="flex items-center gap-2"></div>
+        <div class="flex items-center md:justify-center gap-2 mb-3 md:mb-0">
+            {{ include('components/select.twig', {id: 'per_page', options: {15: 15, 25: 25, 50: 50, 100: 100, 200: 200}, selected: per_page, sm: true, class: 'w-16'}) }}
+            <label class="font-semibold -mt-1.5" for="per_page">per page</label>
+        </div>
+        <div class="flex items-center md:justify-end">{{ include('components/paginate.twig') }}</div>
+    </div>
+
+    <a href="{{ add_subkey }}" class="text-{{ color }}-500 hover:text-{{ color }}-700 font-semibold inline-flex items-center mt-2">
+        {{ svg('open') }} Add another value
+    </a>
+{% else %}
+    <a href="{{ edit_url }}" class="text-{{ color }}-500 hover:text-{{ color }}-700 font-semibold">Edit</a>
+    <div class="bg-white shadow-lg p-5 rounded">{{ value }}</div>
+{% endif %}

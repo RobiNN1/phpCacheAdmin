@@ -1,0 +1,17 @@
+{% if show_info %}
+    {{ include('partials/info.twig') }}
+{% endif %}
+
+{% if all_keys|length != 0 %}
+    {{ include('components/alert.twig', {
+        message: svg('info') ~ 'Due to the limitations of the memcache(d) PHP extension, it is not possible to return all keys seamlessly.',
+        hide_close: true,
+        alert_color: 'bg-emerald-500'
+    }) }}
+{% endif %}
+
+<div class="flex md:justify-end gap-1 mb-5">
+    {{ include('partials/keys_buttons.twig') }}
+</div>
+
+{{ include('partials/keys_table.twig', {keys, paginate, current_page, url}) }}

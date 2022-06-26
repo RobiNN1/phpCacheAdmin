@@ -1,0 +1,46 @@
+{
+  "name": "robinn/phpcacheadmin",
+  "description": "Web dashboard for Redis, Memcached and OPCache.",
+  "keywords": [
+    "redis",
+    "memcached",
+    "opcache",
+    "cache",
+    "admin"
+  ],
+  "license": "MIT",
+  "type": "project",
+  "authors": [
+    {
+      "name": "Róbert Kelčák",
+      "email": "robo@kelcak.com",
+      "homepage": "https://kelcak.com"
+    }
+  ],
+  "minimum-stability": "dev",
+  "prefer-stable": true,
+  "require": {
+    "php": ">=7.4",
+    "twig/string-extra": "^3.4",
+    "twig/twig": "^3.4"
+  },
+  "suggest": {
+    "ext-redis": "Required for use the redis dashboard.",
+    "ext-memcache": "Required for  the memcache dashboard.",
+    "ext-memcached": "Required for the memcached dashboard."
+  },
+  "require-dev": {
+    "phpstan/phpstan": "^1.7"
+  },
+  "autoload": {
+    "psr-4": {
+      "RobiNN\\Pca\\": "src/"
+    }
+  },
+  "scripts": {
+    "phpstan": "phpstan --ansi"
+  },
+  "config": {
+    "sort-packages": true
+  }
+}

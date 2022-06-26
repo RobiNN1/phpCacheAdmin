@@ -1,0 +1,12 @@
+{
+  "name": "phpcacheadmin",
+  "description": "Web dashboard for Redis, Memcache(d) and OPCache.",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "npx tailwindcss -i ./assets/css/src.css -o ./assets/css/styles.css",
+    "watch": "npx tailwindcss -i ./assets/css/src.css -o ./assets/css/styles.css --watch"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.1"
+  }
+}

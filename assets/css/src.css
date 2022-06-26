@@ -1,0 +1,116 @@
+@tailwind base;
+
+@layer base {
+    svg {
+        display: inline-block;
+        vertical-align: -.125rem;
+    }
+}
+
+@tailwind components;
+@tailwind utilities;
+
+.select,
+.input {
+    @apply appearance-none leading-normal text-sm border bg-white placeholder-gray-400 text-gray-600 border-gray-300 focus:outline-none focus:ring;
+}
+
+.select {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%231f2937' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 16px 12px;
+    background-color: #fff;
+    @apply rounded;
+}
+
+.checkbox {
+    @apply appearance-none align-middle select-none h-4 w-4 bg-white rounded border border-gray-300 focus:outline-none focus:ring-2 -mt-1.5;
+}
+
+.checkbox:checked {
+    background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M5.707 7.293a1 1 0 0 0-1.414 1.414l2 2a1 1 0 0 0 1.414 0l4-4a1 1 0 0 0-1.414-1.414L7 8.586 5.707 7.293z'/%3e%3c/svg%3e");
+    background-color: currentColor;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.toggle-div.show .open {
+    display: block;
+}
+
+.toggle-div.show .close {
+    display: none;
+}
+
+.toggle-div .open {
+    display: none;
+}
+
+#phpinfo .center {
+    text-align: center;
+}
+
+#phpinfo .center table {
+    margin: 1em auto;
+    text-align: left;
+}
+
+#phpinfo table {
+    width: 100%;
+    table-layout: auto;
+}
+
+#phpinfo td,
+#phpinfo th {
+    border: 1px solid #fff;
+    font-size: 75%;
+    vertical-align: baseline;
+    padding: 4px 5px;
+}
+
+#phpinfo th {
+    position: sticky;
+    top: 0;
+    background: inherit;
+}
+
+#phpinfo h1 {
+    font-size: 150%;
+}
+
+#phpinfo h2 {
+    font-size: 125%;
+}
+
+#phpinfo .p {
+    text-align: left;
+}
+
+#phpinfo .e {
+    background-color: #ccf;
+    width: 300px;
+    font-weight: bold;
+}
+
+#phpinfo .h {
+    background-color: #99c;
+    font-weight: bold;
+}
+
+#phpinfo .v {
+    background-color: #ddd;
+    max-width: 300px;
+    overflow-x: auto;
+    word-wrap: break-word;
+}
+
+#phpinfo .v i {
+    color: #999;
+}
+
+#phpinfo img {
+    float: right;
+    border: 0;
+}

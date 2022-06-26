@@ -1,0 +1,64 @@
+<div class="bg-white shadow-sm shadow-gray-300 rounded mb-5 infopanel"{{ (ajax ? ' data-panel="' ~ key ~ '"' : '')|raw }}>
+    <div class="px-4 py-3">
+        <div class="flex flex-wrap items-center">
+            <div class="relative w-full max-w-full flex-grow flex-1">
+                <h2 class="text-{{ color }}-900 text-lg font-semibold">{{ panel_title }}</h2>
+            </div>
+            {% if selection %}
+                <div class="relative w-full max-w-full flex-grow flex-1 text-right panel-selection"{{ (ajax ? ' style="display: none;"' : '')|raw }}>
+                    {% if current_server == key %}
+                        {{ include('components/badge.twig', {text: 'Selected', bg: 'bg-' ~ color ~ '-500'}) }}
+                    {% else %}
+                        <a class="text-{{ color }}-500 hover:text-{{ color }}-700 font-semibold" href="?type={{ current }}&server={{ key }}">Select this sevrer</a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    <div class="w-full overflow-x-auto">
+        <table class="table-auto w-full text-left">
+            <thead>
+            <tr class="bg-{{ color }}-100 text-{{ color }}-900">
+                <th class="px-4 py-2 text-xs uppercase font-bold whitespace-nowrap">Name</th>
+                <th class="px-4 py-2 text-xs uppercase font-bold whitespace-nowrap">Value</th>
+            </tr>
+            </thead>
+            <tbody class="panel-content">
+            {% if array and ajax == false %}
+                {% for name, value in array %}
+                    {% if value is iterable %}
+                        <tr class="bg-{{ color }}-50 text-{{ color }}-900">
+                            <td colspan="2" class="px-4 py-2 text-xs uppercase font-bold whitespace-nowrap">{{ name|replace({'_': ' '}) }}</td>
+                        </tr>
+                        {% for sub_name, sub_value in value %}
+                            <tr class="[&:last-child>*]:border-0">
+                                <td class="border-b border-gray-100 px-4 py-1 text-sm font-semibold whitespace-nowrap">{{ sub_name }}</td>
+                                <td class="border-b border-gray-100 px-4 py-1 text-sm">{{ sub_value|raw }}</td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr class="[&:last-child>*]:border-0">
+                            <td class="border-b border-gray-100 px-4 py-1 text-sm font-semibold whitespace-nowrap">{{ name }}</td>
+                            <td class="border-b border-gray-100 px-4 py-1 text-sm">{{ value|raw }}</td>
+                        </tr>
+                    {% endif %}
+                {% endfor %}
+            {% elseif ajax == false %}
+                <tr>
+                    <td colspan="2" class="text-center p-5">No info.</td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="2"><img class="mx-auto h-20 w-20" src="assets/icons/loading.svg" alt="Loading..."></td>
+                </tr>
+            {% endif %}
+            </tbody>
+        </table>
+    </div>
+    {% if moreinfo %}
+        <div class="px-4 py-2 text-right border-t panel-moreinfo"{{ (ajax ? ' style="display: none;"' : '')|raw }}>
+            <a class="text-{{ color }}-500 hover:text-{{ color }}-700 font-semibold" href="?type={{ current }}&moreinfo={{ key }}">Show more info</a>
+        </div>
+    {% endif %}
+</div>
+{{ bottom_content|raw }}

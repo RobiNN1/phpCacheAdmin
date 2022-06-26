@@ -1,0 +1,14 @@
+# Autodetect text files
+* text=auto
+
+# Force LF for all text files
+*.* text eol=lf
+
+# Force images to be handled as binaries
+*.png binary
+
+# Files and directories with the attribute export-ignore won’t be added to archive files.
+.github export-ignore
+.gitattributes export-ignore
+.gitignore export-ignore
+phpstan.neon export-ignore

@@ -1,0 +1,71 @@
+{% import 'partials/key_type_badge.twig' as key_badge %}
+
+<div class="bg-white shadow-sm shadow-gray-300 rounded mb-5">
+    <div class="w-full overflow-x-auto">
+        <table class="table-auto w-full text-left">
+            <thead>
+            <tr class="bg-{{ color }}-100 text-{{ color }}-900">
+                <th class="w-3 rounded-tl bg-{{ color }}-100 px-5 py-2">
+                    <input type="checkbox"
+                           class="check-all checkbox text-{{ color }}-500 focus:border-{{ color }}-300 focus:ring-{{ color }}-200"
+                           aria-label=""{{ keys|length == 0 ? ' disabled' : '' }}>
+                </th>
+                <th class="px-5 py-2 text-xs uppercase font-bold whitespace-nowrap">Key</th>
+                <th class="md:w-32 px-5 py-2 text-xs uppercase font-bold whitespace-nowrap">Type</th>
+                {% if ttl %}
+                    <th class="md:w-32 px-5 py-2 text-xs uppercase font-bold whitespace-nowrap">TTL</th>
+                {% endif %}
+                <th class="md:w-24 lg:w-44 rounded-tr px-5 py-2 text-xs uppercase font-bold whitespace-nowrap">Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% if keys %}
+                {% for id, key in keys %}
+                    <tr class="[&:last-child>*]:border-0" data-key="{{ key.key }}">
+                        <td class="border-b border-gray-100 px-5 py-2">
+                            <input type="checkbox"
+                                   class="checkbox-key checkbox text-{{ color }}-500 focus:border-{{ color }}-300 focus:ring-{{ color }}-200" aria-label="">
+                        </td>
+                        <td class="border-b border-gray-100 px-5 py-2 text-sm whitespace-nowrap">
+                            <a class="text-{{ color }}-500 hover:text-{{ color }}-700" href="{{ view_url ~ key.key }}" title="{{ key.key }}">
+                                {{ key.key|u.truncate(75, '...') }}{{ key.items ? ' (Items: ' ~ key.items ~ ')' : '' }}
+                            </a>
+                        </td>
+                        <td class="border-b border-gray-100 px-5 py-2 text-sm whitespace-nowrap">{{ key_badge.key_type(key.type) }}</td>
+                        {% if ttl %}
+                            <td class="border-b border-gray-100 px-5 py-2 text-sm whitespace-nowrap">
+                                {% if key.ttl == -1 %}
+                                    Does not expire
+                                {% else %}
+                                    <span title="{{ key.ttl }} seconds">{{ key.ttl|format_seconds }}</span>
+                                {% endif %}
+                            </td>
+                        {% endif %}
+                        <td class="border-b border-gray-100 px-5 py-2 text-sm whitespace-nowrap">
+                            <a class="text-gray-500 hover:text-gray-700 font-semibold mr-3" href="{{ edit_url ~ key.key }}" title="Edit">
+                                {{ svg('edit', 12) }}<span class="hidden lg:inline-block ml-1">Edit</span>
+                            </a>
+                            <button class="text-red-500 hover:text-red-700 font-semibold delete-key" type="button" title="Delete">
+                                {{ svg('trash', 12) }}<span class="hidden lg:inline-block ml-1">Delete</span>
+                            </button>
+                        </td>
+                    </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="{{ ttl ? 5 : 4 }}" class="text-center p-5">No keys.</td>
+                </tr>
+            {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="md:grid md:grid-cols-3 mt-5">
+    <div class="flex items-center gap-2"></div>
+    <div class="flex items-center md:justify-center gap-2 mb-3 md:mb-0">
+        {{ include('components/select.twig', {id: 'per_page', options: {15: 15, 25: 25, 50: 50, 100: 100, 200: 200}, selected: per_page, sm: true, class: 'w-16'}) }}
+        <label class="font-semibold -mt-1.5" for="per_page">per page</label>
+    </div>
+    <div class="flex items-center md:justify-end">{{ include('components/paginate.twig') }}</div>
+</div>

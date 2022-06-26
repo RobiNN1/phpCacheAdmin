@@ -9,7 +9,7 @@
                     {% if current_server == key %}
                         {{ include('components/badge.twig', {text: 'Selected', bg: 'bg-' ~ color ~ '-500'}) }}
                     {% else %}
-                        <a class="text-{{ color }}-500 hover:text-{{ color }}-700 font-semibold" href="?type={{ current }}&server={{ key }}">Select this sevrer</a>
+                        <a class="text-{{ color }}-500 hover:text-{{ color }}-700 font-semibold" href="?type={{ current }}&server={{ key }}">Select this server</a>
                     {% endif %}
                 </div>
             {% endif %}

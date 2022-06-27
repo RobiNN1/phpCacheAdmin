@@ -15,7 +15,6 @@ namespace RobiNN\Pca;
 use Exception;
 use Twig\Environment;
 use Twig\Extension\DebugExtension;
-use Twig\Extra\String\StringExtension;
 use Twig\Loader\FilesystemLoader;
 use Twig\TwigFilter;
 use Twig\TwigFunction;
@@ -58,11 +57,10 @@ class Template {
                 $twig->addExtension(new DebugExtension());
             }
 
-            $twig->addExtension(new StringExtension());
-
             $twig->addFunction(new TwigFunction('svg', [Admin::class, 'svg'], ['is_safe' => ['html']]));
+            $twig->addFunction(new TwigFunction('truncate', [Admin::class, 'truncate']));
 
-            $twig->addfilter(new Twigfilter('format_seconds', [Admin::class, 'formatSeconds']));
+            $twig->addFilter(new TwigFilter('format_seconds', [Admin::class, 'formatSeconds']));
 
             foreach ($this->tpl_globals as $name => $value) {
                 $twig->addGlobal($name, $value);

@@ -370,4 +370,26 @@ class Admin {
 
         return $array;
     }
+
+    /**
+     * Truncate text.
+     *
+     * @param string $text
+     * @param int    $length
+     *
+     * @return string
+     */
+    public static function truncate(string $text, int $length): string {
+        if (strlen($text) <= $length) {
+            return $text;
+        }
+
+        if (function_exists('mb_substr')) {
+            $text = mb_substr($text, 0, ($length - 3), 'UTF-8').'...';
+        } else {
+            $text = substr($text, 0, ($length - 3)).'...';
+        }
+
+        return $text;
+    }
 }

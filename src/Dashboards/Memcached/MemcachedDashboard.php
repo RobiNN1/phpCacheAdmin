@@ -49,7 +49,7 @@ class MemcachedDashboard implements DashboardInterface {
 
         $server['port'] ??= 11211;
 
-        $memcache->addServer($server['host'], $server['port']);
+        $memcache->addServer($server['host'], (int) $server['port']);
 
         if (!$memcache->isConnected()) {
             throw new DashboardException(

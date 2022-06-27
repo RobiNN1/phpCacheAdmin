@@ -57,7 +57,7 @@ class RedisDashboard implements DashboardInterface {
         $server['port'] ??= 6379;
 
         try {
-            $redis->connect($server['host'], $server['port']);
+            $redis->connect($server['host'], (int) $server['port']);
         } catch (Exception $e) {
             throw new DashboardException(
                 sprintf('Failed to connect to Redis server (%s:%s). Error: %s', $server['host'], $server['port'], $e->getMessage())

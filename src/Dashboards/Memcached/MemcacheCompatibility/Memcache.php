@@ -25,7 +25,7 @@ class Memcache extends \Memcache implements MemcacheInterface {
      * @return bool
      */
     public function isConnected(): bool {
-        return $this->getServerStatus($this->server['host'], $this->server['port']) !== 0;
+        return $this->getServerStatus($this->server['host'], (int) $this->server['port']) !== 0;
     }
 
     /**
@@ -46,8 +46,10 @@ class Memcache extends \Memcache implements MemcacheInterface {
         $list = [];
 
         foreach (@$this->getExtendedStats('slabs') as $slabs) {
+            $slabs = (array) $slabs;
             unset($slabs['active_slabs'], $slabs['total_malloced']);
-            foreach ((array) $slabs as $slab_id => $slab_meta) {
+
+            foreach ($slabs as $slab_id => $slab_meta) {
                 foreach ($this->getExtendedStats('cachedump', (int) $slab_id) as $entries) {
                     if (!empty($entries)) {
                         foreach ($entries as $name => $data) {

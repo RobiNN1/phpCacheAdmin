@@ -34,7 +34,35 @@ class Admin {
             $config = (array) require __DIR__.'/../config.dist.php';
         }
 
+        self::getEnvConfig($config);
+
         return $key !== null ? $config[$key] : $config;
+    }
+
+    /**
+     * Get config from env.
+     *
+     * All keys must start with PCA_ prefix.
+     * E.g.
+     *     PCA_REDIS_1_HOST = 1 is server id
+     *     PCA_MEMCACHED_0_HOST ...
+     *
+     * @param array $config
+     *
+     * @return void
+     */
+    private static function getEnvConfig(array &$config): void {
+        $vars = preg_grep('/^PCA_/', array_keys(getenv()));
+
+        if (!empty($vars)) {
+            foreach ($vars as $var) {
+                $env_vars = explode('_', $var);
+                array_shift($env_vars);
+                $env_vars = array_map('strtolower', $env_vars);
+
+                $config[$env_vars[0]][$env_vars[1]][$env_vars[2]] = getenv($var);
+            }
+        }
     }
 
     /**

@@ -36,14 +36,15 @@ class Admin {
 
         self::getEnvConfig($config);
 
-        return $key !== null ? $config[$key] : $config;
+        return $config[$key] ?? $config;
     }
 
     /**
-     * Get config from env.
+     * Get config from ENV.
      *
      * All keys must start with PCA_ prefix.
      * E.g.
+     *     PCA_TIMEFORMAT
      *     PCA_REDIS_1_HOST = 1 is server id
      *     PCA_MEMCACHED_0_HOST ...
      *
@@ -56,13 +57,39 @@ class Admin {
 
         if (!empty($vars)) {
             foreach ($vars as $var) {
-                $env_vars = explode('_', $var);
-                array_shift($env_vars);
-                $env_vars = array_map('strtolower', $env_vars);
-
-                $config[$env_vars[0]][$env_vars[1]][$env_vars[2]] = getenv($var);
+                self::arraySet($config, str_replace('PCA_', '', $var), getenv($var));
             }
         }
+    }
+
+    /**
+     * Set an array item.
+     *
+     * @param array  $array
+     * @param string $array_key
+     * @param mixed  $value
+     *
+     * @return void
+     */
+    public static function arraySet(array &$array, string $array_key, $value): void {
+        $keys = explode('_', $array_key);
+        $keys = array_map('strtolower', $keys);
+
+        foreach ($keys as $i => $key) {
+            if (count($keys) === 1) {
+                break;
+            }
+
+            unset($keys[$i]);
+
+            if (!isset($array[$key]) || !is_array($array[$key])) {
+                $array[$key] = [];
+            }
+
+            $array = &$array[$key];
+        }
+
+        $array[array_shift($keys)] = $value;
     }
 
     /**

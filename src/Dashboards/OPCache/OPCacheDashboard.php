@@ -71,8 +71,8 @@ class OPCacheDashboard implements DashboardInterface {
                     'moreinfo' => true,
                     'data'     => [
                         'JIT'          => Admin::enabledDisabledBadge($this->template, isset($status['jit']) && $status['jit']['enabled']),
-                        'Start time'   => date(Admin::getConfig('time_format'), $stats['start_time']),
-                        'Last restart' => $stats['last_restart_time'] === 0 ? 'Never' : date(Admin::getConfig('time_format'), $stats['last_restart_time']),
+                        'Start time'   => date(Admin::getConfig('timeformat'), $stats['start_time']),
+                        'Last restart' => $stats['last_restart_time'] === 0 ? 'Never' : date(Admin::getConfig('timeformat'), $stats['last_restart_time']),
                         'Cache full'   => Admin::enabledDisabledBadge($this->template, $status['cache_full'] === false, null, ['No', 'Yes']),
                     ],
                 ],
@@ -118,8 +118,8 @@ class OPCacheDashboard implements DashboardInterface {
                     'name'           => $name[array_key_last($name)],
                     'hits'           => $script['hits'],
                     'memory'         => Admin::formatSize($script['memory_consumption']),
-                    'last_used'      => date(Admin::getConfig('time_format'), $script['last_used_timestamp']),
-                    'created'        => date(Admin::getConfig('time_format'), $script['timestamp']),
+                    'last_used'      => date(Admin::getConfig('timeformat'), $script['last_used_timestamp']),
+                    'created'        => date(Admin::getConfig('timeformat'), $script['timestamp']),
                     'invalidate_url' => base64_encode($script['full_path']),
                 ];
             }

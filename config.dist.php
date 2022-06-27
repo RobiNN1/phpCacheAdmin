@@ -11,7 +11,7 @@
 declare(strict_types=1);
 
 return [
-    'redis'       => [
+    'redis'      => [
         [
             'name' => 'Localhost', // Optional
             'host' => '127.0.0.1',
@@ -20,13 +20,13 @@ return [
             //'password' => '', // Optional
         ],
     ],
-    'memcached'   => [
+    'memcached'  => [
         [
             'name' => 'Localhost', // Optional
             'host' => '127.0.0.1',
             'port' => 11211, // Optional
         ],
     ],
-    'time_format' => 'd. m. Y H:i:s',
-    'twig_debug'  => false,
+    'timeformat' => 'd. m. Y H:i:s',
+    'twigdebug'  => false,
 ];

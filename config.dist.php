@@ -19,12 +19,6 @@ return [
             //'database' => 0, // Optional
             //'password' => '', // Optional
         ],
-        /*[
-            'name'     => 'Docker',
-            'host'     => '127.0.0.1',
-            'port'     => 49153,
-            'password' => 'redispw',
-        ],*/
     ],
     'memcached'   => [
         [
@@ -32,11 +26,6 @@ return [
             'host' => '127.0.0.1',
             'port' => 11211, // Optional
         ],
-        /*[
-            'name' => 'Docker',
-            'host' => '127.0.0.1',
-            'port' => 49154,
-        ],*/
     ],
     'time_format' => 'd. m. Y H:i:s',
     'twig_debug'  => false,

@@ -28,7 +28,11 @@ class Admin {
      * @return mixed
      */
     public static function getConfig(?string $key = null) {
-        $config = (array) require __DIR__.'/../config.php';
+        if (is_file(__DIR__.'/../config.php')) {
+            $config = (array) require __DIR__.'/../config.php';
+        } else {
+            $config = (array) require __DIR__.'/../config.dist.php';
+        }
 
         return $key !== null ? $config[$key] : $config;
     }

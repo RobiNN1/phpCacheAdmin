@@ -365,20 +365,26 @@ trait RedisTrait {
         $hash_key = '';
         $expire = -1;
 
+        $edit = false;
+
         $this->saveKey($connect);
 
         if (isset($_GET['key']) && $_GET['form'] === 'edit' && $connect->exists($key)) {
             $type = $this->getType($connect->type($key));
             $expire = $connect->ttl($key);
             [$value, $index, $score, $hash_key] = $this->getKeyValue($connect, $type, $key);
+            $edit = true;
         }
 
+        // subkeys
         if (isset($_GET['key']) && $_GET['form'] === 'new' && $connect->exists($key)) {
             $type = $this->getType($connect->type($key));
             $expire = $connect->ttl($key);
+            $edit = true;
         }
 
         return $this->template->render('partials/redis_form', [
+            'edit'     => $edit,
             'key'      => $key,
             'value'    => $value,
             'type'     => $type,

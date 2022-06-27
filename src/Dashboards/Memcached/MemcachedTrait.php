@@ -195,9 +195,11 @@ trait MemcachedTrait {
     private function form($connect): string {
         $key = Admin::get('key');
         $value = '';
+        $edit = false;
 
         if (isset($_GET['key']) && $connect->get($key)) {
             $value = $connect->get($key);
+            $edit = true;
         }
 
         if (isset($_POST['submit'])) {
@@ -210,6 +212,7 @@ trait MemcachedTrait {
         }
 
         return $this->template->render('partials/memcached_form', [
+            'edit'  => $edit,
             'key'   => $key,
             'value' => $value,
         ]);

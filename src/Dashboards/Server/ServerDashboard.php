@@ -43,7 +43,7 @@ class ServerDashboard implements DashboardInterface {
         $disable_functions = explode(',', ini_get('disable_functions'));
 
         return [
-            'panel' => [
+            'panels' => [
                 [
                     'title'    => 'PHP Info',
                     'moreinfo' => true,

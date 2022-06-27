@@ -125,7 +125,7 @@ class RedisDashboard implements DashboardInterface {
         $info['ajax'] = true;
 
         foreach (Admin::getConfig('redis') as $server) {
-            $info['panel'][] = [
+            $info['panels'][] = [
                 'title'            => $server['name'] ?? $server['host'].':'.$server['port'],
                 'server_selection' => true,
                 'current_server'   => $this->current_server,

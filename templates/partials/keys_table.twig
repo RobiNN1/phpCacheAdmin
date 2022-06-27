@@ -20,7 +20,7 @@
             </thead>
             <tbody>
             {% if keys %}
-                {% for id, key in keys %}
+                {% for key in keys %}
                     <tr class="[&:last-child>*]:border-0" data-key="{{ key.key }}">
                         <td class="border-b border-gray-100 px-5 py-2">
                             <input type="checkbox"

@@ -65,7 +65,7 @@ class OPCacheDashboard implements DashboardInterface {
         $memory = $status['memory_usage'];
 
         return [
-            'panel' => [
+            'panels' => [
                 [
                     'title'    => 'Status',
                     'moreinfo' => true,

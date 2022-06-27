@@ -14,10 +14,10 @@
     </button>
 {% endif %}
 
-{% if info.panel %}
+{% if info.panels %}
     <div id="infopanels" style="display: block;">
-        <div class="md:grid {{ cols3 ? 'md:grid-cols-3' : 'md:grid-cols-2' }} md:gap-4">
-            {% for key, panel in info.panel %}
+        <div class="md:grid {{ info.panels|length >= 3 ? 'md:grid-cols-3' : 'md:grid-cols-2' }} md:gap-4">
+            {% for key, panel in info.panels %}
                 <div>{{ include('partials/info_table.twig', {
                         panel_title: panel.title,
                         selection: panel.server_selection,

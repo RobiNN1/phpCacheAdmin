@@ -40,7 +40,11 @@ class ServerDashboard implements DashboardInterface {
      * @return array
      */
     public function info(): array {
-        $disable_functions = explode(',', ini_get('disable_functions'));
+        $xdebug = Admin::enabledDisabledBadge(
+            $this->template,
+            extension_loaded('xdebug'),
+            ' - v'.phpversion('xdebug')
+        );
 
         return [
             'panels' => [
@@ -51,13 +55,8 @@ class ServerDashboard implements DashboardInterface {
                         'PHP Version'          => PHP_VERSION,
                         'PHP Interface'        => PHP_SAPI,
                         'Max Upload File Size' => ini_get('file_uploads') ? ini_get('upload_max_filesize').'B' : 'n/a',
-                        'Disabled functions'   => !empty(ini_get('disable_functions')) ?
-                            ('('.count($disable_functions).') ').implode(', ', $disable_functions) : 'None',
-                        'Xdebug'               => Admin::enabledDisabledBadge(
-                            $this->template,
-                            extension_loaded('xdebug'),
-                            ' - v'.phpversion('xdebug')
-                        ),
+                        'Disabled functions'   => $this->getDisabledFunctions(),
+                        'Xdebug'               => $xdebug,
                     ],
                 ],
                 [

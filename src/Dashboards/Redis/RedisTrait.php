@@ -15,10 +15,25 @@ namespace RobiNN\Pca\Dashboards\Redis;
 use Redis;
 use RobiNN\Pca\Admin;
 use RobiNN\Pca\Dashboards\DashboardException;
+use RobiNN\Pca\Helpers;
+use RobiNN\Pca\Template;
 
 trait RedisTrait {
     use GetValueTrait;
     use RedisFormTrait;
+
+    private Template $template;
+
+    /**
+     * Constructor.
+     *
+     * @param Template $template
+     *
+     * @return void
+     */
+    public function construct(Template $template): void {
+        $this->template = $template;
+    }
 
     /**
      * Get server info for ajax.
@@ -46,8 +61,8 @@ trait RedisTrait {
             $data = [
                 'Version'           => $server_info['redis_version'],
                 'Connected clients' => $server_info['connected_clients'],
-                'Uptime'            => Admin::formatSeconds($server_info['uptime_in_seconds']),
-                'Memory used'       => Admin::formatSize($server_info['used_memory']),
+                'Uptime'            => Helpers::formatSeconds($server_info['uptime_in_seconds']),
+                'Memory used'       => Helpers::formatBytes($server_info['used_memory']),
                 'Keys'              => $all_keys.' (all databases)',
             ];
         } catch (DashboardException $e) {
@@ -68,24 +83,23 @@ trait RedisTrait {
      */
     private function deleteAllKeys(Redis $connect): string {
         if ($connect->flushDB()) {
-            return $this->template->render('components/alert', [
-                'message' => 'All keys from the current database have been removed.',
-            ]);
+            $message = 'All keys from the current database have been removed.';
+        } else {
+            $message = 'An error occurred while deleting all keys.';
         }
 
-        return '';
+        return $this->template->render('components/alert', ['message' => $message]);
     }
 
     /**
-     * Delete selected keys.
+     * Delete key or selected keys.
      *
      * @param Redis $connect
      *
      * @return string
      */
-    private function deleteKeys(Redis $connect): string {
-        $keys = filter_input(INPUT_GET, 'delete', FILTER_UNSAFE_RAW);
-        $keys = explode(',', $keys);
+    private function deleteKey(Redis $connect): string {
+        $keys = explode(',', Admin::get('delete'));
 
         if (count($keys) === 1 && $connect->del($keys[0])) {
             $message = sprintf('Key "%s" has been deleted.', $keys[0]);
@@ -131,7 +145,7 @@ trait RedisTrait {
      */
     private function moreInfo(array $servers): string {
         try {
-            $id = filter_input(INPUT_GET, 'moreinfo');
+            $id = Admin::get('moreinfo', 'int');
             $server_data = $servers[$id];
             $connect = $this->connect($server_data);
 
@@ -142,7 +156,9 @@ trait RedisTrait {
                     Admin::alert($this->template, 'An error occurred while resetting stats.', 'bg-red-500');
                 }
 
-                $reset_link = '<a href="'.Admin::queryString(['moreinfo'], ['reset' => $id]).'" class="text-red-500 hover:text-red-700 font-semibold">Reset stats</a>';
+                $reset_link = '<a href="'.Admin::queryString(['moreinfo'], ['reset' => $id]).'" class="text-red-500 hover:text-red-700 font-semibold">
+                                  Reset stats
+                              </a>';
             }
 
             return $this->template->render('partials/info_table', [
@@ -186,13 +202,13 @@ trait RedisTrait {
     }
 
     /**
-     * Get keys with values.
+     * Get all keys with data.
      *
      * @param Redis $connect
      *
      * @return array
      */
-    private function getKeys(Redis $connect): array {
+    private function getAllKeys(Redis $connect): array {
         $keys = [];
         $filter = Admin::get('s');
         $filter = !empty($filter) ? $filter : '*';
@@ -271,7 +287,7 @@ trait RedisTrait {
      * @return string
      */
     private function mainDashboard(Redis $connect): string {
-        $keys = $this->getKeys($connect);
+        $keys = $this->getAllKeys($connect);
 
         [$pages, $page, $per_page] = Admin::paginate($keys);
 
@@ -295,7 +311,46 @@ trait RedisTrait {
     }
 
     /**
-     * Redis add/edit a form.
+     * View key values.
+     *
+     * @param Redis $connect
+     *
+     * @return string
+     */
+    private function viewKey(Redis $connect): string {
+        $key = Admin::get('key');
+        $type = $this->getType($connect->type($key));
+
+        if (isset($_GET['deletesub'])) {
+            $this->deleteSubKey($connect, $type, $key);
+        }
+
+        $value = $this->getKeyValues($connect, $type, $key);
+
+        $pages = [];
+        $page = 0;
+        $per_page = 15;
+
+        if (is_array($value)) {
+            [$pages, $page, $per_page] = Admin::paginate($value, false);
+        }
+
+        return $this->template->render('partials/view_key', [
+            'value'        => $value,
+            'type'         => $type,
+            'ttl'          => $connect->ttl($key),
+            'edit_url'     => Admin::queryString(['db'], ['form' => 'edit', 'key' => $key]),
+            'delete_url'   => Admin::queryString(['db', 'view', 'p'], ['deletesub' => 'key', 'key' => $key]),
+            'add_subkey'   => Admin::queryString(['db'], ['form' => 'new', 'key' => $key]),
+            'current_page' => $page,
+            'paginate'     => $pages,
+            'paginate_url' => Admin::queryString(['db', 'view', 'key', 'pp'], ['p' => '']),
+            'per_page'     => $per_page,
+        ]);
+    }
+
+    /**
+     * Add/edit a form.
      *
      * @param Redis $connect
      *

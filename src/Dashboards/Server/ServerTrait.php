@@ -26,4 +26,22 @@ trait ServerTrait {
 
         return '<div id="phpinfo">'.$phpinfo.'</div>';
     }
+
+    /**
+     * Get disabled functions.
+     *
+     * @return string
+     */
+    private function getDisabledFunctions(): string {
+        $disabled_functions = 'None';
+
+        if (!empty(ini_get('disable_functions'))) {
+            $disable_functions = explode(',', ini_get('disable_functions'));
+
+            $disabled_functions = '('.count($disable_functions).') ';
+            $disabled_functions .= implode(', ', $disable_functions);
+        }
+
+        return $disabled_functions;
+    }
 }

@@ -14,6 +14,7 @@ namespace RobiNN\Pca\Dashboards\OPCache;
 
 use RobiNN\Pca\Admin;
 use RobiNN\Pca\Dashboards\DashboardInterface;
+use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Template;
 
 class OPCacheDashboard implements DashboardInterface {
@@ -40,15 +41,7 @@ class OPCacheDashboard implements DashboardInterface {
         }
 
         if (isset($_GET['delete'])) {
-            $file = base64_decode(Admin::get('delete'));
-
-            if (opcache_invalidate($file, true)) {
-                $name = explode(DIRECTORY_SEPARATOR, $file);
-
-                $return = $this->template->render('components/alert', [
-                    'message' => sprintf('File "%s" was invalidated.', $name[array_key_last($name)]),
-                ]);
-            }
+            $return = $this->deleteScript();
         }
 
         return $return;
@@ -79,9 +72,9 @@ class OPCacheDashboard implements DashboardInterface {
                 [
                     'title' => 'Memory',
                     'data'  => [
-                        'Used'           => Admin::formatSize($memory['used_memory']),
-                        'Free'           => Admin::formatSize($memory['free_memory']),
-                        'Wasted'         => Admin::formatSize($memory['wasted_memory']),
+                        'Used'           => Helpers::formatBytes($memory['used_memory']),
+                        'Free'           => Helpers::formatBytes($memory['free_memory']),
+                        'Wasted'         => Helpers::formatBytes($memory['wasted_memory']),
                         'Current wasted' => round($memory['current_wasted_percentage'], 5).'%',
                     ],
                 ],
@@ -109,34 +102,7 @@ class OPCacheDashboard implements DashboardInterface {
         if (isset($_GET['moreinfo'])) {
             $return = $this->moreInfo($status);
         } else {
-            $cached_scripts = [];
-            foreach ($status['scripts'] as $script) {
-                $name = explode(DIRECTORY_SEPARATOR, $script['full_path']);
-
-                $cached_scripts[] = [
-                    'path'           => $script['full_path'],
-                    'name'           => $name[array_key_last($name)],
-                    'hits'           => $script['hits'],
-                    'memory'         => Admin::formatSize($script['memory_consumption']),
-                    'last_used'      => date(Admin::getConfig('timeformat'), $script['last_used_timestamp']),
-                    'created'        => date(Admin::getConfig('timeformat'), $script['timestamp']),
-                    'invalidate_url' => base64_encode($script['full_path']),
-                ];
-            }
-
-            [$pages, $page, $per_page] = Admin::paginate($cached_scripts, false, 50);
-
-            $return = $this->template->render('dashboards/opcache', [
-                'show_info'         => !isset($_GET['moreinfo']),
-                'title'             => 'OPCache',
-                'extension_version' => phpversion('Zend OPcache'),
-                'info'              => $this->info(),
-                'cached_scripts'    => $cached_scripts,
-                'current_page'      => $page,
-                'paginate'          => $pages,
-                'paginate_url'      => Admin::queryString(['pp'], ['p' => '']),
-                'per_page'          => $per_page,
-            ]);
+            $return = $this->mainDashboard($status);
         }
 
         return $return;

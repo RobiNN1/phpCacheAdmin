@@ -13,8 +13,28 @@ declare(strict_types=1);
 namespace RobiNN\Pca\Dashboards\OPCache;
 
 use RobiNN\Pca\Admin;
+use RobiNN\Pca\Helpers;
 
 trait OPCacheTrait {
+    /**
+     * Delete script.
+     *
+     * @return string
+     */
+    private function deleteScript(): string {
+        $file = base64_decode(Admin::get('delete'));
+
+        if (opcache_invalidate($file, true)) {
+            $name = explode(DIRECTORY_SEPARATOR, $file);
+
+            $message = sprintf('File "%s" was invalidated.', $name[array_key_last($name)]);
+        } else {
+            $message = 'An error occurred while invalidating the script.';
+        }
+
+        return $this->template->render('components/alert', ['message' => $message]);
+    }
+
     /**
      * Show more info.
      *
@@ -27,7 +47,59 @@ trait OPCacheTrait {
 
         return $this->template->render('partials/info_table', [
             'panel_title' => 'OPCache Info',
-            'array'       => Admin::convertBoolToString($status),
+            'array'       => Helpers::convertBoolToString($status),
+        ]);
+    }
+
+    /**
+     * Get cached scripts.
+     *
+     * @param array $status
+     *
+     * @return array
+     */
+    private function getCachedScripts(array $status): array {
+        static $cached_scripts = [];
+
+        foreach ($status['scripts'] as $script) {
+            $name = explode(DIRECTORY_SEPARATOR, $script['full_path']);
+
+            $cached_scripts[] = [
+                'path'           => $script['full_path'],
+                'name'           => $name[array_key_last($name)],
+                'hits'           => $script['hits'],
+                'memory'         => Helpers::formatBytes($script['memory_consumption']),
+                'last_used'      => date(Admin::getConfig('timeformat'), $script['last_used_timestamp']),
+                'created'        => date(Admin::getConfig('timeformat'), $script['timestamp']),
+                'invalidate_url' => base64_encode($script['full_path']),
+            ];
+        }
+
+        return $cached_scripts;
+    }
+
+    /**
+     * Main dashboard content.
+     *
+     * @param array $status
+     *
+     * @return string
+     */
+    private function mainDashboard(array $status): string {
+        $cached_scripts = $this->getCachedScripts($status);
+
+        [$pages, $page, $per_page] = Admin::paginate($cached_scripts, false, 50);
+
+        return $this->template->render('dashboards/opcache', [
+            'show_info'         => !isset($_GET['moreinfo']),
+            'title'             => 'OPCache',
+            'extension_version' => phpversion('Zend OPcache'),
+            'info'              => $this->info(),
+            'cached_scripts'    => $cached_scripts,
+            'current_page'      => $page,
+            'paginate'          => $pages,
+            'paginate_url'      => Admin::queryString(['pp'], ['p' => '']),
+            'per_page'          => $per_page,
         ]);
     }
 }

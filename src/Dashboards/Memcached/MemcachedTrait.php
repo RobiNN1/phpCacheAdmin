@@ -16,6 +16,7 @@ use RobiNN\Pca\Admin;
 use RobiNN\Pca\Dashboards\DashboardException;
 use RobiNN\Pca\Dashboards\Memcached\MemcacheCompatibility\Memcache;
 use RobiNN\Pca\Dashboards\Memcached\MemcacheCompatibility\Memcached;
+use RobiNN\Pca\Helpers;
 
 trait MemcachedTrait {
     /**
@@ -35,9 +36,9 @@ trait MemcachedTrait {
                 $data = [
                     'Version'          => $server_info['version'],
                     'Open connections' => $server_info['curr_connections'],
-                    'Uptime'           => Admin::formatSeconds((int) $server_info['uptime']),
-                    'Cache limit'      => Admin::formatSize((int) $server_info['limit_maxbytes']),
-                    'Used'             => Admin::formatSize((int) $server_info['bytes']),
+                    'Uptime'           => Helpers::formatSeconds((int) $server_info['uptime']),
+                    'Cache limit'      => Helpers::formatBytes((int) $server_info['limit_maxbytes']),
+                    'Used'             => Helpers::formatBytes((int) $server_info['bytes']),
                     'Keys'             => count($connect->getKeys()),
                 ];
             } else {
@@ -63,24 +64,23 @@ trait MemcachedTrait {
      */
     private function deleteAllKeys($connect): string {
         if ($connect->flush()) {
-            return $this->template->render('components/alert', [
-                'message' => 'All keys have been removed.',
-            ]);
+            $message = 'All keys have been removed.';
+        } else {
+            $message = 'An error occurred while deleting all keys.';
         }
 
-        return '';
+        return $this->template->render('components/alert', ['message' => $message]);
     }
 
     /**
-     * Delete selected keys.
+     * Delete key or selected keys.
      *
      * @param Memcache|Memcached $connect
      *
      * @return string
      */
-    private function deleteKeys($connect): string {
-        $keys = filter_input(INPUT_GET, 'delete', FILTER_UNSAFE_RAW);
-        $keys = explode(',', $keys);
+    private function deleteKey($connect): string {
+        $keys = explode(',', Admin::get('delete'));
 
         if (count($keys) === 1) {
             $connect->delete($keys[0]);
@@ -104,7 +104,7 @@ trait MemcachedTrait {
      */
     private function moreInfo(array $servers): string {
         try {
-            $id = filter_input(INPUT_GET, 'moreinfo');
+            $id = Admin::get('moreinfo', 'int');
             $server_data = $servers[$id];
 
             return $this->template->render('partials/info_table', [
@@ -117,13 +117,13 @@ trait MemcachedTrait {
     }
 
     /**
-     * Get keys with values.
+     * Get all keys with data.
      *
      * @param Memcache|Memcached $connect
      *
      * @return array
      */
-    private function getKeys($connect): array {
+    private function getAllKeys($connect): array {
         $keys = [];
 
         foreach ($connect->getKeys() as $key) {
@@ -144,8 +144,8 @@ trait MemcachedTrait {
      * @return string
      */
     private function mainDashboard($connect): string {
-        $all_keys = $this->getKeys($connect);
-        $keys = $all_keys;
+        $all_keys = $this->getAllKeys($connect);
+        $keys = $all_keys; // variable for paginated data
 
         [$pages, $page, $per_page] = Admin::paginate($keys);
 
@@ -169,7 +169,24 @@ trait MemcachedTrait {
     }
 
     /**
-     * Memcached add/edit a form.
+     * View key value.
+     *
+     * @param Memcache|Memcached $connect
+     *
+     * @return string
+     */
+    private function viewKey($connect): string {
+        $key = Admin::get('key');
+
+        return $this->template->render('partials/view_key', [
+            'value'    => $connect->get($key),
+            'type'     => 'string',
+            'edit_url' => Admin::queryString(['db'], ['form' => 'edit', 'key' => $key]),
+        ]);
+    }
+
+    /**
+     * Add/edit form.
      *
      * @param Memcache|Memcached $connect
      *

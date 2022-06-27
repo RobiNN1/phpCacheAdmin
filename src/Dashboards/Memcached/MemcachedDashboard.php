@@ -15,6 +15,7 @@ namespace RobiNN\Pca\Dashboards\Memcached;
 use RobiNN\Pca\Admin;
 use RobiNN\Pca\Dashboards\DashboardException;
 use RobiNN\Pca\Dashboards\DashboardInterface;
+use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Template;
 
 class MemcachedDashboard implements DashboardInterface {
@@ -70,7 +71,7 @@ class MemcachedDashboard implements DashboardInterface {
         $servers = Admin::getConfig('memcached');
 
         if (isset($_GET['panel'])) {
-            $return = Admin::returnJson($this->serverInfo($servers));
+            $return = Helpers::returnJson($this->serverInfo($servers));
         } else {
             try {
                 $connect = $this->connect($servers[$this->current_server]);
@@ -80,7 +81,7 @@ class MemcachedDashboard implements DashboardInterface {
                 }
 
                 if (isset($_GET['delete'])) {
-                    $return = $this->deleteKeys($connect);
+                    $return = $this->deleteKey($connect);
                 }
             } catch (DashboardException $e) {
                 $return = $e->getMessage();
@@ -126,13 +127,7 @@ class MemcachedDashboard implements DashboardInterface {
                 $connect = $this->connect($servers[$this->current_server]);
 
                 if (isset($_GET['view']) && !empty($_GET['key'])) {
-                    $key = Admin::get('key');
-
-                    $return = $this->template->render('partials/view_key', [
-                        'value'    => $connect->get($key),
-                        'type'     => 'string',
-                        'edit_url' => Admin::queryString(['db'], ['form' => 'edit', 'key' => $key]),
-                    ]);
+                    $return = $this->viewKey($connect);
                 } elseif (isset($_GET['form'])) {
                     $return = $this->form($connect);
                 } else {

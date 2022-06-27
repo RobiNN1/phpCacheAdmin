@@ -57,10 +57,10 @@ class Template {
                 $twig->addExtension(new DebugExtension());
             }
 
-            $twig->addFunction(new TwigFunction('svg', [Admin::class, 'svg'], ['is_safe' => ['html']]));
-            $twig->addFunction(new TwigFunction('truncate', [Admin::class, 'truncate']));
+            $twig->addFunction(new TwigFunction('svg', [Helpers::class, 'svg'], ['is_safe' => ['html']]));
+            $twig->addFunction(new TwigFunction('truncate', [Helpers::class, 'truncate']));
 
-            $twig->addFilter(new TwigFilter('format_seconds', [Admin::class, 'formatSeconds']));
+            $twig->addFilter(new TwigFilter('format_seconds', [Helpers::class, 'formatSeconds']));
 
             foreach ($this->tpl_globals as $name => $value) {
                 $twig->addGlobal($name, $value);

@@ -17,23 +17,23 @@ use Redis;
 use RobiNN\Pca\Admin;
 use RobiNN\Pca\Dashboards\DashboardException;
 use RobiNN\Pca\Dashboards\DashboardInterface;
+use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Template;
 
 class RedisDashboard implements DashboardInterface {
     use RedisTrait;
-
-    private Template $template;
 
     private int $current_server;
 
     private int $current_db;
 
     public function __construct(Template $template) {
-        $this->template = $template;
+        $this->construct($template); // for RedisTrait
 
         $this->current_server = Admin::get('server', 'int');
 
         $server = Admin::getConfig('redis')[$this->current_server];
+
         $db = !empty($server['database']) ? $server['database'] : null;
         $db_get = Admin::get('db', 'int');
         $this->current_db = $db ?? $db_get;
@@ -95,7 +95,7 @@ class RedisDashboard implements DashboardInterface {
         $servers = Admin::getConfig('redis');
 
         if (isset($_GET['panel'])) {
-            $return = Admin::returnJson($this->serverInfo($servers));
+            $return = Helpers::returnJson($this->serverInfo($servers));
         } else {
             try {
                 $connect = $this->connect($servers[$this->current_server]);
@@ -105,7 +105,7 @@ class RedisDashboard implements DashboardInterface {
                 }
 
                 if (isset($_GET['delete'])) {
-                    $return = $this->deleteKeys($connect);
+                    $return = $this->deleteKey($connect);
                 }
             } catch (DashboardException $e) {
                 $return = $e->getMessage();
@@ -151,35 +151,7 @@ class RedisDashboard implements DashboardInterface {
                 $connect = $this->connect($servers[$this->current_server]);
 
                 if (isset($_GET['view']) && !empty($_GET['key'])) {
-                    $key = Admin::get('key');
-                    $type = $this->getType($connect->type($key));
-
-                    if (isset($_GET['deletesub'])) {
-                        $this->deleteSubKey($connect, $type, $key);
-                    }
-
-                    $value = $this->getKeyValues($connect, $type, $key);
-
-                    $pages = [];
-                    $page = 0;
-                    $per_page = 15;
-
-                    if (is_array($value)) {
-                        [$pages, $page, $per_page] = Admin::paginate($value, false);
-                    }
-
-                    $return = $this->template->render('partials/view_key', [
-                        'value'        => $value,
-                        'type'         => $type,
-                        'ttl'          => $connect->ttl($key),
-                        'edit_url'     => Admin::queryString(['db'], ['form' => 'edit', 'key' => $key]),
-                        'delete_url'   => Admin::queryString(['db', 'view', 'p'], ['deletesub' => 'key', 'key' => $key]),
-                        'add_subkey'   => Admin::queryString(['db'], ['form' => 'new', 'key' => $key]),
-                        'current_page' => $page,
-                        'paginate'     => $pages,
-                        'paginate_url' => Admin::queryString(['db', 'view', 'key', 'pp'], ['p' => '']),
-                        'per_page'     => $per_page,
-                    ]);
+                    $return = $this->viewKey($connect);
                 } elseif (isset($_GET['form'])) {
                     $return = $this->form($connect);
                 } else {

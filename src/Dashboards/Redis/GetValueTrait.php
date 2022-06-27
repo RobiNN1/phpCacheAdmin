@@ -71,7 +71,7 @@ trait GetValueTrait {
     }
 
     /**
-     * Return correct value(s).
+     * Get all values.
      *
      * @param Redis  $connect
      * @param string $type

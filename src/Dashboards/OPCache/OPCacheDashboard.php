@@ -27,6 +27,28 @@ class OPCacheDashboard implements DashboardInterface {
     }
 
     /**
+     * Check if extension is installed.
+     *
+     * @return bool
+     */
+    public function check(): bool {
+        return extension_loaded('Zend OPcache');
+    }
+
+    /**
+     * Get dashboard info.
+     *
+     * @return array
+     */
+    public function getDashboardInfo(): array {
+        return [
+            'key'   => 'opcache',
+            'title' => 'OPCache',
+            'color' => 'sky',
+        ];
+    }
+
+    /**
      * Ajax content.
      *
      * @return string

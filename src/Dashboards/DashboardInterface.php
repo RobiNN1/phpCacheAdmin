@@ -14,6 +14,20 @@ namespace RobiNN\Pca\Dashboards;
 
 interface DashboardInterface {
     /**
+     * Check if extension is installed.
+     *
+     * @return bool
+     */
+    public function check(): bool;
+
+    /**
+     * Get dashboard info.
+     *
+     * @return array
+     */
+    public function getDashboardInfo(): array;
+
+    /**
      * Ajax content.
      *
      * @return string

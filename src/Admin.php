@@ -19,6 +19,11 @@ class Admin {
     public const VERSION = '1.0.0';
 
     /**
+     * @var array
+     */
+    private array $dashboards = [];
+
+    /**
      * Get config.
      *
      * @param ?string $key
@@ -60,30 +65,35 @@ class Admin {
     }
 
     /**
-     * Check if Redis is installed.
+     * Get all dashboards.
      *
-     * @return bool
+     * @return array
      */
-    public static function checkRedis(): bool {
-        return extension_loaded('redis');
+    public function getDashboards(): array {
+        return $this->dashboards;
     }
 
     /**
-     * Check if Memcached is installed.
+     * Get dashboard object.
      *
-     * @return bool
+     * @param string $dashboard
+     *
+     * @return object
      */
-    public static function checkMemcached(): bool {
-        return extension_loaded('memcache') || extension_loaded('memcached');
+    public function getDashboard(string $dashboard): object {
+        return $this->dashboards[$dashboard];
     }
 
     /**
-     * Check if OpCache is installed.
+     * Set dashboard obejct.
      *
-     * @return bool
+     * @param object $dashboard
+     *
+     * @return void
      */
-    public static function checkOpCache(): bool {
-        return extension_loaded('Zend OPcache');
+    public function setDashboard(object $dashboard): void {
+        $info = $dashboard->getDashboardInfo();
+        $this->dashboards[$info['key']] = $dashboard;
     }
 
     /**
@@ -91,26 +101,10 @@ class Admin {
      *
      * @return string
      */
-    public static function currentDashboard(): string {
+    public function currentDashboard(): string {
         $current = self::get('type');
 
-        $dashboards = [];
-
-        $dashboards[] = 'server';
-
-        if (self::checkRedis()) {
-            $dashboards[] = 'redis';
-        }
-
-        if (self::checkMemcached()) {
-            $dashboards[] = 'memcached';
-        }
-
-        if (self::checkOpCache()) {
-            $dashboards[] = 'opcache';
-        }
-
-        return !empty($current) && in_array($current, $dashboards, true) ? $current : 'server';
+        return !empty($current) && array_key_exists($current, $this->dashboards) ? $current : 'server';
     }
 
     /**

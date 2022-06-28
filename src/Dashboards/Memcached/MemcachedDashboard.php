@@ -32,6 +32,28 @@ class MemcachedDashboard implements DashboardInterface {
     }
 
     /**
+     * Check if extension is installed.
+     *
+     * @return bool
+     */
+    public function check(): bool {
+        return extension_loaded('memcache') || extension_loaded('memcached');
+    }
+
+    /**
+     * Get dashboard info.
+     *
+     * @return array
+     */
+    public function getDashboardInfo(): array {
+        return [
+            'key'   => 'memcached',
+            'title' => 'Memcache(d)',
+            'color' => 'emerald',
+        ];
+    }
+
+    /**
      * Connect to the server.
      *
      * @param array $server
@@ -118,7 +140,7 @@ class MemcachedDashboard implements DashboardInterface {
      * @return string
      */
     public function showPanels(): string {
-        if (isset($_GET['moreinfo']) || isset($_GET['form']) || isset($_GET['view'])) {
+        if (isset($_GET['moreinfo']) || isset($_GET['form']) || isset($_GET['view'], $_GET['key'])) {
             return '';
         }
 

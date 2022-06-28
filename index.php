@@ -18,51 +18,33 @@ use RobiNN\Pca\Template;
 
 require_once __DIR__.'/vendor/autoload.php';
 
+$admin = new Admin();
 $tpl = new Template();
 
-switch (Admin::currentDashboard()) {
-    case 'redis':
-        $color = 'red';
-        $dashboard = new RedisDashboard($tpl);
-        break;
-    case 'memcached':
-        $color = 'emerald';
-        $dashboard = new MemcachedDashboard($tpl);
-        break;
-    case 'opcache':
-        $color = 'sky';
-        $dashboard = new OPCacheDashboard($tpl);
-        break;
-    default:
-        $color = 'slate';
-        $dashboard = new ServerDashboard($tpl);
-        break;
-}
+$admin->setDashboard(new ServerDashboard($tpl));
+$admin->setDashboard(new RedisDashboard($tpl));
+$admin->setDashboard(new MemcachedDashboard($tpl));
+$admin->setDashboard(new OPCacheDashboard($tpl));
 
-$tpl->addTplGlobal('current', Admin::currentDashboard());
-$tpl->addTplGlobal('color', $color);
+$current = $admin->currentDashboard();
+$dashboard = $admin->getDashboard($current);
+$info = $dashboard->getDashboardInfo();
+
+$tpl->addTplGlobal('current', $current);
+$tpl->addTplGlobal('color', $info['color']);
 
 if (isset($_GET['ajax'])) {
     echo $dashboard->ajax();
 } else {
     $nav = [];
 
-    $nav['server'] = 'Server';
-
-    if (Admin::checkRedis()) {
-        $nav['redis'] = 'Redis';
-    }
-
-    if (Admin::checkMemcached()) {
-        $nav['memcached'] = 'Memcache(d)';
-    }
-
-    if (Admin::checkOpCache()) {
-        $nav['opcache'] = 'OPCache';
+    foreach ($admin->getDashboards() as $n_key => $n_dashboard) {
+        $n_info = $n_dashboard->getDashboardInfo();
+        $nav[$n_key] = $n_info['title'];
     }
 
     echo $tpl->render('layout', [
-        'site_title' => $nav[Admin::currentDashboard()],
+        'site_title' => $info['title'],
         'nav'        => $nav,
         'version'    => Admin::VERSION,
         'back'       => isset($_GET['moreinfo']) || isset($_GET['view']) || isset($_GET['form']),

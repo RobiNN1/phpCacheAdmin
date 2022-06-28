@@ -40,6 +40,28 @@ class RedisDashboard implements DashboardInterface {
     }
 
     /**
+     * Check if extension is installed.
+     *
+     * @return bool
+     */
+    public function check(): bool {
+        return extension_loaded('redis');
+    }
+
+    /**
+     * Get dashboard info.
+     *
+     * @return array
+     */
+    public function getDashboardInfo(): array {
+        return [
+            'key'   => 'redis',
+            'title' => 'Redis',
+            'color' => 'red',
+        ];
+    }
+
+    /**
      * Connect to the server.
      *
      * @param array $server
@@ -142,7 +164,7 @@ class RedisDashboard implements DashboardInterface {
      * @return string
      */
     public function showPanels(): string {
-        if (isset($_GET['moreinfo']) || isset($_GET['form']) || isset($_GET['view'])) {
+        if (isset($_GET['moreinfo']) || isset($_GET['form']) || isset($_GET['view'], $_GET['key'])) {
             return '';
         }
 

@@ -26,6 +26,28 @@ class ServerDashboard implements DashboardInterface {
     }
 
     /**
+     * Check if extension is installed.
+     *
+     * @return bool
+     */
+    public function check(): bool {
+        return true;
+    }
+
+    /**
+     * Get dashboard info.
+     *
+     * @return array
+     */
+    public function getDashboardInfo(): array {
+        return [
+            'key'   => 'server',
+            'title' => 'Server',
+            'color' => 'slate',
+        ];
+    }
+
+    /**
      * Ajax content.
      *
      * @return string

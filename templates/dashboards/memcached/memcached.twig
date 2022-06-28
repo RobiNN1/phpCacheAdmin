@@ -1,8 +1,8 @@
 {% if all_keys|length != 0 %}
     {{ include('components/alert.twig', {
-        message: svg('info') ~ 'Due to the limitations of the memcache(d) PHP extension, it is not possible to return all keys seamlessly.',
+        message: svg('info') ~ 'Due to the limitations of the Memcache(d) PHP extension, it is not possible to return all keys seamlessly.',
         hide_close: true,
-        alert_color: 'bg-emerald-500'
+        alert_color: 'bg-emerald-500',
     }) }}
 {% endif %}
 

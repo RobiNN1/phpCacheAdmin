@@ -1,3 +1,9 @@
+{{ include('components/alert.twig', {
+    message: 'After save, refresh again page. Because Memcache(d)...',
+    hide_close: true,
+    alert_color: 'bg-emerald-500',
+}) }}
+
 <form method="post">
     {{ include('components/input.twig', {
         id: 'key',

@@ -60,6 +60,8 @@
         {{ svg('open') }} Add another value
     </a>
 {% else %}
-    <a href="{{ edit_url }}" class="text-{{ color }}-500 hover:text-{{ color }}-700 font-semibold">Edit</a>
+    <a href="{{ edit_url }}" class="text-gray-500 hover:text-gray-700 font-semibold mr-3 inline-block mb-3">
+        {{ svg('edit', 13) }} Edit
+    </a>
     <div class="bg-white shadow-lg p-5 rounded">{{ value }}</div>
 {% endif %}

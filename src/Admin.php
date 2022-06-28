@@ -103,8 +103,14 @@ class Admin {
      */
     public function currentDashboard(): string {
         $current = self::get('type');
+        $is_installed = false;
 
-        return !empty($current) && array_key_exists($current, $this->dashboards) ? $current : 'server';
+        if (array_key_exists($current, $this->getDashboards())) {
+            $dashboard = $this->getDashboard($current);
+            $is_installed = $dashboard->check();
+        }
+
+        return !empty($current) && $is_installed ? $current : 'server';
     }
 
     /**

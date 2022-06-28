@@ -39,8 +39,10 @@ if (isset($_GET['ajax'])) {
     $nav = [];
 
     foreach ($admin->getDashboards() as $n_key => $n_dashboard) {
-        $n_info = $n_dashboard->getDashboardInfo();
-        $nav[$n_key] = $n_info['title'];
+        if ($n_dashboard->check()) {
+            $n_info = $n_dashboard->getDashboardInfo();
+            $nav[$n_key] = $n_info['title'];
+        }
     }
 
     echo $tpl->render('layout', [

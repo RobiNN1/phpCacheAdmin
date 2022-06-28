@@ -36,7 +36,7 @@ trait MemcachedTrait {
                 $data = [
                     'Version'          => $server_info['version'],
                     'Open connections' => $server_info['curr_connections'],
-                    'Uptime'           => Helpers::formatSeconds((int) $server_info['uptime']),
+                    'Uptime'           => Helpers::formatSeconds((int) $server_info['uptime'], false, true),
                     'Cache limit'      => Helpers::formatBytes((int) $server_info['limit_maxbytes']),
                     'Used'             => Helpers::formatBytes((int) $server_info['bytes']),
                     'Keys'             => count($connect->getKeys()),
@@ -144,14 +144,15 @@ trait MemcachedTrait {
      * @return string
      */
     private function mainDashboard($connect): string {
-        $all_keys = $this->getAllKeys($connect);
-        $keys = $all_keys; // variable for paginated data
+        $keys = $this->getAllKeys($connect);
+        $all_keys = count($keys);
 
         [$pages, $page, $per_page] = Admin::paginate($keys);
 
         return $this->template->render('dashboards/memcached/memcached', [
             'keys'         => $keys,
             'all_keys'     => $all_keys,
+            'first_key'    => array_key_first($keys),
             'current_page' => $page,
             'paginate'     => $pages,
             'paginate_url' => Admin::queryString(['pp'], ['p' => '']),

@@ -3,7 +3,7 @@
     {{ svg('open') }} Add new key
 </a>
 
-{% if all_keys|length != 0 %}
+{% if all_keys != 0 %}
     <button type="button" id="delete_all"
             class="text-sm py-1.5 px-3 text-white bg-red-500 hover:bg-red-600 focus:ring-4 focus:ring-red-300 font-semibold rounded inline-flex items-center gap-1 [&>svg]:align-middle">
         {{ svg('trash') }} Delete all keys

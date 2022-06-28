@@ -61,18 +61,20 @@ trait OPCacheTrait {
     private function getCachedScripts(array $status): array {
         static $cached_scripts = [];
 
-        foreach ($status['scripts'] as $script) {
-            $name = explode(DIRECTORY_SEPARATOR, $script['full_path']);
+        if (isset($status['scripts'])) {
+            foreach ($status['scripts'] as $script) {
+                $name = explode(DIRECTORY_SEPARATOR, $script['full_path']);
 
-            $cached_scripts[] = [
-                'path'           => $script['full_path'],
-                'name'           => $name[array_key_last($name)],
-                'hits'           => $script['hits'],
-                'memory'         => Helpers::formatBytes($script['memory_consumption']),
-                'last_used'      => date(Admin::getConfig('timeformat'), $script['last_used_timestamp']),
-                'created'        => date(Admin::getConfig('timeformat'), $script['timestamp']),
-                'invalidate_url' => base64_encode($script['full_path']),
-            ];
+                $cached_scripts[] = [
+                    'path'           => $script['full_path'],
+                    'name'           => $name[array_key_last($name)],
+                    'hits'           => $script['hits'],
+                    'memory'         => Helpers::formatBytes($script['memory_consumption']),
+                    'last_used'      => date(Admin::getConfig('timeformat'), $script['last_used_timestamp']),
+                    'created'        => date(Admin::getConfig('timeformat'), $script['timestamp']),
+                    'invalidate_url' => base64_encode($script['full_path']),
+                ];
+            }
         }
 
         return $cached_scripts;
@@ -87,11 +89,14 @@ trait OPCacheTrait {
      */
     private function mainDashboard(array $status): string {
         $cached_scripts = $this->getCachedScripts($status);
+        $all_scripts = count($cached_scripts);
 
         [$pages, $page, $per_page] = Admin::paginate($cached_scripts, false, 50);
 
         return $this->template->render('dashboards/opcache', [
             'cached_scripts' => $cached_scripts,
+            'all_scripts'    => $all_scripts,
+            'first_script'   => array_key_first($cached_scripts),
             'current_page'   => $page,
             'paginate'       => $pages,
             'paginate_url'   => Admin::queryString(['pp'], ['p' => '']),

@@ -61,7 +61,7 @@ trait RedisTrait {
             $data = [
                 'Version'           => $server_info['redis_version'],
                 'Connected clients' => $server_info['connected_clients'],
-                'Uptime'            => Helpers::formatSeconds($server_info['uptime_in_seconds']),
+                'Uptime'            => Helpers::formatSeconds($server_info['uptime_in_seconds'], false, true),
                 'Memory used'       => Helpers::formatBytes($server_info['used_memory']),
                 'Keys'              => $all_keys.' (all databases)',
             ];
@@ -296,6 +296,7 @@ trait RedisTrait {
             'current_db'   => $this->current_db,
             'keys'         => $keys,
             'all_keys'     => $connect->dbSize(),
+            'first_key'    => array_key_first($keys),
             'current_page' => $page,
             'paginate'     => $pages,
             'paginate_url' => Admin::queryString(['db', 's', 'pp'], ['p' => '']),
@@ -326,9 +327,11 @@ trait RedisTrait {
         $pages = [];
         $page = 0;
         $per_page = 15;
+        $first_key = 0;
 
         if (is_array($value)) {
             [$pages, $page, $per_page] = Admin::paginate($value, false);
+            $first_key = array_key_first($value);
         }
 
         return $this->template->render('partials/view_key', [
@@ -338,6 +341,7 @@ trait RedisTrait {
             'edit_url'     => Admin::queryString(['db'], ['form' => 'edit', 'key' => $key]),
             'delete_url'   => Admin::queryString(['db', 'view', 'p'], ['deletesub' => 'key', 'key' => $key]),
             'add_subkey'   => Admin::queryString(['db'], ['form' => 'new', 'key' => $key]),
+            'first_key'    => $first_key,
             'current_page' => $page,
             'paginate'     => $pages,
             'paginate_url' => Admin::queryString(['db', 'view', 'key', 'pp'], ['p' => '']),

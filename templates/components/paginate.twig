@@ -1,20 +1,32 @@
-{% if paginate and paginate|length > 1 %}
-    <div class="w-full overflow-y-hidden overflow-x-auto py-2">
-        <ul class="inline-flex">
-            {% for page in paginate %}
-                {% if page == current_page %}
-                    {% set class = 'text-white bg-' ~ color ~ '-500 border-' ~ color ~ '-300 hover:bg-' ~ color ~ '-600' %}
-                {% else %}
-                    {% set class = 'text-gray-500 bg-white border-gray-300 hover:bg-gray-100 hover:text-gray-700' %}
-                {% endif %}
-
-                {% set first = loop.first ? ' rounded-l' : '' %}
-                {% set last = loop.last ? ' rounded-r' : '' %}
-
-                <li>
-                    <a href="{{ paginate_url ~ page }}" class="py-1.5 px-3 border {{ class }}{{ first ~ last }}">{{ page }}</a>
-                </li>
-            {% endfor %}
-        </ul>
+<div class="md:grid md:grid-cols-3 mt-5">
+    <div class="flex items-center">
+        <span class="font-semibold">
+            Showing {{ first|number_format + 1 }} to {{ paginate|last == current_page ? total_items : per_page * current_page }} of {{ total_items }} items
+        </span>
     </div>
-{% endif %}
+    <div class="flex items-center md:justify-center gap-2 mb-3 md:mb-0">
+        {% set options = options is not defined ? {15: 15, 25: 25, 50: 50, 100: 100, 200: 200} : options %}
+        {{ include('components/select.twig', {id: 'per_page', options, selected: per_page, sm: true, class: 'w-16'}) }}
+        <label class="font-semibold -mt-1.5" for="per_page">per page</label>
+    </div>
+    <div class="flex items-center md:justify-end">
+        {% if paginate and paginate|length > 1 %}
+            <ul class="inline-flex">
+                {% for page in paginate %}
+                    {% if page == current_page %}
+                        {% set class = 'text-white bg-' ~ color ~ '-500 border-' ~ color ~ '-300 hover:bg-' ~ color ~ '-600' %}
+                    {% else %}
+                        {% set class = 'text-gray-500 bg-white border-gray-300 hover:bg-gray-100 hover:text-gray-700' %}
+                    {% endif %}
+
+                    {% set first = loop.first ? ' rounded-l' : '' %}
+                    {% set last = loop.last ? ' rounded-r' : '' %}
+
+                    <li>
+                        <a href="{{ paginate_url ~ page }}" class="py-1.5 px-3 border {{ class }}{{ first ~ last }}">{{ page }}</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    </div>
+</div>

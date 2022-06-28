@@ -827,10 +827,6 @@ svg {
   overflow-y: auto;
 }
 
-.overflow-y-hidden {
-  overflow-y: hidden;
-}
-
 .truncate {
   overflow: hidden;
   text-overflow: ellipsis;

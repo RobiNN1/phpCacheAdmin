@@ -3,7 +3,7 @@
         <div class="md:grid md:grid-cols-3 md:gap-2 mb-5 lg:mb-0">
             {{ include('components/select.twig', {id: 'db_select', options: databases, selected: current_db, sm: true, class: 'mb-3 md:mb-0'}) }}
 
-            {% if all_keys|length != 0 %}
+            {% if all_keys != 0 %}
                 <div class="flex">
                     <input type="text" id="search_key" value="{{ search_value }}" placeholder="Search key"
                            class="input w-full rounded-l py-1.5 px-3 focus:ring-{{ color }}-100 focus:border-{{ color }}-300" aria-label="">

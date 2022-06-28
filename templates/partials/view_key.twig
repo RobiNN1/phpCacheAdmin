@@ -47,14 +47,7 @@
         </div>
     {% endfor %}
 
-    <div class="md:grid md:grid-cols-3 mt-5">
-        <div class="flex items-center gap-2"></div>
-        <div class="flex items-center md:justify-center gap-2 mb-3 md:mb-0">
-            {{ include('components/select.twig', {id: 'per_page', options: {15: 15, 25: 25, 50: 50, 100: 100, 200: 200}, selected: per_page, sm: true, class: 'w-16'}) }}
-            <label class="font-semibold -mt-1.5" for="per_page">per page</label>
-        </div>
-        <div class="flex items-center md:justify-end">{{ include('components/paginate.twig') }}</div>
-    </div>
+    {{ include('components/paginate.twig', {total_items: value|length, first: first_key}) }}
 
     <a href="{{ add_subkey }}" class="text-{{ color }}-500 hover:text-{{ color }}-700 font-semibold inline-flex items-center mt-2">
         {{ svg('open') }} Add another value

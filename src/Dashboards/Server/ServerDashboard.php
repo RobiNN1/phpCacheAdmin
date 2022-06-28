@@ -72,6 +72,22 @@ class ServerDashboard implements DashboardInterface {
     }
 
     /**
+     * Show info panels.
+     *
+     * @return string
+     */
+    public function showPanels(): string {
+        if (isset($_GET['moreinfo'])) {
+            return '';
+        }
+
+        return $this->template->render('partials/info', [
+            'panels_toggler' => false,
+            'info'           => $this->info(),
+        ]);
+    }
+
+    /**
      * Dashboard content.
      *
      * @return string
@@ -82,10 +98,7 @@ class ServerDashboard implements DashboardInterface {
         }
 
         return $this->template->render('dashboards/server', [
-            'show_info'      => !isset($_GET['moreinfo']),
-            'panels_toggler' => false,
-            'info'           => $this->info(),
-            'extensions'     => get_loaded_extensions(),
+            'extensions' => get_loaded_extensions(),
         ]);
     }
 }

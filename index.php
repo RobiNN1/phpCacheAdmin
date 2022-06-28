@@ -64,9 +64,10 @@ if (isset($_GET['ajax'])) {
     echo $tpl->render('layout', [
         'site_title' => $nav[Admin::currentDashboard()],
         'nav'        => $nav,
+        'version'    => Admin::VERSION,
         'back'       => isset($_GET['moreinfo']) || isset($_GET['view']) || isset($_GET['form']),
         'back_url'   => Admin::queryString(['db']),
-        'version'    => Admin::VERSION,
+        'panels'     => $dashboard->showPanels(),
         'dashboard'  => $dashboard->dashboard(),
     ]);
 }

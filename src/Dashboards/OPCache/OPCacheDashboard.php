@@ -92,6 +92,23 @@ class OPCacheDashboard implements DashboardInterface {
     }
 
     /**
+     * Show info panels.
+     *
+     * @return string
+     */
+    public function showPanels(): string {
+        if (isset($_GET['moreinfo'])) {
+            return '';
+        }
+
+        return $this->template->render('partials/info', [
+            'title'             => 'OPCache',
+            'extension_version' => phpversion('Zend OPcache'),
+            'info'              => $this->info(),
+        ]);
+    }
+
+    /**
      * Dashboard content.
      *
      * @return string

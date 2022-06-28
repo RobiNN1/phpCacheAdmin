@@ -113,6 +113,25 @@ class MemcachedDashboard implements DashboardInterface {
     }
 
     /**
+     * Show info panels.
+     *
+     * @return string
+     */
+    public function showPanels(): string {
+        if (isset($_GET['moreinfo']) || isset($_GET['form']) || isset($_GET['view'])) {
+            return '';
+        }
+
+        $memcached = extension_loaded('memcached') ? 'd' : '';
+
+        return $this->template->render('partials/info', [
+            'title'             => 'Memcache'.$memcached,
+            'extension_version' => phpversion('memcache'.$memcached),
+            'info'              => $this->info(),
+        ]);
+    }
+
+    /**
      * Dashboard content.
      *
      * @return string

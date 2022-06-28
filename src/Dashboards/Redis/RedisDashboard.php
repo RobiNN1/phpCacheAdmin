@@ -137,6 +137,23 @@ class RedisDashboard implements DashboardInterface {
     }
 
     /**
+     * Show info panels.
+     *
+     * @return string
+     */
+    public function showPanels(): string {
+        if (isset($_GET['moreinfo']) || isset($_GET['form']) || isset($_GET['view'])) {
+            return '';
+        }
+
+        return $this->template->render('partials/info', [
+            'title'             => 'Redis',
+            'extension_version' => phpversion('redis'),
+            'info'              => $this->info(),
+        ]);
+    }
+
+    /**
      * Dashboard content.
      *
      * @return string

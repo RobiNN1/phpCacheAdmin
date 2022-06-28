@@ -28,6 +28,13 @@ interface DashboardInterface {
     public function info(): array;
 
     /**
+     * Render info panels.
+     *
+     * @return string
+     */
+    public function showPanels(): string;
+
+    /**
      * Dashboard content.
      *
      * @return string

@@ -149,22 +149,16 @@ trait MemcachedTrait {
 
         [$pages, $page, $per_page] = Admin::paginate($keys);
 
-        $memcached = extension_loaded('memcached') ? 'd' : '';
-
-        return $this->template->render('dashboards/memcached', [
-            'show_info'         => !isset($_GET['moreinfo']),
-            'title'             => 'Memcache'.$memcached,
-            'extension_version' => phpversion('memcache'.$memcached),
-            'info'              => $this->info(),
-            'keys'              => $keys,
-            'all_keys'          => $all_keys,
-            'current_page'      => $page,
-            'paginate'          => $pages,
-            'paginate_url'      => Admin::queryString(['pp'], ['p' => '']),
-            'per_page'          => $per_page,
-            'new_key_url'       => Admin::queryString([], ['form' => 'new']),
-            'view_url'          => Admin::queryString([], ['view' => 'key', 'key' => '']),
-            'edit_url'          => Admin::queryString([], ['form' => 'edit', 'key' => '']),
+        return $this->template->render('dashboards/memcached/memcached', [
+            'keys'         => $keys,
+            'all_keys'     => $all_keys,
+            'current_page' => $page,
+            'paginate'     => $pages,
+            'paginate_url' => Admin::queryString(['pp'], ['p' => '']),
+            'per_page'     => $per_page,
+            'new_key_url'  => Admin::queryString([], ['form' => 'new']),
+            'view_url'     => Admin::queryString([], ['view' => 'key', 'key' => '']),
+            'edit_url'     => Admin::queryString([], ['form' => 'edit', 'key' => '']),
         ]);
     }
 
@@ -211,7 +205,7 @@ trait MemcachedTrait {
             Admin::redirect(Admin::queryString());
         }
 
-        return $this->template->render('partials/memcached_form', [
+        return $this->template->render('dashboards/memcached/form', [
             'edit'  => $edit,
             'key'   => $key,
             'value' => $value,

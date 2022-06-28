@@ -91,15 +91,11 @@ trait OPCacheTrait {
         [$pages, $page, $per_page] = Admin::paginate($cached_scripts, false, 50);
 
         return $this->template->render('dashboards/opcache', [
-            'show_info'         => !isset($_GET['moreinfo']),
-            'title'             => 'OPCache',
-            'extension_version' => phpversion('Zend OPcache'),
-            'info'              => $this->info(),
-            'cached_scripts'    => $cached_scripts,
-            'current_page'      => $page,
-            'paginate'          => $pages,
-            'paginate_url'      => Admin::queryString(['pp'], ['p' => '']),
-            'per_page'          => $per_page,
+            'cached_scripts' => $cached_scripts,
+            'current_page'   => $page,
+            'paginate'       => $pages,
+            'paginate_url'   => Admin::queryString(['pp'], ['p' => '']),
+            'per_page'       => $per_page,
         ]);
     }
 }

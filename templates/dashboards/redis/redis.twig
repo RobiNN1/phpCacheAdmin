@@ -1,7 +1,3 @@
-{% if show_info %}
-    {{ include('partials/info.twig') }}
-{% endif %}
-
 <div class="lg:grid lg:grid-cols-2 lg:gap-4 mb-5">
     {% if databases %}
         <div class="md:grid md:grid-cols-3 md:gap-2 mb-5 lg:mb-0">
@@ -25,4 +21,4 @@
     </div>
 </div>
 
-{{ include('partials/keys_table.twig', {keys, paginate, current_page, url, ttl: true}) }}
+{{ include('partials/keys_table.twig', {ttl: true}) }}

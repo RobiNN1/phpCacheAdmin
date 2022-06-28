@@ -291,22 +291,18 @@ trait RedisTrait {
 
         [$pages, $page, $per_page] = Admin::paginate($keys);
 
-        return $this->template->render('dashboards/redis', [
-            'show_info'         => !isset($_GET['moreinfo']),
-            'title'             => 'Redis',
-            'extension_version' => phpversion('redis'),
-            'info'              => $this->info(),
-            'databases'         => $this->getDatabases($connect),
-            'current_db'        => $this->current_db,
-            'keys'              => $keys,
-            'all_keys'          => $connect->dbSize(),
-            'current_page'      => $page,
-            'paginate'          => $pages,
-            'paginate_url'      => Admin::queryString(['db', 's', 'pp'], ['p' => '']),
-            'per_page'          => $per_page,
-            'new_key_url'       => Admin::queryString(['db'], ['form' => 'new']),
-            'view_url'          => Admin::queryString([], ['view' => 'key', 'key' => '']),
-            'edit_url'          => Admin::queryString([], ['form' => 'edit', 'key' => '']),
+        return $this->template->render('dashboards/redis/redis', [
+            'databases'    => $this->getDatabases($connect),
+            'current_db'   => $this->current_db,
+            'keys'         => $keys,
+            'all_keys'     => $connect->dbSize(),
+            'current_page' => $page,
+            'paginate'     => $pages,
+            'paginate_url' => Admin::queryString(['db', 's', 'pp'], ['p' => '']),
+            'per_page'     => $per_page,
+            'new_key_url'  => Admin::queryString(['db'], ['form' => 'new']),
+            'view_url'     => Admin::queryString([], ['view' => 'key', 'key' => '']),
+            'edit_url'     => Admin::queryString([], ['form' => 'edit', 'key' => '']),
         ]);
     }
 
@@ -383,7 +379,7 @@ trait RedisTrait {
             $edit = true;
         }
 
-        return $this->template->render('partials/redis_form', [
+        return $this->template->render('dashboards/redis/form', [
             'edit'     => $edit,
             'key'      => $key,
             'value'    => $value,

@@ -23,7 +23,11 @@
                     {% set last = loop.last ? ' rounded-r' : '' %}
 
                     <li>
-                        <a href="{{ paginate_url ~ page }}" class="py-1.5 px-3 border {{ class }}{{ first ~ last }}">{{ page }}</a>
+                        {% if page == '...' %}
+                            <span class="py-1.5 px-3 border {{ class }}">{{ page }}</span>
+                        {% else %}
+                            <a href="{{ paginate_url ~ page }}" class="py-1.5 px-3 border {{ class }}{{ first ~ last }}">{{ page }}</a>
+                        {% endif %}
                     </li>
                 {% endfor %}
             </ul>

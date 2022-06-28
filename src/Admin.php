@@ -123,6 +123,9 @@ class Admin {
      * @return array
      */
     public static function paginate(array &$keys, bool $sort = true, int $default_per_page = 15): array {
+        $page = (int) self::get('p', 'int');
+        $page = !empty($page) ? $page : 1;
+
         $per_page = (int) self::get('pp', 'int');
         $per_page = !empty($per_page) ? $per_page : $default_per_page;
 
@@ -134,19 +137,53 @@ class Admin {
         array_unshift($keys, '');
         unset($keys[0]);
 
-        $pages = [];
-
-        for ($i = 1, $max = count($keys); $i <= $max; $i++) {
-            $pages[] = $i;
-        }
-
-        $page = (int) self::get('p', 'int');
-        $page = !empty($page) ? $page : 1;
+        $pages = self::limitPagination(count($keys), $page);
 
         $first_page = !empty($keys[1]) ? $keys[1] : [];
         $keys = !empty($keys[$page]) ? $keys[$page] : $first_page;
 
         return [$pages, $page, $per_page];
+    }
+
+    /**
+     * Limit pages in pagination.
+     *
+     * @param int $keys_count
+     * @param int $page
+     *
+     * @return array
+     */
+    private static function limitPagination(int $keys_count, int $page): array {
+        static $pages = [];
+
+        if ($keys_count >= 5) {
+            // it needs more improvements ...
+
+            $limit = 5;
+
+            if ($page > ($limit / 2)) {
+                $pages = [1, '...'];
+            }
+
+            $counter = 1;
+
+            for ($x = $page, $xMax = $keys_count; $x <= $xMax; $x++) {
+                if ($counter < $limit) {
+                    $pages[] = $x;
+                }
+                $counter++;
+            }
+
+            if ($page < $keys_count - ($limit / 2)) {
+                $pages += ['...', $keys_count];
+            }
+        } else {
+            for ($i = 1, $max = $keys_count; $i <= $max; $i++) {
+                $pages[] = $i;
+            }
+        }
+
+        return $pages;
     }
 
     /**

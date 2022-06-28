@@ -72,10 +72,11 @@ class Helpers {
      *
      * @param int  $time
      * @param bool $ago
+     * @param bool $show_seconds
      *
      * @return string
      */
-    public static function formatSeconds(int $time, bool $ago = false): string {
+    public static function formatSeconds(int $time, bool $ago = false, bool $show_seconds = false): string {
         $seconds_in_minute = 60;
         $seconds_in_hour = 60 * $seconds_in_minute;
         $seconds_in_day = 24 * $seconds_in_hour;
@@ -88,16 +89,19 @@ class Helpers {
         $minute_seconds = $hour_seconds % $seconds_in_hour;
         $minutes = floor($minute_seconds / $seconds_in_minute);
 
-        //$remainingSeconds = $minute_seconds % $seconds_in_minute;
-        //$seconds = ceil($remainingSeconds);
+        $remainingSeconds = $minute_seconds % $seconds_in_minute;
+        $seconds = ceil($remainingSeconds);
 
         $time_parts = [];
         $sections = [
             'day'    => (int) $days,
             'hour'   => (int) $hours,
             'minute' => (int) $minutes,
-            //'second' => (int) $seconds,
         ];
+
+        if ($show_seconds) {
+            $sections['second'] = (int) $seconds;
+        }
 
         foreach ($sections as $name => $value) {
             if ($value > 0) {

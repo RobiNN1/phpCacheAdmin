@@ -169,6 +169,42 @@ class Helpers {
     }
 
     /**
+     * Show alert.
+     *
+     * @param Template $template
+     * @param string   $message
+     * @param ?string  $color
+     *
+     * @return void
+     */
+    public static function alert(Template $template, string $message, ?string $color = null): void {
+        $template->addTplGlobal('alerts', $template->render('components/alert', [
+            'message'     => $message,
+            'alert_color' => $color,
+        ]));
+    }
+
+    /**
+     * Show enabled/disabled badge.
+     *
+     * @param Template $template
+     * @param bool     $enabled
+     * @param ?string  $text
+     * @param ?array   $badge_text
+     *
+     * @return string
+     */
+    public static function enabledDisabledBadge(Template $template, bool $enabled = true, ?string $text = null, ?array $badge_text = null): string {
+        $badge_text = $badge_text ?: ['Enabled', 'Disabled'];
+
+        return $template->render('components/badge', [
+            'text' => $enabled ? $badge_text[0].$text : $badge_text[1],
+            'bg'   => $enabled ? 'bg-green-600' : 'bg-red-600',
+            'pill' => true,
+        ]);
+    }
+
+    /**
      * Convert bool to string in array.
      *
      * @param array $array

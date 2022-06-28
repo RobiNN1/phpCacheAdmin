@@ -12,8 +12,8 @@ declare(strict_types=1);
 
 namespace RobiNN\Pca\Dashboards\Server;
 
-use RobiNN\Pca\Admin;
 use RobiNN\Pca\Dashboards\DashboardInterface;
+use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Template;
 
 class ServerDashboard implements DashboardInterface {
@@ -62,7 +62,7 @@ class ServerDashboard implements DashboardInterface {
      * @return array
      */
     public function info(): array {
-        $xdebug = Admin::enabledDisabledBadge(
+        $xdebug = Helpers::enabledDisabledBadge(
             $this->template,
             extension_loaded('xdebug'),
             ' - v'.phpversion('xdebug')

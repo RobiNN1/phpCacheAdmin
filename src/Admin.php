@@ -24,47 +24,6 @@ class Admin {
     private array $dashboards = [];
 
     /**
-     * Get config.
-     *
-     * @param ?string $key
-     *
-     * @return mixed
-     */
-    public static function getConfig(?string $key = null) {
-        if (is_file(__DIR__.'/../config.php')) {
-            $config = (array) require __DIR__.'/../config.php';
-        } else {
-            $config = (array) require __DIR__.'/../config.dist.php';
-        }
-
-        self::getEnvConfig($config);
-
-        return $config[$key] ?? $config;
-    }
-
-    /**
-     * Get config from ENV.
-     *
-     * @param array $config
-     *
-     * @return void
-     */
-    private static function getEnvConfig(array &$config): void {
-        // All keys must start with PCA_ prefix.
-        // E.g.
-        // PCA_TIMEFORMAT
-        // PCA_REDIS_1_HOST = 1 is server id
-        // PCA_MEMCACHED_0_HOST ...
-        $vars = preg_grep('/^PCA_/', array_keys(getenv()));
-
-        if (!empty($vars)) {
-            foreach ($vars as $var) {
-                Helpers::envVarToArray($config, $var, getenv($var));
-            }
-        }
-    }
-
-    /**
      * Get all dashboards.
      *
      * @return array
@@ -111,6 +70,47 @@ class Admin {
         }
 
         return !empty($current) && $is_installed ? $current : 'server';
+    }
+
+    /**
+     * Get config.
+     *
+     * @param ?string $key
+     *
+     * @return mixed
+     */
+    public static function getConfig(?string $key = null) {
+        if (is_file(__DIR__.'/../config.php')) {
+            $config = (array) require __DIR__.'/../config.php';
+        } else {
+            $config = (array) require __DIR__.'/../config.dist.php';
+        }
+
+        self::getEnvConfig($config);
+
+        return $config[$key] ?? $config;
+    }
+
+    /**
+     * Get config from ENV.
+     *
+     * @param array $config
+     *
+     * @return void
+     */
+    private static function getEnvConfig(array &$config): void {
+        // All keys must start with PCA_ prefix.
+        // E.g.
+        // PCA_TIMEFORMAT
+        // PCA_REDIS_1_HOST = 1 is server id
+        // PCA_MEMCACHED_0_HOST ...
+        $vars = preg_grep('/^PCA_/', array_keys(getenv()));
+
+        if (!empty($vars)) {
+            foreach ($vars as $var) {
+                Helpers::envVarToArray($config, $var, getenv($var));
+            }
+        }
     }
 
     /**
@@ -169,7 +169,6 @@ class Admin {
         parse_str($url['query'], $query);
 
         $query = array_intersect_key($query, $filter);
-        //$query = array_diff_key($query, $filter); // remove query strings
         $query += $additional;
 
         return ($query ? '?' : '').http_build_query($query);
@@ -236,41 +235,5 @@ class Admin {
         } else {
             echo '<script data-cfasync="false">window.location.replace("'.$location.'");</script>';
         }
-    }
-
-    /**
-     * Show status badge.
-     *
-     * @param Template $template
-     * @param bool     $enabled
-     * @param ?string  $text
-     * @param ?array   $badge_text
-     *
-     * @return string
-     */
-    public static function enabledDisabledBadge(Template $template, bool $enabled = true, ?string $text = null, ?array $badge_text = null): string {
-        $badge_text = $badge_text ?: ['Enabled', 'Disabled'];
-
-        return $template->render('components/badge', [
-            'text' => $enabled ? $badge_text[0].$text : $badge_text[1],
-            'bg'   => $enabled ? 'bg-green-600' : 'bg-red-600',
-            'pill' => true,
-        ]);
-    }
-
-    /**
-     * Show alert.
-     *
-     * @param Template $template
-     * @param string   $message
-     * @param ?string  $color
-     *
-     * @return void
-     */
-    public static function alert(Template $template, string $message, ?string $color = null): void {
-        $template->addTplGlobal('alerts', $template->render('components/alert', [
-            'message'     => $message,
-            'alert_color' => $color,
-        ]));
     }
 }

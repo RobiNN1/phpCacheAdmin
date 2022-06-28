@@ -151,9 +151,9 @@ trait RedisTrait {
 
             if (isset($_GET['reset'])) {
                 if ($connect->resetStat()) {
-                    Admin::alert($this->template, 'Stats has been reseted.');
+                    Helpers::alert($this->template, 'Stats has been reseted.');
                 } else {
-                    Admin::alert($this->template, 'An error occurred while resetting stats.', 'bg-red-500');
+                    Helpers::alert($this->template, 'An error occurred while resetting stats.', 'bg-red-500');
                 }
 
                 $reset_link = '<a href="'.Admin::queryString(['moreinfo'], ['reset' => $id]).'" class="text-red-500 hover:text-red-700 font-semibold">

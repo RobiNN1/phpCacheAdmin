@@ -14,6 +14,7 @@ namespace RobiNN\Pca\Dashboards\Redis;
 
 use Redis;
 use RobiNN\Pca\Admin;
+use RobiNN\Pca\Helpers;
 
 trait RedisFormTrait {
     /**
@@ -76,7 +77,7 @@ trait RedisFormTrait {
             }
 
             if (!empty($error)) {
-                Admin::alert($this->template, $error, 'bg-red-500');
+                Helpers::alert($this->template, $error, 'bg-red-500');
             } else {
                 Admin::redirect(Admin::queryString(['db', 'key'], ['view' => 'key']));
             }
@@ -114,7 +115,7 @@ trait RedisFormTrait {
         }
 
         if (!empty($error)) {
-            Admin::alert($this->template, $error, 'bg-red-500');
+            Helpers::alert($this->template, $error, 'bg-red-500');
         } else {
             Admin::redirect(Admin::queryString(['db', 'key', 'view', 'p']));
         }

@@ -11,6 +11,12 @@
 declare(strict_types=1);
 
 return [
+    'dashboards' => [
+        RobiNN\Pca\Dashboards\Server\ServerDashboard::class,
+        RobiNN\Pca\Dashboards\Redis\RedisDashboard::class,
+        RobiNN\Pca\Dashboards\Memcached\MemcachedDashboard::class,
+        RobiNN\Pca\Dashboards\OPCache\OPCacheDashboard::class,
+    ],
     'redis'      => [
         [
             'name' => 'Localhost', // Optional

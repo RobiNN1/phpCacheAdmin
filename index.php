@@ -10,10 +10,6 @@
 declare(strict_types=1);
 
 use RobiNN\Pca\Admin;
-use RobiNN\Pca\Dashboards\Memcached\MemcachedDashboard;
-use RobiNN\Pca\Dashboards\OPCache\OPCacheDashboard;
-use RobiNN\Pca\Dashboards\Redis\RedisDashboard;
-use RobiNN\Pca\Dashboards\Server\ServerDashboard;
 use RobiNN\Pca\Template;
 
 require_once __DIR__.'/vendor/autoload.php';
@@ -21,10 +17,17 @@ require_once __DIR__.'/vendor/autoload.php';
 $admin = new Admin();
 $tpl = new Template();
 
-$admin->setDashboard(new ServerDashboard($tpl));
-$admin->setDashboard(new RedisDashboard($tpl));
-$admin->setDashboard(new MemcachedDashboard($tpl));
-$admin->setDashboard(new OPCacheDashboard($tpl));
+$nav = [];
+
+foreach (Admin::getConfig('dashboards') as $class) {
+    $object = new $class($tpl);
+    $admin->setDashboard($object);
+
+    if ($object->check()) {
+        $d_info = $object->getDashboardInfo();
+        $nav[$d_info['key']] = $d_info['title'];
+    }
+}
 
 $current = $admin->currentDashboard();
 $dashboard = $admin->getDashboard($current);
@@ -36,15 +39,6 @@ $tpl->addTplGlobal('color', $info['color']);
 if (isset($_GET['ajax'])) {
     echo $dashboard->ajax();
 } else {
-    $nav = [];
-
-    foreach ($admin->getDashboards() as $n_key => $n_dashboard) {
-        if ($n_dashboard->check()) {
-            $n_info = $n_dashboard->getDashboardInfo();
-            $nav[$n_key] = $n_info['title'];
-        }
-    }
-
     echo $tpl->render('layout', [
         'site_title' => $info['title'],
         'nav'        => $nav,

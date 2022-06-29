@@ -27,6 +27,14 @@ Simply extract the content and run `composer install` before use.
 If you need to customize or add servers in the configuration file, do not edit `config.dist.php` directly,
 copy `config.dist.php` to `config.php` instead.
 
+## Docker
+
+There is no official image yet, 
+but you can create your own and set ENV variables such as these
+`PCA_REDIS_0_HOST=127.0.0.1`, `PCA_REDIS_0_PORT=6379`.
+
+You can change any config option, it just must have `PCA_` prefix.
+
 ## Requirements
 
 - PHP >= 7.4

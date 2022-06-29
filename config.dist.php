@@ -11,6 +11,8 @@
 declare(strict_types=1);
 
 return [
+    // The order of the items also changes the position of the sidebar links.
+    // You can comment out any item except ServerDashboard becouse it's default dashboard.
     'dashboards' => [
         RobiNN\Pca\Dashboards\Server\ServerDashboard::class,
         RobiNN\Pca\Dashboards\Redis\RedisDashboard::class,

@@ -14,19 +14,14 @@ use RobiNN\Pca\Template;
 
 require_once __DIR__.'/vendor/autoload.php';
 
-$admin = new Admin();
 $tpl = new Template();
+$admin = new Admin($tpl);
 
 $nav = [];
 
-foreach (Admin::getConfig('dashboards') as $class) {
-    $object = new $class($tpl);
-    $admin->setDashboard($object);
-
-    if ($object->check()) {
-        $d_info = $object->getDashboardInfo();
-        $nav[$d_info['key']] = $d_info['title'];
-    }
+foreach ($admin->getDashboards() as $d_key => $d_dashboard) {
+    $d_info = $d_dashboard->getDashboardInfo();
+    $nav[$d_key] = $d_info['title'];
 }
 
 $current = $admin->currentDashboard();

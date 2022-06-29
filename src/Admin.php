@@ -12,6 +12,8 @@ declare(strict_types=1);
 
 namespace RobiNN\Pca;
 
+use RobiNN\Pca\Dashboards\DashboardInterface;
+
 class Admin {
     /**
      * @const string phpCacheAdmin version.
@@ -22,6 +24,20 @@ class Admin {
      * @var array
      */
     private array $dashboards = [];
+
+    /**
+     * @param ?Template $template
+     */
+    public function __construct(?Template $template = null) {
+        foreach (self::getConfig('dashboards') as $class) {
+            $dashboard = new $class($template);
+
+            if ($dashboard instanceof DashboardInterface && $dashboard->check()) {
+                $info = $dashboard->getDashboardInfo();
+                $this->dashboards[$info['key']] = $dashboard;
+            }
+        }
+    }
 
     /**
      * Get all dashboards.
@@ -44,32 +60,14 @@ class Admin {
     }
 
     /**
-     * Set dashboard obejct.
-     *
-     * @param object $dashboard
-     *
-     * @return void
-     */
-    public function setDashboard(object $dashboard): void {
-        $info = $dashboard->getDashboardInfo();
-        $this->dashboards[$info['key']] = $dashboard;
-    }
-
-    /**
      * Get current dashboard.
      *
      * @return string
      */
     public function currentDashboard(): string {
         $current = self::get('type');
-        $is_installed = false;
 
-        if (array_key_exists($current, $this->getDashboards())) {
-            $dashboard = $this->getDashboard($current);
-            $is_installed = $dashboard->check();
-        }
-
-        return !empty($current) && $is_installed ? $current : 'server';
+        return !empty($current) && array_key_exists($current, $this->getDashboards()) ? $current : 'server';
     }
 
     /**

@@ -12,8 +12,10 @@ declare(strict_types=1);
 
 namespace RobiNN\Pca\Dashboards\OPCache;
 
-use RobiNN\Pca\Admin;
+use RobiNN\Pca\Config;
 use RobiNN\Pca\Helpers;
+use RobiNN\Pca\Http;
+use RobiNN\Pca\Paginator;
 
 trait OPCacheTrait {
     /**
@@ -22,7 +24,7 @@ trait OPCacheTrait {
      * @return string
      */
     private function deleteScript(): string {
-        $file = base64_decode(Admin::get('delete'));
+        $file = base64_decode(Http::get('delete'));
 
         if (opcache_invalidate($file, true)) {
             $name = explode(DIRECTORY_SEPARATOR, $file);
@@ -70,8 +72,8 @@ trait OPCacheTrait {
                     'name'           => $name[array_key_last($name)],
                     'hits'           => $script['hits'],
                     'memory'         => Helpers::formatBytes($script['memory_consumption']),
-                    'last_used'      => date(Admin::getConfig('timeformat'), $script['last_used_timestamp']),
-                    'created'        => date(Admin::getConfig('timeformat'), $script['timestamp']),
+                    'last_used'      => date(Config::get('timeformat'), $script['last_used_timestamp']),
+                    'created'        => date(Config::get('timeformat'), $script['timestamp']),
                     'invalidate_url' => base64_encode($script['full_path']),
                 ];
             }
@@ -91,7 +93,7 @@ trait OPCacheTrait {
         $cached_scripts = $this->getCachedScripts($status);
         $all_scripts = count($cached_scripts);
 
-        [$pages, $page, $per_page] = Admin::paginate($cached_scripts, false, 50);
+        [$pages, $page, $per_page] = Paginator::paginate($cached_scripts, false, 50);
 
         return $this->template->render('dashboards/opcache', [
             'cached_scripts' => $cached_scripts,
@@ -99,7 +101,7 @@ trait OPCacheTrait {
             'first_script'   => array_key_first($cached_scripts),
             'current_page'   => $page,
             'paginate'       => $pages,
-            'paginate_url'   => Admin::queryString(['pp'], ['p' => '']),
+            'paginate_url'   => Http::queryString(['pp'], ['p' => '']),
             'per_page'       => $per_page,
         ]);
     }

@@ -13,7 +13,7 @@ declare(strict_types=1);
 namespace RobiNN\Pca\Dashboards\Redis;
 
 use Redis;
-use RobiNN\Pca\Admin;
+use RobiNN\Pca\Http;
 
 trait GetValueTrait {
     /**
@@ -38,16 +38,16 @@ trait GetValueTrait {
                 break;
             case 'set':
                 $members = $connect->sMembers($key);
-                $member = Admin::get('member', 'int');
+                $member = Http::get('member', 'int');
                 $value = $members[!empty($member) ? $member : 0];
                 break;
             case 'list':
-                $index = Admin::get('index', 'int');
+                $index = Http::get('index', 'int');
                 $value = $connect->lIndex($key, !empty($index) ? $index : 0);
                 break;
             case 'zset':
                 $ranges = $connect->zRange($key, 0, -1);
-                $range = Admin::get('range', 'int');
+                $range = Http::get('range', 'int');
                 $range = !empty($range) ? $range : 0;
 
                 $value = $ranges[$range];
@@ -59,7 +59,7 @@ trait GetValueTrait {
                     $keys[] = $k;
                 }
 
-                $hash_key = Admin::get('hash_key');
+                $hash_key = Http::get('hash_key');
                 $hash_key = !empty($hash_key) ? $hash_key : $keys[0];
 
                 $value = $connect->hGet($key, $hash_key);

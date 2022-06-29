@@ -10,6 +10,7 @@
 declare(strict_types=1);
 
 use RobiNN\Pca\Admin;
+use RobiNN\Pca\Http;
 use RobiNN\Pca\Template;
 
 require_once __DIR__.'/vendor/autoload.php';
@@ -39,7 +40,7 @@ if (isset($_GET['ajax'])) {
         'nav'        => $nav,
         'version'    => Admin::VERSION,
         'back'       => isset($_GET['moreinfo']) || isset($_GET['view']) || isset($_GET['form']),
-        'back_url'   => Admin::queryString(['db']),
+        'back_url'   => Http::queryString(['db']),
         'panels'     => $dashboard->showPanels(),
         'dashboard'  => $dashboard->dashboard(),
     ]);

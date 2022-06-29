@@ -13,9 +13,10 @@ declare(strict_types=1);
 namespace RobiNN\Pca\Dashboards\Redis;
 
 use Redis;
-use RobiNN\Pca\Admin;
 use RobiNN\Pca\Dashboards\DashboardException;
 use RobiNN\Pca\Helpers;
+use RobiNN\Pca\Http;
+use RobiNN\Pca\Paginator;
 use RobiNN\Pca\Template;
 
 trait RedisTrait {
@@ -45,7 +46,7 @@ trait RedisTrait {
      */
     private function serverInfo(array $servers): array {
         try {
-            $connect = $this->connect($servers[Admin::get('panel', 'int')]);
+            $connect = $this->connect($servers[Http::get('panel', 'int')]);
             $server_info = $connect->info();
 
             $all_keys = 0;
@@ -99,7 +100,7 @@ trait RedisTrait {
      * @return string
      */
     private function deleteKey(Redis $connect): string {
-        $keys = explode(',', Admin::get('delete'));
+        $keys = explode(',', Http::get('delete'));
 
         if (count($keys) === 1 && $connect->del($keys[0])) {
             $message = sprintf('Key "%s" has been deleted.', $keys[0]);
@@ -145,7 +146,7 @@ trait RedisTrait {
      */
     private function moreInfo(array $servers): string {
         try {
-            $id = Admin::get('moreinfo', 'int');
+            $id = Http::get('moreinfo', 'int');
             $server_data = $servers[$id];
             $connect = $this->connect($server_data);
 
@@ -156,7 +157,7 @@ trait RedisTrait {
                     Helpers::alert($this->template, 'An error occurred while resetting stats.', 'bg-red-500');
                 }
 
-                $reset_link = '<a href="'.Admin::queryString(['moreinfo'], ['reset' => $id]).'" class="text-red-500 hover:text-red-700 font-semibold">
+                $reset_link = '<a href="'.Http::queryString(['moreinfo'], ['reset' => $id]).'" class="text-red-500 hover:text-red-700 font-semibold">
                                   Reset stats
                               </a>';
             }
@@ -210,7 +211,7 @@ trait RedisTrait {
      */
     private function getAllKeys(Redis $connect): array {
         $keys = [];
-        $filter = Admin::get('s');
+        $filter = Http::get('s');
         $filter = !empty($filter) ? $filter : '*';
 
         $this->template->addTplGlobal('search_value', $filter);
@@ -289,7 +290,7 @@ trait RedisTrait {
     private function mainDashboard(Redis $connect): string {
         $keys = $this->getAllKeys($connect);
 
-        [$pages, $page, $per_page] = Admin::paginate($keys);
+        [$pages, $page, $per_page] = Paginator::paginate($keys);
 
         return $this->template->render('dashboards/redis/redis', [
             'databases'    => $this->getDatabases($connect),
@@ -299,11 +300,11 @@ trait RedisTrait {
             'first_key'    => array_key_first($keys),
             'current_page' => $page,
             'paginate'     => $pages,
-            'paginate_url' => Admin::queryString(['db', 's', 'pp'], ['p' => '']),
+            'paginate_url' => Http::queryString(['db', 's', 'pp'], ['p' => '']),
             'per_page'     => $per_page,
-            'new_key_url'  => Admin::queryString(['db'], ['form' => 'new']),
-            'view_url'     => Admin::queryString([], ['view' => 'key', 'key' => '']),
-            'edit_url'     => Admin::queryString([], ['form' => 'edit', 'key' => '']),
+            'new_key_url'  => Http::queryString(['db'], ['form' => 'new']),
+            'view_url'     => Http::queryString([], ['view' => 'key', 'key' => '']),
+            'edit_url'     => Http::queryString([], ['form' => 'edit', 'key' => '']),
         ]);
     }
 
@@ -315,7 +316,7 @@ trait RedisTrait {
      * @return string
      */
     private function viewKey(Redis $connect): string {
-        $key = Admin::get('key');
+        $key = Http::get('key');
         $type = $this->getType($connect->type($key));
 
         if (isset($_GET['deletesub'])) {
@@ -330,7 +331,7 @@ trait RedisTrait {
         $first_key = 0;
 
         if (is_array($value)) {
-            [$pages, $page, $per_page] = Admin::paginate($value, false);
+            [$pages, $page, $per_page] = Paginator::paginate($value, false);
             $first_key = array_key_first($value);
         }
 
@@ -338,13 +339,13 @@ trait RedisTrait {
             'value'        => $value,
             'type'         => $type,
             'ttl'          => $connect->ttl($key),
-            'edit_url'     => Admin::queryString(['db'], ['form' => 'edit', 'key' => $key]),
-            'delete_url'   => Admin::queryString(['db', 'view', 'p'], ['deletesub' => 'key', 'key' => $key]),
-            'add_subkey'   => Admin::queryString(['db'], ['form' => 'new', 'key' => $key]),
+            'edit_url'     => Http::queryString(['db'], ['form' => 'edit', 'key' => $key]),
+            'delete_url'   => Http::queryString(['db', 'view', 'p'], ['deletesub' => 'key', 'key' => $key]),
+            'add_subkey'   => Http::queryString(['db'], ['form' => 'new', 'key' => $key]),
             'first_key'    => $first_key,
             'current_page' => $page,
             'paginate'     => $pages,
-            'paginate_url' => Admin::queryString(['db', 'view', 'key', 'pp'], ['p' => '']),
+            'paginate_url' => Http::queryString(['db', 'view', 'key', 'pp'], ['p' => '']),
             'per_page'     => $per_page,
         ]);
     }
@@ -357,7 +358,7 @@ trait RedisTrait {
      * @return string
      */
     private function form(Redis $connect): string {
-        $key = Admin::get('key');
+        $key = Http::get('key');
         $type = 'string';
         $value = '';
         $index = null;

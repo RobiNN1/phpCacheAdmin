@@ -12,11 +12,12 @@ declare(strict_types=1);
 
 namespace RobiNN\Pca\Dashboards\Memcached;
 
-use RobiNN\Pca\Admin;
 use RobiNN\Pca\Dashboards\DashboardException;
 use RobiNN\Pca\Dashboards\Memcached\MemcacheCompatibility\Memcache;
 use RobiNN\Pca\Dashboards\Memcached\MemcacheCompatibility\Memcached;
 use RobiNN\Pca\Helpers;
+use RobiNN\Pca\Http;
+use RobiNN\Pca\Paginator;
 
 trait MemcachedTrait {
     /**
@@ -29,7 +30,7 @@ trait MemcachedTrait {
      */
     private function serverInfo(array $servers): array {
         try {
-            $connect = $this->connect($servers[Admin::get('panel', 'int')]);
+            $connect = $this->connect($servers[Http::get('panel', 'int')]);
             $server_info = $connect->getServerStats();
 
             if (!empty($server_info['version'])) {
@@ -80,7 +81,7 @@ trait MemcachedTrait {
      * @return string
      */
     private function deleteKey($connect): string {
-        $keys = explode(',', Admin::get('delete'));
+        $keys = explode(',', Http::get('delete'));
 
         if (count($keys) === 1) {
             $connect->delete($keys[0]);
@@ -104,7 +105,7 @@ trait MemcachedTrait {
      */
     private function moreInfo(array $servers): string {
         try {
-            $id = Admin::get('moreinfo', 'int');
+            $id = Http::get('moreinfo', 'int');
             $server_data = $servers[$id];
 
             return $this->template->render('partials/info_table', [
@@ -147,7 +148,7 @@ trait MemcachedTrait {
         $keys = $this->getAllKeys($connect);
         $all_keys = count($keys);
 
-        [$pages, $page, $per_page] = Admin::paginate($keys);
+        [$pages, $page, $per_page] = Paginator::paginate($keys);
 
         return $this->template->render('dashboards/memcached/memcached', [
             'keys'         => $keys,
@@ -155,11 +156,11 @@ trait MemcachedTrait {
             'first_key'    => array_key_first($keys),
             'current_page' => $page,
             'paginate'     => $pages,
-            'paginate_url' => Admin::queryString(['pp'], ['p' => '']),
+            'paginate_url' => Http::queryString(['pp'], ['p' => '']),
             'per_page'     => $per_page,
-            'new_key_url'  => Admin::queryString([], ['form' => 'new']),
-            'view_url'     => Admin::queryString([], ['view' => 'key', 'key' => '']),
-            'edit_url'     => Admin::queryString([], ['form' => 'edit', 'key' => '']),
+            'new_key_url'  => Http::queryString([], ['form' => 'new']),
+            'view_url'     => Http::queryString([], ['view' => 'key', 'key' => '']),
+            'edit_url'     => Http::queryString([], ['form' => 'edit', 'key' => '']),
         ]);
     }
 
@@ -171,12 +172,12 @@ trait MemcachedTrait {
      * @return string
      */
     private function viewKey($connect): string {
-        $key = Admin::get('key');
+        $key = Http::get('key');
 
         return $this->template->render('partials/view_key', [
             'value'    => $connect->get($key),
             'type'     => 'string',
-            'edit_url' => Admin::queryString(['db'], ['form' => 'edit', 'key' => $key]),
+            'edit_url' => Http::queryString(['db'], ['form' => 'edit', 'key' => $key]),
         ]);
     }
 
@@ -188,7 +189,7 @@ trait MemcachedTrait {
      * @return string
      */
     private function form($connect): string {
-        $key = Admin::get('key');
+        $key = Http::get('key');
         $value = '';
         $edit = false;
 
@@ -198,12 +199,12 @@ trait MemcachedTrait {
         }
 
         if (isset($_POST['submit'])) {
-            $key = Admin::post('key');
-            $value = Admin::post('value');
+            $key = Http::post('key');
+            $value = Http::post('value');
 
             $connect->set($key, $value);
 
-            Admin::redirect(Admin::queryString());
+            Http::redirect();
         }
 
         return $this->template->render('dashboards/memcached/form', [

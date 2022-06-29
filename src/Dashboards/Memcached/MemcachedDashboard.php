@@ -12,10 +12,11 @@ declare(strict_types=1);
 
 namespace RobiNN\Pca\Dashboards\Memcached;
 
-use RobiNN\Pca\Admin;
+use RobiNN\Pca\Config;
 use RobiNN\Pca\Dashboards\DashboardException;
 use RobiNN\Pca\Dashboards\DashboardInterface;
 use RobiNN\Pca\Helpers;
+use RobiNN\Pca\Http;
 use RobiNN\Pca\Template;
 
 class MemcachedDashboard implements DashboardInterface {
@@ -28,7 +29,7 @@ class MemcachedDashboard implements DashboardInterface {
     public function __construct(Template $template) {
         $this->template = $template;
 
-        $this->current_server = Admin::get('server', 'int');
+        $this->current_server = Http::get('server', 'int');
     }
 
     /**
@@ -90,7 +91,7 @@ class MemcachedDashboard implements DashboardInterface {
      */
     public function ajax(): string {
         $return = '';
-        $servers = Admin::getConfig('memcached');
+        $servers = Config::get('memcached');
 
         if (isset($_GET['panel'])) {
             $return = Helpers::returnJson($this->serverInfo($servers));
@@ -122,7 +123,7 @@ class MemcachedDashboard implements DashboardInterface {
         $info = [];
         $info['ajax'] = true;
 
-        foreach (Admin::getConfig('memcached') as $server) {
+        foreach (Config::get('memcached') as $server) {
             $info['panels'][] = [
                 'title'            => $server['name'] ?? $server['host'].':'.$server['port'],
                 'server_selection' => true,
@@ -159,7 +160,7 @@ class MemcachedDashboard implements DashboardInterface {
      * @return string
      */
     public function dashboard(): string {
-        $servers = Admin::getConfig('memcached');
+        $servers = Config::get('memcached');
 
         if (isset($_GET['moreinfo'])) {
             $return = $this->moreInfo($servers);

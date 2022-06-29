@@ -14,10 +14,11 @@ namespace RobiNN\Pca\Dashboards\Redis;
 
 use Exception;
 use Redis;
-use RobiNN\Pca\Admin;
+use RobiNN\Pca\Config;
 use RobiNN\Pca\Dashboards\DashboardException;
 use RobiNN\Pca\Dashboards\DashboardInterface;
 use RobiNN\Pca\Helpers;
+use RobiNN\Pca\Http;
 use RobiNN\Pca\Template;
 
 class RedisDashboard implements DashboardInterface {
@@ -30,12 +31,12 @@ class RedisDashboard implements DashboardInterface {
     public function __construct(Template $template) {
         $this->construct($template); // for RedisTrait
 
-        $this->current_server = Admin::get('server', 'int');
+        $this->current_server = Http::get('server', 'int');
 
-        $server = Admin::getConfig('redis')[$this->current_server];
+        $server = Config::get('redis')[$this->current_server];
 
         $db = !empty($server['database']) ? $server['database'] : null;
-        $db_get = Admin::get('db', 'int');
+        $db_get = Http::get('db', 'int');
         $this->current_db = $db ?? $db_get;
     }
 
@@ -114,7 +115,7 @@ class RedisDashboard implements DashboardInterface {
      */
     public function ajax(): string {
         $return = '';
-        $servers = Admin::getConfig('redis');
+        $servers = Config::get('redis');
 
         if (isset($_GET['panel'])) {
             $return = Helpers::returnJson($this->serverInfo($servers));
@@ -146,7 +147,7 @@ class RedisDashboard implements DashboardInterface {
         $info = [];
         $info['ajax'] = true;
 
-        foreach (Admin::getConfig('redis') as $server) {
+        foreach (Config::get('redis') as $server) {
             $info['panels'][] = [
                 'title'            => $server['name'] ?? $server['host'].':'.$server['port'],
                 'server_selection' => true,
@@ -181,7 +182,7 @@ class RedisDashboard implements DashboardInterface {
      * @return string
      */
     public function dashboard(): string {
-        $servers = Admin::getConfig('redis');
+        $servers = Config::get('redis');
 
         if (isset($_GET['moreinfo'])) {
             $return = $this->moreInfo($servers);

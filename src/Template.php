@@ -50,10 +50,10 @@ class Template {
             $loader = new FilesystemLoader(__DIR__.'/../templates');
             $twig = new Environment($loader, [
                 'cache' => __DIR__.'/../cache',
-                'debug' => Admin::getConfig('twigdebug'),
+                'debug' => Config::get('twigdebug'),
             ]);
 
-            if (Admin::getConfig('twigdebug')) {
+            if (Config::get('twigdebug')) {
                 $twig->addExtension(new DebugExtension());
             }
 

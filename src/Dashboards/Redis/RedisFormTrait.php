@@ -13,8 +13,8 @@ declare(strict_types=1);
 namespace RobiNN\Pca\Dashboards\Redis;
 
 use Redis;
-use RobiNN\Pca\Admin;
 use RobiNN\Pca\Helpers;
+use RobiNN\Pca\Http;
 
 trait RedisFormTrait {
     /**
@@ -27,18 +27,18 @@ trait RedisFormTrait {
     private function saveKey(Redis $connect): void {
         if (isset($_POST['submit'])) {
             $error = '';
-            $type = Admin::post('redis_type');
-            $key = Admin::post('key');
-            $value = Admin::post('value');
-            $expire = Admin::post('expire', 'int');
+            $type = Http::post('redis_type');
+            $key = Http::post('key');
+            $value = Http::post('value');
+            $expire = Http::post('expire', 'int');
 
             switch ($type) {
                 case 'string':
                     $connect->set($key, $value);
                     break;
                 case 'set':
-                    if (Admin::post('value') !== Admin::post('old_value')) {
-                        $connect->sRem($key, Admin::post('old_value'));
+                    if (Http::post('value') !== Http::post('old_value')) {
+                        $connect->sRem($key, Http::post('old_value'));
                         $connect->sAdd($key, $value);
                     }
                     break;
@@ -57,15 +57,15 @@ trait RedisFormTrait {
                     }
                     break;
                 case 'zset':
-                    $connect->zRem($key, Admin::post('old_value'));
-                    $connect->zAdd($key, Admin::post('score', 'int'), $value);
+                    $connect->zRem($key, Http::post('old_value'));
+                    $connect->zAdd($key, Http::post('score', 'int'), $value);
                     break;
                 case 'hash':
-                    if (isset($_GET['key']) && !$connect->hExists($key, Admin::post('hash_key'))) {
-                        $connect->hDel($key, Admin::post('hash_key'));
+                    if (isset($_GET['key']) && !$connect->hExists($key, Http::post('hash_key'))) {
+                        $connect->hDel($key, Http::post('hash_key'));
                     }
 
-                    $connect->hSet($key, Admin::post('hash_key'), $value);
+                    $connect->hSet($key, Http::post('hash_key'), $value);
                     break;
                 default:
             }
@@ -79,7 +79,7 @@ trait RedisFormTrait {
             if (!empty($error)) {
                 Helpers::alert($this->template, $error, 'bg-red-500');
             } else {
-                Admin::redirect(Admin::queryString(['db', 'key'], ['view' => 'key']));
+                Http::redirect(['db', 'key'], ['view' => 'key']);
             }
         }
     }
@@ -99,17 +99,17 @@ trait RedisFormTrait {
         switch ($type) {
             case 'set':
                 $members = $connect->sMembers($key);
-                $connect->sRem($key, $members[Admin::get('member', 'int')]);
+                $connect->sRem($key, $members[Http::get('member', 'int')]);
                 break;
             case 'list':
-                $connect->lRem($key, $connect->lIndex($key, Admin::get('index', 'int')), -1);
+                $connect->lRem($key, $connect->lIndex($key, Http::get('index', 'int')), -1);
                 break;
             case 'zset':
                 $ranges = $connect->zRange($key, 0, -1);
-                $connect->zRem($key, $ranges[Admin::get('range', 'int')]);
+                $connect->zRem($key, $ranges[Http::get('range', 'int')]);
                 break;
             case 'hash':
-                $connect->hDel($key, Admin::get('hash_key'));
+                $connect->hDel($key, Http::get('hash_key'));
                 break;
             default:
         }
@@ -117,7 +117,7 @@ trait RedisFormTrait {
         if (!empty($error)) {
             Helpers::alert($this->template, $error, 'bg-red-500');
         } else {
-            Admin::redirect(Admin::queryString(['db', 'key', 'view', 'p']));
+            Http::redirect(['db', 'key', 'view', 'p']);
         }
     }
 }

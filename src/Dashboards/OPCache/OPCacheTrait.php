@@ -91,18 +91,13 @@ trait OPCacheTrait {
      */
     private function mainDashboard(array $status): string {
         $cached_scripts = $this->getCachedScripts($status);
-        $all_scripts = count($cached_scripts);
 
-        [$pages, $page, $per_page] = Paginator::paginate($cached_scripts, false, 50);
+        $paginator = new Paginator($this->template, $cached_scripts, 50);
+        $paginator->setSelect([50, 100, 200, 300, 400]);
 
         return $this->template->render('dashboards/opcache', [
-            'cached_scripts' => $cached_scripts,
-            'all_scripts'    => $all_scripts,
-            'first_script'   => array_key_first($cached_scripts),
-            'current_page'   => $page,
-            'paginate'       => $pages,
-            'paginate_url'   => Http::queryString(['pp'], ['p' => '']),
-            'per_page'       => $per_page,
+            'cached_scripts' => $paginator->getPaginated(),
+            'paginator'      => $paginator->render(),
         ]);
     }
 }

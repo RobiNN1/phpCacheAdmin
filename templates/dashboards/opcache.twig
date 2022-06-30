@@ -42,8 +42,4 @@
     </div>
 </div>
 
-{{ include('components/paginate.twig', {
-    total_items: all_scripts,
-    first: first_script,
-    options: {50: 50, 100: 100, 200: 200, 300: 300, 400: 400},
-}) }}
+{{ paginator|raw }}

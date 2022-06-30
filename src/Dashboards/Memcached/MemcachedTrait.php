@@ -146,21 +146,16 @@ trait MemcachedTrait {
      */
     private function mainDashboard($connect): string {
         $keys = $this->getAllKeys($connect);
-        $all_keys = count($keys);
 
-        [$pages, $page, $per_page] = Paginator::paginate($keys);
+        $paginator = new Paginator($this->template, $keys);
 
         return $this->template->render('dashboards/memcached/memcached', [
-            'keys'         => $keys,
-            'all_keys'     => $all_keys,
-            'first_key'    => array_key_first($keys),
-            'current_page' => $page,
-            'paginate'     => $pages,
-            'paginate_url' => Http::queryString(['pp'], ['p' => '']),
-            'per_page'     => $per_page,
-            'new_key_url'  => Http::queryString([], ['form' => 'new']),
-            'view_url'     => Http::queryString([], ['view' => 'key', 'key' => '']),
-            'edit_url'     => Http::queryString([], ['form' => 'edit', 'key' => '']),
+            'keys'        => $paginator->getPaginated(true),
+            'all_keys'    => count($keys),
+            'new_key_url' => Http::queryString([], ['form' => 'new']),
+            'edit_url'    => Http::queryString([], ['form' => 'edit', 'key' => '']),
+            'view_url'    => Http::queryString([], ['view' => 'key', 'key' => '']),
+            'paginator'   => $paginator->render(),
         ]);
     }
 

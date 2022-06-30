@@ -290,21 +290,18 @@ trait RedisTrait {
     private function mainDashboard(Redis $connect): string {
         $keys = $this->getAllKeys($connect);
 
-        [$pages, $page, $per_page] = Paginator::paginate($keys);
+        $paginator = new Paginator($this->template, $keys);
+        $paginator->setUrl([['db', 's', 'pp'], ['p' => '']]);
 
         return $this->template->render('dashboards/redis/redis', [
-            'databases'    => $this->getDatabases($connect),
-            'current_db'   => $this->current_db,
-            'keys'         => $keys,
-            'all_keys'     => $connect->dbSize(),
-            'first_key'    => array_key_first($keys),
-            'current_page' => $page,
-            'paginate'     => $pages,
-            'paginate_url' => Http::queryString(['db', 's', 'pp'], ['p' => '']),
-            'per_page'     => $per_page,
-            'new_key_url'  => Http::queryString(['db'], ['form' => 'new']),
-            'view_url'     => Http::queryString(['db'], ['view' => 'key', 'key' => '']),
-            'edit_url'     => Http::queryString(['db'], ['form' => 'edit', 'key' => '']),
+            'databases'   => $this->getDatabases($connect),
+            'current_db'  => $this->current_db,
+            'keys'        => $paginator->getPaginated(true),
+            'all_keys'    => count($keys),
+            'new_key_url' => Http::queryString(['db'], ['form' => 'new']),
+            'edit_url'    => Http::queryString(['db'], ['form' => 'edit', 'key' => '']),
+            'view_url'    => Http::queryString(['db'], ['view' => 'key', 'key' => '']),
+            'paginator'   => $paginator->render(),
         ]);
     }
 
@@ -325,28 +322,32 @@ trait RedisTrait {
 
         $value = $this->getKeyValues($connect, $type, $key);
 
-        $pages = [];
-        $page = 0;
-        $per_page = 15;
-        $first_key = 0;
+        $paginator = '';
 
         if (is_array($value)) {
-            [$pages, $page, $per_page] = Paginator::paginate($value, false);
-            $first_key = array_key_first(array_values($value));
+            $items = [];
+
+            foreach ($value as $key => $item) {
+                $items[] = [
+                    'key'   => $key,
+                    'value' => $item,
+                ];
+            }
+
+            $paginator = new Paginator($this->template, $items);
+            $value = $paginator->getPaginated();
+            $paginator->setUrl([['db', 'view', 'key', 'pp'], ['p' => '']]);
+            $paginator = $paginator->render();
         }
 
         return $this->template->render('partials/view_key', [
-            'value'        => $value,
-            'type'         => $type,
-            'ttl'          => $connect->ttl($key),
-            'edit_url'     => Http::queryString(['db'], ['form' => 'edit', 'key' => $key]),
-            'delete_url'   => Http::queryString(['db', 'view', 'p'], ['deletesub' => 'key', 'key' => $key]),
-            'add_subkey'   => Http::queryString(['db'], ['form' => 'new', 'key' => $key]),
-            'first_key'    => $first_key,
-            'current_page' => $page,
-            'paginate'     => $pages,
-            'paginate_url' => Http::queryString(['db', 'view', 'key', 'pp'], ['p' => '']),
-            'per_page'     => $per_page,
+            'value'      => $value,
+            'type'       => $type,
+            'ttl'        => $connect->ttl($key),
+            'add_subkey' => Http::queryString(['db'], ['form' => 'new', 'key' => $key]),
+            'edit_url'   => Http::queryString(['db'], ['form' => 'edit', 'key' => $key]),
+            'delete_url' => Http::queryString(['db', 'view', 'p'], ['deletesub' => 'key', 'key' => $key]),
+            'paginator'  => $paginator,
         ]);
     }
 

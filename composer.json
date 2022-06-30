@@ -29,7 +29,7 @@
     "ext-memcached": "Required for the memcached dashboard."
   },
   "require-dev": {
-    "phpstan/phpstan": "^1.7"
+    "phpstan/phpstan": "^1.8"
   },
   "autoload": {
     "psr-4": {

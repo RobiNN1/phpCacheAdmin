@@ -52,7 +52,7 @@ trait RedisTrait {
             $all_keys = 0;
 
             foreach ($server_info as $key => $value) {
-                if (str_starts_with($key, 'db')) {
+                if (Helpers::str_starts_with($key, 'db')) {
                     $db = explode(',', $value);
                     $keys = explode('=', $db[0]);
                     $all_keys += (int) $keys[1];

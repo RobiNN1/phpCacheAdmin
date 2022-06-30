@@ -228,4 +228,22 @@ class Helpers {
 
         return $array;
     }
+
+    /**
+     * Checks if a string starts with a given substring.
+     *
+     * From Symfony polyfills.
+     *
+     * @param string $haystack
+     * @param string $needle
+     *
+     * @return bool
+     */
+    public static function str_starts_with(string $haystack, string $needle): bool {
+        if (!function_exists('str_starts_with')) {
+            return 0 === strncmp($haystack, $needle, strlen($needle));
+        }
+
+        return str_starts_with($haystack, $needle);
+    }
 }

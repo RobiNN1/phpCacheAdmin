@@ -303,8 +303,8 @@ trait RedisTrait {
             'paginate_url' => Http::queryString(['db', 's', 'pp'], ['p' => '']),
             'per_page'     => $per_page,
             'new_key_url'  => Http::queryString(['db'], ['form' => 'new']),
-            'view_url'     => Http::queryString([], ['view' => 'key', 'key' => '']),
-            'edit_url'     => Http::queryString([], ['form' => 'edit', 'key' => '']),
+            'view_url'     => Http::queryString(['db'], ['view' => 'key', 'key' => '']),
+            'edit_url'     => Http::queryString(['db'], ['form' => 'edit', 'key' => '']),
         ]);
     }
 
@@ -332,7 +332,7 @@ trait RedisTrait {
 
         if (is_array($value)) {
             [$pages, $page, $per_page] = Paginator::paginate($value, false);
-            $first_key = array_key_first($value);
+            $first_key = array_key_first(array_values($value));
         }
 
         return $this->template->render('partials/view_key', [

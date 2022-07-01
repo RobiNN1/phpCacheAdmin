@@ -65,7 +65,7 @@ trait OPCacheTrait {
 
         if (isset($status['scripts'])) {
             foreach ($status['scripts'] as $script) {
-                $name = explode(DIRECTORY_SEPARATOR, $script['full_path']);
+                $name = explode('/', str_replace('\\', '/', $script['full_path']));
 
                 $cached_scripts[] = [
                     'path'           => $script['full_path'],

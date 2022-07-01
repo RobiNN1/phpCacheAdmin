@@ -150,7 +150,7 @@ trait MemcachedTrait {
         $paginator = new Paginator($this->template, $keys);
 
         return $this->template->render('dashboards/memcached/memcached', [
-            'keys'        => $paginator->getPaginated(true),
+            'keys'        => $paginator->getPaginated(),
             'all_keys'    => count($keys),
             'new_key_url' => Http::queryString([], ['form' => 'new']),
             'edit_url'    => Http::queryString([], ['form' => 'edit', 'key' => '']),
@@ -186,16 +186,18 @@ trait MemcachedTrait {
     private function form($connect): string {
         $key = Http::get('key');
         $value = '';
-        $edit = false;
 
         if (isset($_GET['key']) && $connect->get($key)) {
             $value = $connect->get($key);
-            $edit = true;
         }
 
         if (isset($_POST['submit'])) {
             $key = Http::post('key');
             $value = Http::post('value');
+
+            if ($key !== Http::post('old_key')) {
+                $connect->delete(Http::post('old_key'));
+            }
 
             $connect->set($key, $value);
 
@@ -203,7 +205,6 @@ trait MemcachedTrait {
         }
 
         return $this->template->render('dashboards/memcached/form', [
-            'edit'  => $edit,
             'key'   => $key,
             'value' => $value,
         ]);

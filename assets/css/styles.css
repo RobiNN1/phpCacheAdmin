@@ -711,10 +711,6 @@ svg {
   margin-left: 0.25rem;
 }
 
-.mt-2 {
-  margin-top: 0.5rem;
-}
-
 .ml-64 {
   margin-left: 16rem;
 }
@@ -1465,6 +1461,10 @@ svg {
 #phpinfo .center table {
   margin: 1em auto;
   text-align: left;
+}
+
+#phpinfo > .center table {
+  margin-top: 0;
 }
 
 #phpinfo table {

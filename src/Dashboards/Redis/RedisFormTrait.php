@@ -61,8 +61,8 @@ trait RedisFormTrait {
                     $connect->zAdd($key, Http::post('score', 'int'), $value);
                     break;
                 case 'hash':
-                    if (isset($_GET['key']) && !$connect->hExists($key, Http::post('hash_key'))) {
-                        $connect->hDel($key, Http::post('hash_key'));
+                    if ($connect->hExists($key, Http::get('hash_key'))) {
+                        $connect->hDel($key, Http::get('hash_key'));
                     }
 
                     $connect->hSet($key, Http::post('hash_key'), $value);
@@ -76,10 +76,16 @@ trait RedisFormTrait {
                 $connect->expire($key, $expire);
             }
 
+            $old_key = Http::post('old_key');
+
+            if ($old_key !== $key) {
+                $connect->rename($old_key, $key);
+            }
+
             if (!empty($error)) {
                 Helpers::alert($this->template, $error, 'bg-red-500');
             } else {
-                Http::redirect(['db', 'key'], ['view' => 'key']);
+                Http::redirect(['db'], ['view' => 'key', 'key' => $key]);
             }
         }
     }

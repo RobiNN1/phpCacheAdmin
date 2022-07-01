@@ -296,7 +296,7 @@ trait RedisTrait {
         return $this->template->render('dashboards/redis/redis', [
             'databases'   => $this->getDatabases($connect),
             'current_db'  => $this->current_db,
-            'keys'        => $paginator->getPaginated(true),
+            'keys'        => $paginator->getPaginated(),
             'all_keys'    => count($keys),
             'new_key_url' => Http::queryString(['db'], ['form' => 'new']),
             'edit_url'    => Http::queryString(['db'], ['form' => 'edit', 'key' => '']),
@@ -314,22 +314,27 @@ trait RedisTrait {
      */
     private function viewKey(Redis $connect): string {
         $key = Http::get('key');
+
+        if (!$connect->exists($key)) {
+            Http::redirect(['db']);
+        }
+
         $type = $this->getType($connect->type($key));
 
         if (isset($_GET['deletesub'])) {
             $this->deleteSubKey($connect, $type, $key);
         }
 
-        $value = $this->getKeyValues($connect, $type, $key);
+        $value = $this->getAllKeyValues($connect, $type, $key);
 
         $paginator = '';
 
         if (is_array($value)) {
             $items = [];
 
-            foreach ($value as $key => $item) {
+            foreach ($value as $value_key => $item) {
                 $items[] = [
-                    'key'   => $key,
+                    'key'   => $value_key,
                     'value' => $item,
                 ];
             }
@@ -367,26 +372,21 @@ trait RedisTrait {
         $hash_key = '';
         $expire = -1;
 
-        $edit = false;
-
         $this->saveKey($connect);
 
         if (isset($_GET['key']) && $_GET['form'] === 'edit' && $connect->exists($key)) {
             $type = $this->getType($connect->type($key));
             $expire = $connect->ttl($key);
             [$value, $index, $score, $hash_key] = $this->getKeyValue($connect, $type, $key);
-            $edit = true;
         }
 
         // subkeys
         if (isset($_GET['key']) && $_GET['form'] === 'new' && $connect->exists($key)) {
             $type = $this->getType($connect->type($key));
             $expire = $connect->ttl($key);
-            $edit = true;
         }
 
         return $this->template->render('dashboards/redis/form', [
-            'edit'     => $edit,
             'key'      => $key,
             'value'    => $value,
             'type'     => $type,

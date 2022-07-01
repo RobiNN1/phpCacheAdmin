@@ -17,8 +17,7 @@ use RobiNN\Pca\Http;
 
 trait GetValueTrait {
     /**
-     * Get key's value.
-     * For edit form.
+     * Get key's value. (For edit form)
      *
      * @param Redis  $connect
      * @param string $type
@@ -55,6 +54,7 @@ trait GetValueTrait {
                 break;
             case 'hash':
                 $keys = [];
+
                 foreach ($connect->hGetAll($key) as $k => $hash_Key_value) {
                     $keys[] = $k;
                 }
@@ -71,7 +71,7 @@ trait GetValueTrait {
     }
 
     /**
-     * Get all values.
+     * Get all key's values. (For vie key)
      *
      * @param Redis  $connect
      * @param string $type
@@ -79,7 +79,7 @@ trait GetValueTrait {
      *
      * @return array|string
      */
-    private function getKeyValues(Redis $connect, string $type, string $key) {
+    private function getAllKeyValues(Redis $connect, string $type, string $key) {
         switch ($type) {
             case 'string':
                 $value = $connect->get($key);

@@ -9,6 +9,10 @@
 </div>
 
 {% if value is iterable %}
+    <a href="{{ add_subkey }}" class="text-{{ color }}-500 hover:text-{{ color }}-700 font-semibold inline-flex items-center mb-2">
+        {{ svg('open') }} Add another value
+    </a>
+
     {% for item in value %}
         {% if type == 'set' %}
             {% set param_name = 'member' %}
@@ -33,10 +37,10 @@
                 </span>
 
                 <div>
-                    <a href="{{ edit_url }}&{{ param_name }}={{ index }}" class="text-gray-500 hover:text-gray-700 font-semibold mr-3 inline-block mr-3">
+                    <a href="{{ edit_url }}&{{ param_name }}={{ item.key }}" class="text-gray-500 hover:text-gray-700 font-semibold mr-3 inline-block mr-3">
                         {{ svg('edit', 13) }} Edit
                     </a>
-                    <a href="{{ delete_url }}&{{ param_name }}={{ index }}" class="text-red-500 hover:text-red-700 font-semibold inline-block"
+                    <a href="{{ delete_url }}&{{ param_name }}={{ item.key }}" class="text-red-500 hover:text-red-700 font-semibold inline-block"
                        onclick="return confirm('Are you sure you want to remove this item?');">
                         {{ svg('trash', 13) }} Delete
                     </a>
@@ -48,10 +52,6 @@
     {% endfor %}
 
     {{ paginator|raw }}
-
-    <a href="{{ add_subkey }}" class="text-{{ color }}-500 hover:text-{{ color }}-700 font-semibold inline-flex items-center mt-2">
-        {{ svg('open') }} Add another value
-    </a>
 {% else %}
     <a href="{{ edit_url }}" class="text-gray-500 hover:text-gray-700 font-semibold mr-3 inline-block mb-3">
         {{ svg('edit', 13) }} Edit

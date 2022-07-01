@@ -1,4 +1,5 @@
 <form method="post">
+    <input type="hidden" name="old_key" value="{{ key }}">
     <input type="hidden" name="old_value" value="{{ value }}">
 
     <div class="mb-3">
@@ -22,7 +23,6 @@
         label: 'Key',
         value: key,
         required: true,
-        readonly: edit,
     }) }}
 
     {{ include('components/input.twig', {

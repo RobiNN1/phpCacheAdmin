@@ -57,6 +57,10 @@
     text-align: left;
 }
 
+#phpinfo > .center table {
+    margin-top: 0;
+}
+
 #phpinfo table {
     width: 100%;
     table-layout: auto;

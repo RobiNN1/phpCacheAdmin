@@ -75,15 +75,9 @@ class Paginator {
     /**
      * Get paginated items.
      *
-     * @param bool $sort Sort keys by key name.
-     *
      * @return array
      */
-    public function getPaginated(bool $sort = false): array {
-        if ($sort) {
-            usort($this->paginated, static fn ($a, $b) => strcmp((string) $a['key'], (string) $b['key']));
-        }
-
+    public function getPaginated(): array {
         return $this->paginated;
     }
 

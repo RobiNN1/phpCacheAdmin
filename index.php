@@ -14,7 +14,15 @@ use RobiNN\Pca\Admin;
 use RobiNN\Pca\Http;
 use RobiNN\Pca\Template;
 
-require_once __DIR__.'/vendor/autoload.php';
+if (is_file(__DIR__.'/vendor/autoload.php')) {
+    require_once __DIR__.'/vendor/autoload.php';
+} else {
+    // Not great way to load composer package, but it works...
+    spl_autoload_register(static function ($class) {
+        require_once 'phar://twig.phar/vendor/autoload.php';
+        require_once __DIR__.'/src/'.str_replace('RobiNN\\Pca\\', '', $class).'.php';
+    });
+}
 
 $tpl = new Template();
 $admin = new Admin($tpl);

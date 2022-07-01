@@ -29,6 +29,7 @@
     "ext-memcached": "Required for the memcached dashboard."
   },
   "require-dev": {
+    "clue/phar-composer": "^1.4",
     "phpstan/phpstan": "^1.8"
   },
   "autoload": {
@@ -37,7 +38,8 @@
     }
   },
   "scripts": {
-    "phpstan": "phpstan --ansi"
+    "phpstan": "phpstan --ansi",
+    "phar": "phar-composer build twig/twig"
   },
   "config": {
     "sort-packages": true

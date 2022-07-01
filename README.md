@@ -22,7 +22,7 @@ Web dashboard for Redis, Memcache(d) and OPCache.
 
 ## Installation
 
-Simply extract the content and run `composer install` before use.
+Simply extract the content. Optional but highly recommended, run `composer install` before use.
 
 If you need to customize or add servers in the configuration file, do not edit `config.dist.php` directly,
 copy `config.dist.php` to `config.php` instead.

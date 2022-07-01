@@ -4,21 +4,13 @@ Web dashboard for Redis, Memcache(d) and OPCache.
 
 ![Visitor Badge](https://visitor-badge.laobi.icu/badge?page_id=RobiNN1.phpCacheAdmin)
 
-#### Redis
+| Redis                           | Memcache(d)                               |
+|---------------------------------|-------------------------------------------|
+| ![Redis](.github/img/redis.png) | ![Memcache(d)](.github/img/memcached.png) |
 
-![Redis](.github/img/redis.png)
-
-#### Memcache(d)
-
-![Memcache(d)](.github/img/memcached.png)
-
-#### OPCache
-
-![OPCache](.github/img/opcache.png)
-
-#### Server tab (default)
-
-![Server](.github/img/server.png)
+| OPCache                             | Server tab (default)                   |
+|-------------------------------------|----------------------------------------|
+| ![OPCache](.github/img/opcache.png) | ![Memcache(d)](.github/img/server.png) |
 
 ## Installation
 
@@ -29,7 +21,7 @@ copy `config.dist.php` to `config.php` instead.
 
 ## Docker
 
-There is no official image yet, 
+There is no official image yet,
 but you can create your own and set ENV variables such as these
 `PCA_REDIS_0_HOST=127.0.0.1`, `PCA_REDIS_0_PORT=6379`.
 

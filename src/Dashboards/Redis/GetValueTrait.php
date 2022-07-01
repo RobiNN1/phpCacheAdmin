@@ -71,7 +71,7 @@ trait GetValueTrait {
     }
 
     /**
-     * Get all key's values. (For vie key)
+     * Get all key's values. (For view key page)
      *
      * @param Redis  $connect
      * @param string $type

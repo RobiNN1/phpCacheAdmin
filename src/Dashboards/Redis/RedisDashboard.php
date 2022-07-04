@@ -35,7 +35,7 @@ class RedisDashboard implements DashboardInterface {
 
         $server = Config::get('redis')[$this->current_server];
 
-        $db = !empty($server['database']) ? $server['database'] : null;
+        $db = empty($server['database']) ? null : $server['database'];
         $db_get = Http::get('db', 'int');
         $this->current_db = $db ?? $db_get;
     }

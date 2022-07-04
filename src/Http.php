@@ -35,7 +35,7 @@ class Http {
         $query = array_intersect_key($query, $filter);
         $query += $additional;
 
-        return ($query ? '?' : '').http_build_query($query);
+        return ($query !== [] ? '?' : '').http_build_query($query);
     }
 
     /**

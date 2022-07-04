@@ -62,10 +62,10 @@ class Paginator {
         $this->total = count($items);
 
         $page = (int) Http::get('p', 'int');
-        $this->page = !empty($page) ? $page : 1;
+        $this->page = empty($page) ? 1 : $page;
 
         $per_page = (int) Http::get('pp', 'int');
-        $this->per_page = !empty($per_page) ? $per_page : $default_per_page;
+        $this->per_page = empty($per_page) ? $default_per_page : $per_page;
 
         $this->paginated = array_slice($items, $this->per_page * ($this->page - 1), $this->per_page, true);
 
@@ -114,7 +114,7 @@ class Paginator {
         $total_pages = (int) ceil($this->total / $this->per_page);
 
         for ($i = 1; $i <= $total_pages; $i++) {
-            if ($i === $this->page) {
+            if ($this->page === $i) {
                 $pages[] = $this->page;
             } else {
                 $pages[] = $i;

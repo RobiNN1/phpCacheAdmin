@@ -56,7 +56,7 @@ class OPCacheDashboard implements DashboardInterface {
     public function ajax(): string {
         $return = '';
 
-        if (isset($_GET['deleteall']) && opcache_reset() === true) {
+        if (isset($_GET['deleteall']) && opcache_reset()) {
             $return = $this->template->render('components/alert', [
                 'message' => 'Cache has been cleaned.',
             ]);

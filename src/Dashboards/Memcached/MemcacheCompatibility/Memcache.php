@@ -49,7 +49,7 @@ class Memcache extends \Memcache implements MemcacheInterface {
             $slabs = (array) $slabs;
             unset($slabs['active_slabs'], $slabs['total_malloced']);
 
-            foreach ($slabs as $slab_id => $slab_meta) {
+            foreach (array_keys($slabs) as $slab_id) {
                 foreach ($this->getExtendedStats('cachedump', (int) $slab_id) as $entries) {
                     if (!empty($entries)) {
                         foreach ($entries as $name => $data) {

@@ -169,6 +169,10 @@ trait MemcachedTrait {
     private function viewKey($memcached): string {
         $key = Http::get('key');
 
+        if (empty($memcached->get($key))) {
+            Http::redirect();
+        }
+
         return $this->template->render('partials/view_key', [
             'value'    => $memcached->get($key),
             'type'     => 'string',

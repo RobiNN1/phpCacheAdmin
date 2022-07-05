@@ -30,8 +30,8 @@ trait MemcachedTrait {
      */
     private function serverInfo(array $servers): array {
         try {
-            $connect = $this->connect($servers[Http::get('panel', 'int')]);
-            $server_info = $connect->getServerStats();
+            $memcached = $this->connect($servers[Http::get('panel', 'int')]);
+            $server_info = $memcached->getServerStats();
 
             if (!empty($server_info['version'])) {
                 $data = [
@@ -40,7 +40,7 @@ trait MemcachedTrait {
                     'Uptime'           => Helpers::formatSeconds((int) $server_info['uptime'], false, true),
                     'Cache limit'      => Helpers::formatBytes((int) $server_info['limit_maxbytes']),
                     'Used'             => Helpers::formatBytes((int) $server_info['bytes']),
-                    'Keys'             => count($connect->getKeys()),
+                    'Keys'             => count($memcached->getKeys()),
                 ];
             } else {
                 $data = [
@@ -59,12 +59,12 @@ trait MemcachedTrait {
     /**
      * Delete all keys.
      *
-     * @param Memcache|Memcached $connect
+     * @param Memcache|Memcached $memcached
      *
      * @return string
      */
-    private function deleteAllKeys($connect): string {
-        if ($connect->flush()) {
+    private function deleteAllKeys($memcached): string {
+        if ($memcached->flush()) {
             $message = 'All keys have been removed.';
         } else {
             $message = 'An error occurred while deleting all keys.';
@@ -76,19 +76,19 @@ trait MemcachedTrait {
     /**
      * Delete key or selected keys.
      *
-     * @param Memcache|Memcached $connect
+     * @param Memcache|Memcached $memcached
      *
      * @return string
      */
-    private function deleteKey($connect): string {
+    private function deleteKey($memcached): string {
         $keys = explode(',', Http::get('delete'));
 
         if (count($keys) === 1) {
-            $connect->delete($keys[0]);
+            $memcached->delete($keys[0]);
             $message = sprintf('Key "%s" has been deleted.', $keys[0]);
         } else {
             foreach ($keys as $key) {
-                $connect->delete($key);
+                $memcached->delete($key);
             }
             $message = 'Keys has been deleted.';
         }
@@ -120,17 +120,17 @@ trait MemcachedTrait {
     /**
      * Get all keys with data.
      *
-     * @param Memcache|Memcached $connect
+     * @param Memcache|Memcached $memcached
      *
      * @return array
      */
-    private function getAllKeys($connect): array {
+    private function getAllKeys($memcached): array {
         $keys = [];
 
-        foreach ($connect->getKeys() as $key) {
+        foreach ($memcached->getKeys() as $key) {
             $keys[] = [
                 'key'  => $key,
-                'type' => gettype($connect->get($key)),
+                'type' => gettype($memcached->get($key)),
             ];
         }
 
@@ -140,12 +140,12 @@ trait MemcachedTrait {
     /**
      * Main dashboard content.
      *
-     * @param Memcache|Memcached $connect
+     * @param Memcache|Memcached $memcached
      *
      * @return string
      */
-    private function mainDashboard($connect): string {
-        $keys = $this->getAllKeys($connect);
+    private function mainDashboard($memcached): string {
+        $keys = $this->getAllKeys($memcached);
 
         $paginator = new Paginator($this->template, $keys);
 
@@ -162,15 +162,15 @@ trait MemcachedTrait {
     /**
      * View key value.
      *
-     * @param Memcache|Memcached $connect
+     * @param Memcache|Memcached $memcached
      *
      * @return string
      */
-    private function viewKey($connect): string {
+    private function viewKey($memcached): string {
         $key = Http::get('key');
 
         return $this->template->render('partials/view_key', [
-            'value'    => $connect->get($key),
+            'value'    => $memcached->get($key),
             'type'     => 'string',
             'edit_url' => Http::queryString(['db'], ['form' => 'edit', 'key' => $key]),
         ]);
@@ -179,16 +179,16 @@ trait MemcachedTrait {
     /**
      * Add/edit form.
      *
-     * @param Memcache|Memcached $connect
+     * @param Memcache|Memcached $memcached
      *
      * @return string
      */
-    private function form($connect): string {
+    private function form($memcached): string {
         $key = Http::get('key');
         $value = '';
 
-        if (isset($_GET['key']) && $connect->get($key)) {
-            $value = $connect->get($key);
+        if (isset($_GET['key']) && $memcached->get($key)) {
+            $value = $memcached->get($key);
         }
 
         if (isset($_POST['submit'])) {
@@ -196,12 +196,12 @@ trait MemcachedTrait {
             $value = Http::post('value');
 
             if ($key !== Http::post('old_key')) {
-                $connect->delete(Http::post('old_key'));
+                $memcached->delete(Http::post('old_key'));
             }
 
-            $connect->set($key, $value);
+            $memcached->set($key, $value);
 
-            Http::redirect();
+            Http::redirect([], ['view' => 'key', 'key' => $key]);
         }
 
         return $this->template->render('dashboards/memcached/form', [

@@ -28,7 +28,7 @@
                         </td>
                         <td class="border-b border-gray-100 px-5 py-2 text-sm whitespace-nowrap">
                             <a class="text-{{ color }}-500 hover:text-{{ color }}-700" href="{{ view_url ~ key.key }}" title="{{ key.key }}">
-                                {{ truncate(key.key, 75) }}{{ key.items ? ' (Items: ' ~ key.items ~ ')' : '' }}
+                                {{ truncate(key.key, 75) }}{{ key.items_total ? ' (Items: ' ~ key.items_total ~ ')' : '' }}
                             </a>
                         </td>
                         <td class="border-b border-gray-100 px-5 py-2 text-sm whitespace-nowrap">{{ key_badge.key_type(key.type) }}</td>

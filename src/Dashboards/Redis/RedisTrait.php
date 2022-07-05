@@ -20,8 +20,7 @@ use RobiNN\Pca\Paginator;
 use RobiNN\Pca\Template;
 
 trait RedisTrait {
-    use GetValueTrait;
-    use RedisFormTrait;
+    use TypesTrait;
 
     private Template $template;
 
@@ -46,8 +45,8 @@ trait RedisTrait {
      */
     private function serverInfo(array $servers): array {
         try {
-            $connect = $this->connect($servers[Http::get('panel', 'int')]);
-            $server_info = $connect->info();
+            $redis = $this->connect($servers[Http::get('panel', 'int')]);
+            $server_info = $redis->info();
 
             $all_keys = 0;
 
@@ -78,12 +77,12 @@ trait RedisTrait {
     /**
      * Delete all keys from the current database.
      *
-     * @param Redis $connect
+     * @param Redis $redis
      *
      * @return string
      */
-    private function deleteAllKeys(Redis $connect): string {
-        if ($connect->flushDB()) {
+    private function deleteAllKeys(Redis $redis): string {
+        if ($redis->flushDB()) {
             $message = 'All keys from the current database have been removed.';
         } else {
             $message = 'An error occurred while deleting all keys.';
@@ -95,18 +94,18 @@ trait RedisTrait {
     /**
      * Delete key or selected keys.
      *
-     * @param Redis $connect
+     * @param Redis $redis
      *
      * @return string
      */
-    private function deleteKey(Redis $connect): string {
+    private function deleteKey(Redis $redis): string {
         $keys = explode(',', Http::get('delete'));
 
-        if (count($keys) === 1 && $connect->del($keys[0])) {
+        if (count($keys) === 1 && $redis->del($keys[0])) {
             $message = sprintf('Key "%s" has been deleted.', $keys[0]);
         } else {
             foreach ($keys as $key) {
-                $connect->del($key);
+                $redis->del($key);
             }
             $message = 'Keys has been deleted.';
         }
@@ -117,17 +116,17 @@ trait RedisTrait {
     /**
      * Get Redis info.
      *
-     * @param Redis $connect
+     * @param Redis $redis
      *
      * @return array
      */
-    private function getInfo(Redis $connect): array {
+    private function getInfo(Redis $redis): array {
         $options = ['SERVER', 'CLIENTS', 'MEMORY', 'PERSISTENCE', 'STATS', 'REPLICATION', 'CPU', 'CLASTER', 'KEYSPACE', 'COMANDSTATS'];
 
         $array = [];
 
         foreach ($options as $option) {
-            $info = $connect->info($option);
+            $info = $redis->info($option);
 
             if (!empty($info)) {
                 $array[$option] = $info;
@@ -148,10 +147,10 @@ trait RedisTrait {
         try {
             $id = Http::get('moreinfo', 'int');
             $server_data = $servers[$id];
-            $connect = $this->connect($server_data);
+            $redis = $this->connect($server_data);
 
             if (isset($_GET['reset'])) {
-                if ($connect->resetStat()) {
+                if ($redis->resetStat()) {
                     Helpers::alert($this->template, 'Stats has been reseted.');
                 } else {
                     Helpers::alert($this->template, 'An error occurred while resetting stats.', 'bg-red-500');
@@ -164,8 +163,8 @@ trait RedisTrait {
 
             return $this->template->render('partials/info_table', [
                 'panel_title'    => $server_data['name'] ?? $server_data['host'].':'.$server_data['port'],
-                'array'          => $this->getInfo($connect),
-                'bottom_content' => method_exists($connect, 'resetStat') && isset($reset_link) ? $reset_link : '',
+                'array'          => $this->getInfo($redis),
+                'bottom_content' => method_exists($redis, 'resetStat') && isset($reset_link) ? $reset_link : '',
             ]);
         } catch (DashboardException $e) {
             return $e->getMessage();
@@ -175,18 +174,18 @@ trait RedisTrait {
     /**
      * Get server databases.
      *
-     * @param Redis $connect
+     * @param Redis $redis
      *
      * @return array
      */
-    private function getDatabases(Redis $connect): array {
+    private function getDatabases(Redis $redis): array {
         $databases = [];
 
-        if ($db_count = $connect->config('GET', 'databases')) {
+        if ($db_count = $redis->config('GET', 'databases')) {
             $db_count = $db_count['databases']; // @phpstan-ignore-line
 
             for ($d = 0; $d < $db_count; ++$d) {
-                $keyspace = $connect->info('KEYSPACE');
+                $keyspace = $redis->info('KEYSPACE');
                 $keys_in_db = '';
 
                 if (array_key_exists('db'.$d, $keyspace)) {
@@ -205,25 +204,25 @@ trait RedisTrait {
     /**
      * Get all keys with data.
      *
-     * @param Redis $connect
+     * @param Redis $redis
      *
      * @return array
      */
-    private function getAllKeys(Redis $connect): array {
+    private function getAllKeys(Redis $redis): array {
         $keys = [];
         $filter = Http::get('s');
         $filter = !empty($filter) ? $filter : '*';
 
         $this->template->addTplGlobal('search_value', $filter);
 
-        foreach ($connect->keys($filter) as $key) {
-            $type = $this->getType($connect->type($key));
+        foreach ($redis->keys($filter) as $key) {
+            $type = $this->getType($redis->type($key));
 
             $keys[] = [
-                'key'   => $key,
-                'type'  => $type,
-                'ttl'   => $connect->ttl($key),
-                'items' => $this->getItemsInKey($connect, $type, $key),
+                'key'         => $key,
+                'type'        => $type,
+                'ttl'         => $redis->ttl($key),
+                'items_total' => $this->getCountOfItemsInKey($redis, $type, $key),
             ];
         }
 
@@ -251,50 +250,20 @@ trait RedisTrait {
     }
 
     /**
-     * Get a number of items in a key.
-     *
-     * @param Redis  $connect
-     * @param string $type
-     * @param string $key
-     *
-     * @return int|null
-     */
-    private function getItemsInKey(Redis $connect, string $type, string $key): ?int {
-        switch ($type) {
-            case 'set':
-                $items = $connect->sCard($key);
-                break;
-            case 'list':
-                $items = $connect->lLen($key);
-                break;
-            case 'zset':
-                $items = $connect->zCard($key);
-                break;
-            case 'hash':
-                $items = $connect->hLen($key);
-                break;
-            default:
-                $items = null;
-        }
-
-        return $items;
-    }
-
-    /**
      * Main dashboard content.
      *
-     * @param Redis $connect
+     * @param Redis $redis
      *
      * @return string
      */
-    private function mainDashboard(Redis $connect): string {
-        $keys = $this->getAllKeys($connect);
+    private function mainDashboard(Redis $redis): string {
+        $keys = $this->getAllKeys($redis);
 
         $paginator = new Paginator($this->template, $keys);
         $paginator->setUrl([['db', 's', 'pp'], ['p' => '']]);
 
         return $this->template->render('dashboards/redis/redis', [
-            'databases'   => $this->getDatabases($connect),
+            'databases'   => $this->getDatabases($redis),
             'current_db'  => $this->current_db,
             'keys'        => $paginator->getPaginated(),
             'all_keys'    => count($keys),
@@ -308,24 +277,24 @@ trait RedisTrait {
     /**
      * View key values.
      *
-     * @param Redis $connect
+     * @param Redis $redis
      *
      * @return string
      */
-    private function viewKey(Redis $connect): string {
+    private function viewKey(Redis $redis): string {
         $key = Http::get('key');
 
-        if (!$connect->exists($key)) {
+        if (!$redis->exists($key)) {
             Http::redirect(['db']);
         }
 
-        $type = $this->getType($connect->type($key));
+        $type = $this->getType($redis->type($key));
 
         if (isset($_GET['deletesub'])) {
-            $this->deleteSubKey($connect, $type, $key);
+            $this->deleteSubKey($redis, $type, $key);
         }
 
-        $value = $this->getAllKeyValues($connect, $type, $key);
+        $value = $this->getAllKeyValues($redis, $type, $key);
 
         $paginator = '';
 
@@ -348,7 +317,7 @@ trait RedisTrait {
         return $this->template->render('partials/view_key', [
             'value'      => $value,
             'type'       => $type,
-            'ttl'        => $connect->ttl($key),
+            'ttl'        => $redis->ttl($key),
             'add_subkey' => Http::queryString(['db'], ['form' => 'new', 'key' => $key]),
             'edit_url'   => Http::queryString(['db'], ['form' => 'edit', 'key' => $key]),
             'delete_url' => Http::queryString(['db', 'view', 'p'], ['deletesub' => 'key', 'key' => $key]),
@@ -359,11 +328,11 @@ trait RedisTrait {
     /**
      * Add/edit a form.
      *
-     * @param Redis $connect
+     * @param Redis $redis
      *
      * @return string
      */
-    private function form(Redis $connect): string {
+    private function form(Redis $redis): string {
         $key = Http::get('key');
         $type = 'string';
         $value = '';
@@ -372,18 +341,18 @@ trait RedisTrait {
         $hash_key = '';
         $expire = -1;
 
-        $this->saveKey($connect);
+        $this->saveKey($redis);
 
-        if (isset($_GET['key']) && $_GET['form'] === 'edit' && $connect->exists($key)) {
-            $type = $this->getType($connect->type($key));
-            $expire = $connect->ttl($key);
-            [$value, $index, $score, $hash_key] = $this->getKeyValue($connect, $type, $key);
+        if (isset($_GET['key']) && $_GET['form'] === 'edit' && $redis->exists($key)) {
+            $type = $this->getType($redis->type($key));
+            $expire = $redis->ttl($key);
+            [$value, $index, $score, $hash_key] = $this->getKeyValue($redis, $type, $key);
         }
 
         // subkeys
-        if (isset($_GET['key']) && $_GET['form'] === 'new' && $connect->exists($key)) {
-            $type = $this->getType($connect->type($key));
-            $expire = $connect->ttl($key);
+        if (isset($_GET['key']) && $_GET['form'] === 'new' && $redis->exists($key)) {
+            $type = $this->getType($redis->type($key));
+            $expire = $redis->ttl($key);
         }
 
         return $this->template->render('dashboards/redis/form', [

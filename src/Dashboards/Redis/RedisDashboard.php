@@ -121,14 +121,14 @@ class RedisDashboard implements DashboardInterface {
             $return = Helpers::returnJson($this->serverInfo($servers));
         } else {
             try {
-                $connect = $this->connect($servers[$this->current_server]);
+                $redis = $this->connect($servers[$this->current_server]);
 
                 if (isset($_GET['deleteall'])) {
-                    $return = $this->deleteAllKeys($connect);
+                    $return = $this->deleteAllKeys($redis);
                 }
 
                 if (isset($_GET['delete'])) {
-                    $return = $this->deleteKey($connect);
+                    $return = $this->deleteKey($redis);
                 }
             } catch (DashboardException $e) {
                 $return = $e->getMessage();
@@ -188,14 +188,14 @@ class RedisDashboard implements DashboardInterface {
             $return = $this->moreInfo($servers);
         } else {
             try {
-                $connect = $this->connect($servers[$this->current_server]);
+                $redis = $this->connect($servers[$this->current_server]);
 
                 if (isset($_GET['view']) && !empty($_GET['key'])) {
-                    $return = $this->viewKey($connect);
+                    $return = $this->viewKey($redis);
                 } elseif (isset($_GET['form'])) {
-                    $return = $this->form($connect);
+                    $return = $this->form($redis);
                 } else {
-                    $return = $this->mainDashboard($connect);
+                    $return = $this->mainDashboard($redis);
                 }
             } catch (Exception $e) {
                 return $e->getMessage();

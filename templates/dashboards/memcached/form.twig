@@ -1,9 +1,3 @@
-{{ include('components/alert.twig', {
-    message: 'After save, refresh again page. Because Memcache(d)...',
-    hide_close: true,
-    alert_color: 'bg-emerald-500',
-}) }}
-
 <form method="post">
     <input type="hidden" name="old_key" value="{{ key }}">
 

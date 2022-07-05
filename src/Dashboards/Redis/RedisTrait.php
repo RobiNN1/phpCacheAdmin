@@ -266,7 +266,7 @@ trait RedisTrait {
             'databases'   => $this->getDatabases($redis),
             'current_db'  => $this->current_db,
             'keys'        => $paginator->getPaginated(),
-            'all_keys'    => count($keys),
+            'all_keys'    => $redis->dbSize(),
             'new_key_url' => Http::queryString(['db'], ['form' => 'new']),
             'edit_url'    => Http::queryString(['db'], ['form' => 'edit', 'key' => '']),
             'view_url'    => Http::queryString(['db'], ['view' => 'key', 'key' => '']),

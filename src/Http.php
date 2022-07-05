@@ -16,8 +16,8 @@ class Http {
     /**
      * Query string manipulation.
      *
-     * @param array $filter
-     * @param array $additional
+     * @param array<int|string, string> $filter
+     * @param array<int|string, string> $additional
      *
      * @return string
      */
@@ -89,8 +89,8 @@ class Http {
     /**
      * Redirect.
      *
-     * @param array $filter
-     * @param array $additional
+     * @param array<int|string, string> $filter
+     * @param array<int|string, string> $additional
      *
      * @return void
      */

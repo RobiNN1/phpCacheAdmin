@@ -37,7 +37,7 @@ class ServerDashboard implements DashboardInterface {
     /**
      * Get dashboard info.
      *
-     * @return array
+     * @return array<string, string>
      */
     public function getDashboardInfo(): array {
         return [
@@ -59,7 +59,7 @@ class ServerDashboard implements DashboardInterface {
     /**
      * Data for info panels.
      *
-     * @return array
+     * @return array<string, mixed>
      */
     public function info(): array {
         $xdebug = Helpers::enabledDisabledBadge(

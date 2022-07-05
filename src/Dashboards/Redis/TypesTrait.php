@@ -24,7 +24,7 @@ trait TypesTrait {
      * @param string $type
      * @param string $key
      *
-     * @return array
+     * @return array<mixed, mixed>
      */
     private function getKeyValue(Redis $redis, string $type, string $key): array {
         $value = '';
@@ -78,7 +78,7 @@ trait TypesTrait {
      * @param string $type
      * @param string $key
      *
-     * @return array|string
+     * @return array<mixed, mixed>|string
      */
     private function getAllKeyValues(Redis $redis, string $type, string $key) {
         switch ($type) {

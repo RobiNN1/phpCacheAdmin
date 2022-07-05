@@ -23,7 +23,7 @@ interface DashboardInterface {
     /**
      * Get dashboard info.
      *
-     * @return array
+     * @return array<string, string>
      */
     public function getDashboardInfo(): array;
 
@@ -37,7 +37,7 @@ interface DashboardInterface {
     /**
      * Data for info panels.
      *
-     * @return array
+     * @return array<string, mixed>
      */
     public function info(): array;
 

@@ -35,7 +35,7 @@ class Config {
     /**
      * Get config from ENV.
      *
-     * @param array $config
+     * @param array<string, mixed> $config
      *
      * @return void
      */

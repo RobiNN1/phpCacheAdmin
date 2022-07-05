@@ -23,14 +23,14 @@ interface MemcacheInterface {
     /**
      * Get server statistics.
      *
-     * @return array
+     * @return array<string, mixed>
      */
     public function getServerStats(): array;
 
     /**
      * Get all keys.
      *
-     * @return array
+     * @return array<int, string>
      */
     public function getKeys(): array;
 }

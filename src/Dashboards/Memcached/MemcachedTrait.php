@@ -24,9 +24,9 @@ trait MemcachedTrait {
      * Get server info for ajax.
      * This allows loading data of each server separately.
      *
-     * @param array $servers
+     * @param array<int, mixed> $servers
      *
-     * @return array
+     * @return array<string, mixed>
      */
     private function serverInfo(array $servers): array {
         try {
@@ -99,7 +99,7 @@ trait MemcachedTrait {
     /**
      * Show more info.
      *
-     * @param array $servers
+     * @param array<int, mixed> $servers
      *
      * @return string
      */
@@ -122,7 +122,7 @@ trait MemcachedTrait {
      *
      * @param Memcache|Memcached $memcached
      *
-     * @return array
+     * @return array<int, array<string, string|int>>
      */
     private function getAllKeys($memcached): array {
         $keys = [];

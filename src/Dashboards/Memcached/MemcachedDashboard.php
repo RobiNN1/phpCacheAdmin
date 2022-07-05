@@ -44,7 +44,7 @@ class MemcachedDashboard implements DashboardInterface {
     /**
      * Get dashboard info.
      *
-     * @return array
+     * @return array<string, string>
      */
     public function getDashboardInfo(): array {
         return [
@@ -57,7 +57,7 @@ class MemcachedDashboard implements DashboardInterface {
     /**
      * Connect to the server.
      *
-     * @param array $server
+     * @param array<string, mixed> $server
      *
      * @return MemcacheCompatibility\Memcache|MemcacheCompatibility\Memcached
      * @throws DashboardException
@@ -117,7 +117,7 @@ class MemcachedDashboard implements DashboardInterface {
     /**
      * Data for info panels.
      *
-     * @return array
+     * @return array<string, mixed>
      */
     public function info(): array {
         $info = [];

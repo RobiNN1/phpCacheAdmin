@@ -13,8 +13,14 @@ declare(strict_types=1);
 namespace RobiNN\Pca\Dashboards\Memcached\MemcacheCompatibility;
 
 class Memcache extends \Memcache implements MemcacheInterface {
+    /**
+     * @var array<string, mixed>
+     */
     private array $server;
 
+    /**
+     * @param array<string, mixed> $server
+     */
     public function __construct(array $server = []) {
         $this->server = $server;
     }
@@ -31,7 +37,7 @@ class Memcache extends \Memcache implements MemcacheInterface {
     /**
      * Get server statistics.
      *
-     * @return array
+     * @return array<string, mixed>
      */
     public function getServerStats(): array {
         return (array) @$this->getStats();
@@ -40,7 +46,7 @@ class Memcache extends \Memcache implements MemcacheInterface {
     /**
      * Get all keys.
      *
-     * @return array
+     * @return array<int, string>
      */
     public function getKeys(): array {
         $list = [];

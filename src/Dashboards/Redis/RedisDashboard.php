@@ -52,7 +52,7 @@ class RedisDashboard implements DashboardInterface {
     /**
      * Get dashboard info.
      *
-     * @return array
+     * @return array<string, string>
      */
     public function getDashboardInfo(): array {
         return [
@@ -65,7 +65,7 @@ class RedisDashboard implements DashboardInterface {
     /**
      * Connect to the server.
      *
-     * @param array $server
+     * @param array<string, mixed> $server
      *
      * @return Redis
      * @throws DashboardException
@@ -141,7 +141,7 @@ class RedisDashboard implements DashboardInterface {
     /**
      * Data for info panels.
      *
-     * @return array
+     * @return array<string, mixed>
      */
     public function info(): array {
         $info = [];

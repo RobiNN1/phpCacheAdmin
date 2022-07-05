@@ -20,9 +20,9 @@ class Helpers {
      *
      * It allows to use ENV variables and config.php together.
      *
-     * @param array  $array
-     * @param string $array_key
-     * @param mixed  $value
+     * @param array<string, mixed> $array
+     * @param string               $array_key
+     * @param mixed                $value
      *
      * @return void
      */
@@ -137,7 +137,7 @@ class Helpers {
     /**
      * Return JSON data for ajax.
      *
-     * @param array $data
+     * @param array<mixed, mixed> $data
      *
      * @return string
      */
@@ -191,10 +191,10 @@ class Helpers {
     /**
      * Show enabled/disabled badge.
      *
-     * @param Template $template
-     * @param bool     $enabled
-     * @param ?string  $text
-     * @param ?array   $badge_text
+     * @param Template            $template
+     * @param bool                $enabled
+     * @param ?string             $text
+     * @param ?array<int, string> $badge_text
      *
      * @return string
      */
@@ -211,9 +211,9 @@ class Helpers {
     /**
      * Convert bool to string in array.
      *
-     * @param array $array
+     * @param array<mixed, mixed> $array
      *
-     * @return array
+     * @return array<mixed, mixed>
      */
     public static function convertBoolToString(array $array): array {
         foreach ($array as $name => $value) {

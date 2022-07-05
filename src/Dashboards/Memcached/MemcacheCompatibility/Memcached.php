@@ -25,7 +25,7 @@ class Memcached extends \Memcached implements MemcacheInterface {
     /**
      * Get server statistics.
      *
-     * @return array
+     * @return array<string, mixed>
      */
     public function getServerStats(): array {
         return array_values(@$this->getStats())[0];
@@ -34,7 +34,7 @@ class Memcached extends \Memcached implements MemcacheInterface {
     /**
      * Get all keys.
      *
-     * @return array
+     * @return array<int, string>
      */
     public function getKeys(): array {
         return (array) $this->getAllKeys();

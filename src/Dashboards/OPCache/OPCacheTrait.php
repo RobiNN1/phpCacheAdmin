@@ -40,7 +40,7 @@ trait OPCacheTrait {
     /**
      * Show more info.
      *
-     * @param array $status
+     * @param array<string, mixed> $status
      *
      * @return string
      */
@@ -56,9 +56,9 @@ trait OPCacheTrait {
     /**
      * Get cached scripts.
      *
-     * @param array $status
+     * @param array<string, mixed> $status
      *
-     * @return array
+     * @return array<int, array<string, string|int>>
      */
     private function getCachedScripts(array $status): array {
         static $cached_scripts = [];
@@ -85,7 +85,7 @@ trait OPCacheTrait {
     /**
      * Main dashboard content.
      *
-     * @param array $status
+     * @param array<string, mixed> $status
      *
      * @return string
      */

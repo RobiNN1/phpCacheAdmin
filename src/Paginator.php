@@ -24,7 +24,7 @@ class Paginator {
     private int $total;
 
     /**
-     * @var array
+     * @var array<int|string, mixed>
      */
     private array $paginated;
 
@@ -39,12 +39,12 @@ class Paginator {
     private int $per_page;
 
     /**
-     * @var array
+     * @var array<int, int>
      */
     private array $select;
 
     /**
-     * @var array
+     * @var array<mixed, mixed>
      */
     private array $url = [
         ['pp'],
@@ -52,9 +52,9 @@ class Paginator {
     ];
 
     /**
-     * @param Template $template
-     * @param array    $items
-     * @param int      $default_per_page
+     * @param Template                          $template
+     * @param array<int, array<string, string>> $items
+     * @param int                               $default_per_page
      */
     public function __construct(Template $template, array $items, int $default_per_page = 15) {
         $this->template = $template;
@@ -75,7 +75,7 @@ class Paginator {
     /**
      * Get paginated items.
      *
-     * @return array
+     * @return array<int|string, mixed>
      */
     public function getPaginated(): array {
         return $this->paginated;
@@ -84,7 +84,7 @@ class Paginator {
     /**
      * Set select options (for per page).
      *
-     * @param array $select
+     * @param array<int, int> $select
      *
      * @return void
      */
@@ -95,7 +95,7 @@ class Paginator {
     /**
      * Set Http::queryString() options.
      *
-     * @param array $queries
+     * @param array<mixed, mixed> $queries
      *
      * @return void
      */
@@ -106,7 +106,7 @@ class Paginator {
     /**
      * Get pages for paginator.
      *
-     * @return array
+     * @return array<int, int>
      */
     private function getPages(): array {
         static $pages = [];

@@ -21,7 +21,7 @@ use Twig\TwigFunction;
 
 class Template {
     /**
-     * @var array
+     * @var array<string, mixed>
      */
     private array $tpl_globals = [];
 
@@ -40,8 +40,8 @@ class Template {
     /**
      * Render template.
      *
-     * @param string $tpl
-     * @param array  $data
+     * @param string               $tpl
+     * @param array<string, mixed> $data
      *
      * @return string
      */

@@ -21,9 +21,9 @@ if (is_file(__DIR__.'/vendor/autoload.php')) {
 
     spl_autoload_register(static function ($class_name) {
         $class_name = str_replace("RobiNN\\Pca\\", '', $class_name);
-        $filename = str_replace("\\", DIRECTORY_SEPARATOR, $class_name).'.php';
+        $filename = str_replace("\\", DIRECTORY_SEPARATOR, $class_name);
 
-        $fullpath = __DIR__.'/src/'.$filename;
+        $fullpath = __DIR__.'/src/'.$filename.'.php';
 
         if (is_file($fullpath)) {
             require_once $fullpath;

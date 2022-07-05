@@ -39,9 +39,9 @@ trait RedisTrait {
      * Get server info for ajax.
      * This allows loading data of each server separately.
      *
-     * @param array $servers
+     * @param array<int, mixed> $servers
      *
-     * @return array
+     * @return array<string, mixed>
      */
     private function serverInfo(array $servers): array {
         try {
@@ -118,7 +118,7 @@ trait RedisTrait {
      *
      * @param Redis $redis
      *
-     * @return array
+     * @return array<string, mixed>
      */
     private function getInfo(Redis $redis): array {
         $options = ['SERVER', 'CLIENTS', 'MEMORY', 'PERSISTENCE', 'STATS', 'REPLICATION', 'CPU', 'CLASTER', 'KEYSPACE', 'COMANDSTATS'];
@@ -139,7 +139,7 @@ trait RedisTrait {
     /**
      * Show more info.
      *
-     * @param array $servers
+     * @param array<int, mixed> $servers
      *
      * @return string
      */
@@ -176,7 +176,7 @@ trait RedisTrait {
      *
      * @param Redis $redis
      *
-     * @return array
+     * @return array<int, string>
      */
     private function getDatabases(Redis $redis): array {
         $databases = [];
@@ -206,7 +206,7 @@ trait RedisTrait {
      *
      * @param Redis $redis
      *
-     * @return array
+     * @return array<int, array<string, string|int>>
      */
     private function getAllKeys(Redis $redis): array {
         $keys = [];

@@ -21,7 +21,7 @@ class Admin {
     public const VERSION = '1.0.0';
 
     /**
-     * @var array
+     * @var array<string, DashboardInterface>
      */
     private array $dashboards = [];
 
@@ -42,7 +42,7 @@ class Admin {
     /**
      * Get all dashboards.
      *
-     * @return array
+     * @return array<string, DashboardInterface>
      */
     public function getDashboards(): array {
         return $this->dashboards;

@@ -56,7 +56,7 @@ class Paginator {
      * @param array<int, array<string, string>> $items
      * @param int                               $default_per_page
      */
-    public function __construct(Template $template, array $items, int $default_per_page = 15) {
+    public function __construct(Template $template, array $items, int $default_per_page = 25) {
         $this->template = $template;
 
         $this->total = count($items);
@@ -69,7 +69,7 @@ class Paginator {
 
         $this->paginated = array_slice($items, $this->per_page * ($this->page - 1), $this->per_page, true);
 
-        $this->select = [15, 25, 50, 100, 200];
+        $this->select = [25, 50, 100, 200, 300];
     }
 
     /**

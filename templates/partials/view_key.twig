@@ -47,7 +47,9 @@
                 </div>
             </div>
 
-            {{ item.value }}
+            <div class="overflow-y-auto">
+                {{ item.value }}
+            </div>
         </div>
     {% endfor %}
 
@@ -56,5 +58,9 @@
     <a href="{{ edit_url }}" class="text-gray-500 hover:text-gray-700 font-semibold mr-3 inline-block mb-3">
         {{ svg('edit', 13) }} Edit
     </a>
-    <div class="bg-white shadow-lg p-5 rounded">{{ value }}</div>
+    <div class="bg-white shadow-lg p-5 rounded">
+        <div class="overflow-y-auto">
+            {{ value }}
+        </div>
+    </div>
 {% endif %}

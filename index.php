@@ -17,10 +17,17 @@ use RobiNN\Pca\Template;
 if (is_file(__DIR__.'/vendor/autoload.php')) {
     require_once __DIR__.'/vendor/autoload.php';
 } else {
-    // Not great way to load composer package, but it works...
-    spl_autoload_register(static function ($class) {
-        require_once 'phar://twig.phar/vendor/autoload.php';
-        require_once __DIR__.'/src/'.str_replace('RobiNN\\Pca\\', '', $class).'.php';
+    require_once 'phar://twig.phar/vendor/autoload.php';
+
+    spl_autoload_register(static function ($class_name) {
+        $class_name = str_replace("RobiNN\\Pca\\", '', $class_name);
+        $filename = str_replace("\\", DIRECTORY_SEPARATOR, $class_name).'.php';
+
+        $fullpath = __DIR__.'/src/'.$filename;
+
+        if (is_file($fullpath)) {
+            require_once $fullpath;
+        }
     });
 }
 

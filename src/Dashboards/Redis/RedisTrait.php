@@ -268,8 +268,8 @@ trait RedisTrait {
             'keys'        => $paginator->getPaginated(),
             'all_keys'    => $redis->dbSize(),
             'new_key_url' => Http::queryString(['db'], ['form' => 'new']),
-            'edit_url'    => Http::queryString(['db'], ['form' => 'edit', 'key' => '']),
-            'view_url'    => Http::queryString(['db'], ['view' => 'key', 'key' => '']),
+            'edit_url'    => Http::queryString(['db', 's'], ['form' => 'edit', 'key' => '']),
+            'view_url'    => Http::queryString(['db', 's'], ['view' => 'key', 'key' => '']),
             'paginator'   => $paginator->render(),
         ]);
     }

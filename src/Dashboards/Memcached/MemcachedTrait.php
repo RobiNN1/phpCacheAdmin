@@ -175,13 +175,14 @@ trait MemcachedTrait {
 
         $value = $memcached->get($key);
 
-        [$value, $decoded] = Helpers::formatValue($value);
+        [$value, $is_decoded, $is_formatted] = Helpers::decodeAndFormatValue($value);
 
         return $this->template->render('partials/view_key', [
-            'value'    => $value,
-            'type'     => 'string', // In Memcache(d) everything is stored as string.
-            'decoded'  => $decoded,
-            'edit_url' => Http::queryString(['db'], ['form' => 'edit', 'key' => $key]),
+            'value'     => $value,
+            'type'      => 'string', // In Memcache(d) everything is stored as string.
+            'decoded'   => $is_decoded,
+            'formatted' => $is_formatted,
+            'edit_url'  => Http::queryString(['db'], ['form' => 'edit', 'key' => $key]),
         ]);
     }
 

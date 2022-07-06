@@ -37,11 +37,38 @@ return [
     ],
     'timeformat' => 'd. m. Y H:i:s',
     'twigdebug'  => false,
-    // Here you can add custom decoding function
+    // Custom decoding functions
     'decoders'   => [
         static fn (string $value): ?string => @gzuncompress($value) !== false ? gzuncompress($value) : null,
         static fn (string $value): ?string => @gzdecode($value) !== false ? gzdecode($value) : null,
         static fn (string $value): ?string => @gzinflate($value) !== false ? gzinflate($value) : null,
-        static fn (string $value): ?string => strpos($value, "gz:\x1f\x8b") === 0 ? gzuncompress(substr($value, 5)) : null, // Magento
+        static function (string $value): ?string { // Magento
+            if (strpos($value, "gz:\x1f\x8b") === 0) {
+                $value = substr($value, 5);
+            }
+
+            return @gzuncompress($value) !== false ? gzuncompress($value) : null;
+        },
+    ],
+    // Custom formatting functions
+    // Function runs after decoding
+    'formatters' => [
+        static function (string $value): ?string {
+            if (@unserialize($value, ['allowed_classes' => false]) !== false) {
+                $unserialized_value = unserialize($value, ['allowed_classes' => false]);
+
+                if (is_array($unserialized_value)) {
+                    try {
+                        $unserialized_value = json_encode($unserialized_value, JSON_THROW_ON_ERROR);
+                    } catch (Exception $e) {
+                        // ...
+                    }
+                }
+
+                return $unserialized_value;
+            }
+
+            return null;
+        },
     ],
 ];

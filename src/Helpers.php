@@ -248,27 +248,33 @@ class Helpers {
     }
 
     /**
-     * Format key value and check if is gzipped.
+     * Decode and format key value.
      *
      * @param string $value
      *
      * @return array<mixed, mixed>
      */
-    public static function formatValue(string $value): array {
+    public static function decodeAndFormatValue(string $value): array {
         $is_decoded = false;
+        $is_formatted = false;
 
         if (self::decodeValue($value) !== null) {
             $value = (string) self::decodeValue($value);
             $is_decoded = true;
         }
 
+        if (self::formatValue($value) !== null) {
+            $value = (string) self::formatValue($value);
+            $is_formatted = true;
+        }
+
         $value = self::json($value);
 
-        return [$value, $is_decoded];
+        return [$value, $is_decoded, $is_formatted];
     }
 
     /**
-     * Decode string.
+     * Decode value.
      *
      * @param string $value
      *
@@ -278,6 +284,23 @@ class Helpers {
         foreach (Config::get('decoders') as $decoder) {
             if (is_callable($decoder) && $decoder($value) !== null) {
                 return $decoder($value);
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Format value.
+     *
+     * @param string $value
+     *
+     * @return ?string
+     */
+    private static function formatValue(string $value): ?string {
+        foreach (Config::get('formatters') as $formatter) {
+            if (is_callable($formatter) && $formatter($value) !== null) {
+                return $formatter($value);
             }
         }
 

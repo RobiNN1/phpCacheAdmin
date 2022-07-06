@@ -10,6 +10,10 @@
     {% if decoded == true %}
         {{ include('components/badge.twig', {text: 'Decoded', pill: true, class: 'uppercase font-bold', bg: 'bg-blue-500'}) }}
     {% endif %}
+
+    {% if formatted == true %}
+        {{ include('components/badge.twig', {text: 'Formatted', pill: true, class: 'uppercase font-bold', bg: 'bg-blue-500'}) }}
+    {% endif %}
 </div>
 
 {% if value is iterable %}
@@ -41,6 +45,10 @@
 
                     {% if item.decoded == true %}
                         {{ include('components/badge.twig', {text: 'Decoded', pill: true, class: 'uppercase font-bold', bg: 'bg-blue-500'}) }}
+                    {% endif %}
+
+                    {% if item.formatted == true %}
+                        {{ include('components/badge.twig', {text: 'Formatted', pill: true, class: 'uppercase font-bold', bg: 'bg-blue-500'}) }}
                     {% endif %}
                 </span>
 

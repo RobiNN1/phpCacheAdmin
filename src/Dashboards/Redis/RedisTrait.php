@@ -298,17 +298,19 @@ trait RedisTrait {
 
         $paginator = '';
         $is_decoded = null;
+        $is_formatted = null;
 
         if (is_array($value)) {
             $items = [];
 
             foreach ($value as $value_key => $item) {
-                [$item, $is_decoded] = Helpers::formatValue($item);
+                [$item, $is_decoded, $is_formatted] = Helpers::decodeAndFormatValue($item);
 
                 $items[] = [
-                    'key'     => $value_key,
-                    'value'   => $item,
-                    'decoded' => $is_decoded,
+                    'key'       => $value_key,
+                    'value'     => $item,
+                    'decoded'   => $is_decoded,
+                    'formatted' => $is_formatted,
                 ];
             }
 
@@ -317,7 +319,7 @@ trait RedisTrait {
             $paginator->setUrl([['db', 'view', 'key', 'pp'], ['p' => '']]);
             $paginator = $paginator->render();
         } else {
-            [$value, $is_decoded] = Helpers::formatValue($value);
+            [$value, $is_decoded, $is_formatted] = Helpers::decodeAndFormatValue($value);
         }
 
         return $this->template->render('partials/view_key', [
@@ -325,6 +327,7 @@ trait RedisTrait {
             'type'       => $type,
             'ttl'        => $redis->ttl($key),
             'decoded'    => $is_decoded,
+            'formatted'  => $is_formatted,
             'add_subkey' => Http::queryString(['db'], ['form' => 'new', 'key' => $key]),
             'edit_url'   => Http::queryString(['db'], ['form' => 'edit', 'key' => $key]),
             'delete_url' => Http::queryString(['db', 'view', 'p'], ['deletesub' => 'key', 'key' => $key]),

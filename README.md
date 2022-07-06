@@ -22,7 +22,12 @@ copy `config.dist.php` to `config.php` instead.
 ## Updating
 
 Replace all files and delete the `cache` folder.
-This folder contains optimized Twig templates for faster page loading.
+
+> **Note**
+>
+> `Cache` folder contains optimized Twig templates for faster page loading.
+> However, when changes are made to the Twig files, the cache will not change
+> (unless you have Twig debugging enabled or delete folder).
 
 ## Docker
 

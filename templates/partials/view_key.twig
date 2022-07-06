@@ -6,6 +6,10 @@
     {% if ttl %}
         <span>TTL {{ include('components/badge.twig', {text: ttl, pill: true, class: 'uppercase font-bold', bg: 'bg-slate-500'}) }}</span>
     {% endif %}
+
+    {% if gztype %}
+        <span>Gzip {{ include('components/badge.twig', {text: gztype, pill: true, class: 'uppercase font-bold', bg: 'bg-blue-500'}) }}</span>
+    {% endif %}
 </div>
 
 {% if value is iterable %}
@@ -28,12 +32,14 @@
             {% set title = 'Key' %}
         {% endif %}
 
-        <div class="bg-white shadow-lg px-3 pt-1.5 pb-3 mb-5 rounded">
-            <div class="flex justify-between mb-3">
+        <div class="bg-white shadow-lg mb-5 rounded">
+            <div class="overflow-y-auto flex justify-between border-b px-4 py-1.5">
                 <span>
                     {% if type != 'set' %}
-                        {{ title }}: {{ include('components/badge.twig', {text: item.key, pill: true, class: 'font-bold', bg: 'bg-slate-400'}) }}
+                        {{ title }} {{ include('components/badge.twig', {text: item.key, pill: true, class: 'font-bold', bg: 'bg-slate-400'}) }}
                     {% endif %}
+
+                    <span>Gzip {{ include('components/badge.twig', {text: item.gztype, pill: true, class: 'font-bold', bg: 'bg-blue-500'}) }}</span>
                 </span>
 
                 <div>
@@ -47,8 +53,8 @@
                 </div>
             </div>
 
-            <div class="overflow-y-auto">
-                {{ item.value }}
+            <div class="overflow-y-auto p-4">
+                {{ item.value|raw }}
             </div>
         </div>
     {% endfor %}
@@ -58,9 +64,9 @@
     <a href="{{ edit_url }}" class="text-gray-500 hover:text-gray-700 font-semibold mr-3 inline-block mb-3">
         {{ svg('edit', 13) }} Edit
     </a>
-    <div class="bg-white shadow-lg p-5 rounded">
-        <div class="overflow-y-auto">
-            {{ value }}
+    <div class="bg-white shadow-lg rounded">
+        <div class="overflow-y-auto p-4">
+            {{ value|raw }}
         </div>
     </div>
 {% endif %}

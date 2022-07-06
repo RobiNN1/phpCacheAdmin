@@ -297,14 +297,16 @@ trait RedisTrait {
         $value = $this->getAllKeyValues($redis, $type, $key);
 
         $paginator = '';
+        $gztype = null;
 
         if (is_array($value)) {
             $items = [];
 
             foreach ($value as $value_key => $item) {
                 $items[] = [
-                    'key'   => $value_key,
-                    'value' => $item,
+                    'key'    => $value_key,
+                    'value'  => Helpers::formatValue($item),
+                    'gztype' => Helpers::gzType($item),
                 ];
             }
 
@@ -312,12 +314,16 @@ trait RedisTrait {
             $value = $paginator->getPaginated();
             $paginator->setUrl([['db', 'view', 'key', 'pp'], ['p' => '']]);
             $paginator = $paginator->render();
+        } else {
+            $gztype = Helpers::gzType($value);
+            $value = Helpers::formatValue($value);
         }
 
         return $this->template->render('partials/view_key', [
             'value'      => $value,
             'type'       => $type,
             'ttl'        => $redis->ttl($key),
+            'gztype'     => $gztype,
             'add_subkey' => Http::queryString(['db'], ['form' => 'new', 'key' => $key]),
             'edit_url'   => Http::queryString(['db'], ['form' => 'edit', 'key' => $key]),
             'delete_url' => Http::queryString(['db', 'view', 'p'], ['deletesub' => 'key', 'key' => $key]),

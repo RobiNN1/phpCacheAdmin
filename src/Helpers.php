@@ -246,4 +246,81 @@ class Helpers {
 
         return str_starts_with($haystack, $needle);
     }
+
+    /**
+     * Format key value.
+     *
+     * @param string $value
+     *
+     * @return string
+     */
+    public static function formatValue(string $value): string {
+        $value = self::gz($value);
+
+        return self::json($value);
+    }
+
+    /**
+     * Uncompress gzipped string.
+     *
+     * @param string $value
+     *
+     * @return string
+     */
+    private static function gz(string $value): string {
+        $type = self::gzType($value);
+
+        if ($type === 'gzcompress') {
+            $value = gzuncompress($value);
+        } elseif ($type === 'gzencode') {
+            $value = gzdecode($value);
+        } elseif ($type === 'gzdeflate') {
+            $value = gzinflate($value);
+        }
+
+        return $value;
+    }
+
+    /**
+     * Get Gzip type.
+     *
+     * @param string $value
+     *
+     * @return string
+     */
+    public static function gzType(string $value): string {
+        if (@gzuncompress($value) !== false) {
+            $type = 'gzcompress';
+        } elseif (@gzdecode($value) !== false) {
+            $type = 'gzencode';
+        } elseif (@gzinflate($value) !== false) {
+            $type = 'gzdeflate';
+        } else {
+            $type = 'none';
+        }
+
+        return $type;
+    }
+
+    /**
+     * Format JSON.
+     *
+     * @param string $value
+     *
+     * @return string
+     */
+    private static function json(string $value): string {
+        try {
+            $json_array = json_decode($value, false, 512, JSON_THROW_ON_ERROR);
+
+            if (!is_numeric($value) && $json_array !== null) {
+                $value = json_encode($json_array, JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT);
+                $value = '<pre>'.$value.'</pre>';
+            }
+        } catch (Exception $e) {
+            return $value;
+        }
+
+        return $value;
+    }
 }

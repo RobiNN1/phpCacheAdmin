@@ -173,9 +173,12 @@ trait MemcachedTrait {
             Http::redirect();
         }
 
+        $value = $memcached->get($key);
+
         return $this->template->render('partials/view_key', [
-            'value'    => $memcached->get($key),
-            'type'     => 'string',
+            'value'    => Helpers::formatValue($value),
+            'type'     => 'string', // In Memcache(d) everything is stored as string.
+            'gztype'   => Helpers::gzType($value),
             'edit_url' => Http::queryString(['db'], ['form' => 'edit', 'key' => $key]),
         ]);
     }

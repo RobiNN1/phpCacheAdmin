@@ -248,58 +248,46 @@ class Helpers {
     }
 
     /**
-     * Format key value.
+     * Format key value and check if is gzipped.
      *
      * @param string $value
      *
-     * @return string
+     * @return array<mixed, mixed>
      */
-    public static function formatValue(string $value): string {
-        $value = self::gz($value);
+    public static function formatValue(string $value): array {
+        [$value, $is_gzipped] = self::uncompressGzip($value);
 
-        return self::json($value);
+        $value = self::json($value);
+
+        return [$value, $is_gzipped];
     }
 
     /**
-     * Uncompress gzipped string.
+     * Uncompress Gzipped string.
      *
      * @param string $value
      *
-     * @return string
+     * @return array<mixed, mixed>
      */
-    private static function gz(string $value): string {
-        $type = self::gzType($value);
+    private static function uncompressGzip(string $value): array {
+        $is_gzipped = false;
 
-        if ($type === 'gzcompress') {
-            $value = gzuncompress($value);
-        } elseif ($type === 'gzencode') {
-            $value = gzdecode($value);
-        } elseif ($type === 'gzdeflate') {
-            $value = gzinflate($value);
+        if (strpos($value, "gz:\x1f\x8b") === 0) { // Magento..
+            $value = substr($value, 5);
         }
 
-        return $value;
-    }
-
-    /**
-     * Get Gzip type.
-     *
-     * @param string $value
-     *
-     * @return string
-     */
-    public static function gzType(string $value): string {
         if (@gzuncompress($value) !== false) {
-            $type = 'gzcompress';
+            $value = gzuncompress($value);
+            $is_gzipped = true;
         } elseif (@gzdecode($value) !== false) {
-            $type = 'gzencode';
+            $value = gzdecode($value);
+            $is_gzipped = true;
         } elseif (@gzinflate($value) !== false) {
-            $type = 'gzdeflate';
-        } else {
-            $type = 'none';
+            $value = gzinflate($value);
+            $is_gzipped = true;
         }
 
-        return $type;
+        return [$value, $is_gzipped];
     }
 
     /**
@@ -315,7 +303,7 @@ class Helpers {
 
             if (!is_numeric($value) && $json_array !== null) {
                 $value = json_encode($json_array, JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT);
-                $value = '<pre>'.$value.'</pre>';
+                $value = '<pre>'.htmlspecialchars($value).'</pre>';
             }
         } catch (Exception $e) {
             return $value;

@@ -7,8 +7,8 @@
         <span>TTL {{ include('components/badge.twig', {text: ttl, pill: true, class: 'uppercase font-bold', bg: 'bg-slate-500'}) }}</span>
     {% endif %}
 
-    {% if gzip == true %}
-        {{ include('components/badge.twig', {text: 'Gzipped', pill: true, class: 'uppercase font-bold', bg: 'bg-blue-500'}) }}
+    {% if decoded == true %}
+        {{ include('components/badge.twig', {text: 'Decoded', pill: true, class: 'uppercase font-bold', bg: 'bg-blue-500'}) }}
     {% endif %}
 </div>
 
@@ -39,8 +39,8 @@
                         {{ title }} {{ include('components/badge.twig', {text: item.key, pill: true, class: 'font-bold', bg: 'bg-slate-400'}) }}
                     {% endif %}
 
-                    {% if item.gzip == true %}
-                        {{ include('components/badge.twig', {text: 'Gzipped', pill: true, class: 'uppercase font-bold', bg: 'bg-blue-500'}) }}
+                    {% if item.decoded == true %}
+                        {{ include('components/badge.twig', {text: 'Decoded', pill: true, class: 'uppercase font-bold', bg: 'bg-blue-500'}) }}
                     {% endif %}
                 </span>
 

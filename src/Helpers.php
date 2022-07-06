@@ -255,39 +255,33 @@ class Helpers {
      * @return array<mixed, mixed>
      */
     public static function formatValue(string $value): array {
-        [$value, $is_gzipped] = self::uncompressGzip($value);
+        $is_decoded = false;
+
+        if (self::decodeValue($value) !== null) {
+            $value = (string) self::decodeValue($value);
+            $is_decoded = true;
+        }
 
         $value = self::json($value);
 
-        return [$value, $is_gzipped];
+        return [$value, $is_decoded];
     }
 
     /**
-     * Uncompress Gzipped string.
+     * Decode string.
      *
      * @param string $value
      *
-     * @return array<mixed, mixed>
+     * @return ?string
      */
-    private static function uncompressGzip(string $value): array {
-        $is_gzipped = false;
-
-        if (strpos($value, "gz:\x1f\x8b") === 0) { // Magento..
-            $value = substr($value, 5);
+    private static function decodeValue(string $value): ?string {
+        foreach (Config::get('decoders') as $decoder) {
+            if (is_callable($decoder) && $decoder($value) !== null) {
+                return $decoder($value);
+            }
         }
 
-        if (@gzuncompress($value) !== false) {
-            $value = gzuncompress($value);
-            $is_gzipped = true;
-        } elseif (@gzdecode($value) !== false) {
-            $value = gzdecode($value);
-            $is_gzipped = true;
-        } elseif (@gzinflate($value) !== false) {
-            $value = gzinflate($value);
-            $is_gzipped = true;
-        }
-
-        return [$value, $is_gzipped];
+        return null;
     }
 
     /**

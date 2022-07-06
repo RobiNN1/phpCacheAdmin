@@ -37,4 +37,11 @@ return [
     ],
     'timeformat' => 'd. m. Y H:i:s',
     'twigdebug'  => false,
+    // Here you can add custom decoding function
+    'decoders'   => [
+        static fn (string $value): ?string => @gzuncompress($value) !== false ? gzuncompress($value) : null,
+        static fn (string $value): ?string => @gzdecode($value) !== false ? gzdecode($value) : null,
+        static fn (string $value): ?string => @gzinflate($value) !== false ? gzinflate($value) : null,
+        static fn (string $value): ?string => strpos($value, "gz:\x1f\x8b") === 0 ? gzuncompress(substr($value, 5)) : null, // Magento
+    ],
 ];

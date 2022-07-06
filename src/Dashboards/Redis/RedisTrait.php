@@ -297,18 +297,18 @@ trait RedisTrait {
         $value = $this->getAllKeyValues($redis, $type, $key);
 
         $paginator = '';
-        $is_gzipped = null;
+        $is_decoded = null;
 
         if (is_array($value)) {
             $items = [];
 
             foreach ($value as $value_key => $item) {
-                [$item, $is_gzipped] = Helpers::formatValue($item);
+                [$item, $is_decoded] = Helpers::formatValue($item);
 
                 $items[] = [
-                    'key'   => $value_key,
-                    'value' => $item,
-                    'gzip'  => $is_gzipped,
+                    'key'     => $value_key,
+                    'value'   => $item,
+                    'decoded' => $is_decoded,
                 ];
             }
 
@@ -317,14 +317,14 @@ trait RedisTrait {
             $paginator->setUrl([['db', 'view', 'key', 'pp'], ['p' => '']]);
             $paginator = $paginator->render();
         } else {
-            [$value, $is_gzipped] = Helpers::formatValue($value);
+            [$value, $is_decoded] = Helpers::formatValue($value);
         }
 
         return $this->template->render('partials/view_key', [
             'value'      => $value,
             'type'       => $type,
             'ttl'        => $redis->ttl($key),
-            'gzip'       => $is_gzipped,
+            'decoded'    => $is_decoded,
             'add_subkey' => Http::queryString(['db'], ['form' => 'new', 'key' => $key]),
             'edit_url'   => Http::queryString(['db'], ['form' => 'edit', 'key' => $key]),
             'delete_url' => Http::queryString(['db', 'view', 'p'], ['deletesub' => 'key', 'key' => $key]),

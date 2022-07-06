@@ -175,12 +175,12 @@ trait MemcachedTrait {
 
         $value = $memcached->get($key);
 
-        [$value, $is_gzipped] = Helpers::formatValue($value);
+        [$value, $decoded] = Helpers::formatValue($value);
 
         return $this->template->render('partials/view_key', [
             'value'    => $value,
             'type'     => 'string', // In Memcache(d) everything is stored as string.
-            'gzip'     => $is_gzipped,
+            'decoded'  => $decoded,
             'edit_url' => Http::queryString(['db'], ['form' => 'edit', 'key' => $key]),
         ]);
     }

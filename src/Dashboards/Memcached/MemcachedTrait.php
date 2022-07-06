@@ -205,8 +205,10 @@ trait MemcachedTrait {
             $key = Http::post('key');
             $value = Http::post('value');
 
-            if ($key !== Http::post('old_key')) {
-                $memcached->delete(Http::post('old_key'));
+            $old_key = Http::post('old_key');
+
+            if (!empty($old_key) && $old_key !== $key) {
+                $memcached->delete($old_key);
             }
 
             $memcached->set($key, $value);

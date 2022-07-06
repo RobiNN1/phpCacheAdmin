@@ -92,8 +92,7 @@ trait OPCacheTrait {
     private function mainDashboard(array $status): string {
         $cached_scripts = $this->getCachedScripts($status);
 
-        $paginator = new Paginator($this->template, $cached_scripts, 50);
-        $paginator->setSelect([50, 100, 200, 300, 400]);
+        $paginator = new Paginator($this->template, $cached_scripts);
 
         return $this->template->render('dashboards/opcache', [
             'cached_scripts' => $paginator->getPaginated(),

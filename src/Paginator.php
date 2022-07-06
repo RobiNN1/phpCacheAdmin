@@ -39,11 +39,6 @@ class Paginator {
     private int $per_page;
 
     /**
-     * @var array<int, int>
-     */
-    private array $select;
-
-    /**
      * @var array<mixed, mixed>
      */
     private array $url = [
@@ -54,9 +49,8 @@ class Paginator {
     /**
      * @param Template                          $template
      * @param array<int, array<string, string>> $items
-     * @param int                               $default_per_page
      */
-    public function __construct(Template $template, array $items, int $default_per_page = 25) {
+    public function __construct(Template $template, array $items) {
         $this->template = $template;
 
         $this->total = count($items);
@@ -65,11 +59,10 @@ class Paginator {
         $this->page = empty($page) ? 1 : $page;
 
         $per_page = (int) Http::get('pp', 'int');
+        $default_per_page = 25;
         $this->per_page = empty($per_page) ? $default_per_page : $per_page;
 
         $this->paginated = array_slice($items, $this->per_page * ($this->page - 1), $this->per_page, true);
-
-        $this->select = [25, 50, 100, 200, 300];
     }
 
     /**
@@ -79,17 +72,6 @@ class Paginator {
      */
     public function getPaginated(): array {
         return $this->paginated;
-    }
-
-    /**
-     * Set select options (for per page).
-     *
-     * @param array<int, int> $select
-     *
-     * @return void
-     */
-    public function setSelect(array $select): void {
-        $this->select = $select;
     }
 
     /**
@@ -113,12 +95,24 @@ class Paginator {
 
         $total_pages = (int) ceil($this->total / $this->per_page);
 
-        for ($i = 1; $i <= $total_pages; $i++) {
-            if ($this->page === $i) {
-                $pages[] = $this->page;
-            } else {
+        if ($total_pages > 1 && $this->page <= $total_pages) {
+            $pages[] = 1; // always show first page
+
+            $i = max(2, $this->page - 2);
+
+            if ($i > 2) {
+                $pages[] = '...';
+            }
+
+            for (; $i < min($this->page + 3, $total_pages); $i++) {
                 $pages[] = $i;
             }
+
+            if ($i !== $total_pages) {
+                $pages[] = '...';
+            }
+
+            $pages[] = $total_pages; // always show last page
         }
 
         return $pages;
@@ -132,13 +126,15 @@ class Paginator {
     public function render(): string {
         $on_page = count($this->paginated);
 
+        $select = [25, 50, 100, 200, 300, 400];
+
         return $this->template->render('components/paginator', [
             'first_on_page' => array_key_first($this->paginated) + ($on_page > 0 ? 1 : 0),
             'last_on_page'  => array_key_last($this->paginated) + ($on_page > 0 ? 1 : 0),
             'total'         => $this->total,
             'current'       => $this->page,
             'per_page'      => $this->per_page,
-            'select'        => array_combine($this->select, $this->select),
+            'select'        => array_combine($select, $select),
             'url'           => Http::queryString($this->url[0], $this->url[1]),
             'pages'         => $this->getPages(),
         ]);

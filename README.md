@@ -19,6 +19,11 @@ Simply extract the content. Optional but highly recommended, run `composer insta
 If you need to customize or add servers in the configuration file, do not edit `config.dist.php` directly,
 copy `config.dist.php` to `config.php` instead.
 
+## Updating
+
+Replace all files and delete the `cache` folder.
+This folder contains optimized Twig templates for faster page loading.
+
 ## Docker
 
 There is no official image yet,

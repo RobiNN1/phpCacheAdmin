@@ -71,7 +71,7 @@ class Http {
      * @return string|int
      */
     public static function post(string $key, string $type = 'string') {
-        $filter = FILTER_SANITIZE_FULL_SPECIAL_CHARS;
+        $filter = FILTER_UNSAFE_RAW;
 
         if ($type === 'int') {
             $filter = FILTER_SANITIZE_NUMBER_INT;

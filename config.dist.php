@@ -36,7 +36,7 @@ return [
         ],
     ],
     'timeformat' => 'd. m. Y H:i:s',
-    'twigdebug'  => true,
+    'twigdebug'  => false,
     // Decoding/Encoding functions
     'encoding'   => [
         'gzcompress' => [

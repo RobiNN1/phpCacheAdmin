@@ -241,7 +241,7 @@ class Helpers {
             $is_formatted = true;
         }
 
-        $value = self::json($value);
+        $value = self::formatJson($value);
 
         return [$value, $is_decoded, $is_formatted];
     }
@@ -287,18 +287,19 @@ class Helpers {
      *
      * @return string
      */
-    private static function json(string $value): string {
+    private static function formatJson(string $value): string {
         try {
             $json_array = json_decode($value, false, 512, JSON_THROW_ON_ERROR);
 
             if (!is_numeric($value) && $json_array !== null) {
                 $value = json_encode($json_array, JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT);
-                $value = '<pre>'.htmlspecialchars($value).'</pre>';
+
+                return '<pre>'.htmlspecialchars($value).'</pre>';
             }
         } catch (Exception $e) {
-            return $value;
+            return htmlspecialchars($value);
         }
 
-        return $value;
+        return htmlspecialchars($value);
     }
 }

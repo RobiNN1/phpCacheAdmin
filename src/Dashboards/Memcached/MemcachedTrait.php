@@ -37,7 +37,7 @@ trait MemcachedTrait {
                 $data = [
                     'Version'          => $server_info['version'],
                     'Open connections' => $server_info['curr_connections'],
-                    'Uptime'           => Helpers::formatSeconds((int) $server_info['uptime'], false, true),
+                    'Uptime'           => Helpers::formatSeconds((int) $server_info['uptime']),
                     'Cache limit'      => Helpers::formatBytes((int) $server_info['limit_maxbytes']),
                     'Used'             => Helpers::formatBytes((int) $server_info['bytes']),
                     'Keys'             => count($memcached->getKeys()),

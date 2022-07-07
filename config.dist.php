@@ -37,12 +37,13 @@ return [
     ],
     'timeformat' => 'd. m. Y H:i:s',
     'twigdebug'  => false,
-    // Custom decoding functions
+    // Decoding functions
     'decoders'   => [
         static fn (string $value): ?string => @gzuncompress($value) !== false ? gzuncompress($value) : null,
         static fn (string $value): ?string => @gzdecode($value) !== false ? gzdecode($value) : null,
         static fn (string $value): ?string => @gzinflate($value) !== false ? gzinflate($value) : null,
         static function (string $value): ?string { // Magento
+            // https://github.com/colinmollenhour/Cm_Cache_Backend_Redis/blob/master/Cm/Cache/Backend/Redis.php#L1306-L1323
             if (strpos($value, "gz:\x1f\x8b") === 0) {
                 $value = substr($value, 5);
             }
@@ -50,8 +51,7 @@ return [
             return @gzuncompress($value) !== false ? gzuncompress($value) : null;
         },
     ],
-    // Custom formatting functions
-    // Function runs after decoding
+    // Formatting functions, it runs after decoding
     'formatters' => [
         static function (string $value): ?string {
             if (@unserialize($value, ['allowed_classes' => false]) !== false) {

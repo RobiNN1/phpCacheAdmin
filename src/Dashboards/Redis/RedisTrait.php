@@ -61,7 +61,7 @@ trait RedisTrait {
             $data = [
                 'Version'           => $server_info['redis_version'],
                 'Connected clients' => $server_info['connected_clients'],
-                'Uptime'            => Helpers::formatSeconds($server_info['uptime_in_seconds'], false, true),
+                'Uptime'            => Helpers::formatSeconds($server_info['uptime_in_seconds']),
                 'Memory used'       => Helpers::formatBytes($server_info['used_memory']),
                 'Keys'              => $all_keys.' (all databases)',
             ];
@@ -325,7 +325,7 @@ trait RedisTrait {
         return $this->template->render('partials/view_key', [
             'value'      => $value,
             'type'       => $type,
-            'ttl'        => $redis->ttl($key),
+            'ttl'        => Helpers::formatSeconds($redis->ttl($key)),
             'decoded'    => $is_decoded,
             'formatted'  => $is_formatted,
             'add_subkey' => Http::queryString(['db'], ['form' => 'new', 'key' => $key]),

@@ -16,7 +16,6 @@ use Exception;
 use Twig\Environment;
 use Twig\Extension\DebugExtension;
 use Twig\Loader\FilesystemLoader;
-use Twig\TwigFilter;
 use Twig\TwigFunction;
 
 class Template {
@@ -58,9 +57,6 @@ class Template {
             }
 
             $twig->addFunction(new TwigFunction('svg', [Helpers::class, 'svg'], ['is_safe' => ['html']]));
-            $twig->addFunction(new TwigFunction('truncate', [Helpers::class, 'truncate']));
-
-            $twig->addFilter(new TwigFilter('format_seconds', [Helpers::class, 'formatSeconds']));
 
             foreach ($this->tpl_globals as $name => $value) {
                 $twig->addGlobal($name, $value);

@@ -2,46 +2,46 @@
 
 <div class="bg-white shadow-sm shadow-gray-300 rounded mb-5">
     <div class="w-full overflow-x-auto">
-        <table class="table-auto w-full text-left">
+        <table class="table-fixed w-full text-left">
             <thead>
             <tr class="bg-{{ color }}-100 text-{{ color }}-900">
-                <th class="w-3 rounded-tl bg-{{ color }}-100 px-5 py-2">
+                <th class="w-3 rounded-tl bg-{{ color }}-100 px-3 md:px-5 py-2">
                     <input type="checkbox"
                            class="check-all checkbox text-{{ color }}-500 focus:border-{{ color }}-300 focus:ring-{{ color }}-200"
                            aria-label=""{{ keys|length == 0 ? ' disabled' : '' }}>
                 </th>
-                <th class="px-5 py-2 text-xs uppercase font-bold whitespace-nowrap">Key</th>
-                <th class="md:w-32 px-5 py-2 text-xs uppercase font-bold whitespace-nowrap">Type</th>
+                <th class="px-3 md:px-5 py-2 text-xs uppercase font-bold whitespace-nowrap">Key</th>
+                <th class="hidden md:table-cell w-24 px-3 md:px-5 py-2 text-xs uppercase font-bold whitespace-nowrap">Type</th>
                 {% if ttl %}
-                    <th class="md:w-32 px-5 py-2 text-xs uppercase font-bold whitespace-nowrap">TTL</th>
+                    <th class="w-32 px-3 md:px-5 py-2 text-xs uppercase font-bold whitespace-nowrap">TTL</th>
                 {% endif %}
-                <th class="md:w-24 lg:w-44 rounded-tr px-5 py-2 text-xs uppercase font-bold whitespace-nowrap">Actions</th>
+                <th class="w-14 md:w-24 lg:w-40 rounded-tr px-3 md:px-5 py-2 text-xs uppercase font-bold whitespace-nowrap">Actions</th>
             </tr>
             </thead>
             <tbody>
             {% if keys %}
                 {% for key in keys %}
                     <tr class="[&:last-child>*]:border-0" data-key="{{ key.key }}">
-                        <td class="border-b border-gray-100 px-5 py-2">
+                        <td class="border-b border-gray-100 px-3 md:px-5 py-2">
                             <input type="checkbox"
                                    class="checkbox-key checkbox text-{{ color }}-500 focus:border-{{ color }}-300 focus:ring-{{ color }}-200" aria-label="">
                         </td>
-                        <td class="border-b border-gray-100 px-5 py-2 text-sm whitespace-nowrap">
+                        <td class="border-b border-gray-100 px-3 md:px-5 py-2 text-sm whitespace-nowrap truncate">
                             <a class="text-{{ color }}-500 hover:text-{{ color }}-700" href="{{ view_url ~ key.key }}" title="{{ key.key }}">
-                                {{ truncate(key.key, 75) }}{{ key.items_total ? ' (Items: ' ~ key.items_total ~ ')' : '' }}
+                                {{ (key.items_total ? '<span class="hidden md:inline-block">(' ~ key.items_total ~ ' items)&nbsp;</span>' : '')|raw }}{{ key.key }}
                             </a>
                         </td>
-                        <td class="border-b border-gray-100 px-5 py-2 text-sm whitespace-nowrap">{{ key_badge.key_type(key.type) }}</td>
+                        <td class="hidden md:table-cell border-b border-gray-100 px-3 md:px-5 py-2 text-sm whitespace-nowrap">{{ key_badge.key_type(key.type) }}</td>
                         {% if ttl %}
-                            <td class="border-b border-gray-100 px-5 py-2 text-sm whitespace-nowrap">
+                            <td class="border-b border-gray-100 px-3 md:px-5 py-2 text-sm whitespace-nowrap">
                                 {% if key.ttl == -1 %}
                                     Does not expire
                                 {% else %}
-                                    <span title="{{ key.ttl }} seconds">{{ key.ttl|format_seconds }}</span>
+                                    {{ key.ttl }}
                                 {% endif %}
                             </td>
                         {% endif %}
-                        <td class="border-b border-gray-100 px-5 py-2 text-sm whitespace-nowrap">
+                        <td class="border-b border-gray-100 px-3 md:px-5 py-2 text-sm whitespace-nowrap">
                             <a class="text-gray-500 hover:text-gray-700 font-semibold mr-3" href="{{ edit_url ~ key.key }}" title="Edit">
                                 {{ svg('edit', 12) }}<span class="hidden lg:inline-block ml-1">Edit</span>
                             </a>

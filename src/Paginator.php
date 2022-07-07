@@ -98,13 +98,13 @@ class Paginator {
         if ($total_pages > 1 && $this->page <= $total_pages) {
             $pages[] = 1; // always show first page
 
-            $i = max(2, $this->page - 2);
+            $i = max(2, $this->page - 3);
 
             if ($i > 2) {
                 $pages[] = '...';
             }
 
-            for (; $i < min($this->page + 3, $total_pages); $i++) {
+            for (; $i < min($this->page + 5, $total_pages); $i++) {
                 $pages[] = $i;
             }
 

@@ -70,13 +70,11 @@ class Helpers {
     /**
      * Format seconds.
      *
-     * @param int  $time
-     * @param bool $ago
-     * @param bool $show_seconds
+     * @param int $time
      *
      * @return string
      */
-    public static function formatSeconds(int $time, bool $ago = false, bool $show_seconds = false): string {
+    public static function formatSeconds(int $time): string {
         $seconds_in_minute = 60;
         $seconds_in_hour = 60 * $seconds_in_minute;
         $seconds_in_day = 24 * $seconds_in_hour;
@@ -97,11 +95,8 @@ class Helpers {
             'day'    => (int) $days,
             'hour'   => (int) $hours,
             'minute' => (int) $minutes,
+            'second' => (int) $seconds,
         ];
-
-        if ($show_seconds) {
-            $sections['second'] = (int) $seconds;
-        }
 
         foreach ($sections as $name => $value) {
             if ($value > 0) {
@@ -109,29 +104,7 @@ class Helpers {
             }
         }
 
-        return implode(' ', $time_parts).($ago ? ' ago' : '');
-    }
-
-    /**
-     * Truncate text.
-     *
-     * @param string $text
-     * @param int    $length
-     *
-     * @return string
-     */
-    public static function truncate(string $text, int $length): string {
-        if (strlen($text) <= $length) {
-            return $text;
-        }
-
-        if (function_exists('mb_substr')) {
-            $text = mb_substr($text, 0, ($length - 3), 'UTF-8').'...';
-        } else {
-            $text = substr($text, 0, ($length - 3)).'...';
-        }
-
-        return $text;
+        return implode(' ', $time_parts);
     }
 
     /**

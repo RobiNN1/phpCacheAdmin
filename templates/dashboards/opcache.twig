@@ -10,24 +10,24 @@
         <table class="table-auto w-full text-left">
             <thead>
             <tr class="bg-{{ color }}-100 text-{{ color }}-900">
-                <th class="px-5 py-2.5 text-xs uppercase font-bold whitespace-nowrap">Filename</th>
-                <th class="px-5 py-2.5 text-xs uppercase font-bold whitespace-nowrap">Hits</th>
-                <th class="px-5 py-2.5 text-xs uppercase font-bold whitespace-nowrap">Memory</th>
-                <th class="px-5 py-2.5 text-xs uppercase font-bold whitespace-nowrap">Last used</th>
-                <th class="px-5 py-2.5 text-xs uppercase font-bold whitespace-nowrap">Created</th>
-                <th class="px-5 py-2.5 text-xs uppercase font-bold whitespace-nowrap">Actions</th>
+                <th class="px-3 md:px-5 py-2.5 text-xs uppercase font-bold whitespace-nowrap">Filename</th>
+                <th class="px-3 md:px-5 py-2.5 text-xs uppercase font-bold whitespace-nowrap">Hits</th>
+                <th class="px-3 md:px-5 py-2.5 text-xs uppercase font-bold whitespace-nowrap">Memory</th>
+                <th class="hidden md:table-cell px-3 md:px-5 py-2.5 text-xs uppercase font-bold whitespace-nowrap">Last used</th>
+                <th class="hidden md:table-cell px-3 md:px-5 py-2.5 text-xs uppercase font-bold whitespace-nowrap">Created</th>
+                <th class="px-3 md:px-5 py-2.5 text-xs uppercase font-bold whitespace-nowrap">Actions</th>
             </tr>
             </thead>
             <tbody>
             {% if cached_scripts %}
                 {% for script in cached_scripts %}
                     <tr class="[&:last-child>*]:border-0" data-key="{{ script.invalidate_url }}">
-                        <td class="border-b border-gray-100 px-5 py-2 text-sm" title="{{ script.path }}">{{ script.name }}</td>
-                        <td class="border-b border-gray-100 px-5 py-2 text-sm">{{ script.hits }}</td>
-                        <td class="border-b border-gray-100 px-5 py-2 text-sm">{{ script.memory }}</td>
-                        <td class="border-b border-gray-100 px-5 py-2 text-sm">{{ script.last_used }}</td>
-                        <td class="border-b border-gray-100 px-5 py-2 text-sm">{{ script.created }}</td>
-                        <td class="border-b border-gray-100 px-5 py-2 text-sm">
+                        <td class="border-b border-gray-100 px-3 md:px-5 py-2 text-sm" title="{{ script.path }}">{{ script.name }}</td>
+                        <td class="border-b border-gray-100 px-3 md:px-5 py-2 text-sm">{{ script.hits }}</td>
+                        <td class="border-b border-gray-100 px-3 md:px-5 py-2 text-sm">{{ script.memory }}</td>
+                        <td class="hidden md:table-cell border-b border-gray-100 px-3 md:px-5 py-2 text-sm">{{ script.last_used }}</td>
+                        <td class="hidden md:table-cell border-b border-gray-100 px-3 md:px-5 py-2 text-sm">{{ script.created }}</td>
+                        <td class="border-b border-gray-100 px-3 md:px-5 py-2 text-sm">
                             <button type="button" class="text-red-500 hover:text-red-700 font-semibold delete-key">Invalidate</button>
                         </td>
                     </tr>

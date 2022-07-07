@@ -130,7 +130,7 @@ trait MemcachedTrait {
         foreach ($memcached->getKeys() as $key) {
             $keys[] = [
                 'key'  => $key,
-                'type' => gettype($memcached->get($key)),
+                'type' => 'string', // In Memcache(d) everything is stored as string.
             ];
         }
 
@@ -174,6 +174,14 @@ trait MemcachedTrait {
         }
 
         $value = $memcached->get($key);
+
+        if (is_array($value)) {
+            $value = serialize($value);
+        }
+
+        if (is_object($value) || is_resource($value)) {
+            $value = serialize(serialize($value)); // Double serialization because of formatters.
+        }
 
         [$value, $is_decoded, $is_formatted] = Helpers::decodeAndFormatValue($value);
 

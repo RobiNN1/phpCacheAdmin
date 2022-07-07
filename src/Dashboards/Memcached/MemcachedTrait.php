@@ -204,7 +204,9 @@ trait MemcachedTrait {
     private function form($memcached): string {
         $key = Http::get('key');
         $value = '';
-        $encoder = 'none';
+
+        $encoder = Http::get('encoder');
+        $encoder = !empty($encoder) ? $encoder : 'none';
 
         if (isset($_GET['key']) && $memcached->get($key)) {
             $value = $memcached->get($key);

@@ -41,15 +41,15 @@ return [
     'encoding'   => [
         'gzcompress' => [
             'view' => static fn (string $value): ?string => @gzuncompress($value) !== false ? gzuncompress($value) : null,
-            'save' => static fn (string $value) => gzcompress($value),
+            'save' => static fn (string $value): string => gzcompress($value),
         ],
         'gzencode'   => [
             'view' => static fn (string $value): ?string => @gzdecode($value) !== false ? gzdecode($value) : null,
-            'save' => static fn (string $value) => gzencode($value),
+            'save' => static fn (string $value): string => gzencode($value),
         ],
         'gzdeflate'  => [
             'view' => static fn (string $value): ?string => @gzinflate($value) !== false ? gzinflate($value) : null,
-            'save' => static fn (string $value) => gzdeflate($value),
+            'save' => static fn (string $value): string => gzdeflate($value),
         ],
     ],
     // Formatting functions, it runs after decoding

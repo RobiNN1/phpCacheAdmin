@@ -175,14 +175,6 @@ trait MemcachedTrait {
 
         $value = $memcached->get($key);
 
-        if (is_array($value)) {
-            $value = serialize($value);
-        }
-
-        if (is_object($value) || is_resource($value)) {
-            $value = serialize(serialize($value)); // Double serialization because of formatters.
-        }
-
         [$value, $encode_fn, $is_formatted] = Helpers::decodeAndFormatValue($value);
 
         return $this->template->render('partials/view_key', [

@@ -118,14 +118,20 @@ trait TypesTrait {
             $key = Http::post('key');
             $value = Http::post('value');
             $expire = Http::post('expire', 'int');
+            $old_value = Http::post('old_value');
+            $encoder = Http::post('encoder');
+
+            if ($encoder !== 'none') {
+                $value = Helpers::encodeValue($value, $encoder);
+            }
 
             switch ($type) {
                 case 'string':
                     $redis->set($key, $value);
                     break;
                 case 'set':
-                    if (Http::post('value') !== Http::post('old_value')) {
-                        $redis->sRem($key, Http::post('old_value'));
+                    if (Http::post('value') !== $old_value) {
+                        $redis->sRem($key, $old_value);
                         $redis->sAdd($key, $value);
                     }
                     break;
@@ -144,7 +150,7 @@ trait TypesTrait {
                     }
                     break;
                 case 'zset':
-                    $redis->zRem($key, Http::post('old_value'));
+                    $redis->zRem($key, $old_value);
                     $redis->zAdd($key, Http::post('score', 'int'), $value);
                     break;
                 case 'hash':

@@ -183,12 +183,12 @@ trait MemcachedTrait {
             $value = serialize(serialize($value)); // Double serialization because of formatters.
         }
 
-        [$value, $is_decoded, $is_formatted] = Helpers::decodeAndFormatValue($value);
+        [$value, $encode_fn, $is_formatted] = Helpers::decodeAndFormatValue($value);
 
         return $this->template->render('partials/view_key', [
             'value'     => $value,
             'type'      => 'string', // In Memcache(d) everything is stored as string.
-            'decoded'   => $is_decoded,
+            'encode_fn' => $encode_fn,
             'formatted' => $is_formatted,
             'edit_url'  => Http::queryString(['db'], ['form' => 'edit', 'key' => $key]),
         ]);
@@ -204,6 +204,7 @@ trait MemcachedTrait {
     private function form($memcached): string {
         $key = Http::get('key');
         $value = '';
+        $encoder = 'none';
 
         if (isset($_GET['key']) && $memcached->get($key)) {
             $value = $memcached->get($key);
@@ -212,8 +213,12 @@ trait MemcachedTrait {
         if (isset($_POST['submit'])) {
             $key = Http::post('key');
             $value = Http::post('value');
-
             $old_key = Http::post('old_key');
+            $encoder = Http::post('encoder');
+
+            if ($encoder !== 'none') {
+                $value = Helpers::encodeValue($value, $encoder);
+            }
 
             if (!empty($old_key) && $old_key !== $key) {
                 $memcached->delete($old_key);
@@ -224,9 +229,15 @@ trait MemcachedTrait {
             Http::redirect([], ['view' => 'key', 'key' => $key]);
         }
 
+        if ($encoder !== 'none') {
+            $value = Helpers::decodeValue($value, $encoder);
+        }
+
         return $this->template->render('dashboards/memcached/form', [
-            'key'   => $key,
-            'value' => $value,
+            'key'      => $key,
+            'value'    => $value,
+            'encoders' => Helpers::getEncoders(),
+            'encoder'  => $encoder,
         ]);
     }
 }

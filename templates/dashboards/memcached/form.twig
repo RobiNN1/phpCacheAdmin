@@ -8,6 +8,18 @@
         required: true,
     }) }}
 
+    {% if encoders %}
+        <div class="mb-3">
+            <label for="encoder" class="block text-sm font-semibold mb-2">Encode function</label>
+            {{ include('components/select.twig', {
+                id: 'encoder',
+                options: encoders,
+                class: 'w-full',
+                selected: encoder,
+            }) }}
+        </div>
+    {% endif %}
+
     <div class="mb-3">
         <label for="value" class="block text-sm font-semibold mb-2">Value</label>
         <textarea id="value" name="value" class="input w-full rounded py-2 px-4 focus:ring-{{ color }}-100 focus:border-{{ color }}-300" rows="10" required>{{ value }}</textarea>

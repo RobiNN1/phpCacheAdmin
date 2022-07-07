@@ -36,20 +36,21 @@ return [
         ],
     ],
     'timeformat' => 'd. m. Y H:i:s',
-    'twigdebug'  => false,
-    // Decoding functions
-    'decoders'   => [
-        static fn (string $value): ?string => @gzuncompress($value) !== false ? gzuncompress($value) : null,
-        static fn (string $value): ?string => @gzdecode($value) !== false ? gzdecode($value) : null,
-        static fn (string $value): ?string => @gzinflate($value) !== false ? gzinflate($value) : null,
-        static function (string $value): ?string { // Magento
-            // https://github.com/colinmollenhour/Cm_Cache_Backend_Redis/blob/master/Cm/Cache/Backend/Redis.php#L1306-L1323
-            if (strpos($value, "gz:\x1f\x8b") === 0) {
-                $value = substr($value, 5);
-            }
-
-            return @gzuncompress($value) !== false ? gzuncompress($value) : null;
-        },
+    'twigdebug'  => true,
+    // Decoding/Encoding functions
+    'encoding'   => [
+        'gzcompress' => [
+            'view' => static fn (string $value): ?string => @gzuncompress($value) !== false ? gzuncompress($value) : null,
+            'save' => static fn (string $value) => gzcompress($value),
+        ],
+        'gzencode'   => [
+            'view' => static fn (string $value): ?string => @gzdecode($value) !== false ? gzdecode($value) : null,
+            'save' => static fn (string $value) => gzencode($value),
+        ],
+        'gzdeflate'  => [
+            'view' => static fn (string $value): ?string => @gzinflate($value) !== false ? gzinflate($value) : null,
+            'save' => static fn (string $value) => gzdeflate($value),
+        ],
     ],
     // Formatting functions, it runs after decoding
     'formatters' => [
@@ -65,7 +66,7 @@ return [
                     }
                 }
 
-                return $unserialized_value;
+                return (string) $unserialized_value;
             }
 
             return null;

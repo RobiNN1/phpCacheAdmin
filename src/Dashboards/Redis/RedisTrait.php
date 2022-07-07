@@ -297,20 +297,20 @@ trait RedisTrait {
         $value = $this->getAllKeyValues($redis, $type, $key);
 
         $paginator = '';
-        $is_decoded = null;
+        $encode_fn = null;
         $is_formatted = null;
 
         if (is_array($value)) {
             $items = [];
 
             foreach ($value as $value_key => $item) {
-                [$item, $is_decoded, $is_formatted] = Helpers::decodeAndFormatValue($item);
+                [$item, $item_encode_fn, $item_is_formatted] = Helpers::decodeAndFormatValue($item);
 
                 $items[] = [
                     'key'       => $value_key,
                     'value'     => $item,
-                    'decoded'   => $is_decoded,
-                    'formatted' => $is_formatted,
+                    'encode_fn' => $item_encode_fn,
+                    'formatted' => $item_is_formatted,
                 ];
             }
 
@@ -319,14 +319,14 @@ trait RedisTrait {
             $paginator->setUrl([['db', 'view', 'key', 'pp'], ['p' => '']]);
             $paginator = $paginator->render();
         } else {
-            [$value, $is_decoded, $is_formatted] = Helpers::decodeAndFormatValue($value);
+            [$value, $encode_fn, $is_formatted] = Helpers::decodeAndFormatValue($value);
         }
 
         return $this->template->render('partials/view_key', [
             'value'      => $value,
             'type'       => $type,
             'ttl'        => Helpers::formatSeconds($redis->ttl($key)),
-            'decoded'    => $is_decoded,
+            'encode_fn'  => $encode_fn,
             'formatted'  => $is_formatted,
             'add_subkey' => Http::queryString(['db'], ['form' => 'new', 'key' => $key]),
             'edit_url'   => Http::queryString(['db'], ['form' => 'edit', 'key' => $key]),
@@ -351,6 +351,9 @@ trait RedisTrait {
         $hash_key = '';
         $expire = -1;
 
+        $encoder = Http::get('encoder');
+        $encoder = !empty($encoder) ? $encoder : 'none';
+
         $this->saveKey($redis);
 
         if (isset($_GET['key']) && $_GET['form'] === 'edit' && $redis->exists($key)) {
@@ -365,6 +368,10 @@ trait RedisTrait {
             $expire = $redis->ttl($key);
         }
 
+        if ($encoder !== 'none') {
+            $value = Helpers::decodeValue($value, $encoder);
+        }
+
         return $this->template->render('dashboards/redis/form', [
             'key'      => $key,
             'value'    => $value,
@@ -373,6 +380,8 @@ trait RedisTrait {
             'score'    => $score,
             'hash_key' => $hash_key,
             'expire'   => $expire,
+            'encoders' => Helpers::getEncoders(),
+            'encoder'  => $encoder,
         ]);
     }
 }

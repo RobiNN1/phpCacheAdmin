@@ -16,6 +16,11 @@ use Exception;
 
 class Helpers {
     /**
+     * @var ?string
+     */
+    private static ?string $encode_fn = null;
+
+    /**
      * Convert ENV variable to array.
      *
      * It allows to use ENV variables and config.php together.
@@ -228,12 +233,10 @@ class Helpers {
      * @return array<mixed, mixed>
      */
     public static function decodeAndFormatValue(string $value): array {
-        $is_decoded = false;
         $is_formatted = false;
 
-        if (self::decodeValue($value) !== null) {
-            $value = (string) self::decodeValue($value);
-            $is_decoded = true;
+        if (self::checkAndDecodeValue($value) !== null) {
+            $value = (string) self::checkAndDecodeValue($value);
         }
 
         if (self::formatValue($value) !== null) {
@@ -243,24 +246,80 @@ class Helpers {
 
         $value = self::formatJson($value);
 
-        return [$value, $is_decoded, $is_formatted];
+        return [$value, self::$encode_fn, $is_formatted];
+    }
+
+    /**
+     * Check and decode value.
+     *
+     * @param string $value
+     *
+     * @return ?string
+     */
+    private static function checkAndDecodeValue(string $value): ?string {
+        foreach (Config::get('encoding') as $name => $decoder) {
+            if (is_callable($decoder['view']) && $decoder['view']($value) !== null) {
+                self::$encode_fn = $name;
+
+                return $decoder['view']($value);
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Get encoders.
+     *
+     * @return array<int, string>
+     */
+    public static function getEncoders(): array {
+        $encoders = Config::get('encoding');
+
+        if (empty($encoders)) {
+            return [];
+        }
+
+        $array = array_keys($encoders);
+        $array[] = 'none';
+
+        return array_combine($array, $array);
+    }
+
+    /**
+     * Encode value.
+     *
+     * @param string $value
+     * @param string $encoder
+     *
+     * @return mixed
+     */
+    public static function encodeValue(string $value, string $encoder) {
+        $encoder = Config::get('encoding')[$encoder];
+
+        if (is_callable($encoder['save']) && $encoder['save']($value) !== null) {
+            return $encoder['save']($value);
+        }
+
+        return $value;
     }
 
     /**
      * Decode value.
      *
      * @param string $value
+     * @param string $decoder
      *
-     * @return ?string
+     * @return mixed
      */
-    private static function decodeValue(string $value): ?string {
-        foreach (Config::get('decoders') as $decoder) {
-            if (is_callable($decoder) && $decoder($value) !== null) {
-                return $decoder($value);
-            }
+    public static function decodeValue(string $value, string $decoder) {
+        $decoder = Config::get('encoding')[$decoder];
+
+        if (is_callable($decoder['view']) && $decoder['view']($value) !== null) {
+            $value = $decoder['view']($value);
         }
 
-        return null;
+        return $value;
     }
 
     /**

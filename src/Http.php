@@ -102,5 +102,7 @@ class Http {
         } else {
             echo '<script data-cfasync="false">window.location.replace("'.$location.'");</script>';
         }
+
+        die();
     }
 }

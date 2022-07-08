@@ -64,9 +64,6 @@ return [
                     } catch (Exception $e) {
                         // ...
                     }
-                } elseif (!is_string($unserialized_value) || !is_numeric($unserialized_value)) {
-                    // for weird edge cases when data are not string/int
-                    $unserialized_value = serialize($unserialized_value);
                 }
 
                 return (string) $unserialized_value;

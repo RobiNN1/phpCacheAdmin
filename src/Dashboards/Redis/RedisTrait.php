@@ -322,10 +322,12 @@ trait RedisTrait {
             [$value, $encode_fn, $is_formatted] = Helpers::decodeAndFormatValue($value);
         }
 
+        $ttl = $redis->ttl($key);
+
         return $this->template->render('partials/view_key', [
             'value'      => $value,
             'type'       => $type,
-            'ttl'        => Helpers::formatSeconds($redis->ttl($key)),
+            'ttl'        => $ttl ? Helpers::formatSeconds($ttl) : null,
             'encode_fn'  => $encode_fn,
             'formatted'  => $is_formatted,
             'add_subkey' => Http::queryString(['db'], ['form' => 'new', 'key' => $key]),

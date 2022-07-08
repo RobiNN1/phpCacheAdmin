@@ -80,6 +80,10 @@ class Helpers {
      * @return string
      */
     public static function formatSeconds(int $time): string {
+        if ($time === -1) {
+            return (string) $time;
+        }
+
         $seconds_in_minute = 60;
         $seconds_in_hour = 60 * $seconds_in_minute;
         $seconds_in_day = 24 * $seconds_in_hour;
@@ -292,9 +296,9 @@ class Helpers {
      * @param string $value
      * @param string $encoder
      *
-     * @return mixed
+     * @return string
      */
-    public static function encodeValue(string $value, string $encoder) {
+    public static function encodeValue(string $value, string $encoder): string {
         $encoder = Config::get('encoding')[$encoder];
 
         if (is_callable($encoder['save']) && $encoder['save']($value) !== null) {
@@ -310,9 +314,9 @@ class Helpers {
      * @param string $value
      * @param string $decoder
      *
-     * @return mixed
+     * @return string
      */
-    public static function decodeValue(string $value, string $decoder) {
+    public static function decodeValue(string $value, string $decoder): string {
         $decoder = Config::get('encoding')[$decoder];
 
         if (is_callable($decoder['view']) && $decoder['view']($value) !== null) {

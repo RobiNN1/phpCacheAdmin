@@ -4,7 +4,15 @@
     <span>Type {{ key_badge.key_type(type) }}</span>
 
     {% if ttl %}
-        <span>TTL {{ include('components/badge.twig', {text: ttl, pill: true, class: 'uppercase font-bold', bg: 'bg-slate-500'}) }}</span>
+        <span>
+            TTL
+            {{ include('components/badge.twig', {
+                text: ttl == -1 ? 'Doesn\'t expire' : ttl,
+                pill: true,
+                class: 'uppercase font-bold',
+                bg: 'bg-slate-500',
+            }) }}
+        </span>
     {% endif %}
 
     {% if encode_fn %}

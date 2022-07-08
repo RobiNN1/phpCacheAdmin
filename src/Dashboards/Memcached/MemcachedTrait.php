@@ -127,9 +127,10 @@ trait MemcachedTrait {
     private function getAllKeys($memcached): array {
         $keys = [];
 
-        foreach ($memcached->getKeys() as $key) {
+        foreach ($memcached->getKeys() as $key_data) {
             $keys[] = [
-                'key'  => $key,
+                'key'  => $key_data['key'],
+                'ttl'  => $key_data['exp'],
                 'type' => 'string', // In Memcache(d) everything is stored as string.
             ];
         }
@@ -153,8 +154,8 @@ trait MemcachedTrait {
             'keys'        => $paginator->getPaginated(),
             'all_keys'    => count($keys),
             'new_key_url' => Http::queryString([], ['form' => 'new']),
-            'edit_url'    => Http::queryString([], ['form' => 'edit', 'key' => '']),
-            'view_url'    => Http::queryString([], ['view' => 'key', 'key' => '']),
+            'edit_url'    => Http::queryString([], ['form' => 'edit', 'ttl' => 'ttl_value', 'key' => '']),
+            'view_url'    => Http::queryString([], ['view' => 'key', 'ttl' => 'ttl_value', 'key' => '']),
             'paginator'   => $paginator->render(),
         ]);
     }
@@ -177,12 +178,15 @@ trait MemcachedTrait {
 
         [$value, $encode_fn, $is_formatted] = Helpers::decodeAndFormatValue($value);
 
+        $ttl = Http::get('ttl', 'int');
+
         return $this->template->render('partials/view_key', [
             'value'     => $value,
             'type'      => 'string', // In Memcache(d) everything is stored as string.
+            'ttl'       => !empty($ttl) ? Helpers::formatSeconds($ttl) : null,
             'encode_fn' => $encode_fn,
             'formatted' => $is_formatted,
-            'edit_url'  => Http::queryString(['db'], ['form' => 'edit', 'key' => $key]),
+            'edit_url'  => Http::queryString(['ttl'], ['form' => 'edit', 'key' => $key]),
         ]);
     }
 
@@ -196,17 +200,21 @@ trait MemcachedTrait {
     private function form($memcached): string {
         $key = Http::get('key');
         $value = '';
+        $expire = 0;
 
         $encoder = Http::get('encoder');
         $encoder = !empty($encoder) ? $encoder : 'none';
 
         if (isset($_GET['key']) && $memcached->get($key)) {
             $value = $memcached->get($key);
+            $expire = Http::get('ttl', 'int');
+            $expire = $expire === -1 ? 0 : $expire;
         }
 
         if (isset($_POST['submit'])) {
             $key = Http::post('key');
             $value = Http::post('value');
+            $expire = Http::post('expire', 'int');
             $old_key = Http::post('old_key');
             $encoder = Http::post('encoder');
 
@@ -218,9 +226,9 @@ trait MemcachedTrait {
                 $memcached->delete($old_key);
             }
 
-            $memcached->set($key, $value);
+            $memcached->store($key, $value, $expire);
 
-            Http::redirect([], ['view' => 'key', 'key' => $key]);
+            Http::redirect([], ['view' => 'key', 'ttl' => $expire, 'key' => $key]);
         }
 
         if ($encoder !== 'none') {
@@ -230,6 +238,7 @@ trait MemcachedTrait {
         return $this->template->render('dashboards/memcached/form', [
             'key'      => $key,
             'value'    => $value,
+            'expire'   => $expire,
             'encoders' => Helpers::getEncoders(),
             'encoder'  => $encoder,
         ]);

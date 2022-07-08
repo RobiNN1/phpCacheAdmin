@@ -8,6 +8,15 @@
         required: true,
     }) }}
 
+    {{ include('components/input.twig', {
+        id: 'expire',
+        label: 'Expire (in seconds)',
+        type: 'number',
+        help: '0 removes expiration (default).',
+        value: expire,
+        attr: ' min="0" max="2592000"',
+    }) }}
+
     {% if encoders %}
         <div class="mb-3">
             <label for="encoder" class="block text-sm font-semibold mb-2">Encode function</label>

@@ -64,7 +64,7 @@ class MemcachedDashboard implements DashboardInterface {
      */
     private function connect(array $server) {
         if (extension_loaded('memcached')) {
-            $memcache = new MemcacheCompatibility\Memcached();
+            $memcache = new MemcacheCompatibility\Memcached($server);
         } elseif (extension_loaded('memcache')) {
             $memcache = new MemcacheCompatibility\Memcache($server);
         } else {

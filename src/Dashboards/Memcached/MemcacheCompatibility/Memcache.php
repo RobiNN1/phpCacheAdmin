@@ -13,10 +13,12 @@ declare(strict_types=1);
 namespace RobiNN\Pca\Dashboards\Memcached\MemcacheCompatibility;
 
 class Memcache extends \Memcache implements MemcacheInterface {
+    use GetKeysTrait;
+
     /**
      * @var array<string, mixed>
      */
-    private array $server;
+    protected array $server;
 
     /**
      * @param array<string, mixed> $server
@@ -44,28 +46,15 @@ class Memcache extends \Memcache implements MemcacheInterface {
     }
 
     /**
-     * Get all keys.
+     * Store item.
      *
-     * @return array<int, string>
+     * @param string $key
+     * @param mixed  $value
+     * @param int    $expiration
+     *
+     * @return bool
      */
-    public function getKeys(): array {
-        $list = [];
-
-        foreach (@$this->getExtendedStats('slabs') as $slabs) {
-            $slabs = (array) $slabs;
-            unset($slabs['active_slabs'], $slabs['total_malloced']);
-
-            foreach (array_keys($slabs) as $slab_id) {
-                foreach ($this->getExtendedStats('cachedump', (int) $slab_id) as $entries) {
-                    if (!empty($entries)) {
-                        foreach ($entries as $name => $data) {
-                            $list[] = $name;
-                        }
-                    }
-                }
-            }
-        }
-
-        return $list;
+    public function store(string $key, $value, int $expiration = 0): bool {
+        return $this->set($key, $value, 0, $expiration);
     }
 }

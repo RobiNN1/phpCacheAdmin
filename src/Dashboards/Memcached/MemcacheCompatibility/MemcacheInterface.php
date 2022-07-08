@@ -28,9 +28,20 @@ interface MemcacheInterface {
     public function getServerStats(): array;
 
     /**
+     * Store item.
+     *
+     * @param string $key
+     * @param mixed  $value
+     * @param int    $expiration
+     *
+     * @return bool
+     */
+    public function store(string $key, $value, int $expiration = 0): bool;
+
+    /**
      * Get all keys.
      *
-     * @return array<int, string>
+     * @return array<int, mixed>
      */
     public function getKeys(): array;
 }

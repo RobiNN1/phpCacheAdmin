@@ -1,0 +1,21 @@
+version: '3'
+
+services:
+  phpcacheadmin:
+    build: .
+    ports:
+      - "8080:80"
+    environment:
+      - PCA_REDIS_0_NAME=Docker
+      - PCA_REDIS_0_HOST=redis
+      - PCA_REDIS_0_PORT=6379
+      - PCA_MEMCACHED_0_NAME=Docker
+      - PCA_MEMCACHED_0_HOST=memcached
+      - PCA_MEMCACHED_0_PORT=11211
+    links:
+      - redis
+      - memcached
+  redis:
+    image: redis
+  memcached:
+    image: memcached

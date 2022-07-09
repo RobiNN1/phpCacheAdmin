@@ -31,11 +31,59 @@ Replace all files and delete the `cache` folder.
 
 ## Docker
 
-There is no official image yet,
-but you can create your own and set ENV variables such as these
-`PCA_REDIS_0_HOST=127.0.0.1`, `PCA_REDIS_0_PORT=6379`.
+https://hub.docker.com/r/robinn/phpcacheadmin
 
-You can change any config option, it just must have `PCA_` prefix.
+Run with single command:
+
+```
+docker run -p 8080:80 -d --name phpcacheadmin -e "PCA_REDIS_0_HOST=redis_host" -e "PCA_REDIS_0_PORT=6379" -e "PCA_MEMCACHED_0_HOST=memcached_host" -e "PCA_MEMCACHED_0_PORT=11211" robinn/phpcacheadmin
+```
+
+Or simply use it in **docker-compose.yml**
+
+```yaml
+version: '3'
+
+services:
+  phpcacheadmin:
+    image: robinn/phpcacheadmin
+    ports:
+      - "8080:80"
+    environment:
+      - PCA_REDIS_0_HOST=redis
+      - PCA_REDIS_0_PORT=6379
+      - PCA_MEMCACHED_0_HOST=memcached
+      - PCA_MEMCACHED_0_PORT=11211
+    links:
+      - redis
+      - memcached
+  redis:
+    image: redis
+  memcached:
+    image: memcached
+```
+
+> **Note**
+>
+> Is not required to have both Redis and Memcached.
+
+#### Environment variables
+
+Redis:
+
+- `PCA_REDIS_0_NAME` The server name for info panel, useful when you have multiple servers added (Optional, default name is Localhost)
+- `PCA_REDIS_0_HOST` Redis server host.
+- `PCA_REDIS_0_PORT` Redis server port (Optional, default is 6379)
+- `PCA_REDIS_0_DATABASE` Redis database (Optional, default is 0)
+- `PCA_REDIS_0_PASSWORD` (Optional, empty by default)
+
+Memcached:
+
+- `PCA_MEMCACHED_0_NAME` The server name for info panel, useful when you have multiple servers added (Optional, default name is Localhost)
+- `PCA_MEMCACHED_0_HOST` Memcached server host.
+- `PCA_MEMCACHED_0_PORT` Memcached server port (Optional, default is 11211)
+
+To add another server, add the same environment variables, but change 0 to 1 (2 for third server and so on).
 
 ## Requirements
 

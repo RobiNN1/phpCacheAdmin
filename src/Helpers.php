@@ -146,9 +146,9 @@ class Helpers {
 
         if (is_file($file)) {
             $content = trim(file_get_contents($file));
-            $attributes = 'width="'.$size.'" height="'.$size.'" fill="currentColor" viewBox="0 0 16 16"';
+            preg_match('~<svg([^<>]*)>~', $content, $attributes);
 
-            return preg_replace('~<svg([^<>]*)>~', '<svg xmlns="http://www.w3.org/2000/svg" '.$attributes.'>', $content);
+            return preg_replace('~<svg([^<>]*)>~', '<svg'.$attributes[1].' width="'.$size.'" height="'.$size.'">', $content);
         }
 
         return null;

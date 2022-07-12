@@ -18,12 +18,16 @@ trait GetKeysTrait {
      *
      * @param string $command
      *
-     * @return array<mixed, mixed>
+     * @return ?array<mixed, mixed>
      */
-    private function runCommand(string $command): array {
+    private function runCommand(string $command): ?array {
         static $data = [];
 
-        $fp = fsockopen($this->server['host'], (int) $this->server['port']);
+        $fp = @fsockopen($this->server['host'], (int) $this->server['port'], $error_code, $error_message, 3);
+
+        if ($fp === false) {
+            return null;
+        }
 
         fwrite($fp, $command."\n");
 
@@ -86,8 +90,12 @@ trait GetKeysTrait {
     public function getKeys(): array {
         static $keys = [];
 
-        foreach ($this->runCommand('lru_crawler metadump all') as $line) {
-            $keys[] = $this->keyData($line);
+        $all_keys = $this->runCommand('lru_crawler metadump all');
+
+        if ($all_keys !== null) {
+            foreach ($all_keys as $line) {
+                $keys[] = $this->keyData($line);
+            }
         }
 
         return $keys;

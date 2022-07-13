@@ -1,5 +1,4 @@
 .idea
-*.config
 .DS_Store
 cache
 vendor

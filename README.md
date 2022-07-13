@@ -1,4 +1,5 @@
-# phpCacheAdmin
+<p align="center"><img src=".github/img/logo-colored.svg" width="400" alt="Logo"></p>
+<p align="center">Web dashboard for Redis, Memcache(d) and OPCache.</p>
 
 Web dashboard for Redis, Memcache(d) and OPCache.
 

@@ -136,19 +136,23 @@ class Helpers {
     /**
      * Get svg icon from file.
      *
-     * @param string $icon
-     * @param int    $size
+     * @param string  $icon
+     * @param ?int    $size
+     * @param ?string $class
      *
      * @return ?string
      */
-    public static function svg(string $icon, int $size = 16): ?string {
+    public static function svg(string $icon, ?int $size = 16, ?string $class = null): ?string {
         $file = __DIR__.'/../assets/icons/'.$icon.'.svg';
 
         if (is_file($file)) {
             $content = trim(file_get_contents($file));
             preg_match('~<svg([^<>]*)>~', $content, $attributes);
 
-            return preg_replace('~<svg([^<>]*)>~', '<svg'.$attributes[1].' width="'.$size.'" height="'.$size.'">', $content);
+            $size_attr = $size ? ' width="'.$size.'" height="'.$size.'"' : '';
+            $class_attr = $class ? ' class="'.$class.'"' : '';
+
+            return preg_replace('~<svg([^<>]*)>~', '<svg'.$attributes[1].$size_attr.$class_attr.'>', $content);
         }
 
         return null;

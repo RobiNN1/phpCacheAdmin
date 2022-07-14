@@ -14,7 +14,7 @@
             <a class="pb-2 text-white hidden md:block" href="index.php">{{ svg('logo', null) }}</a>
             {% for link, title in nav %}
                 <a class="block py-2 text-white hover:text-gray-200{{ current == link ? ' font-bold' : '' }}" href="?type={{ link }}">
-                    <span class="mr-1">{{ svg(link) }}</span> {{ title }}
+                    <span class="mr-1{{ current == link ? '' : ' opacity-75' }}">{{ svg(link) }}</span> {{ title }}
                 </a>
             {% endfor %}
             <footer class="text-center text-white my-4">

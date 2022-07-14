@@ -63,7 +63,7 @@ trait RedisTrait {
                 'Connected clients' => $server_info['connected_clients'],
                 'Uptime'            => Helpers::formatSeconds($server_info['uptime_in_seconds']),
                 'Memory used'       => Helpers::formatBytes($server_info['used_memory']),
-                'Keys'              => $all_keys.' (all databases)',
+                'Keys'              => Helpers::formatNumber($all_keys).' (all databases)',
             ];
         } catch (DashboardException $e) {
             $data = [
@@ -191,7 +191,7 @@ trait RedisTrait {
                 if (array_key_exists('db'.$d, $keyspace)) {
                     $db = explode(',', $keyspace['db'.$d]);
                     $keys = explode('=', $db[0]);
-                    $keys_in_db = ' (Keys: '.$keys[1].')';
+                    $keys_in_db = ' (Keys: '.Helpers::formatNumber((int) $keys[1]).')';
                 }
 
                 $databases[$d] = 'Database '.$d.$keys_in_db;

@@ -12,7 +12,6 @@ declare(strict_types=1);
 
 namespace RobiNN\Pca\Dashboards\OPCache;
 
-use RobiNN\Pca\Config;
 use RobiNN\Pca\Dashboards\DashboardInterface;
 use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Template;
@@ -76,8 +75,13 @@ class OPCacheDashboard implements DashboardInterface {
      */
     public function info(): array {
         $status = opcache_get_status();
+        $directives = opcache_get_configuration()['directives'];
+
         $stats = $status['opcache_statistics'];
+
+        $total_memory = $directives['opcache.memory_consumption'];
         $memory = $status['memory_usage'];
+        $memory_usage = ($memory['used_memory'] + $memory['wasted_memory']) / $total_memory;
 
         return [
             'panels' => [
@@ -86,27 +90,31 @@ class OPCacheDashboard implements DashboardInterface {
                     'moreinfo' => true,
                     'data'     => [
                         'JIT'          => Helpers::enabledDisabledBadge($this->template, isset($status['jit']) && $status['jit']['enabled']),
-                        'Start time'   => date(Config::get('timeformat'), $stats['start_time']),
-                        'Last restart' => $stats['last_restart_time'] === 0 ? 'Never' : date(Config::get('timeformat'), $stats['last_restart_time']),
+                        'Start time'   => Helpers::formatTime($stats['start_time']),
+                        'Last restart' => Helpers::formatTime($stats['last_restart_time']),
                         'Cache full'   => Helpers::enabledDisabledBadge($this->template, $status['cache_full'] === false, null, ['No', 'Yes']),
                     ],
                 ],
                 [
                     'title' => 'Memory',
                     'data'  => [
+                        'Total'          => Helpers::formatBytes($total_memory),
+                        'Usage'          => round(100 * $memory_usage).'%',
                         'Used'           => Helpers::formatBytes($memory['used_memory']),
                         'Free'           => Helpers::formatBytes($memory['free_memory']),
                         'Wasted'         => Helpers::formatBytes($memory['wasted_memory']),
-                        'Current wasted' => round($memory['current_wasted_percentage'], 5).'%',
+                        'Current wasted' => round($memory['current_wasted_percentage'], 3).'%',
                     ],
                 ],
                 [
                     'title' => 'Stats',
                     'data'  => [
-                        'Cached scripts' => $stats['num_cached_scripts'],
-                        'Cached keys'    => $stats['num_cached_keys'],
-                        'Hits'           => $stats['hits'],
-                        'Misses'         => $stats['misses'],
+                        'Cached scripts'  => $stats['num_cached_scripts'],
+                        'Cached keys'     => Helpers::formatNumber($stats['num_cached_keys']),
+                        'Max cached keys' => Helpers::formatNumber($stats['max_cached_keys']),
+                        'Hits'            => Helpers::formatNumber($stats['hits']),
+                        'Misses'          => Helpers::formatNumber($stats['misses']),
+                        'Hit rate'        => round($stats['opcache_hit_rate']).'%',
                     ],
                 ],
             ],

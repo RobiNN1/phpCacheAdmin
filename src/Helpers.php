@@ -12,6 +12,8 @@ declare(strict_types=1);
 
 namespace RobiNN\Pca;
 
+use DateTimeImmutable;
+use DateTimeZone;
 use Exception;
 
 class Helpers {
@@ -114,6 +116,38 @@ class Helpers {
         }
 
         return implode(' ', $time_parts);
+    }
+
+    /**
+     * Format timestamp.
+     *
+     * @param int $time
+     *
+     * @return string
+     */
+    public static function formatTime(int $time): string {
+        if ($time === 0) {
+            return 'Never';
+        }
+
+        try {
+            return (new DateTimeImmutable('@'.$time))
+                ->setTimezone(new DateTimeZone(date_default_timezone_get()))
+                ->format(Config::get('timeformat'));
+        } catch (Exception $e) {
+            return date(Config::get('timeformat'), $time);
+        }
+    }
+
+    /**
+     * Format number.
+     *
+     * @param int $number
+     *
+     * @return string
+     */
+    public static function formatNumber(int $number): string {
+        return number_format($number, 0, ',', ' ');
     }
 
     /**

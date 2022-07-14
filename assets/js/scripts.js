@@ -209,3 +209,17 @@ if (redis_type) {
         document.getElementById('redis_hash_key').style.display = e.target.value === 'hash' ? 'block' : 'none';
     });
 }
+
+/**
+ * OPCache table
+ */
+const scripts = document.querySelectorAll('[data-key]');
+scripts.forEach(script => {
+    let show_path = script.querySelector('.show-path');
+
+    if (show_path) {
+        show_path.addEventListener('click', () => {
+            document.querySelector('[data-path="' + script.dataset.key + '"]').classList.toggle('hidden');
+        });
+    }
+});

@@ -12,7 +12,6 @@ declare(strict_types=1);
 
 namespace RobiNN\Pca\Dashboards\OPCache;
 
-use RobiNN\Pca\Config;
 use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
 use RobiNN\Pca\Paginator;
@@ -47,6 +46,13 @@ trait OPCacheTrait {
     private function moreInfo(array $status): string {
         unset($status['scripts']);
 
+        $directives = opcache_get_configuration()['directives'];
+
+        $status['directives'] = array_combine(
+            array_map(static fn ($key) => str_replace('opcache.', '', $key), array_keys($directives)),
+            $directives
+        );
+
         return $this->template->render('partials/info_table', [
             'panel_title' => 'OPCache Info',
             'array'       => Helpers::convertBoolToString($status),
@@ -65,15 +71,21 @@ trait OPCacheTrait {
 
         if (isset($status['scripts'])) {
             foreach ($status['scripts'] as $script) {
-                $name = explode('/', str_replace('\\', '/', $script['full_path']));
+                $full_path = str_replace('\\', '/', $script['full_path']);
+                $name = explode('/', $full_path);
+                $script_name = $name[array_key_last($name)];
+
+                if ((isset($_GET['ignore']) && $_GET['ignore'] === 'yes') && Helpers::str_starts_with($full_path, $_SERVER['DOCUMENT_ROOT'])) {
+                    continue;
+                }
 
                 $cached_scripts[] = [
-                    'path'           => $script['full_path'],
-                    'name'           => $name[array_key_last($name)],
-                    'hits'           => $script['hits'],
+                    'path'           => $full_path,
+                    'name'           => $script_name,
+                    'hits'           => Helpers::formatNumber($script['hits']),
                     'memory'         => Helpers::formatBytes($script['memory_consumption']),
-                    'last_used'      => date(Config::get('timeformat'), $script['last_used_timestamp']),
-                    'created'        => date(Config::get('timeformat'), $script['timestamp']),
+                    'last_used'      => Helpers::formatTime($script['last_used_timestamp']),
+                    'created'        => Helpers::formatTime($script['timestamp']),
                     'invalidate_url' => base64_encode($script['full_path']),
                 ];
             }
@@ -94,9 +106,13 @@ trait OPCacheTrait {
 
         $paginator = new Paginator($this->template, $cached_scripts);
 
+        $is_ignored = isset($_GET['ignore']) && $_GET['ignore'] === 'yes';
+
         return $this->template->render('dashboards/opcache', [
             'cached_scripts' => $paginator->getPaginated(),
             'paginator'      => $paginator->render(),
+            'ignore_url'     => Http::queryString(['pp', 'p'], ['ignore' => $is_ignored ? 'no' : 'yes']),
+            'is_ignored'     => $is_ignored,
         ]);
     }
 }

@@ -1,7 +1,12 @@
 <div class="flex md:justify-end gap-1 mb-5">
+    <a href="{{ ignore_url }}"
+       class="text-sm py-1.5 px-3 text-white bg-sky-500 hover:bg-sky-600 focus:ring-4 focus:ring-sky-300 font-semibold rounded">
+        {{ is_ignored ? 'Show' : 'Ignore' }} scripts from this tool
+    </a>
+
     <button type="button" id="delete_all"
-            class="text-sm py-1.5 px-3 text-white bg-red-500 hover:bg-red-600 focus:ring-4 focus:ring-red-300 font-semibold rounded inline-flex items-center gap-1 [&>svg]:align-middle">
-        {{ svg('trash') }} Clean cache
+            class="text-sm py-1.5 px-3 text-white bg-sky-500 hover:bg-sky-600 focus:ring-4 focus:ring-sky-300 font-semibold rounded inline-flex items-center gap-1 [&>svg]:align-middle">
+        {{ svg('reset') }} Reset cache
     </button>
 </div>
 
@@ -22,7 +27,7 @@
             {% if cached_scripts %}
                 {% for script in cached_scripts %}
                     <tr class="[&:last-child>*]:border-0" data-key="{{ script.invalidate_url }}">
-                        <td class="border-b border-gray-100 px-3 md:px-5 py-2 text-sm" title="{{ script.path }}">{{ script.name }}</td>
+                        <td class="border-b border-gray-100 px-3 md:px-5 py-2 text-sm cursor-pointer show-path">{{ script.name }}</td>
                         <td class="border-b border-gray-100 px-3 md:px-5 py-2 text-sm">{{ script.hits }}</td>
                         <td class="border-b border-gray-100 px-3 md:px-5 py-2 text-sm">{{ script.memory }}</td>
                         <td class="hidden md:table-cell border-b border-gray-100 px-3 md:px-5 py-2 text-sm">{{ script.last_used }}</td>
@@ -31,10 +36,13 @@
                             <button type="button" class="text-red-500 hover:text-red-700 font-semibold delete-key">Invalidate</button>
                         </td>
                     </tr>
+                    <tr class="hidden" data-path="{{ script.invalidate_url }}">
+                        <td colspan="6" class="border-b border-gray-100 px-3 md:px-5 py-2 text-sm">{{ script.path }}</td>
+                    </tr>
                 {% endfor %}
             {% else %}
                 <tr>
-                    <td colspan="5" class="text-center p-5">No cached scripts.</td>
+                    <td colspan="6" class="text-center p-5">No cached scripts.</td>
                 </tr>
             {% endif %}
             </tbody>

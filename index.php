@@ -11,6 +11,7 @@
 declare(strict_types=1);
 
 use RobiNN\Pca\Admin;
+use RobiNN\Pca\Config;
 use RobiNN\Pca\Http;
 use RobiNN\Pca\Template;
 
@@ -29,6 +30,13 @@ if (is_file(__DIR__.'/vendor/autoload.php')) {
             require_once $fullpath;
         }
     });
+}
+
+$auth = false;
+
+if (is_callable(Config::get('auth'))) {
+    Config::get('auth')();
+    $auth = true;
 }
 
 $tpl = new Template();
@@ -54,6 +62,7 @@ if (isset($_GET['ajax'])) {
     echo $tpl->render('layout', [
         'site_title' => $info['title'],
         'nav'        => $nav,
+        'logout_url' => $auth ? Http::queryString([], ['logout' => 'yes']) : null,
         'version'    => Admin::VERSION,
         'back'       => isset($_GET['moreinfo']) || isset($_GET['view']) || isset($_GET['form']),
         'back_url'   => Http::queryString(['db', 's']),

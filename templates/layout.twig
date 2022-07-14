@@ -18,6 +18,11 @@
                 </a>
             {% endfor %}
             <footer class="text-center text-white my-4">
+
+                {% if logout_url %}
+                    <a class="block py-2 text-white hover:text-gray-200" href="{{ logout_url }}">Logout</a>
+                {% endif %}
+
                 <div class="font-light">
                     &copy; {{ 'now'|date('Y') }}
                     <a class="text-white hover:text-gray-200 font-semibold" href="https://github.com/RobiNN1/phpCacheAdmin" target="_blank" rel="noopener">

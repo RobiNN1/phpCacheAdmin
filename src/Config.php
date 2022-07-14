@@ -29,7 +29,7 @@ class Config {
 
         self::getEnvConfig($config);
 
-        return $config[$key] ?? $config;
+        return $config[$key] ?? null;
     }
 
     /**

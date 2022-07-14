@@ -37,6 +37,33 @@ return [
     ],
     'timeformat' => 'd. m. Y H:i:s',
     'twigdebug'  => false,
+    // Auth function, this is an example with http auth, but you can add own logic
+    /*'auth'       => static function (): void {
+        $username = 'admin';
+        $password = 'pass';
+
+        if (
+            !isset($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']) ||
+            $_SERVER['PHP_AUTH_USER'] !== $username || $_SERVER['PHP_AUTH_PW'] !== $password
+        ) {
+            Header('WWW-Authenticate: Basic realm="phpCacheAdmin Login"');
+            Header('HTTP/1.0 401 Unauthorized');
+
+            echo 'Incorrect username or password!';
+            exit;
+        }
+
+        if (isset($_GET['logout'])) {
+            $is_https = (
+                (isset($_SERVER['HTTPS']) && ($_SERVER['HTTPS'] === 'on' || $_SERVER['HTTPS'] === 1)) ||
+                (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https')
+            );
+
+            $current_url = sprintf('http%s://reset:reset@%s', ($is_https ? 's' : ''), $_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI']);
+
+            RobiNN\Pca\Http::redirect([], [], $current_url);
+        }
+    },*/
     // Decoding/Encoding functions
     'encoding'   => [
         'gzcompress' => [

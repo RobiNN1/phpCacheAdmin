@@ -26,11 +26,7 @@ class Http {
         $filter = array_flip(array_merge($keep, $filter));
         $url = parse_url($_SERVER['REQUEST_URI']);
 
-        if (empty($url['query'])) {
-            return $url['path'];
-        }
-
-        parse_str($url['query'], $query);
+        parse_str($url['query'] ?? '', $query);
 
         $query = array_intersect_key($query, $filter);
         $query += $additional;
@@ -91,11 +87,12 @@ class Http {
      *
      * @param array<int|string, string> $filter
      * @param array<int|string, string> $additional
+     * @param ?string                   $url
      *
      * @return void
      */
-    public static function redirect(array $filter = [], array $additional = []): void {
-        $location = self::queryString($filter, $additional);
+    public static function redirect(array $filter = [], array $additional = [], ?string $url = null): void {
+        $location = $url ?? self::queryString($filter, $additional);
 
         if (!headers_sent()) {
             header('Location: '.$location, true);

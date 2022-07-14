@@ -1,12 +1,15 @@
 {
   "name": "robinn/phpcacheadmin",
-  "description": "Web dashboard for Redis, Memcached and OPCache.",
+  "description": "Web dashboard for Redis, Memcache(d) and OPCache.",
   "keywords": [
     "redis",
+    "memcache",
     "memcached",
     "opcache",
     "cache",
-    "admin"
+    "admin",
+    "dashboard",
+    "gui"
   ],
   "license": "MIT",
   "type": "project",

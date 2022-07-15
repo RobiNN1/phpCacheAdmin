@@ -1813,6 +1813,10 @@ svg {
   vertical-align: middle;
 }
 
+.\[\&\>svg\]\:align-\[-0\.05rem\]>svg {
+  vertical-align: -0.05rem;
+}
+
 .\[\&\:last-child\>\*\]\:border-0:last-child>* {
   border-width: 0px;
 }

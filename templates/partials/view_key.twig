@@ -26,7 +26,7 @@
 </div>
 
 {% if value is iterable %}
-    <a href="{{ add_subkey }}" class="text-{{ color }}-500 hover:text-{{ color }}-700 font-semibold inline-flex items-center mb-2">
+    <a href="{{ add_subkey }}" class="text-{{ color }}-500 hover:text-{{ color }}-700 font-semibold inline-flex items-center gap-1 mb-2">
         {{ svg('open') }} Add another value
     </a>
 
@@ -67,10 +67,10 @@
                 </span>
 
                 <div>
-                    <a href="{{ edit_url }}&{{ param_name }}={{ item.key ~ item_encode_url }}" class="text-gray-500 hover:text-gray-700 font-semibold mr-3 inline-block mr-3">
+                    <a href="{{ edit_url }}&{{ param_name }}={{ item.key ~ item_encode_url }}" class="text-gray-500 hover:text-gray-700 font-semibold mr-3 inline-block mr-3 [&>svg]:align-[-0.05rem]">
                         {{ svg('edit', 13) }} Edit
                     </a>
-                    <a href="{{ delete_url }}&{{ param_name }}={{ item.key }}" class="text-red-500 hover:text-red-700 font-semibold inline-block"
+                    <a href="{{ delete_url }}&{{ param_name }}={{ item.key }}" class="text-red-500 hover:text-red-700 font-semibold inline-block [&>svg]:align-[-0.05rem]"
                        onclick="return confirm('Are you sure you want to remove this item?');">
                         {{ svg('trash', 13) }} Delete
                     </a>

@@ -23,10 +23,14 @@
     {% if formatted == true %}
         {{ include('components/badge.twig', {text: 'Formatted', pill: true, class: 'uppercase font-bold', bg: 'bg-blue-500'}) }}
     {% endif %}
+
+    <a href="{{ export_url }}" class="text-gray-500 hover:text-gray-700 font-semibold inline-flex items-center gap-1">
+        {{ svg('export') }} Export
+    </a>
 </div>
 
 {% if value is iterable %}
-    <a href="{{ add_subkey }}" class="text-{{ color }}-500 hover:text-{{ color }}-700 font-semibold inline-flex items-center gap-1 mb-2">
+    <a href="{{ add_subkey }}" class="text-sm py-1.5 px-3 text-white bg-green-500 hover:bg-green-600 focus:ring-4 focus:ring-green-300 font-semibold rounded inline-flex items-center gap-1 [&>svg]:align-middle mb-2">
         {{ svg('open') }} Add another value
     </a>
 

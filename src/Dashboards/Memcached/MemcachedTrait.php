@@ -131,7 +131,7 @@ trait MemcachedTrait {
             $keys[] = [
                 'key'  => $key_data['key'],
                 'ttl'  => $key_data['exp'],
-                'type' => 'string', // In Memcache(d) everything is stored as string.
+                'type' => 'string', // In Memcache(d) everything is stored as a string.
             ];
         }
 
@@ -147,6 +147,10 @@ trait MemcachedTrait {
      */
     private function mainDashboard($memcached): string {
         $keys = $this->getAllKeys($memcached);
+
+        if (isset($_POST['submit_import_key'])) {
+            $this->import($memcached);
+        }
 
         $paginator = new Paginator($this->template, $keys);
 
@@ -174,6 +178,13 @@ trait MemcachedTrait {
             Http::redirect();
         }
 
+        if (isset($_GET['export'])) {
+            header('Content-disposition: attachment; filename='.$key.'.txt');
+            header('Content-Type: text/plain');
+            echo $memcached->get($key);
+            exit;
+        }
+
         $value = $memcached->get($key);
 
         [$value, $encode_fn, $is_formatted] = Helpers::decodeAndFormatValue($value);
@@ -181,13 +192,35 @@ trait MemcachedTrait {
         $ttl = Http::get('ttl', 'int');
 
         return $this->template->render('partials/view_key', [
-            'value'     => $value,
-            'type'      => 'string', // In Memcache(d) everything is stored as string.
-            'ttl'       => !empty($ttl) ? Helpers::formatSeconds($ttl) : null,
-            'encode_fn' => $encode_fn,
-            'formatted' => $is_formatted,
-            'edit_url'  => Http::queryString(['ttl'], ['form' => 'edit', 'key' => $key]),
+            'value'      => $value,
+            'type'       => 'string', // In Memcache(d) everything is stored as a string.
+            'ttl'        => !empty($ttl) ? Helpers::formatSeconds($ttl) : null,
+            'encode_fn'  => $encode_fn,
+            'formatted'  => $is_formatted,
+            'edit_url'   => Http::queryString(['ttl'], ['form' => 'edit', 'key' => $key]),
+            'export_url' => Http::queryString(['ttl', 'view', 'p', 'key'], ['export' => 'key']),
         ]);
+    }
+
+    /**
+     * Import key.
+     *
+     * @param Memcache|Memcached $memcached
+     *
+     * @return void
+     */
+    private function import($memcached): void {
+        if ($_FILES['import']['type'] === 'text/plain') {
+            $key_name = Http::post('key_name');
+
+            if (empty($memcached->get($key_name))) {
+                $value = file_get_contents($_FILES['import']['tmp_name']);
+
+                $memcached->store($key_name, $value, Http::post('expire', 'int'));
+
+                Http::redirect();
+            }
+        }
     }
 
     /**

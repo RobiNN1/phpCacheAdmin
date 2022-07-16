@@ -21,4 +21,10 @@
     </div>
 </div>
 
+{{ include('partials/import_form.twig', {
+    expire_default: '-1',
+    expire_max: 2147483647,
+    key_desc: 'A binary value in a .bin file.',
+}) }}
+
 {{ include('partials/keys_table.twig') }}

@@ -1,0 +1,32 @@
+<form method="post" enctype="multipart/form-data" id="import_form" class="hidden">
+    <div class="bg-white shadow-sm shadow-gray-300 rounded p-3 mb-5">
+        <div class="md:grid md:grid-cols-2 md:gap-2">
+            {{ include('components/input.twig', {
+                id: 'key_name',
+                label: 'Key name',
+            }) }}
+
+            {{ include('components/input.twig', {
+                id: 'expire',
+                label: 'Expire (in seconds)',
+                type: 'number',
+                help: expire_default ~ ' removes expiration (default).',
+                value: expire_default,
+                attr: ' min="' ~ expire_default ~ '" max="' ~ expire_max ~ '"',
+            }) }}
+        </div>
+
+        <div class="mb-3">
+            <label for="import" class="block text-sm font-semibold mb-2">Key</label>
+            <input id="import" name="import" type="file"
+                   class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0
+               file:text-sm file:font-semibold file:text-white file:bg-sky-500 hover:file:bg-sky-600">
+            <small class="text-xs text-gray-400">{{ key_desc }}</small>
+        </div>
+
+        <button type="submit" name="submit_import_key"
+                class="text-sm py-2 px-4 text-white bg-green-500 hover:bg-green-600 focus:ring-4 focus:ring-green-300 font-semibold rounded inline-flex items-center gap-1">
+            {{ svg('import') }} Import
+        </button>
+    </div>
+</form>

@@ -223,3 +223,13 @@ scripts.forEach(script => {
         });
     }
 });
+
+/**
+ * Import form
+ */
+let import_btn = document.getElementById('import_btn');
+if (import_btn) {
+    import_btn.addEventListener('click', () => {
+        document.getElementById('import_form').classList.toggle('hidden');
+    });
+}

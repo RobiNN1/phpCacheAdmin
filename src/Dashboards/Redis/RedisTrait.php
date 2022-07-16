@@ -259,6 +259,10 @@ trait RedisTrait {
     private function mainDashboard(Redis $redis): string {
         $keys = $this->getAllKeys($redis);
 
+        if (isset($_POST['submit_import_key'])) {
+            $this->import($redis);
+        }
+
         $paginator = new Paginator($this->template, $keys);
         $paginator->setUrl([['db', 's', 'pp'], ['p' => '']]);
 
@@ -292,6 +296,13 @@ trait RedisTrait {
 
         if (isset($_GET['deletesub'])) {
             $this->deleteSubKey($redis, $type, $key);
+        }
+
+        if (isset($_GET['export'])) {
+            header('Content-disposition: attachment; filename='.$key.'.bin');
+            header('Content-Type: application/octet-stream');
+            echo $redis->dump($key);
+            exit;
         }
 
         $value = $this->getAllKeyValues($redis, $type, $key);
@@ -333,8 +344,33 @@ trait RedisTrait {
             'add_subkey' => Http::queryString(['db'], ['form' => 'new', 'key' => $key]),
             'edit_url'   => Http::queryString(['db'], ['form' => 'edit', 'key' => $key]),
             'delete_url' => Http::queryString(['db', 'view', 'p'], ['deletesub' => 'key', 'key' => $key]),
+            'export_url' => Http::queryString(['db', 'view', 'p', 'key'], ['export' => 'key']),
             'paginator'  => $paginator,
         ]);
+    }
+
+    /**
+     * Import key.
+     *
+     * @param Redis $redis
+     *
+     * @return void
+     */
+    private function import(Redis $redis): void {
+        if ($_FILES['import']['type'] === 'application/octet-stream') {
+            $key_name = Http::post('key_name');
+
+            if (!$redis->exists($key_name)) {
+                $value = file_get_contents($_FILES['import']['tmp_name']);
+
+                $expire = Http::post('expire', 'int');
+                $expire = $expire === -1 ? 0 : $expire;
+
+                $redis->restore($key_name, $expire, $value);
+
+                Http::redirect(['db']);
+            }
+        }
     }
 
     /**

@@ -26,12 +26,12 @@ class ServerDashboard implements DashboardInterface {
     }
 
     /**
-     * Check if extension is installed.
+     * Check if an extension is installed.
      *
      * @return bool
      */
     public function check(): bool {
-        return true;
+        return true; // No extension required, just return true.
     }
 
     /**

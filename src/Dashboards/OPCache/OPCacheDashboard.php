@@ -26,7 +26,7 @@ class OPCacheDashboard implements DashboardInterface {
     }
 
     /**
-     * Check if extension is installed.
+     * Check if an extension is installed.
      *
      * @return bool
      */

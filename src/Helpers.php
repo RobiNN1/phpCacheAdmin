@@ -23,9 +23,9 @@ class Helpers {
     private static ?string $encode_fn = null;
 
     /**
-     * Convert ENV variable to array.
+     * Convert ENV variable to an array.
      *
-     * It allows to use ENV variables and config.php together.
+     * It allows app to use ENV variables and config.php together.
      *
      * @param array<string, mixed> $array
      * @param string               $array_key
@@ -229,7 +229,7 @@ class Helpers {
     }
 
     /**
-     * Convert bool to string in array.
+     * Convert bool to string in an array.
      *
      * @param array<mixed, mixed> $array
      *

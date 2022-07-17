@@ -26,7 +26,7 @@ Replace all files and delete the `cache` folder.
 >
 > `Cache` folder contains optimized Twig templates for faster page loading.
 > However, when changes are made to the Twig files, the cache will not change
-> (unless you have Twig debugging enabled or delete folder).
+> (unless you have `twigdebug` enabled or delete folder).
 
 ## Docker
 
@@ -64,13 +64,13 @@ services:
 
 > **Note**
 >
-> Is not required to have both Redis and Memcached.
+> It is not required to have both Redis and Memcached.
 
 #### Environment variables
 
 Redis:
 
-- `PCA_REDIS_0_NAME` The server name for info panel, useful when you have multiple servers added (Optional, default name is Localhost)
+- `PCA_REDIS_0_NAME` The server name for an info panel, useful when you have multiple servers added (Optional, default name is Localhost)
 - `PCA_REDIS_0_HOST` Redis server host.
 - `PCA_REDIS_0_PORT` Redis server port (Optional, default is 6379)
 - `PCA_REDIS_0_DATABASE` Redis database (Optional, default is 0)
@@ -78,7 +78,7 @@ Redis:
 
 Memcached:
 
-- `PCA_MEMCACHED_0_NAME` The server name for info panel, useful when you have multiple servers added (Optional, default name is Localhost)
+- `PCA_MEMCACHED_0_NAME` The server name for an info panel, useful when you have multiple servers added (Optional, default name is Localhost)
 - `PCA_MEMCACHED_0_HOST` Memcached server host.
 - `PCA_MEMCACHED_0_PORT` Memcached server port (Optional, default is 11211)
 

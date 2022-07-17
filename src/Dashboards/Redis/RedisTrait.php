@@ -298,6 +298,11 @@ trait RedisTrait {
             $this->deleteSubKey($redis, $type, $key);
         }
 
+        if (isset($_GET['delete'])) {
+            $redis->del($key);
+            Http::redirect(['db']);
+        }
+
         if (isset($_GET['export'])) {
             header('Content-disposition: attachment; filename='.$key.'.bin');
             header('Content-Type: application/octet-stream');
@@ -336,16 +341,17 @@ trait RedisTrait {
         $ttl = $redis->ttl($key);
 
         return $this->template->render('partials/view_key', [
-            'value'      => $value,
-            'type'       => $type,
-            'ttl'        => $ttl ? Helpers::formatSeconds($ttl) : null,
-            'encode_fn'  => $encode_fn,
-            'formatted'  => $is_formatted,
-            'add_subkey' => Http::queryString(['db'], ['form' => 'new', 'key' => $key]),
-            'edit_url'   => Http::queryString(['db'], ['form' => 'edit', 'key' => $key]),
-            'delete_url' => Http::queryString(['db', 'view', 'p'], ['deletesub' => 'key', 'key' => $key]),
-            'export_url' => Http::queryString(['db', 'view', 'p', 'key'], ['export' => 'key']),
-            'paginator'  => $paginator,
+            'value'          => $value,
+            'type'           => $type,
+            'ttl'            => $ttl ? Helpers::formatSeconds($ttl) : null,
+            'encode_fn'      => $encode_fn,
+            'formatted'      => $is_formatted,
+            'add_subkey_url' => Http::queryString(['db'], ['form' => 'new', 'key' => $key]),
+            'deletesub_url'  => Http::queryString(['db', 'view', 'p'], ['deletesub' => 'key', 'key' => $key]),
+            'edit_url'       => Http::queryString(['db'], ['form' => 'edit', 'key' => $key]),
+            'export_url'     => Http::queryString(['db', 'view', 'p', 'key'], ['export' => 'key']),
+            'delete_url'     => Http::queryString(['db', 'view'], ['delete' => 'key', 'key' => $key]),
+            'paginator'      => $paginator,
         ]);
     }
 

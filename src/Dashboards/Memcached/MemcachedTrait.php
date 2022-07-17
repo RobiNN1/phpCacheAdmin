@@ -185,6 +185,11 @@ trait MemcachedTrait {
             exit;
         }
 
+        if (isset($_GET['delete'])) {
+            $memcached->delete($key);
+            Http::redirect(['db']);
+        }
+
         $value = $memcached->get($key);
 
         [$value, $encode_fn, $is_formatted] = Helpers::decodeAndFormatValue($value);
@@ -199,6 +204,7 @@ trait MemcachedTrait {
             'formatted'  => $is_formatted,
             'edit_url'   => Http::queryString(['ttl'], ['form' => 'edit', 'key' => $key]),
             'export_url' => Http::queryString(['ttl', 'view', 'p', 'key'], ['export' => 'key']),
+            'delete_url' => Http::queryString(['view'], ['delete' => 'key', 'key' => $key]),
         ]);
     }
 

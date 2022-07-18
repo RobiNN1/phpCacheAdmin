@@ -58,7 +58,7 @@
             <div class="overflow-y-auto flex justify-between border-b px-4 py-1.5">
                 <span>
                     {% if type != 'set' %}
-                        {{ title }} {{ include('components/badge.twig', {text: item.key, pill: true, class: 'font-bold', bg: 'bg-slate-400'}) }}
+                        {{ title }} {{ include('components/badge.twig', {text: item.score, pill: true, class: 'font-bold', bg: 'bg-slate-400'}) }}
                     {% endif %}
 
                     {% if item.encode_fn %}

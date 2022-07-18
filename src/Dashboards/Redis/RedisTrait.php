@@ -327,6 +327,7 @@ trait RedisTrait {
                     'value'     => $item,
                     'encode_fn' => $item_encode_fn,
                     'formatted' => $item_is_formatted,
+                    'score'     => $type === 'zset' ? (string) $redis->zScore($key, $item) : $value_key,
                 ];
             }
 

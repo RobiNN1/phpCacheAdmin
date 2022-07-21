@@ -132,7 +132,7 @@ class Paginator {
             'first_on_page' => Helpers::formatNumber(array_key_first($this->paginated) + ($on_page > 0 ? 1 : 0)),
             'last_on_page'  => Helpers::formatNumber(array_key_last($this->paginated) + ($on_page > 0 ? 1 : 0)),
             'total'         => Helpers::formatNumber($this->total),
-            'current'       => $this->page,
+            'current_page'  => $this->page,
             'per_page'      => $this->per_page,
             'select'        => array_combine($select, $select),
             'url'           => Http::queryString($this->url[0], $this->url[1]),

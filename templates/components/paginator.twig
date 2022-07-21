@@ -14,7 +14,7 @@
         {% if pages and pages|length > 1 %}
             <ul class="inline-flex">
                 {% for page in pages %}
-                    {% if page == current %}
+                    {% if page == current_page %}
                         {% set class = 'text-white bg-' ~ color ~ '-500 border-' ~ color ~ '-300 hover:bg-' ~ color ~ '-600' %}
                     {% else %}
                         {% set class = 'text-gray-500 bg-white border-gray-300 hover:bg-gray-100 hover:text-gray-700' %}

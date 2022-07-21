@@ -12,16 +12,18 @@ declare(strict_types=1);
 
 namespace RobiNN\Pca\Dashboards\Memcached\MemcacheCompatibility;
 
-trait GetKeysTrait {
+trait RunCommandTrait {
     /**
      * Run command.
+     *
+     * https://github.com/memcached/memcached/wiki/Commands
      *
      * @param string $command
      *
      * @return ?array<mixed, mixed>
      */
-    private function runCommand(string $command): ?array {
-        static $data = [];
+    public function runCommand(string $command): ?array {
+        $data = [];
 
         $fp = @fsockopen($this->server['host'], (int) $this->server['port'], $error_code, $error_message, 3);
 
@@ -35,7 +37,6 @@ trait GetKeysTrait {
 
         while (true) {
             $part .= fgets($fp, 1024);
-
             $lines = explode("\n", $part);
             $part = array_pop($lines);
 

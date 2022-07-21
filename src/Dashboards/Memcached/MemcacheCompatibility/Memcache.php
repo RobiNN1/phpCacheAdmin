@@ -13,7 +13,7 @@ declare(strict_types=1);
 namespace RobiNN\Pca\Dashboards\Memcached\MemcacheCompatibility;
 
 class Memcache extends \Memcache implements MemcacheInterface {
-    use GetKeysTrait;
+    use RunCommandTrait;
 
     /**
      * @var array<string, mixed>

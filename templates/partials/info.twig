@@ -7,7 +7,7 @@
 
 {% if panels_toggler is not defined %}
     <label for="toggle-panels" class="mb-3 flex cursor-pointer items-center">
-        <span class="relative block h-6 w-10 rounded-full bg-gray-400">
+        <span class="relative block h-6 w-10 rounded-full bg-gray-400 shadow">
             <input type="checkbox" id="toggle-panels"
                    class="sr-only [&:checked~.dot]:translate-x-full [&:checked~.dot]:bg-gray-900 [&:checked~.dot]:text-white
                    [&:checked~.dot>.open]:block [&:checked~.dot>.close]:hidden">
@@ -16,7 +16,7 @@
                 {{ svg('close', 10, 'close') }}
             </span>
         </span>
-        <span class="ml-1 text-sm">Toggle panels</span>
+        <span class="ml-1 text-sm leading-normal">Toggle panels</span>
     </label>
 {% endif %}
 

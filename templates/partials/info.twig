@@ -1,19 +1,23 @@
 {% if extension_version %}
-    <div class="text-xl mb-5">
+    <div class="text-xl mb-3">
         PHP <span class="font-semibold">{{ title }}</span> extension
         {{ include('components/badge.twig', {text: 'v' ~ extension_version, text_sm: true, bg: 'bg-' ~ color ~ '-500'}) }}
     </div>
 {% endif %}
 
 {% if panels_toggler is not defined %}
-    <div class="mb-3">
-        <button type="button" id="toggle-panels"
-                class="shadow text-xs py-1.5 px-3 text-white focus:ring-4 bg-{{ color }}-500 hover:bg-{{ color }}-600 focus:ring-{{ color }}-300 font-semibold rounded inline-flex items-center">
-            <span class="text mr-1">Hide panels</span>
-            <span class="icon-open hidden">{{ svg('open') }}</span>
-            <span class="icon-close">{{ svg('close') }}</span>
-        </button>
-    </div>
+    <label for="toggle-panels" class="flex items-center cursor-pointer mb-3">
+        <span class="relative block bg-gray-300 w-10 h-6 rounded-full">
+            <input type="checkbox" id="toggle-panels"
+                   class="sr-only [&:checked~.dot]:translate-x-full
+                   [&:checked~.dot]:bg-gray-900 [&:checked~.dot]:text-white [&:checked~.dot>.open]:block [&:checked~.dot>.close]:hidden">
+            <span class="dot absolute left-1 top-1 bg-gray-50 w-4 h-4 rounded-full transition-transform inline-flex items-center justify-center">
+                {{ svg('open', 10, 'open hidden') }}
+                {{ svg('close', 10, 'close') }}
+            </span>
+        </span>
+        <span class="ml-1 text-sm">Toggle panels</span>
+    </label>
 {% endif %}
 
 {% if info.panels %}

@@ -597,8 +597,24 @@ svg {
   }
 }
 
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
 .fixed {
   position: fixed;
+}
+
+.absolute {
+  position: absolute;
 }
 
 .relative {
@@ -619,6 +635,14 @@ svg {
 
 .right-0 {
   right: 0px;
+}
+
+.left-1 {
+  left: 0.25rem;
+}
+
+.top-1 {
+  top: 0.25rem;
 }
 
 .z-50 {
@@ -703,12 +727,12 @@ svg {
   margin-bottom: 1.25rem;
 }
 
-.mr-3 {
-  margin-right: 0.75rem;
-}
-
 .ml-1 {
   margin-left: 0.25rem;
+}
+
+.mr-3 {
+  margin-right: 0.75rem;
 }
 
 .ml-64 {
@@ -739,12 +763,16 @@ svg {
   display: none;
 }
 
-.h-20 {
-  height: 5rem;
+.h-6 {
+  height: 1.5rem;
 }
 
 .h-4 {
   height: 1rem;
+}
+
+.h-20 {
+  height: 5rem;
 }
 
 .min-h-full {
@@ -763,16 +791,20 @@ svg {
   width: 4rem;
 }
 
+.w-10 {
+  width: 2.5rem;
+}
+
+.w-4 {
+  width: 1rem;
+}
+
 .w-20 {
   width: 5rem;
 }
 
 .w-3 {
   width: 0.75rem;
-}
-
-.w-4 {
-  width: 1rem;
 }
 
 .w-24 {
@@ -834,6 +866,10 @@ svg {
 
 .items-center {
   align-items: center;
+}
+
+.justify-center {
+  justify-content: center;
 }
 
 .justify-between {
@@ -980,6 +1016,11 @@ svg {
 .bg-slate-200 {
   --tw-bg-opacity: 1;
   background-color: rgb(226 232 240 / var(--tw-bg-opacity));
+}
+
+.bg-gray-300 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(209 213 219 / var(--tw-bg-opacity));
 }
 
 .bg-sky-500 {
@@ -1416,6 +1457,12 @@ svg {
 .ring-sky-300 {
   --tw-ring-opacity: 1;
   --tw-ring-color: rgb(125 211 252 / var(--tw-ring-opacity));
+}
+
+.transition-transform {
+  transition-property: transform;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
 }
 
 .select {
@@ -1910,4 +1957,27 @@ svg {
 
 .\[\&\:last-child\>\*\]\:border-0:last-child>* {
   border-width: 0px;
+}
+
+.\[\&\:checked\~\.dot\]\:translate-x-full:checked~.dot {
+  --tw-translate-x: 100%;
+  transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+}
+
+.\[\&\:checked\~\.dot\]\:bg-gray-900:checked~.dot {
+  --tw-bg-opacity: 1;
+  background-color: rgb(17 24 39 / var(--tw-bg-opacity));
+}
+
+.\[\&\:checked\~\.dot\]\:text-white:checked~.dot {
+  --tw-text-opacity: 1;
+  color: rgb(255 255 255 / var(--tw-text-opacity));
+}
+
+.\[\&\:checked\~\.dot\>\.open\]\:block:checked~.dot>.open {
+  display: block;
+}
+
+.\[\&\:checked\~\.dot\>\.close\]\:hidden:checked~.dot>.close {
+  display: none;
 }

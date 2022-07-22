@@ -56,36 +56,27 @@ document.querySelectorAll('[data-panel]').forEach(panel => {
 
 let toggle_panels = document.getElementById('toggle-panels');
 if (toggle_panels) {
-    let text = toggle_panels.querySelector('.text');
     let current_dashboard = document.querySelector('[data-dashboard]');
     let panels_state = 'panels_state_' + current_dashboard.dataset.dashboard;
-    let open_state = 'open_' + current_dashboard.dataset.dashboard;
-    let close_state = 'close_' + current_dashboard.dataset.dashboard;
 
     if (!(panels_state in localStorage)) {
-        localStorage.setItem(panels_state, open_state);
+        localStorage.setItem(panels_state, 'open');
     }
 
-    if (localStorage.getItem(panels_state) === close_state) {
-        text.innerHTML = 'Show panels';
-        toggle_panels.querySelector('.icon-open').classList.remove('hidden');
-        toggle_panels.querySelector('.icon-close').classList.add('hidden');
+    if (localStorage.getItem(panels_state) === 'close') {
+        toggle_panels.checked = true;
         document.getElementById('infopanels').style.display = 'none';
     }
 
     toggle_panels.addEventListener('click', () => {
-        if (localStorage.getItem(panels_state) === open_state) {
-            text.innerHTML = 'Show panels';
-            toggle_panels.querySelector('.icon-open').classList.remove('hidden');
-            toggle_panels.querySelector('.icon-close').classList.add('hidden');
+        if (localStorage.getItem(panels_state) === 'open') {
+            toggle_panels.checked = true;
             document.getElementById('infopanels').style.display = 'none';
-            localStorage.setItem(panels_state, close_state);
+            localStorage.setItem(panels_state, 'close');
         } else {
-            text.innerHTML = 'Hide panels';
-            toggle_panels.querySelector('.icon-open').classList.add('hidden');
-            toggle_panels.querySelector('.icon-close').classList.remove('hidden');
+            toggle_panels.checked = false;
             document.getElementById('infopanels').style.display = 'block';
-            localStorage.setItem(panels_state, open_state);
+            localStorage.setItem(panels_state, 'open');
         }
     });
 }

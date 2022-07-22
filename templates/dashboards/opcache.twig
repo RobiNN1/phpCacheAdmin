@@ -27,7 +27,7 @@
             <tbody>
             {% if cached_scripts %}
                 {% for script in cached_scripts %}
-                    <tr class="[&:last-child>*]:border-0" data-key="{{ script.invalidate_url }}">
+                    <tr class="[&:nth-last-child(2)>*]:border-b-0" data-key="{{ script.invalidate_url }}">
                         <td class="show-path cursor-pointer border-b border-gray-100 px-3 py-2 text-sm font-semibold text-sky-500 md:px-5">{{ script.name }}</td>
                         <td class="border-b border-gray-100 px-3 py-2 text-sm md:px-5">{{ script.hits }}</td>
                         <td class="border-b border-gray-100 px-3 py-2 text-sm md:px-5">{{ script.memory }}</td>
@@ -37,8 +37,8 @@
                             <button type="button" class="delete-key font-semibold text-red-500 hover:text-red-700">Invalidate</button>
                         </td>
                     </tr>
-                    <tr class="hidden" data-path="{{ script.invalidate_url }}">
-                        <td colspan="6" class="border-b border-gray-100 px-3 py-2 text-sm md:px-5">{{ script.path }}</td>
+                    <tr class="hidden [&:last-child>*]:border-b-0" data-path="{{ script.invalidate_url }}">
+                        <td colspan="6" class="border-b border-t border-gray-100 px-3 py-2 text-sm md:px-5">{{ script.path }}</td>
                     </tr>
                 {% endfor %}
             {% else %}

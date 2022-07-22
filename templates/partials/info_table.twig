@@ -31,13 +31,13 @@
                             <td colspan="2" class="px-4 py-2 text-xs font-bold uppercase whitespace-nowrap">{{ name|replace({'_': ' '}) }}</td>
                         </tr>
                         {% for sub_name, sub_value in value %}
-                            <tr class="[&:last-child>*]:border-0">
+                            <tr class="[&:last-child>*]:border-b-0">
                                 <td class="border-b border-gray-100 px-4 py-1 text-sm font-semibold whitespace-nowrap">{{ sub_name }}</td>
                                 <td class="border-b border-gray-100 px-4 py-1 text-sm">{{ sub_value|raw }}</td>
                             </tr>
                         {% endfor %}
                     {% else %}
-                        <tr class="[&:last-child>*]:border-0">
+                        <tr class="[&:last-child>*]:border-b-0">
                             <td class="border-b border-gray-100 px-4 py-1 text-sm font-semibold whitespace-nowrap">{{ name }}</td>
                             <td class="border-b border-gray-100 px-4 py-1 text-sm">{{ value|raw }}</td>
                         </tr>

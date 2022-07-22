@@ -40,7 +40,7 @@ document.querySelectorAll('[data-panel]').forEach(panel => {
             if (name === 'error') {
                 result += `<tr><td colspan="2" class="text-center p-4">${value}</td></tr>`;
             } else {
-                result += `<tr class="[&:last-child>*]:border-0">
+                result += `<tr class="[&:last-child>*]:border-b-0">
                                <td class="border-b border-gray-100 px-4 py-1 text-sm font-semibold whitespace-nowrap">${name}</td>
                                <td class="border-b border-gray-100 px-4 py-1 text-sm">${value}</td>
                            </tr>`;

@@ -1,8 +1,6 @@
-<div class="alert ml-auto flex items-center py-3 px-4 mb-4 {{ alert_color ? alert_color : 'bg-blue-500' }} rounded shadow-lg">
-    <div class="ml-3 text-sm font-medium text-white flex items-center gap-1">{{ message|raw }}</div>
-    {% if not hide_close %}
-        <button type="button" class="close text-white hover:opacity-75 ml-auto -mx-1.5 -my-1.5 p-1.5 inline-flex" onclick="this.parentElement.remove();">
-            {{ svg('x') }}
-        </button>
-    {% endif %}
+<div class="ml-auto py-3 px-4 flex items-center rounded {{ alert_color ? alert_color : 'bg-blue-500' }} shadow-lg fixed top-5 right-5 z-50 w-auto">
+    <div class="ml-3 mr-3 flex items-center gap-1 text-sm font-medium text-white">{{ message|raw }}</div>
+    <button type="button" class="close -mx-1.5 -my-1.5 ml-auto p-1.5 inline-flex text-white hover:opacity-75" onclick="this.parentElement.remove();">
+        {{ svg('x') }}
+    </button>
 </div>

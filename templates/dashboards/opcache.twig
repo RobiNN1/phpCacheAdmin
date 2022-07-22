@@ -1,4 +1,4 @@
-<div class="flex md:justify-end gap-1 mb-5">
+<div class="mb-5 flex gap-1 md:justify-end">
     {{ include('components/button.twig', {
         text: (is_ignored ? 'Show' : 'Ignore') ~ ' scripts from this tool',
         link: ignore_url,
@@ -11,39 +11,39 @@
     }) }}
 </div>
 
-<div class="bg-white shadow-sm shadow-gray-300 rounded mb-5">
+<div class="mb-5 rounded bg-white shadow-sm shadow-gray-300">
     <div class="w-full overflow-x-auto">
-        <table class="table-auto w-full text-left">
+        <table class="w-full table-auto text-left">
             <thead>
             <tr class="bg-{{ color }}-100 text-{{ color }}-900">
-                <th class="px-3 md:px-5 py-2.5 text-xs uppercase font-bold whitespace-nowrap">Filename</th>
-                <th class="px-3 md:px-5 py-2.5 text-xs uppercase font-bold whitespace-nowrap">Hits</th>
-                <th class="px-3 md:px-5 py-2.5 text-xs uppercase font-bold whitespace-nowrap">Memory</th>
-                <th class="hidden md:table-cell px-3 md:px-5 py-2.5 text-xs uppercase font-bold whitespace-nowrap">Last used</th>
-                <th class="hidden md:table-cell px-3 md:px-5 py-2.5 text-xs uppercase font-bold whitespace-nowrap">Created</th>
-                <th class="px-3 md:px-5 py-2.5 text-xs uppercase font-bold whitespace-nowrap">Actions</th>
+                <th class="px-3 py-2.5 text-xs font-bold uppercase whitespace-nowrap md:px-5">Filename</th>
+                <th class="px-3 py-2.5 text-xs font-bold uppercase whitespace-nowrap md:px-5">Hits</th>
+                <th class="px-3 py-2.5 text-xs font-bold uppercase whitespace-nowrap md:px-5">Memory</th>
+                <th class="hidden px-3 py-2.5 text-xs font-bold uppercase whitespace-nowrap md:table-cell md:px-5">Last used</th>
+                <th class="hidden px-3 py-2.5 text-xs font-bold uppercase whitespace-nowrap md:table-cell md:px-5">Created</th>
+                <th class="px-3 py-2.5 text-xs font-bold uppercase whitespace-nowrap md:px-5">Actions</th>
             </tr>
             </thead>
             <tbody>
             {% if cached_scripts %}
                 {% for script in cached_scripts %}
                     <tr class="[&:last-child>*]:border-0" data-key="{{ script.invalidate_url }}">
-                        <td class="border-b border-gray-100 px-3 md:px-5 py-2 text-sm text-sky-500 font-semibold cursor-pointer show-path">{{ script.name }}</td>
-                        <td class="border-b border-gray-100 px-3 md:px-5 py-2 text-sm">{{ script.hits }}</td>
-                        <td class="border-b border-gray-100 px-3 md:px-5 py-2 text-sm">{{ script.memory }}</td>
-                        <td class="hidden md:table-cell border-b border-gray-100 px-3 md:px-5 py-2 text-sm">{{ script.last_used }}</td>
-                        <td class="hidden md:table-cell border-b border-gray-100 px-3 md:px-5 py-2 text-sm">{{ script.created }}</td>
-                        <td class="border-b border-gray-100 px-3 md:px-5 py-2 text-sm">
-                            <button type="button" class="text-red-500 hover:text-red-700 font-semibold delete-key">Invalidate</button>
+                        <td class="show-path cursor-pointer border-b border-gray-100 px-3 py-2 text-sm font-semibold text-sky-500 md:px-5">{{ script.name }}</td>
+                        <td class="border-b border-gray-100 px-3 py-2 text-sm md:px-5">{{ script.hits }}</td>
+                        <td class="border-b border-gray-100 px-3 py-2 text-sm md:px-5">{{ script.memory }}</td>
+                        <td class="hidden border-b border-gray-100 px-3 py-2 text-sm md:table-cell md:px-5">{{ script.last_used }}</td>
+                        <td class="hidden border-b border-gray-100 px-3 py-2 text-sm md:table-cell md:px-5">{{ script.created }}</td>
+                        <td class="border-b border-gray-100 px-3 py-2 text-sm md:px-5">
+                            <button type="button" class="delete-key font-semibold text-red-500 hover:text-red-700">Invalidate</button>
                         </td>
                     </tr>
                     <tr class="hidden" data-path="{{ script.invalidate_url }}">
-                        <td colspan="6" class="border-b border-gray-100 px-3 md:px-5 py-2 text-sm">{{ script.path }}</td>
+                        <td colspan="6" class="border-b border-gray-100 px-3 py-2 text-sm md:px-5">{{ script.path }}</td>
                     </tr>
                 {% endfor %}
             {% else %}
                 <tr>
-                    <td colspan="6" class="text-center p-5">No cached scripts.</td>
+                    <td colspan="6" class="p-5 text-center">No cached scripts.</td>
                 </tr>
             {% endif %}
             </tbody>

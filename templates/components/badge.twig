@@ -1,3 +1,4 @@
-<span class="{{ text_sm ? 'text-sm' : 'text-xs' }} {{ txt ? txt : 'text-white' }} {{ bg ? bg : 'bg-gray-800' }} {{ pill ? 'rounded-full' : 'rounded' }} py-1 px-3 inline-block {{ class }}">
+<span class="inline-block py-1 px-3 {{ pill ? 'rounded-full' : 'rounded' }} {{ bg ? bg : 'bg-gray-800' }}
+        {{ text_sm ? 'text-sm' : 'text-xs' }} {{ txt ? txt : 'text-white' }}{{ class|space }}">
     {{- text|raw -}}
 </span>

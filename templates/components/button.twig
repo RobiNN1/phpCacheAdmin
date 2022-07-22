@@ -11,7 +11,7 @@
 {% endif %}
 
 {% if link %}
-    <a href="{{ link }}" class="text-sm py-1.5 px-3 shadow text-white focus:ring-4 font-semibold rounded {{ btn_color }}{{ icon_css }}{{ class ? ' ' ~ class : '' }}">
+    <a href="{{ link }}" class="rounded py-1.5 px-3 text-sm font-semibold text-white shadow focus:ring-4 {{ btn_color }}{{ icon_css }}{{ class|space }}">
         {% if icon %}
             {{ svg(icon) }}
         {% endif %}
@@ -19,7 +19,7 @@
     </a>
 {% else %}
     <button type="{{ submit ? 'submit' : 'button' }}" id="{{ id }}" name="{{ id }}"
-            class="text-sm py-1.5 px-3 shadow text-white focus:ring-4 font-semibold rounded {{ btn_color }}{{ icon_css }}{{ class ? ' ' ~ class : '' }}">
+            class="rounded py-1.5 px-3 text-sm font-semibold text-white shadow focus:ring-4 {{ btn_color }}{{ icon_css }}{{ class|space }}">
         {% if icon %}
             {{ svg(icon) }}
         {% endif %}

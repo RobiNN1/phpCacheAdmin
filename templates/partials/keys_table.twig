@@ -1,56 +1,58 @@
 {% import 'partials/key_type_badge.twig' as key_badge %}
 
-<div class="bg-white shadow-sm shadow-gray-300 rounded mb-5">
+<div class="mb-5 rounded bg-white shadow-sm shadow-gray-300">
     <div class="w-full overflow-x-auto">
-        <table class="table-fixed w-full text-left">
+        <table class="w-full table-fixed text-left">
             <thead>
             <tr class="bg-{{ color }}-100 text-{{ color }}-900">
-                <th class="w-3 rounded-tl bg-{{ color }}-100 px-3 md:px-5 py-2">
+                <th class="bg-{{ color }}-100 w-3 rounded-tl px-3 py-2 md:px-5">
                     <input type="checkbox"
-                           class="check-all checkbox appearance-none align-middle select-none h-4 w-4 bg-white rounded border border-gray-300 focus:outline-none focus:ring-2 -mt-1.5 text-{{ color }}-500 focus:border-{{ color }}-300 focus:ring-{{ color }}-200"
+                           class="check-all checkbox text-{{ color }}-500 -mt-1.5 h-4 w-4 select-none appearance-none rounded border border-gray-300 bg-white align-middle
+                           focus:outline-none focus:ring-2 focus:border-{{ color }}-300 focus:ring-{{ color }}-200"
                            aria-label=""{{ keys|length == 0 ? ' disabled' : '' }}>
                 </th>
-                <th class="px-3 md:px-5 py-2 text-xs uppercase font-bold whitespace-nowrap">Key</th>
-                <th class="hidden md:table-cell w-24 px-3 md:px-5 py-2 text-xs uppercase font-bold whitespace-nowrap">Type</th>
-                <th class="w-32 px-3 md:px-5 py-2 text-xs uppercase font-bold whitespace-nowrap">TTL</th>
-                <th class="w-14 md:w-24 lg:w-40 rounded-tr px-3 md:px-5 py-2 text-xs uppercase font-bold whitespace-nowrap">Actions</th>
+                <th class="px-3 py-2 text-xs font-bold uppercase whitespace-nowrap md:px-5">Key</th>
+                <th class="hidden w-24 px-3 py-2 text-xs font-bold uppercase whitespace-nowrap md:table-cell md:px-5">Type</th>
+                <th class="w-32 px-3 py-2 text-xs font-bold uppercase whitespace-nowrap md:px-5">TTL</th>
+                <th class="w-14 rounded-tr px-3 py-2 text-xs font-bold uppercase whitespace-nowrap md:w-24 md:px-5 lg:w-40">Actions</th>
             </tr>
             </thead>
             <tbody>
             {% if keys %}
                 {% for key in keys %}
                     <tr class="[&:last-child>*]:border-0" data-key="{{ key.key }}">
-                        <td class="border-b border-gray-100 px-3 md:px-5 py-2">
+                        <td class="border-b border-gray-100 px-3 py-2 md:px-5">
                             <input type="checkbox"
-                                   class="checkbox-key checkbox appearance-none align-middle select-none h-4 w-4 bg-white rounded border border-gray-300 focus:outline-none focus:ring-2 -mt-1.5 text-{{ color }}-500 focus:border-{{ color }}-300 focus:ring-{{ color }}-200" aria-label="">
+                                   class="checkbox-key checkbox text-{{ color }}-500 -mt-1.5 h-4 w-4 select-none appearance-none rounded border border-gray-300 bg-white align-middle
+                                   focus:outline-none focus:ring-2 focus:border-{{ color }}-300 focus:ring-{{ color }}-200" aria-label="">
                         </td>
-                        <td class="border-b border-gray-100 px-3 md:px-5 py-2 text-sm whitespace-nowrap truncate">
+                        <td class="truncate border-b border-gray-100 px-3 py-2 text-sm whitespace-nowrap md:px-5">
                             <a class="text-{{ color }}-500 hover:text-{{ color }}-700" href="{{ view_url|replace({'ttl_value': key.ttl}) ~ key.key }}" title="{{ key.key }}">
                                 {{ (key.items_total ? '<span class="hidden md:inline-block">(' ~ key.items_total ~ ' items)&nbsp;</span>' : '')|raw }}{{ key.key }}
                             </a>
                         </td>
-                        <td class="hidden md:table-cell border-b border-gray-100 px-3 md:px-5 py-2 text-sm whitespace-nowrap">{{ key_badge.key_type(key.type) }}</td>
-                        <td class="border-b border-gray-100 px-3 md:px-5 py-2 text-sm whitespace-nowrap">
+                        <td class="hidden border-b border-gray-100 px-3 py-2 text-sm whitespace-nowrap md:table-cell md:px-5">{{ key_badge.key_type(key.type) }}</td>
+                        <td class="border-b border-gray-100 px-3 py-2 text-sm whitespace-nowrap md:px-5">
                             {% if key.ttl == -1 %}
                                 Doesn't expire
                             {% else %}
                                 {{ key.ttl }}
                             {% endif %}
                         </td>
-                        <td class="border-b border-gray-100 px-3 md:px-5 py-2 text-sm whitespace-nowrap">
+                        <td class="border-b border-gray-100 px-3 py-2 text-sm whitespace-nowrap md:px-5">
                             {% set edit_url = edit_url|replace({'ttl_value': key_ttl}) %}
                             <a class="text-gray-500 hover:text-gray-700 font-semibold mr-3 [&>svg]:align-[-0.05rem]" href="{{ edit_url ~ key.key }}" title="Edit">
-                                {{ svg('edit', 12) }}<span class="hidden lg:inline-block ml-1">Edit</span>
+                                {{ svg('edit', 12) }}<span class="ml-1 hidden lg:inline-block">Edit</span>
                             </a>
-                            <button class="text-red-500 hover:text-red-700 font-semibold [&>svg]:align-[-0.05rem] delete-key" type="button" title="Delete">
-                                {{ svg('trash', 12) }}<span class="hidden lg:inline-block ml-1">Delete</span>
+                            <button class="delete-key text-red-500 hover:text-red-700 font-semibold [&>svg]:align-[-0.05rem]" type="button" title="Delete">
+                                {{ svg('trash', 12) }}<span class="ml-1 hidden lg:inline-block">Delete</span>
                             </button>
                         </td>
                     </tr>
                 {% endfor %}
             {% else %}
                 <tr>
-                    <td colspan="5" class="text-center p-5">No keys.</td>
+                    <td colspan="5" class="p-5 text-center">No keys.</td>
                 </tr>
             {% endif %}
             </tbody>

@@ -1,12 +1,13 @@
-<div class="lg:grid lg:grid-cols-2 lg:gap-4 mb-5">
+<div class="mb-5 lg:grid lg:grid-cols-2 lg:gap-4">
     {% if databases %}
-        <div class="md:grid md:grid-cols-3 md:gap-2 mb-5 lg:mb-0">
+        <div class="mb-5 md:grid md:grid-cols-3 md:gap-2 lg:mb-0">
             {{ include('components/select.twig', {id: 'db_select', options: databases, selected: current_db, class: 'mb-3 md:mb-0'}) }}
 
             {% if all_keys != 0 %}
                 <div class="flex">
                     <input type="text" id="search_key" value="{{ search_value }}" placeholder="Search key"
-                           class="appearance-none leading-normal text-sm border bg-white placeholder-gray-400 text-gray-600 border-gray-300 focus:outline-none focus:ring w-full rounded-l py-1.5 px-3 focus:ring-{{ color }}-100 focus:border-{{ color }}-300" aria-label="">
+                           class="w-full rounded-l border border-gray-300 bg-white py-1.5 px-3 text-sm leading-normal text-gray-600 placeholder-gray-400
+                           focus:outline-none focus:ring focus:ring-{{ color }}-100 focus:border-{{ color }}-300" aria-label="">
                     {{ include('components/button.twig', {
                         text: '',
                         icon: 'search',
@@ -19,7 +20,7 @@
         </div>
     {% endif %}
 
-    <div class="md:flex lg:justify-end md:gap-2">
+    <div class="md:flex md:gap-2 lg:justify-end">
         {{ include('partials/keys_buttons.twig') }}
     </div>
 </div>

@@ -1,13 +1,13 @@
-<div class="md:grid md:grid-cols-3 mt-5">
+<div class="mt-5 md:grid md:grid-cols-3">
     <div class="flex items-center">
         <span class="font-semibold">
             Showing {{ first_on_page }} to {{ last_on_page }} of {{ total }} items
         </span>
     </div>
 
-    <div class="flex items-center md:justify-center gap-2 mb-3 md:mb-0">
+    <div class="mb-3 flex items-center gap-2 md:mb-0 md:justify-center">
         {{ include('components/select.twig', {id: 'per_page', options: select, selected: per_page, class: 'w-16'}) }}
-        <label class="font-semibold -mt-1.5" for="per_page">per page</label>
+        <label class="-mt-1.5 font-semibold" for="per_page">per page</label>
     </div>
 
     <div class="flex items-center md:justify-end">
@@ -15,9 +15,9 @@
             <ul class="inline-flex">
                 {% for page in pages %}
                     {% if page == current_page %}
-                        {% set class = 'text-white bg-' ~ color ~ '-500 border-' ~ color ~ '-300 hover:bg-' ~ color ~ '-600' %}
+                        {% set class = 'border-' ~ color ~ '-300 bg-' ~ color ~ '-500 text-white hover:bg-' ~ color ~ '-600' %}
                     {% else %}
-                        {% set class = 'text-gray-500 bg-white border-gray-300 hover:bg-gray-100 hover:text-gray-700' %}
+                        {% set class = 'border-gray-300 bg-white text-gray-500 hover:bg-gray-100 hover:text-gray-700' %}
                     {% endif %}
 
                     {% set first_item = loop.first ? ' rounded-l' : '' %}

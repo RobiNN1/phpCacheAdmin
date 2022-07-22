@@ -1,17 +1,17 @@
 {% if extension_version %}
-    <div class="text-xl mb-3">
+    <div class="mb-3 text-xl">
         PHP <span class="font-semibold">{{ title }}</span> extension
         {{ include('components/badge.twig', {text: 'v' ~ extension_version, text_sm: true, bg: 'bg-' ~ color ~ '-500'}) }}
     </div>
 {% endif %}
 
 {% if panels_toggler is not defined %}
-    <label for="toggle-panels" class="flex items-center cursor-pointer mb-3">
-        <span class="relative block bg-gray-300 w-10 h-6 rounded-full">
+    <label for="toggle-panels" class="mb-3 flex cursor-pointer items-center">
+        <span class="relative block h-6 w-10 rounded-full bg-gray-400">
             <input type="checkbox" id="toggle-panels"
-                   class="sr-only [&:checked~.dot]:translate-x-full
-                   [&:checked~.dot]:bg-gray-900 [&:checked~.dot]:text-white [&:checked~.dot>.open]:block [&:checked~.dot>.close]:hidden">
-            <span class="dot absolute left-1 top-1 bg-gray-50 w-4 h-4 rounded-full transition-transform inline-flex items-center justify-center">
+                   class="sr-only [&:checked~.dot]:translate-x-full [&:checked~.dot]:bg-gray-900 [&:checked~.dot]:text-white
+                   [&:checked~.dot>.open]:block [&:checked~.dot>.close]:hidden">
+            <span class="dot absolute left-1 top-1 inline-flex h-4 w-4 items-center justify-center rounded-full text-gray-600 bg-gray-50 transition-transform">
                 {{ svg('open', 10, 'open hidden') }}
                 {{ svg('close', 10, 'close') }}
             </span>

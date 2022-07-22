@@ -9,15 +9,15 @@
 </head>
 <body class="bg-gray-50 text-gray-900 md:ml-64" data-dashboard="{{ current }}">
 <aside id="sidebar" class="hidden md:block">
-    <nav class="block fixed top-0 left-0 bottom-0 overflow-y-auto overflow-hidden w-64 bg-{{ color }}-500 shadow-xl shadow-gray-500 py-4 pt-6 px-6">
-        <div class="min-h-full px-0 w-full mx-auto">
-            <a class="pb-2 text-white hidden md:block" href="index.php">{{ svg('logo', null) }}</a>
+    <nav class="bg-{{ color }}-500 fixed top-0 left-0 bottom-0 block w-64 overflow-hidden overflow-y-auto py-4 pt-6 px-6 shadow-xl shadow-gray-500">
+        <div class="mx-auto min-h-full w-full px-0">
+            <a class="hidden pb-2 text-white md:block" href="index.php">{{ svg('logo', null) }}</a>
             {% for link, title in nav %}
-                <a class="block py-2 text-white hover:text-gray-200{{ current == link ? ' font-bold' : '' }}" href="?type={{ link }}">
+                <a class="block py-2 {{ current == link ? ' font-bold' : '' }} text-white hover:text-gray-200" href="?type={{ link }}">
                     {{ svg(link, 16, 'mr-1' ~ (current == link ? '' : ' opacity-75')) }} {{ title }}
                 </a>
             {% endfor %}
-            <footer class="text-center text-white my-4">
+            <footer class="my-4 text-center text-white">
 
                 {% if logout_url %}
                     <a class="block py-2 text-white hover:text-gray-200" href="{{ logout_url }}">Logout</a>
@@ -25,7 +25,7 @@
 
                 <div class="font-light">
                     &copy; {{ 'now'|date('Y') }}
-                    <a class="text-white hover:text-gray-200 font-semibold" href="https://github.com/RobiNN1/phpCacheAdmin" target="_blank" rel="noopener">
+                    <a class="font-semibold text-white hover:text-gray-200" href="https://github.com/RobiNN1/phpCacheAdmin" target="_blank" rel="noopener">
                         phpCacheAdmin
                     </a>
                 </div>
@@ -36,25 +36,23 @@
 </aside>
 <div class="relative md:ml-0" id="maincontent">
     <header class="md:hidden">
-        <div class="container lg:max-w-7xl mx-auto px-3 py-3">
-            <div class="relative flex justify-between flex-col md:flex-row">
+        <div class="container mx-auto px-3 py-3 lg:max-w-7xl">
+            <div class="relative flex flex-col justify-between md:flex-row">
                 <div class="flex justify-items-stretch">
-                    <button class="block py-2 px-1 z-50" type="button" id="togglebtn">
+                    <button class="z-50 block py-2 px-1" type="button" id="togglebtn">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
                             <path fill-rule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z"/>
                         </svg>
                     </button>
 
-                    <a class="block py-2 px-1 mx-auto text-gray-900 text-lg font-bold" href="index.php">phpCacheAdmin</a>
+                    <a class="mx-auto block py-2 px-1 text-lg font-bold text-gray-900" href="index.php">phpCacheAdmin</a>
                 </div>
             </div>
         </div>
     </header>
 
-    <div class="container lg:max-w-7xl mx-auto p-3 md:p-7">
-        <div class="fixed top-0 right-0 p-5 w-full md:w-1/2 z-40">
-            <div id="alerts" class="w-full md:w-96 ml-auto">{{ alerts|raw }}</div>
-        </div>
+    <div class="container mx-auto p-3 md:p-7 lg:max-w-7xl">
+        <div id="alerts">{{ alerts|raw }}</div>
 
         {{ panels|raw }}
         {{ dashboard|raw }}

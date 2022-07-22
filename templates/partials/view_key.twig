@@ -24,11 +24,11 @@
         {{ include('components/badge.twig', {text: 'Formatted', pill: true, class: 'uppercase font-bold', bg: 'bg-blue-500'}) }}
     {% endif %}
 
-    <a href="{{ export_url }}" class="text-gray-500 hover:text-gray-700 font-semibold inline-flex items-center gap-1">
+    <a href="{{ export_url }}" class="inline-flex items-center gap-1 font-semibold text-gray-500 hover:text-gray-700">
         {{ svg('export') }} Export
     </a>
 
-    <a href="{{ delete_url }}" class="text-red-500 hover:text-red-700 font-semibold inline-flex items-center gap-1"
+    <a href="{{ delete_url }}" class="inline-flex items-center gap-1 font-semibold text-red-500 hover:text-red-700"
        onclick="return confirm('Are you sure you want to remove this item?');">
         {{ svg('trash') }} Delete
     </a>
@@ -58,8 +58,8 @@
             {% set title = 'Key' %}
         {% endif %}
 
-        <div class="bg-white shadow-lg mb-5 rounded">
-            <div class="overflow-y-auto flex justify-between border-b px-4 py-1.5">
+        <div class="mb-5 rounded bg-white shadow-lg">
+            <div class="flex justify-between overflow-y-auto border-b px-4 py-1.5">
                 <span>
                     {% if type != 'set' %}
                         {{ title }} {{ include('components/badge.twig', {text: item.score, pill: true, class: 'font-bold', bg: 'bg-slate-400'}) }}
@@ -98,10 +98,10 @@
 
     {{ paginator|raw }}
 {% else %}
-    <a href="{{ edit_url ~ encode_url }}" class="text-gray-500 hover:text-gray-700 font-semibold mr-3 inline-block mb-3">
+    <a href="{{ edit_url ~ encode_url }}" class="mr-3 mb-3 inline-block font-semibold text-gray-500 hover:text-gray-700">
         {{ svg('edit', 13) }} Edit
     </a>
-    <div class="bg-white shadow-lg rounded">
+    <div class="rounded bg-white shadow-lg">
         <div class="overflow-y-auto p-4">
             {{ value|raw }}
         </div>

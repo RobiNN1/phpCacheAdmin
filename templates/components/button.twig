@@ -1,0 +1,28 @@
+{% if icon %}
+    {% set icon_css = ' inline-flex items-center gap-1 [&>svg]:align-middle' %}
+{% endif %}
+
+{% if btn_green %}
+    {% set btn_color = 'bg-green-500 hover:bg-green-600 focus:ring-green-300' %}
+{% elseif btn_red %}
+    {% set btn_color = 'bg-red-500 hover:bg-red-600 focus:ring-red-300' %}
+{% else %}
+    {% set btn_color = btn_color ? btn_color : 'bg-' ~ color ~ '-500 hover:bg-' ~ color ~ '-600 focus:ring-' ~ color ~ '-300' %}
+{% endif %}
+
+{% if link %}
+    <a href="{{ link }}" class="text-sm py-1.5 px-3 shadow text-white focus:ring-4 font-semibold rounded {{ btn_color }}{{ icon_css }}{{ class ? ' ' ~ class : '' }}">
+        {% if icon %}
+            {{ svg(icon) }}
+        {% endif %}
+        {{ text }}
+    </a>
+{% else %}
+    <button type="{{ submit ? 'submit' : 'button' }}" id="{{ id }}" name="{{ id }}"
+            class="text-sm py-1.5 px-3 shadow text-white focus:ring-4 font-semibold rounded {{ btn_color }}{{ icon_css }}{{ class ? ' ' ~ class : '' }}">
+        {% if icon %}
+            {{ svg(icon) }}
+        {% endif %}
+        {{ text }}
+    </button>
+{% endif %}

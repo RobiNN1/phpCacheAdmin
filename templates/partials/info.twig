@@ -8,10 +8,10 @@
 {% if panels_toggler is not defined %}
     <div class="mb-3">
         <button type="button" id="toggle-panels"
-                class="toggle-div text-xs py-1.5 px-3 text-white bg-{{ color }}-500 hover:bg-{{ color }}-600 focus:ring-4 focus:ring-{{ color }}-300 font-semibold rounded inline-flex items-center">
+                class="shadow text-xs py-1.5 px-3 text-white focus:ring-4 bg-{{ color }}-500 hover:bg-{{ color }}-600 focus:ring-{{ color }}-300 font-semibold rounded inline-flex items-center">
             <span class="text mr-1">Hide panels</span>
-            <span class="open">{{ svg('open') }}</span>
-            <span class="close">{{ svg('close') }}</span>
+            <span class="icon-open hidden">{{ svg('open') }}</span>
+            <span class="icon-close">{{ svg('close') }}</span>
         </button>
     </div>
 {% endif %}

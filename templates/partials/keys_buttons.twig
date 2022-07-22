@@ -1,21 +1,29 @@
-<button type="button" id="import_btn"
-        class="text-sm py-1.5 px-3 text-white bg-green-500 hover:bg-green-600 focus:ring-4 focus:ring-green-300 font-semibold rounded inline-flex items-center gap-1 [&>svg]:align-middle">
-    {{ svg('import') }} Import
-</button>
+{{ include('components/button.twig', {
+    text: 'Import',
+    icon: 'import',
+    id: 'import_btn',
+    btn_green: true,
+}) }}
 
-<a href="{{ new_key_url }}"
-   class="text-sm py-1.5 px-3 text-white bg-green-500 hover:bg-green-600 focus:ring-4 focus:ring-green-300 font-semibold rounded inline-flex items-center gap-1 [&>svg]:align-middle">
-    {{ svg('open') }} Add new key
-</a>
+{{ include('components/button.twig', {
+    text: 'Add new key',
+    icon: 'open',
+    link: new_key_url,
+    btn_green: true,
+}) }}
 
 {% if all_keys != 0 %}
-    <button type="button" id="delete_all"
-            class="text-sm py-1.5 px-3 text-white bg-red-500 hover:bg-red-600 focus:ring-4 focus:ring-red-300 font-semibold rounded inline-flex items-center gap-1 [&>svg]:align-middle">
-        {{ svg('trash') }} Delete all keys
-    </button>
+    {{ include('components/button.twig', {
+        text: 'Delete all keys',
+        icon: 'trash',
+        id: 'delete_all',
+        btn_red: true,
+    }) }}
 
-    <button type="button" id="delete_selected"
-            class="text-sm py-1.5 px-3 text-white bg-red-500 hover:bg-red-600 focus:ring-4 focus:ring-red-300 font-semibold rounded inline-flex items-center gap-1 [&>svg]:align-middle">
-        {{ svg('trash') }} Delete selected
-    </button>
+    {{ include('components/button.twig', {
+        text: 'Delete selected',
+        icon: 'trash',
+        id: 'delete_selected',
+        btn_red: true,
+    }) }}
 {% endif %}

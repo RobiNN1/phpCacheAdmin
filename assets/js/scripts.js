@@ -68,19 +68,22 @@ if (toggle_panels) {
 
     if (localStorage.getItem(panels_state) === close_state) {
         text.innerHTML = 'Show panels';
-        toggle_panels.classList.add('show');
+        toggle_panels.querySelector('.icon-open').classList.remove('hidden');
+        toggle_panels.querySelector('.icon-close').classList.add('hidden');
         document.getElementById('infopanels').style.display = 'none';
     }
 
     toggle_panels.addEventListener('click', () => {
         if (localStorage.getItem(panels_state) === open_state) {
             text.innerHTML = 'Show panels';
-            toggle_panels.classList.add('show');
+            toggle_panels.querySelector('.icon-open').classList.remove('hidden');
+            toggle_panels.querySelector('.icon-close').classList.add('hidden');
             document.getElementById('infopanels').style.display = 'none';
             localStorage.setItem(panels_state, close_state);
         } else {
             text.innerHTML = 'Hide panels';
-            toggle_panels.classList.remove('show');
+            toggle_panels.querySelector('.icon-open').classList.add('hidden');
+            toggle_panels.querySelector('.icon-close').classList.remove('hidden');
             document.getElementById('infopanels').style.display = 'block';
             localStorage.setItem(panels_state, open_state);
         }

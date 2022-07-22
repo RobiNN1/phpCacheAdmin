@@ -1,16 +1,19 @@
 <div class="lg:grid lg:grid-cols-2 lg:gap-4 mb-5">
     {% if databases %}
         <div class="md:grid md:grid-cols-3 md:gap-2 mb-5 lg:mb-0">
-            {{ include('components/select.twig', {id: 'db_select', options: databases, selected: current_db, sm: true, class: 'mb-3 md:mb-0'}) }}
+            {{ include('components/select.twig', {id: 'db_select', options: databases, selected: current_db, class: 'mb-3 md:mb-0'}) }}
 
             {% if all_keys != 0 %}
                 <div class="flex">
                     <input type="text" id="search_key" value="{{ search_value }}" placeholder="Search key"
-                           class="input w-full rounded-l py-1.5 px-3 focus:ring-{{ color }}-100 focus:border-{{ color }}-300" aria-label="">
-                    <button type="button" id="submit_search"
-                            class="text-sm py-1.5 px-3 text-white bg-red-500 hover:bg-red-600 focus:ring-4 focus:ring-red-300 font-semibold rounded-r inline-flex items-center [&>svg]:align-middle">
-                        {{ svg('search') }}
-                    </button>
+                           class="appearance-none leading-normal text-sm border bg-white placeholder-gray-400 text-gray-600 border-gray-300 focus:outline-none focus:ring w-full rounded-l py-1.5 px-3 focus:ring-{{ color }}-100 focus:border-{{ color }}-300" aria-label="">
+                    {{ include('components/button.twig', {
+                        text: '',
+                        icon: 'search',
+                        id: 'submit_search',
+                        btn_red: true,
+                        class: 'rounded-l-none',
+                    }) }}
                 </div>
             {% endif %}
         </div>

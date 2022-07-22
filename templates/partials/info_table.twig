@@ -1,5 +1,5 @@
 <div class="bg-white shadow-sm shadow-gray-300 rounded mb-5 infopanel"{{ (ajax ? ' data-panel="' ~ key ~ '"' : '')|raw }}>
-    <div class="px-4 py-3">
+    <div class="px-4 py-1.5">
         <div class="flex flex-wrap items-center">
             <div class="relative w-full max-w-full flex-grow flex-1">
                 <h2 class="text-{{ color }}-900 text-lg font-semibold">{{ panel_title }}</h2>
@@ -56,7 +56,7 @@
         </table>
     </div>
     {% if moreinfo %}
-        <div class="px-4 py-2 text-right border-t panel-moreinfo"{{ (ajax ? ' style="display: none;"' : '')|raw }}>
+        <div class="px-4 py-1 text-right border-t panel-moreinfo"{{ (ajax ? ' style="display: none;"' : '')|raw }}>
             <a class="text-{{ color }}-500 hover:text-{{ color }}-700 font-semibold" href="?type={{ current }}&moreinfo={{ key }}">Show more info</a>
         </div>
     {% endif %}

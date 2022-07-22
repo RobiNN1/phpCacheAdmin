@@ -1,7 +1,7 @@
 <div class="mb-3"{{ extra_attr|raw }}>
     <label for="{{ id }}" class="block text-sm font-semibold mb-2">{{ label }}</label>
     <input id="{{ id }}" name="{{ id }}" type="{{ type ? type : 'text' }}" value="{{ value }}"
-           class="input w-full rounded py-2 px-4 focus:ring-{{ color }}-100 focus:border-{{ color }}-300"{{ required ? ' required' : '' }}{{ attr|raw }}>
+           class="appearance-none leading-normal text-sm border bg-white placeholder-gray-400 text-gray-600 border-gray-300 focus:outline-none focus:ring w-full rounded py-1.5 px-3 focus:ring-{{ color }}-100 focus:border-{{ color }}-300"{{ required ? ' required' : '' }}{{ attr|raw }}>
     {% if help %}
         <small class="text-xs text-gray-400">{{ help }}</small>
     {% endif %}

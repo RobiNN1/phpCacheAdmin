@@ -72,11 +72,14 @@
 
     <div class="mb-3">
         <label for="value" class="block text-sm font-semibold mb-2">Value</label>
-        <textarea id="value" name="value" class="input w-full rounded py-2 px-4 focus:ring-{{ color }}-100 focus:border-{{ color }}-300" rows="10" required>{{ value }}</textarea>
+        <textarea id="value" name="value" class="appearance-none leading-normal text-sm border bg-white placeholder-gray-400 text-gray-600 border-gray-300 focus:outline-none focus:ring w-full rounded py-1.5 px-3 focus:ring-{{ color }}-100 focus:border-{{ color }}-300" rows="10" required>{{ value }}</textarea>
     </div>
 
-    <button type="submit" name="submit"
-            class="text-sm py-2 px-4 text-white bg-green-500 hover:bg-green-600 focus:ring-4 focus:ring-green-300 font-semibold rounded inline-flex items-center gap-1">
-        {{ svg('save') }} Save key
-    </button>
+    {{ include('components/button.twig', {
+        text: 'Save key',
+        icon: 'save',
+        id: 'submit',
+        btn_green: true,
+        submit: true,
+    }) }}
 </form>

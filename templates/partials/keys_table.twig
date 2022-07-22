@@ -7,7 +7,7 @@
             <tr class="bg-{{ color }}-100 text-{{ color }}-900">
                 <th class="w-3 rounded-tl bg-{{ color }}-100 px-3 md:px-5 py-2">
                     <input type="checkbox"
-                           class="check-all checkbox text-{{ color }}-500 focus:border-{{ color }}-300 focus:ring-{{ color }}-200"
+                           class="check-all checkbox appearance-none align-middle select-none h-4 w-4 bg-white rounded border border-gray-300 focus:outline-none focus:ring-2 -mt-1.5 text-{{ color }}-500 focus:border-{{ color }}-300 focus:ring-{{ color }}-200"
                            aria-label=""{{ keys|length == 0 ? ' disabled' : '' }}>
                 </th>
                 <th class="px-3 md:px-5 py-2 text-xs uppercase font-bold whitespace-nowrap">Key</th>
@@ -22,7 +22,7 @@
                     <tr class="[&:last-child>*]:border-0" data-key="{{ key.key }}">
                         <td class="border-b border-gray-100 px-3 md:px-5 py-2">
                             <input type="checkbox"
-                                   class="checkbox-key checkbox text-{{ color }}-500 focus:border-{{ color }}-300 focus:ring-{{ color }}-200" aria-label="">
+                                   class="checkbox-key checkbox appearance-none align-middle select-none h-4 w-4 bg-white rounded border border-gray-300 focus:outline-none focus:ring-2 -mt-1.5 text-{{ color }}-500 focus:border-{{ color }}-300 focus:ring-{{ color }}-200" aria-label="">
                         </td>
                         <td class="border-b border-gray-100 px-3 md:px-5 py-2 text-sm whitespace-nowrap truncate">
                             <a class="text-{{ color }}-500 hover:text-{{ color }}-700" href="{{ view_url|replace({'ttl_value': key.ttl}) ~ key.key }}" title="{{ key.key }}">

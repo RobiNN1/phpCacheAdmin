@@ -1,5 +1,5 @@
 <select id="{{ id }}" name="{{ id }}"
-        class="select w-full {{ sm ? 'py-1.5 px-3' : 'py-2 px-4' }} focus:ring-{{ color }}-100 focus:border-{{ color }}-300 {{ class }}" aria-label="">
+        class="select appearance-none leading-normal text-sm border bg-white placeholder-gray-400 text-gray-600 border-gray-300 focus:outline-none focus:ring rounded w-full py-1.5 px-3 focus:ring-{{ color }}-100 focus:border-{{ color }}-300 {{ class }}" aria-label="">
     {% for value, name in options %}
         <option value="{{ value }}"{{ value == selected ? ' selected' : '' }}>{{ name }}</option>
     {% endfor %}

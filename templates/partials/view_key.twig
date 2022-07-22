@@ -35,9 +35,13 @@
 </div>
 
 {% if value is iterable %}
-    <a href="{{ add_subkey_url }}" class="text-sm py-1.5 px-3 text-white bg-green-500 hover:bg-green-600 focus:ring-4 focus:ring-green-300 font-semibold rounded inline-flex items-center gap-1 [&>svg]:align-middle mb-2">
-        {{ svg('open') }} Add another value
-    </a>
+    {{ include('components/button.twig', {
+        text: 'Add another value',
+        icon: 'open',
+        link: add_subkey_url,
+        btn_green: true,
+        class: 'mb-2',
+    }) }}
 
     {% for item in value %}
         {% if type == 'set' %}

@@ -64,8 +64,6 @@ if (isset($_GET['ajax'])) {
         'nav'        => $nav,
         'logout_url' => $auth ? Http::queryString([], ['logout' => 'yes']) : null,
         'version'    => Admin::VERSION,
-        'back'       => isset($_GET['moreinfo']) || isset($_GET['view']) || isset($_GET['form']),
-        'back_url'   => Http::queryString(['db', 's']),
         'panels'     => $dashboard->showPanels(),
         'dashboard'  => $dashboard->dashboard(),
     ]);

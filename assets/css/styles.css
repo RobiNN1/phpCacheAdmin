@@ -671,10 +671,6 @@ svg {
   margin-left: auto;
 }
 
-.mb-5 {
-  margin-bottom: 1.25rem;
-}
-
 .mb-4 {
   margin-bottom: 1rem;
 }
@@ -701,6 +697,10 @@ svg {
 
 .-mt-1 {
   margin-top: -0.25rem;
+}
+
+.mb-5 {
+  margin-bottom: 1.25rem;
 }
 
 .mr-3 {
@@ -1181,11 +1181,6 @@ svg {
   line-height: 1.75rem;
 }
 
-.text-xl {
-  font-size: 1.25rem;
-  line-height: 1.75rem;
-}
-
 .text-sm {
   font-size: 0.875rem;
   line-height: 1.25rem;
@@ -1194,6 +1189,11 @@ svg {
 .text-xs {
   font-size: 0.75rem;
   line-height: 1rem;
+}
+
+.text-xl {
+  font-size: 1.25rem;
+  line-height: 1.75rem;
 }
 
 .font-bold {
@@ -1898,10 +1898,6 @@ svg {
   .lg\:gap-4 {
     gap: 1rem;
   }
-}
-
-.\[\&\>svg\]\:align-baseline>svg {
-  vertical-align: baseline;
 }
 
 .\[\&\>svg\]\:align-middle>svg {

@@ -56,12 +56,6 @@
             <div id="alerts" class="w-full md:w-96 ml-auto">{{ alerts|raw }}</div>
         </div>
 
-        {% if back %}
-            <a class="text-xl text-{{ color }}-500 hover:text-{{ color }}-700 font-semibold inline-block mb-5 [&>svg]:align-baseline" href="{{ back_url }}">
-                {{ svg('back') }} Back
-            </a>
-        {% endif %}
-
         {{ panels|raw }}
         {{ dashboard|raw }}
     </div>

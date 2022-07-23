@@ -1,6 +1,6 @@
 <div class="flex flex-col md:flex-row md:items-center md:justify-between">
     {% if extension_version %}
-        <div class="mb-5 text-xl">
+        <div class="mb-5 text-lg">
             PHP <span class="font-semibold">{{ title }}</span> extension
             {{ include('components/badge.twig', {text: 'v' ~ extension_version, text_sm: true, bg: 'bg-' ~ color ~ '-500'}) }}
         </div>

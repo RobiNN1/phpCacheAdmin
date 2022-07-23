@@ -1,4 +1,4 @@
-<div class="mb-5 text-xl font-semibold">Loaded PHP extensions ({{ extensions|length }})</div>
+<div class="mb-5 text-lg font-semibold">Loaded PHP extensions ({{ extensions|length }})</div>
 
 {% for extension in extensions %}
     {{ include('components/badge.twig', {

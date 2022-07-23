@@ -2,7 +2,7 @@
     {% if extension_version %}
         <div class="mb-5 text-lg">
             PHP <span class="font-semibold">{{ title }}</span> extension
-            {{ include('components/badge.twig', {text: 'v' ~ extension_version, text_sm: true, bg: 'bg-' ~ color ~ '-500'}) }}
+            {{ include('components/badge.twig', {text: 'v' ~ extension_version, bg: 'bg-' ~ color ~ '-500', class: 'font-semibold'}) }}
         </div>
     {% endif %}
 

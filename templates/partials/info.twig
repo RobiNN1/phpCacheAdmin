@@ -1,24 +1,26 @@
-{% if extension_version %}
-    <div class="mb-3 text-xl">
-        PHP <span class="font-semibold">{{ title }}</span> extension
-        {{ include('components/badge.twig', {text: 'v' ~ extension_version, text_sm: true, bg: 'bg-' ~ color ~ '-500'}) }}
-    </div>
-{% endif %}
+<div class="flex flex-col md:flex-row md:items-center md:justify-between">
+    {% if extension_version %}
+        <div class="mb-5 text-xl">
+            PHP <span class="font-semibold">{{ title }}</span> extension
+            {{ include('components/badge.twig', {text: 'v' ~ extension_version, text_sm: true, bg: 'bg-' ~ color ~ '-500'}) }}
+        </div>
+    {% endif %}
 
-{% if panels_toggler is not defined %}
-    <label for="toggle-panels" class="mb-3 flex cursor-pointer items-center lg:justify-end">
-        <span class="relative block h-6 w-10 rounded-full bg-gray-400 shadow">
-            <input type="checkbox" id="toggle-panels"
-                   class="sr-only [&:checked~.dot]:translate-x-full [&:checked~.dot]:bg-gray-900 [&:checked~.dot]:text-white
-                   [&:checked~.dot>.open]:block [&:checked~.dot>.close]:hidden">
-            <span class="dot absolute left-1 top-1 inline-flex h-4 w-4 items-center justify-center rounded-full text-gray-600 bg-gray-50 transition-transform">
-                {{ svg('open', 10, 'open -mr-px hidden') }}
-                {{ svg('close', 10, 'close -mr-px') }}
+    {% if panels_toggler is not defined %}
+        <label for="toggle-panels" class="mb-5 flex items-center cursor-pointer">
+            <span class="relative block h-6 w-10 rounded-full bg-gray-400 shadow">
+                <input type="checkbox" id="toggle-panels"
+                       class="sr-only [&:checked~.dot]:translate-x-full [&:checked~.dot]:bg-gray-900 [&:checked~.dot]:text-white
+                       [&:checked~.dot>.open]:block [&:checked~.dot>.close]:hidden">
+                <span class="dot absolute left-1 top-1 inline-flex h-4 w-4 items-center justify-center rounded-full text-gray-600 bg-gray-50 transition-transform">
+                    {{ svg('open', 10, 'open -mr-px hidden') }}
+                    {{ svg('close', 10, 'close -mr-px') }}
+                </span>
             </span>
-        </span>
-        <span class="ml-1 text-sm leading-normal">Toggle panels</span>
-    </label>
-{% endif %}
+            <span class="ml-1 text-sm leading-normal">Show/Hide panels</span>
+        </label>
+    {% endif %}
+</div>
 
 {% if info.panels %}
     <div id="infopanels" style="display: block;">

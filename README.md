@@ -3,13 +3,16 @@
 
 ![Visitor Badge](https://visitor-badge.laobi.icu/badge?page_id=RobiNN1.phpCacheAdmin)
 
-| Redis                           | Memcache(d)                               |
-|---------------------------------|-------------------------------------------|
-| ![Redis](.github/img/redis.png) | ![Memcache(d)](.github/img/memcached.png) |
-
-| OPCache                             | Server tab (default)                   |
-|-------------------------------------|----------------------------------------|
-| ![OPCache](.github/img/opcache.png) | ![Memcache(d)](.github/img/server.png) |
+<table>
+  <tr>
+    <td><img alt="Redis" src=".github/img/redis.png"></td>
+    <td><img alt="Memcached" src=".github/img/memcached.png"></td>
+  </tr>
+  <tr>
+    <td><img alt="OPCache" src=".github/img/opcache.png"></td>
+    <td><img alt="Server tab (default)" src=".github/img/server.png"></td>
+  </tr>
+</table>
 
 ## Installation
 

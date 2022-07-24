@@ -1,14 +1,17 @@
-<div class="mb-5 flex gap-1 md:justify-end">
-    {{ include('components/button.twig', {
-        text: (is_ignored ? 'Show' : 'Ignore') ~ ' scripts from this tool',
-        link: ignore_url,
-    }) }}
+<div class="mb-5 lg:flex lg:justify-end">
+    <div>
+        {{ include('components/button.twig', {
+            text: (is_ignored ? 'Show' : 'Ignore') ~ ' scripts from this tool',
+            link: ignore_url,
+            class: 'mr-1',
+        }) }}
 
-    {{ include('components/button.twig', {
-        text: 'Reset cache',
-        icon: 'reset',
-        id: 'delete_all',
-    }) }}
+        {{ include('components/button.twig', {
+            text: 'Reset cache',
+            icon: 'reset',
+            id: 'delete_all',
+        }) }}
+    </div>
 </div>
 
 <div class="mb-5 rounded bg-white shadow-sm shadow-gray-300">

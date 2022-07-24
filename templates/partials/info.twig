@@ -26,7 +26,8 @@
     <div id="infopanels" style="display: block;">
         <div class="md:grid {{ info.panels|length >= 3 ? 'md:grid-cols-3' : 'md:grid-cols-2' }} md:gap-4">
             {% for key, panel in info.panels %}
-                <div>{{ include('partials/info_table.twig', {
+                <div>
+                    {{ include('partials/info_table.twig', {
                         panel_title: panel.title,
                         selection: panel.server_selection,
                         current_server: panel.current_server,
@@ -34,7 +35,8 @@
                         array: panel.data,
                         key,
                         moreinfo: panel.moreinfo,
-                    }) }}</div>
+                    }) }}
+                </div>
             {% endfor %}
         </div>
     </div>

@@ -1,12 +1,4 @@
 @tailwind base;
-
-@layer base {
-    svg {
-        display: inline-block;
-        vertical-align: -.125rem;
-    }
-}
-
 @tailwind components;
 @tailwind utilities;
 

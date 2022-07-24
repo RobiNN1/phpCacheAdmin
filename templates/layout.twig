@@ -13,7 +13,7 @@
         <div class="mx-auto min-h-full w-full px-0">
             <a class="hidden pb-2 text-white md:block" href="index.php">{{ svg('logo', null) }}</a>
             {% for link, title in nav %}
-                <a class="block py-2 {{ current == link ? ' font-bold' : '' }} text-white hover:text-gray-200" href="?type={{ link }}">
+                <a class="flex items-center py-2 {{ current == link ? ' font-bold' : '' }} text-white hover:text-gray-200" href="?type={{ link }}">
                     {{ svg(link, 16, 'mr-1' ~ (current == link ? '' : ' opacity-75')) }} {{ title }}
                 </a>
             {% endfor %}

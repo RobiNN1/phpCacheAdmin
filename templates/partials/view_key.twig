@@ -24,13 +24,13 @@
         {{ include('components/badge.twig', {text: 'Formatted', pill: true, class: 'uppercase font-bold', bg: 'bg-blue-500'}) }}
     {% endif %}
 
-    <a href="{{ export_url }}" class="inline-flex items-center gap-1 font-semibold text-gray-500 hover:text-gray-700">
-        {{ svg('export') }} Export
+    <a href="{{ export_url }}" class="inline-flex items-center font-semibold text-gray-500 hover:text-gray-700">
+        {{ svg('export', 16, 'mr-1') }} Export
     </a>
 
-    <a href="{{ delete_url }}" class="inline-flex items-center gap-1 font-semibold text-red-500 hover:text-red-700"
+    <a href="{{ delete_url }}" class="inline-flex items-center font-semibold text-red-500 hover:text-red-700"
        onclick="return confirm('Are you sure you want to remove this item?');">
-        {{ svg('trash') }} Delete
+        {{ svg('trash', 16, 'mr-1') }} Delete
     </a>
 </div>
 
@@ -40,7 +40,7 @@
         icon: 'open',
         link: add_subkey_url,
         btn_green: true,
-        class: 'mb-2',
+        class: 'mb-5',
     }) }}
 
     {% for item in value %}
@@ -58,7 +58,7 @@
             {% set title = 'Key' %}
         {% endif %}
 
-        <div class="mb-5 rounded bg-white shadow-lg">
+        <div class="mb-5 rounded bg-white shadow-sm shadow-gray-300">
             <div class="flex justify-between overflow-y-auto border-b px-4 py-1.5">
                 <span>
                     {% if type != 'set' %}
@@ -80,12 +80,12 @@
                 </span>
 
                 <div>
-                    <a href="{{ edit_url }}&{{ param_name }}={{ item.key ~ item_encode_url }}" class="text-gray-500 hover:text-gray-700 font-semibold mr-3 inline-block mr-3 [&>svg]:align-[-0.05rem]">
-                        {{ svg('edit', 13) }} Edit
+                    <a href="{{ edit_url }}&{{ param_name }}={{ item.key ~ item_encode_url }}" class="text-gray-500 hover:text-gray-700 font-semibold inline-flex items-center mr-3">
+                        {{ svg('edit', 16, 'mr-1') }} Edit
                     </a>
-                    <a href="{{ deletesub_url }}&{{ param_name }}={{ item.key }}" class="text-red-500 hover:text-red-700 font-semibold inline-block [&>svg]:align-[-0.05rem]"
+                    <a href="{{ deletesub_url }}&{{ param_name }}={{ item.key }}" class="text-red-500 hover:text-red-700 font-semibold inline-flex items-center"
                        onclick="return confirm('Are you sure you want to remove this item?');">
-                        {{ svg('trash', 13) }} Delete
+                        {{ svg('trash', 16, 'mr-1') }} Delete
                     </a>
                 </div>
             </div>
@@ -98,10 +98,10 @@
 
     {{ paginator|raw }}
 {% else %}
-    <a href="{{ edit_url ~ encode_url }}" class="mr-3 mb-3 inline-block font-semibold text-gray-500 hover:text-gray-700">
-        {{ svg('edit', 13) }} Edit
+    <a href="{{ edit_url ~ encode_url }}" class="mr-3 mb-3 inline-flex items-center font-semibold text-gray-500 hover:text-gray-700">
+        {{ svg('edit', 16, 'mr-1') }} Edit
     </a>
-    <div class="rounded bg-white shadow-lg">
+    <div class="rounded bg-white shadow-sm shadow-gray-300">
         <div class="overflow-y-auto p-4">
             {{ value|raw }}
         </div>

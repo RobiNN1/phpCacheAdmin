@@ -1,7 +1,3 @@
-{% if icon %}
-    {% set icon_css = ' inline-flex items-center gap-1 [&>svg]:align-middle' %}
-{% endif %}
-
 {% if btn_green %}
     {% set btn_color = 'bg-green-500 hover:bg-green-600 focus:ring-green-300' %}
 {% elseif btn_red %}
@@ -11,17 +7,18 @@
 {% endif %}
 
 {% if link %}
-    <a href="{{ link }}" class="rounded py-1.5 px-3 text-sm font-semibold text-white shadow focus:ring-4 {{ btn_color }}{{ icon_css }}{{ class|space }}">
+    <a href="{{ link }}"
+       class="inline-flex items-center border border-transparent rounded py-1.5 px-3 text-base font-semibold text-white align-middle shadow focus:ring-4 {{ btn_color }}{{ class|space }}">
         {% if icon %}
-            {{ svg(icon) }}
+            {{ svg(icon, 16, (text ? 'mr-1' : '')) }}
         {% endif %}
         {{ text }}
     </a>
 {% else %}
     <button type="{{ submit ? 'submit' : 'button' }}" id="{{ id }}" name="{{ id }}"
-            class="rounded py-1.5 px-3 text-sm font-semibold text-white shadow focus:ring-4 {{ btn_color }}{{ icon_css }}{{ class|space }}">
+            class="inline-flex items-center border border-transparent rounded py-1.5 px-3 text-base font-semibold text-white align-middle shadow focus:ring-4 {{ btn_color }}{{ class|space }}">
         {% if icon %}
-            {{ svg(icon) }}
+            {{ svg(icon, 16, (text ? 'mr-1' : '')) }}
         {% endif %}
         {{ text }}
     </button>

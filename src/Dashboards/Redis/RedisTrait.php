@@ -213,7 +213,7 @@ trait RedisTrait {
         $filter = Http::get('s');
         $filter = !empty($filter) ? $filter : '*';
 
-        $this->template->addTplGlobal('search_value', $filter);
+        $this->template->addGlobal('search_value', $filter);
 
         foreach ($redis->keys($filter) as $key) {
             $type = $this->getType($redis->type($key));

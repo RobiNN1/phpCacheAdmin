@@ -23,7 +23,7 @@ class Template {
     /**
      * @var array<string, mixed>
      */
-    private array $tpl_globals = [];
+    private array $globals = [];
 
     /**
      * Add global template variable.
@@ -33,8 +33,8 @@ class Template {
      *
      * @return void
      */
-    public function addTplGlobal(string $name, $value): void {
-        $this->tpl_globals[$name] = $value;
+    public function addGlobal(string $name, $value): void {
+        $this->globals[$name] = $value;
     }
 
     /**
@@ -61,7 +61,7 @@ class Template {
 
             $twig->addFilter(new TwigFilter('space', fn (?string $value): string => !empty($value) ? ' '.$value : '', ['is_safe' => ['html']]));
 
-            foreach ($this->tpl_globals as $name => $value) {
+            foreach ($this->globals as $name => $value) {
                 $twig->addGlobal($name, $value);
             }
 

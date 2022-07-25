@@ -202,7 +202,7 @@ class Helpers {
      * @return void
      */
     public static function alert(Template $template, string $message, ?string $color = null): void {
-        $template->addTplGlobal('alerts', $template->render('components/alert', [
+        $template->addGlobal('alerts', $template->render('components/alert', [
             'message'     => $message,
             'alert_color' => $color,
         ]));

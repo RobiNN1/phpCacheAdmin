@@ -12,7 +12,6 @@ declare(strict_types=1);
 
 use RobiNN\Pca\Admin;
 use RobiNN\Pca\Config;
-use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
 use RobiNN\Pca\Template;
 
@@ -54,8 +53,8 @@ $current = $admin->currentDashboard();
 $dashboard = $admin->getDashboard($current);
 $info = $dashboard->getDashboardInfo();
 
-$tpl->addTplGlobal('current', $current);
-$tpl->addTplGlobal('color', $info['color']);
+$tpl->addGlobal('current', $current);
+$tpl->addGlobal('color', $info['color']);
 
 if (isset($_GET['ajax'])) {
     echo $dashboard->ajax();

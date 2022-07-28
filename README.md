@@ -1,5 +1,5 @@
 <p align="center"><img src=".github/img/logo-colored.svg" width="400" alt="Logo"></p>
-<p align="center">Web dashboard for Redis, Memcache(d) and OPCache.</p>
+<p align="center">A web dashboard for your favorite caching system.</p>
 
 ![Visitor Badge](https://visitor-badge.laobi.icu/badge?page_id=RobiNN1.phpCacheAdmin)
 
@@ -10,9 +10,15 @@
   </tr>
   <tr>
     <td><img alt="OPCache" src=".github/img/opcache.png"></td>
-    <td><img alt="Server tab (default)" src=".github/img/server.png"></td>
+    <td><img alt="APCu" src=".github/img/apcu.png"></td>
   </tr>
 </table>
+
+<div align="center">
+  <img width="450" alt="Server tab (default)" src=".github/img/server.png">
+
+  Server tab (default)
+</div>
 
 ## Installation
 
@@ -90,9 +96,11 @@ To add another server, add the same environment variables, but change 0 to 1 (2 
 ## Requirements
 
 - PHP >= 7.4
-- redis, memcache(d) or opcache php extensions (if none of them is installed, only the Server tab will be available)
+- redis, memcache(d), opcache or apcu php extensions (if none of them is installed, only the Server tab will be available)
 
 ## Development
 
 For compiling Tailwind CSS run `npm install` and then
 `npm run build` or `npm run watch` for auto-compiling.
+
+<!-- Font used in logo Arial Rounded MT Bold -->

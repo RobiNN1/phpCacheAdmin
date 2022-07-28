@@ -1,11 +1,12 @@
 {
   "name": "robinn/phpcacheadmin",
-  "description": "Web dashboard for Redis, Memcache(d) and OPCache.",
+  "description": "A web dashboard for your favorite caching system.",
   "keywords": [
     "redis",
     "memcache",
     "memcached",
     "opcache",
+    "apcu",
     "cache",
     "admin",
     "dashboard",
@@ -29,7 +30,8 @@
   "suggest": {
     "ext-redis": "Required for use the redis dashboard.",
     "ext-memcache": "Required for  the memcache dashboard.",
-    "ext-memcached": "Required for the memcached dashboard."
+    "ext-memcached": "Required for the memcached dashboard.",
+    "ext-apcu": "Required for the apcu dashboard."
   },
   "require-dev": {
     "clue/phar-composer": "^1.4",

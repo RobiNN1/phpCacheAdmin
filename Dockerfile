@@ -9,12 +9,14 @@ RUN apt-get install -y libz-dev libmemcached-dev \
 
 RUN docker-php-ext-enable opcache
 
+RUN pecl install apcu && docker-php-ext-enable apcu
+
 RUN rm -rf /tmp/pear
 
 RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
 
 WORKDIR /var/www
-RUN git clone https://github.com/RobiNN1/phpCacheAdmin.git html
+RUN git clone --depth=1 https://github.com/RobiNN1/phpCacheAdmin.git html
 
 RUN chmod 777 /var/www/html
 

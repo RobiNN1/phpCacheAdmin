@@ -170,14 +170,14 @@ class Helpers {
     /**
      * Get svg icon from file.
      *
-     * @param string  $icon
+     * @param string  $icon Icon name from `assets/icons/` or custom path.
      * @param ?int    $size
      * @param ?string $class
      *
      * @return ?string
      */
     public static function svg(string $icon, ?int $size = 16, ?string $class = null): ?string {
-        $file = __DIR__.'/../assets/icons/'.$icon.'.svg';
+        $file = is_file($icon) ? $icon : __DIR__.'/../assets/icons/'.$icon.'.svg';
 
         if (is_file($file)) {
             $content = trim(file_get_contents($file));

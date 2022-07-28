@@ -209,7 +209,7 @@ trait RedisTrait {
      * @return array<int, array<string, string|int>>
      */
     private function getAllKeys(Redis $redis): array {
-        $keys = [];
+        static $keys = [];
         $filter = Http::get('s');
         $filter = !empty($filter) ? $filter : '*';
 
@@ -227,26 +227,6 @@ trait RedisTrait {
         }
 
         return $keys;
-    }
-
-    /**
-     * Get a key type.
-     *
-     * @param int $type
-     *
-     * @return string
-     */
-    private function getType(int $type): string {
-        $data_types = [
-            Redis::REDIS_STRING    => 'string',
-            Redis::REDIS_SET       => 'set',
-            Redis::REDIS_LIST      => 'list',
-            Redis::REDIS_ZSET      => 'zset',
-            Redis::REDIS_HASH      => 'hash',
-            Redis::REDIS_NOT_FOUND => 'other',
-        ];
-
-        return $data_types[$type];
     }
 
     /**

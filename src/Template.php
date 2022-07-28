@@ -14,6 +14,7 @@ namespace RobiNN\Pca;
 
 use Exception;
 use Twig\Environment;
+use Twig\Error\LoaderError;
 use Twig\Extension\DebugExtension;
 use Twig\Loader\FilesystemLoader;
 use Twig\TwigFilter;
@@ -26,6 +27,11 @@ class Template {
     private array $globals = [];
 
     /**
+     * @var array<string, string>
+     */
+    private array $paths = [];
+
+    /**
      * Add global template variable.
      *
      * @param string $name
@@ -35,6 +41,18 @@ class Template {
      */
     public function addGlobal(string $name, $value): void {
         $this->globals[$name] = $value;
+    }
+
+    /**
+     * Add a path with namespace.
+     *
+     * @param string $namespace
+     * @param string $path
+     *
+     * @return void
+     */
+    public function addPath(string $namespace, string $path): void {
+        $this->paths[$namespace] = $path;
     }
 
     /**
@@ -52,6 +70,14 @@ class Template {
                 'cache' => __DIR__.'/../cache',
                 'debug' => Config::get('twigdebug'),
             ]);
+
+            foreach ($this->paths as $namespace => $path) {
+                try {
+                    $loader->addPath(realpath($path), $namespace);
+                } catch (LoaderError $e) {
+                    echo $e->getMessage();
+                }
+            }
 
             if (Config::get('twigdebug')) {
                 $twig->addExtension(new DebugExtension());

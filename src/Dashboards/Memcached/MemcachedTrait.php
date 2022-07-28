@@ -125,7 +125,7 @@ trait MemcachedTrait {
      * @return array<int, array<string, string|int>>
      */
     private function getAllKeys($memcached): array {
-        $keys = [];
+        static $keys = [];
 
         foreach ($memcached->getKeys() as $key_data) {
             $keys[] = [

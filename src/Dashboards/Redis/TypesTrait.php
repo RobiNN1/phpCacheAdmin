@@ -13,6 +13,7 @@ declare(strict_types=1);
 namespace RobiNN\Pca\Dashboards\Redis;
 
 use Redis;
+use RedisException;
 use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
 
@@ -45,6 +46,7 @@ trait TypesTrait {
      * @param string $key
      *
      * @return array<mixed, mixed>
+     * @throws RedisException
      */
     private function getKeyValue(Redis $redis, string $type, string $key): array {
         $value = '';
@@ -99,6 +101,7 @@ trait TypesTrait {
      * @param string $key
      *
      * @return array<mixed, mixed>|string
+     * @throws RedisException
      */
     private function getAllKeyValues(Redis $redis, string $type, string $key) {
         switch ($type) {
@@ -130,6 +133,7 @@ trait TypesTrait {
      * @param Redis $redis
      *
      * @return void
+     * @throws RedisException
      */
     private function saveKey(Redis $redis): void {
         if (isset($_POST['submit'])) {
@@ -211,6 +215,7 @@ trait TypesTrait {
      * @param string $key
      *
      * @return void
+     * @throws RedisException
      */
     private function deleteSubKey(Redis $redis, string $type, string $key): void {
         switch ($type) {
@@ -242,6 +247,7 @@ trait TypesTrait {
      * @param string $key
      *
      * @return int|null
+     * @throws RedisException
      */
     private function getCountOfItemsInKey(Redis $redis, string $type, string $key): ?int {
         switch ($type) {

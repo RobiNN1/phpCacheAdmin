@@ -13,6 +13,7 @@ declare(strict_types=1);
 namespace RobiNN\Pca\Dashboards\Redis;
 
 use Redis;
+use RedisException;
 use RobiNN\Pca\Dashboards\DashboardException;
 use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
@@ -65,7 +66,7 @@ trait RedisTrait {
                 'Memory used'       => Helpers::formatBytes($server_info['used_memory']),
                 'Keys'              => Helpers::formatNumber($all_keys).' (all databases)',
             ];
-        } catch (DashboardException $e) {
+        } catch (DashboardException|RedisException $e) {
             $data = [
                 'error' => $e->getMessage(),
             ];
@@ -80,6 +81,7 @@ trait RedisTrait {
      * @param Redis $redis
      *
      * @return string
+     * @throws RedisException
      */
     private function deleteAllKeys(Redis $redis): string {
         if ($redis->flushDB()) {
@@ -97,6 +99,7 @@ trait RedisTrait {
      * @param Redis $redis
      *
      * @return string
+     * @throws RedisException
      */
     private function deleteKey(Redis $redis): string {
         $keys = explode(',', Http::get('delete'));
@@ -119,6 +122,7 @@ trait RedisTrait {
      * @param Redis $redis
      *
      * @return array<string, mixed>
+     * @throws RedisException
      */
     private function getInfo(Redis $redis): array {
         $options = ['SERVER', 'CLIENTS', 'MEMORY', 'PERSISTENCE', 'STATS', 'REPLICATION', 'CPU', 'CLASTER', 'KEYSPACE', 'COMANDSTATS'];
@@ -166,7 +170,7 @@ trait RedisTrait {
                 'array'          => $this->getInfo($redis),
                 'bottom_content' => method_exists($redis, 'resetStat') && isset($reset_link) ? $reset_link : '',
             ]);
-        } catch (DashboardException $e) {
+        } catch (DashboardException|RedisException $e) {
             return $e->getMessage();
         }
     }
@@ -177,6 +181,7 @@ trait RedisTrait {
      * @param Redis $redis
      *
      * @return array<int, string>
+     * @throws RedisException
      */
     private function getDatabases(Redis $redis): array {
         $databases = [];
@@ -207,6 +212,7 @@ trait RedisTrait {
      * @param Redis $redis
      *
      * @return array<int, array<string, string|int>>
+     * @throws RedisException
      */
     private function getAllKeys(Redis $redis): array {
         static $keys = [];
@@ -235,6 +241,7 @@ trait RedisTrait {
      * @param Redis $redis
      *
      * @return string
+     * @throws RedisException
      */
     private function mainDashboard(Redis $redis): string {
         $keys = $this->getAllKeys($redis);
@@ -264,6 +271,7 @@ trait RedisTrait {
      * @param Redis $redis
      *
      * @return string
+     * @throws RedisException
      */
     private function viewKey(Redis $redis): string {
         $key = Http::get('key');
@@ -342,6 +350,7 @@ trait RedisTrait {
      * @param Redis $redis
      *
      * @return void
+     * @throws RedisException
      */
     private function import(Redis $redis): void {
         if ($_FILES['import']['type'] === 'application/octet-stream') {
@@ -366,6 +375,7 @@ trait RedisTrait {
      * @param Redis $redis
      *
      * @return string
+     * @throws RedisException
      */
     private function form(Redis $redis): string {
         $key = Http::get('key');

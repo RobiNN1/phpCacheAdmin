@@ -14,6 +14,7 @@ namespace RobiNN\Pca\Dashboards\Redis;
 
 use Exception;
 use Redis;
+use RedisException;
 use RobiNN\Pca\Config;
 use RobiNN\Pca\Dashboards\DashboardException;
 use RobiNN\Pca\Dashboards\DashboardInterface;
@@ -130,7 +131,7 @@ class RedisDashboard implements DashboardInterface {
                 if (isset($_GET['delete'])) {
                     $return = $this->deleteKey($redis);
                 }
-            } catch (DashboardException $e) {
+            } catch (DashboardException|RedisException $e) {
                 $return = $e->getMessage();
             }
         }
@@ -197,7 +198,7 @@ class RedisDashboard implements DashboardInterface {
                 } else {
                     $return = $this->mainDashboard($redis);
                 }
-            } catch (Exception $e) {
+            } catch (DashboardException|RedisException $e) {
                 return $e->getMessage();
             }
         }

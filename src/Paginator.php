@@ -47,8 +47,8 @@ class Paginator {
     ];
 
     /**
-     * @param Template                          $template
-     * @param array<int, array<string, string>> $items
+     * @param Template                         $template
+     * @param array<int, array<string, mixed>> $items
      */
     public function __construct(Template $template, array $items) {
         $this->template = $template;

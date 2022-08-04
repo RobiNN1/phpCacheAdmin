@@ -39,7 +39,7 @@ class Paginator {
     private int $per_page;
 
     /**
-     * @var array<mixed, mixed>
+     * @var array<int, mixed>
      */
     private array $url = [
         ['pp'],
@@ -77,7 +77,7 @@ class Paginator {
     /**
      * Set Http::queryString() options.
      *
-     * @param array<mixed, mixed> $queries
+     * @param array<int, mixed> $queries
      *
      * @return void
      */

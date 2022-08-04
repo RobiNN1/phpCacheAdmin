@@ -45,7 +45,7 @@ trait TypesTrait {
      * @param string $type
      * @param string $key
      *
-     * @return array<mixed, mixed>
+     * @return array<int, mixed>
      * @throws RedisException
      */
     private function getKeyValue(Redis $redis, string $type, string $key): array {
@@ -100,7 +100,7 @@ trait TypesTrait {
      * @param string $type
      * @param string $key
      *
-     * @return array<mixed, mixed>|string
+     * @return array<int, mixed>|string
      * @throws RedisException
      */
     private function getAllKeyValues(Redis $redis, string $type, string $key) {
@@ -136,74 +136,72 @@ trait TypesTrait {
      * @throws RedisException
      */
     private function saveKey(Redis $redis): void {
-        if (isset($_POST['submit'])) {
-            $error = '';
-            $type = Http::post('redis_type');
-            $key = Http::post('key');
-            $value = Http::post('value');
-            $expire = Http::post('expire', 'int');
-            $old_value = Http::post('old_value');
-            $encoder = Http::post('encoder');
+        $error = '';
+        $type = Http::post('redis_type');
+        $key = Http::post('key');
+        $value = Http::post('value');
+        $expire = Http::post('expire', 'int');
+        $old_value = Http::post('old_value');
+        $encoder = Http::post('encoder');
 
-            if ($encoder !== 'none') {
-                $value = Helpers::encodeValue($value, $encoder);
-            }
+        if ($encoder !== 'none') {
+            $value = Helpers::encodeValue($value, $encoder);
+        }
 
-            switch ($type) {
-                case 'string':
-                    $redis->set($key, $value);
-                    break;
-                case 'set':
-                    if (Http::post('value') !== $old_value) {
-                        $redis->sRem($key, $old_value);
-                        $redis->sAdd($key, $value);
-                    }
-                    break;
-                case 'list':
-                    $size = $redis->lLen($key);
-                    $index = $_POST['index'] ?? '';
+        switch ($type) {
+            case 'string':
+                $redis->set($key, $value);
+                break;
+            case 'set':
+                if (Http::post('value') !== $old_value) {
+                    $redis->sRem($key, $old_value);
+                    $redis->sAdd($key, $value);
+                }
+                break;
+            case 'list':
+                $size = $redis->lLen($key);
+                $index = $_POST['index'] ?? '';
 
-                    if ($index === '' || $index === $size) {
-                        $redis->rPush($key, $value);
-                    } elseif ($index === -1) {
-                        $redis->lPush($key, $value);
-                    } elseif ($index >= 0 && $index < $size) {
-                        $redis->lSet($key, (int) $index, $value);
-                    } else {
-                        $error = 'Out of bounds index.';
-                    }
-                    break;
-                case 'zset':
-                    $redis->zRem($key, $old_value);
-                    $redis->zAdd($key, Http::post('score', 'int'), $value);
-                    break;
-                case 'hash':
-                    if ($redis->hExists($key, Http::get('hash_key'))) {
-                        $redis->hDel($key, Http::get('hash_key'));
-                    }
+                if ($index === '' || $index === $size) {
+                    $redis->rPush($key, $value);
+                } elseif ($index === -1) {
+                    $redis->lPush($key, $value);
+                } elseif ($index >= 0 && $index < $size) {
+                    $redis->lSet($key, (int) $index, $value);
+                } else {
+                    $error = 'Out of bounds index.';
+                }
+                break;
+            case 'zset':
+                $redis->zRem($key, $old_value);
+                $redis->zAdd($key, Http::post('score', 'int'), $value);
+                break;
+            case 'hash':
+                if ($redis->hExists($key, Http::get('hash_key'))) {
+                    $redis->hDel($key, Http::get('hash_key'));
+                }
 
-                    $redis->hSet($key, Http::post('hash_key'), $value);
-                    break;
-                default:
-            }
+                $redis->hSet($key, Http::post('hash_key'), $value);
+                break;
+            default:
+        }
 
-            if ($expire === -1) {
-                $redis->persist($key);
-            } else {
-                $redis->expire($key, $expire);
-            }
+        if ($expire === -1) {
+            $redis->persist($key);
+        } else {
+            $redis->expire($key, $expire);
+        }
 
-            $old_key = Http::post('old_key');
+        $old_key = Http::post('old_key');
 
-            if ($old_key !== $key) {
-                $redis->rename($old_key, $key);
-            }
+        if ($old_key !== $key) {
+            $redis->rename($old_key, $key);
+        }
 
-            if (!empty($error)) {
-                Helpers::alert($this->template, $error, 'bg-red-500');
-            } else {
-                Http::redirect(['db'], ['view' => 'key', 'key' => $key]);
-            }
+        if (!empty($error)) {
+            Helpers::alert($this->template, $error, 'bg-red-500');
+        } else {
+            Http::redirect(['db'], ['view' => 'key', 'key' => $key]);
         }
     }
 

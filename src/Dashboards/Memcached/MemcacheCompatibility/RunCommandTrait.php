@@ -20,7 +20,7 @@ trait RunCommandTrait {
      *
      * @param string $command
      *
-     * @return ?array<mixed, mixed>
+     * @return ?array<int, mixed>
      */
     public function runCommand(string $command): ?array {
         $data = [];

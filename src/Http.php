@@ -95,7 +95,7 @@ class Http {
         $location = $url ?? self::queryString($filter, $additional);
 
         if (!headers_sent()) {
-            header('Location: '.$location, true);
+            header('Location: '.$location);
         } else {
             echo '<script data-cfasync="false">window.location.replace("'.$location.'");</script>';
         }

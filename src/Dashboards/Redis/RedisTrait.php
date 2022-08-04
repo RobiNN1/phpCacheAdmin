@@ -389,7 +389,9 @@ trait RedisTrait {
         $encoder = Http::get('encoder');
         $encoder = !empty($encoder) ? $encoder : 'none';
 
-        $this->saveKey($redis);
+        if (isset($_POST['submit'])) {
+            $this->saveKey($redis);
+        }
 
         if (isset($_GET['key']) && $_GET['form'] === 'edit' && $redis->exists($key)) {
             $type = $this->getType($redis->type($key));

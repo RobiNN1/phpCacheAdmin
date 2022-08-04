@@ -153,7 +153,7 @@ class Helpers {
     /**
      * Return JSON data for ajax.
      *
-     * @param array<mixed, mixed> $data
+     * @param array<string, mixed> $data
      *
      * @return string
      */
@@ -231,9 +231,9 @@ class Helpers {
     /**
      * Convert bool to string in an array.
      *
-     * @param array<mixed, mixed> $array
+     * @param array<int|string, mixed> $array
      *
-     * @return array<mixed, mixed>
+     * @return array<int|string, mixed>
      */
     public static function convertBoolToString(array $array): array {
         foreach ($array as $name => $value) {
@@ -272,7 +272,7 @@ class Helpers {
      *
      * @param string $value
      *
-     * @return array<mixed, mixed>
+     * @return array<int, mixed>
      */
     public static function decodeAndFormatValue(string $value): array {
         $is_formatted = false;

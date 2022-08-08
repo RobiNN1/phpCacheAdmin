@@ -337,6 +337,10 @@ class Helpers {
      * @return string
      */
     public static function encodeValue(string $value, string $encoder): string {
+        if ($encoder === 'none') {
+            return $value;
+        }
+
         $encoder = Config::get('encoding')[$encoder];
 
         if (is_callable($encoder['save']) && $encoder['save']($value) !== null) {
@@ -355,6 +359,10 @@ class Helpers {
      * @return string
      */
     public static function decodeValue(string $value, string $decoder): string {
+        if ($decoder === 'none') {
+            return $value;
+        }
+
         $decoder = Config::get('encoding')[$decoder];
 
         if (is_callable($decoder['view']) && $decoder['view']($value) !== null) {

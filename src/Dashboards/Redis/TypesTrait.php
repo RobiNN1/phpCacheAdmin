@@ -60,17 +60,15 @@ trait TypesTrait {
                 break;
             case 'set':
                 $members = $redis->sMembers($key);
-                $member = Http::get('member', 'int');
-                $value = $members[!empty($member) ? $member : 0];
+                $value = $members[Http::get('member', 'int')];
                 break;
             case 'list':
                 $index = Http::get('index', 'int');
-                $value = $redis->lIndex($key, !empty($index) ? $index : 0);
+                $value = $redis->lIndex($key, $index);
                 break;
             case 'zset':
                 $ranges = $redis->zRange($key, 0, -1);
                 $range = Http::get('range', 'int');
-                $range = !empty($range) ? $range : 0;
 
                 $value = $ranges[$range];
                 $score = $redis->zScore($key, $value);
@@ -82,9 +80,7 @@ trait TypesTrait {
                     $keys[] = $k;
                 }
 
-                $hash_key = Http::get('hash_key');
-                $hash_key = !empty($hash_key) ? $hash_key : $keys[0];
-
+                $hash_key = Http::get('hash_key', 'string', $keys[0]);
                 $value = $redis->hGet($key, $hash_key);
                 break;
             default:
@@ -136,19 +132,11 @@ trait TypesTrait {
      * @throws RedisException
      */
     private function saveKey(Redis $redis): void {
-        $error = '';
-        $type = Http::post('redis_type');
         $key = Http::post('key');
-        $value = Http::post('value');
-        $expire = Http::post('expire', 'int');
+        $value = Helpers::encodeValue(Http::post('value'), Http::post('encoder'));
         $old_value = Http::post('old_value');
-        $encoder = Http::post('encoder');
 
-        if ($encoder !== 'none') {
-            $value = Helpers::encodeValue($value, $encoder);
-        }
-
-        switch ($type) {
+        switch (Http::post('redis_type')) {
             case 'string':
                 $redis->set($key, $value);
                 break;
@@ -162,14 +150,15 @@ trait TypesTrait {
                 $size = $redis->lLen($key);
                 $index = $_POST['index'] ?? '';
 
-                if ($index === '' || $index === $size) {
+                if ($index === '' || $index === (string) $size) {
                     $redis->rPush($key, $value);
-                } elseif ($index === -1) {
+                } elseif ($index === '-1') {
                     $redis->lPush($key, $value);
                 } elseif ($index >= 0 && $index < $size) {
                     $redis->lSet($key, (int) $index, $value);
                 } else {
-                    $error = 'Out of bounds index.';
+                    Http::stopRedirect();
+                    Helpers::alert($this->template, 'Out of bounds index.', 'bg-red-500');
                 }
                 break;
             case 'zset':
@@ -186,6 +175,9 @@ trait TypesTrait {
             default:
         }
 
+
+        $expire = Http::post('expire', 'int');
+
         if ($expire === -1) {
             $redis->persist($key);
         } else {
@@ -198,11 +190,7 @@ trait TypesTrait {
             $redis->rename($old_key, $key);
         }
 
-        if (!empty($error)) {
-            Helpers::alert($this->template, $error, 'bg-red-500');
-        } else {
-            Http::redirect(['db'], ['view' => 'key', 'key' => $key]);
-        }
+        Http::redirect(['db'], ['view' => 'key', 'key' => $key]);
     }
 
     /**

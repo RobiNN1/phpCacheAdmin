@@ -13,6 +13,18 @@ declare(strict_types=1);
 namespace RobiNN\Pca;
 
 class Http {
+    private static bool $stop_redirect = false;
+
+    /**
+     * Prevent redirecting.
+     *
+     * @return void
+     *
+     */
+    public static function stopRedirect(): void {
+        self::$stop_redirect = true;
+    }
+
     /**
      * Query string manipulation.
      *
@@ -37,23 +49,20 @@ class Http {
     /**
      * Get query parameter.
      *
-     * @param string $key
-     * @param string $type
+     * @param string          $key
+     * @param string          $type
+     * @param null|string|int $default
      *
      * @return string|int
      */
-    public static function get(string $key, string $type = 'string') {
+    public static function get(string $key, string $type = 'string', $default = null) {
         $filter = FILTER_SANITIZE_FULL_SPECIAL_CHARS;
 
         if ($type === 'int') {
             $filter = FILTER_SANITIZE_NUMBER_INT;
         }
 
-        if (filter_has_var(INPUT_GET, $key)) {
-            $value = filter_input(INPUT_GET, $key, $filter);
-        } else {
-            $value = isset($_GET[$key]) ? filter_var($_GET[$key], $filter) : null;
-        }
+        $value = isset($_GET[$key]) ? filter_var($_GET[$key], $filter) : $default;
 
         return $type === 'int' ? (int) $value : (string) $value;
     }
@@ -61,23 +70,20 @@ class Http {
     /**
      * Get post value.
      *
-     * @param string $key
-     * @param string $type
+     * @param string          $key
+     * @param string          $type
+     * @param null|string|int $default
      *
      * @return string|int
      */
-    public static function post(string $key, string $type = 'string') {
+    public static function post(string $key, string $type = 'string', $default = null) {
         $filter = FILTER_UNSAFE_RAW;
 
         if ($type === 'int') {
             $filter = FILTER_SANITIZE_NUMBER_INT;
         }
 
-        if (filter_has_var(INPUT_POST, $key)) {
-            $value = filter_input(INPUT_POST, $key, $filter);
-        } else {
-            $value = isset($_POST[$key]) ? filter_var($_POST[$key], $filter) : null;
-        }
+        $value = isset($_POST[$key]) ? filter_var($_POST[$key], $filter) : $default;
 
         return $type === 'int' ? (int) $value : (string) $value;
     }
@@ -87,19 +93,20 @@ class Http {
      *
      * @param array<int|string, string> $filter
      * @param array<int|string, string> $additional
-     * @param ?string                   $url
      *
      * @return void
      */
-    public static function redirect(array $filter = [], array $additional = [], ?string $url = null): void {
-        $location = $url ?? self::queryString($filter, $additional);
+    public static function redirect(array $filter = [], array $additional = []): void {
+        if (self::$stop_redirect === false) {
+            $location = self::queryString($filter, $additional);
 
-        if (!headers_sent()) {
-            header('Location: '.$location);
-        } else {
+            if (!headers_sent()) {
+                header('Location: '.$location);
+            }
+
             echo '<script data-cfasync="false">window.location.replace("'.$location.'");</script>';
-        }
 
-        die();
+            die();
+        }
     }
 }

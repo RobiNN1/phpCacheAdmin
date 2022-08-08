@@ -185,11 +185,10 @@ trait APCuTrait {
      */
     private function form(): string {
         $key = Http::get('key');
-        $value = '';
         $expire = 0;
 
-        $encoder = Http::get('encoder');
-        $encoder = !empty($encoder) ? $encoder : 'none';
+        $encoder = Http::get('encoder', 'string', 'none');
+        $value = Helpers::decodeValue(Http::post('value'), $encoder);
 
         if (isset($_GET['key']) && apcu_exists($key)) {
             $value = apcu_fetch($key);
@@ -200,14 +199,10 @@ trait APCuTrait {
 
         if (isset($_POST['submit'])) {
             $key = Http::post('key');
-            $value = Http::post('value');
             $expire = Http::post('expire', 'int');
             $old_key = Http::post('old_key');
             $encoder = Http::post('encoder');
-
-            if ($encoder !== 'none') {
-                $value = Helpers::encodeValue($value, $encoder);
-            }
+            $value = Helpers::encodeValue($value, $encoder);
 
             if (!empty($old_key) && $old_key !== $key) {
                 apcu_delete($old_key);
@@ -216,10 +211,6 @@ trait APCuTrait {
             apcu_store($key, $value, $expire);
 
             Http::redirect([], ['view' => 'key', 'key' => $key]);
-        }
-
-        if ($encoder !== 'none') {
-            $value = Helpers::decodeValue($value, $encoder);
         }
 
         return $this->template->render('dashboards/apcu/form', [

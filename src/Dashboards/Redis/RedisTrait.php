@@ -216,8 +216,7 @@ trait RedisTrait {
      */
     private function getAllKeys(Redis $redis): array {
         static $keys = [];
-        $filter = Http::get('s');
-        $filter = !empty($filter) ? $filter : '*';
+        $filter = Http::get('s', 'string', '*');
 
         $this->template->addGlobal('search_value', $filter);
 
@@ -378,16 +377,14 @@ trait RedisTrait {
      * @throws RedisException
      */
     private function form(Redis $redis): string {
-        $key = Http::get('key');
-        $type = 'string';
-        $value = '';
-        $index = null;
-        $score = 0;
-        $hash_key = '';
-        $expire = -1;
-
-        $encoder = Http::get('encoder');
-        $encoder = !empty($encoder) ? $encoder : 'none';
+        $key = Http::get('key', 'string', Http::post('key'));
+        $type = Http::post('redis_type');
+        $index = $_POST['index'] ?? '';
+        $score = Http::post('score', 'int');
+        $hash_key = Http::post('hash_key');
+        $expire = Http::post('expire', 'int', -1);
+        $encoder = Http::get('encoder', 'string', 'none');
+        $value = Helpers::decodeValue(Http::post('value'), $encoder);
 
         if (isset($_POST['submit'])) {
             $this->saveKey($redis);
@@ -403,10 +400,6 @@ trait RedisTrait {
         if (isset($_GET['key']) && $_GET['form'] === 'new' && $redis->exists($key)) {
             $type = $this->getType($redis->type($key));
             $expire = $redis->ttl($key);
-        }
-
-        if ($encoder !== 'none') {
-            $value = Helpers::decodeValue($value, $encoder);
         }
 
         return $this->template->render('dashboards/redis/form', [

@@ -53,9 +53,9 @@ class Admin {
      *
      * @param string $dashboard
      *
-     * @return object
+     * @return DashboardInterface
      */
-    public function getDashboard(string $dashboard): object {
+    public function getDashboard(string $dashboard): DashboardInterface {
         return $this->dashboards[$dashboard];
     }
 

@@ -52,16 +52,9 @@ class Paginator {
      */
     public function __construct(Template $template, array $items) {
         $this->template = $template;
-
         $this->total = count($items);
-
-        $page = (int) Http::get('p', 'int');
-        $this->page = empty($page) ? 1 : $page;
-
-        $per_page = (int) Http::get('pp', 'int');
-        $default_per_page = 25;
-        $this->per_page = empty($per_page) ? $default_per_page : $per_page;
-
+        $this->page = Http::get('p', 'int', 1);
+        $this->per_page = Http::get('pp', 'int', 25);
         $this->paginated = array_slice($items, $this->per_page * ($this->page - 1), $this->per_page, true);
     }
 

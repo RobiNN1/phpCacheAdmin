@@ -25,12 +25,14 @@ use RobiNN\Pca\Template;
 class RedisDashboard implements DashboardInterface {
     use RedisTrait;
 
+    private Template $template;
+
     private int $current_server;
 
     private int $current_db;
 
     public function __construct(Template $template) {
-        $this->construct($template); // for RedisTrait
+        $this->template = $template;
 
         $this->current_server = Http::get('server', 'int');
 

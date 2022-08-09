@@ -18,23 +18,9 @@ use RobiNN\Pca\Dashboards\DashboardException;
 use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
 use RobiNN\Pca\Paginator;
-use RobiNN\Pca\Template;
 
 trait RedisTrait {
     use TypesTrait;
-
-    private Template $template;
-
-    /**
-     * Constructor.
-     *
-     * @param Template $template
-     *
-     * @return void
-     */
-    public function construct(Template $template): void {
-        $this->template = $template;
-    }
 
     /**
      * Get server info for ajax.

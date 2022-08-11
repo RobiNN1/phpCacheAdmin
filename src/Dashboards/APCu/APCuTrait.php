@@ -80,7 +80,6 @@ trait APCuTrait {
                 'key'       => $key_data['info'],
                 'ttl'       => $key_data['ttl'] === 0 ? -1 : $key_data['ttl'],
                 'hits'      => Helpers::formatNumber((int) $key_data['num_hits']),
-                'memory'    => Helpers::formatBytes($key_data['mem_size']),
                 'last_used' => Helpers::formatTime($key_data['access_time']),
                 'created'   => Helpers::formatTime($key_data['creation_time']),
             ];

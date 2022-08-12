@@ -172,21 +172,19 @@ trait RedisTrait {
     private function getDatabases(Redis $redis): array {
         $databases = [];
 
-        if ($db_count = $redis->config('GET', 'databases')) {
-            $db_count = $db_count['databases']; // @phpstan-ignore-line
+        $db_count = (array) $redis->config('GET', 'databases');
 
-            for ($d = 0; $d < $db_count; ++$d) {
-                $keyspace = $redis->info('KEYSPACE');
-                $keys_in_db = '';
+        for ($d = 0; $d < $db_count['databases']; ++$d) {
+            $keyspace = $redis->info('KEYSPACE');
+            $keys_in_db = '';
 
-                if (array_key_exists('db'.$d, $keyspace)) {
-                    $db = explode(',', $keyspace['db'.$d]);
-                    $keys = explode('=', $db[0]);
-                    $keys_in_db = ' (Keys: '.Helpers::formatNumber((int) $keys[1]).')';
-                }
-
-                $databases[$d] = 'Database '.$d.$keys_in_db;
+            if (array_key_exists('db'.$d, $keyspace)) {
+                $db = explode(',', $keyspace['db'.$d]);
+                $keys = explode('=', $db[0]);
+                $keys_in_db = ' ('.Helpers::formatNumber((int) $keys[1]).' keys)';
             }
+
+            $databases[$d] = 'Database '.$d.$keys_in_db;
         }
 
         return $databases;

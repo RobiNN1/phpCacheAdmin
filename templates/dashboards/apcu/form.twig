@@ -1,21 +1,23 @@
 <form method="post">
     <input type="hidden" name="old_key" value="{{ key }}">
 
-    {{ include('components/input.twig', {
-        id: 'key',
-        label: 'Key',
-        value: key,
-        required: true,
-    }) }}
+    <div class="md:grid md:grid-cols-2 md:gap-2">
+        {{ include('components/input.twig', {
+            id: 'key',
+            label: 'Key',
+            value: key,
+            required: true,
+        }) }}
 
-    {{ include('components/input.twig', {
-        id: 'expire',
-        label: 'Expire (in seconds)',
-        type: 'number',
-        help: '0 removes expiration (default).',
-        value: expire,
-        attr: ' min="0"',
-    }) }}
+        {{ include('components/input.twig', {
+            id: 'expire',
+            label: 'Expire (in seconds)',
+            type: 'number',
+            help: '0 removes expiration (default).',
+            value: expire,
+            attr: ' min="0"',
+        }) }}
+    </div>
 
     {% if encoders %}
         <div class="mb-3">

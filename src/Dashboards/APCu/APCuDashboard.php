@@ -42,7 +42,6 @@ class APCuDashboard implements DashboardInterface {
     public function getDashboardInfo(): array {
         return [
             'key'   => 'apcu',
-            'icon'  => 'opcache', // it doesn't have its own logo..
             'title' => 'APCu',
             'color' => 'slate',
         ];

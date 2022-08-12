@@ -179,17 +179,17 @@ class Helpers {
     public static function svg(string $icon, ?int $size = 16, ?string $class = null): ?string {
         $file = is_file($icon) ? $icon : __DIR__.'/../assets/icons/'.$icon.'.svg';
 
-        if (is_file($file)) {
-            $content = trim(file_get_contents($file));
-            preg_match('~<svg([^<>]*)>~', $content, $attributes);
-
-            $size_attr = $size ? ' width="'.$size.'" height="'.$size.'"' : '';
-            $class_attr = $class ? ' class="'.$class.'"' : '';
-
-            return preg_replace('~<svg([^<>]*)>~', '<svg'.$attributes[1].$size_attr.$class_attr.'>', $content);
+        if (!is_file($file)) {
+            return null;
         }
 
-        return null;
+        $content = trim(file_get_contents($file));
+        preg_match('~<svg([^<>]*)>~', $content, $attributes);
+
+        $size_attr = $size ? ' width="'.$size.'" height="'.$size.'"' : '';
+        $class_attr = $class ? ' class="'.$class.'"' : '';
+
+        return preg_replace('~<svg([^<>]*)>~', '<svg'.$attributes[1].$size_attr.$class_attr.'>', $content);
     }
 
     /**

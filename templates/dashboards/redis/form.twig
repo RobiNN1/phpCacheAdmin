@@ -6,13 +6,7 @@
         <label for="redis_type" class="mb-2 block text-sm font-semibold">Type</label>
         {{ include('components/select.twig', {
             id: 'redis_type',
-            options: {
-                'string': 'String',
-                'set': 'Set',
-                'list': 'List',
-                'zset': 'Zset',
-                'hash': 'Hash',
-            },
+            options: types,
             class: 'w-full',
             selected: type,
         }) }}

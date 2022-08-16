@@ -400,6 +400,7 @@ trait RedisTrait {
         return $this->template->render('dashboards/redis/form', [
             'key'      => $key,
             'value'    => $value,
+            'types'    => $this->getAllTypes(),
             'type'     => $type,
             'index'    => $index,
             'score'    => $score,

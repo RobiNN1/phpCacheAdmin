@@ -20,6 +20,35 @@ use RobiNN\Pca\Http;
 
 trait TypesTrait {
     /**
+     * @var array<int, string>
+     */
+    private array $data_types = [
+        Redis::REDIS_NOT_FOUND => 'other',
+        Redis::REDIS_STRING    => 'string',
+        Redis::REDIS_SET       => 'set',
+        Redis::REDIS_LIST      => 'list',
+        Redis::REDIS_ZSET      => 'zset',
+        Redis::REDIS_HASH      => 'hash',
+    ];
+
+    /**
+     * Get all data types.
+     *
+     * @return array<string, string>
+     */
+    private function getAllTypes(): array {
+        static $types = [];
+
+        unset($this->data_types[0]); // do not show 'other'
+
+        foreach ($this->data_types as $type) {
+            $types[$type] = ucfirst($type);
+        }
+
+        return $types;
+    }
+
+    /**
      * Get a key type.
      *
      * @param int $type
@@ -28,20 +57,11 @@ trait TypesTrait {
      * @throws DashboardException
      */
     private function getType(int $type): string {
-        $data_types = [
-            Redis::REDIS_NOT_FOUND => 'other',
-            Redis::REDIS_STRING    => 'string',
-            Redis::REDIS_SET       => 'set',
-            Redis::REDIS_LIST      => 'list',
-            Redis::REDIS_ZSET      => 'zset',
-            Redis::REDIS_HASH      => 'hash',
-        ];
-
-        if (!isset($data_types[$type])) {
+        if (!isset($this->data_types[$type])) {
             throw new DashboardException(sprintf('Unsupported data type: %s', $type));
         }
 
-        return $data_types[$type];
+        return $this->data_types[$type];
     }
 
     /**
@@ -55,7 +75,6 @@ trait TypesTrait {
      * @throws RedisException
      */
     private function getKeyValue(Redis $redis, string $type, string $key): array {
-        $value = '';
         $index = null;
         $score = 0;
         $hash_key = '';
@@ -90,6 +109,7 @@ trait TypesTrait {
                 $value = $redis->hGet($key, $hash_key);
                 break;
             default:
+                $value = '';
         }
 
         return [$value, $index, $score, $hash_key];
@@ -180,7 +200,6 @@ trait TypesTrait {
                 break;
             default:
         }
-
 
         $expire = Http::post('expire', 'int');
 

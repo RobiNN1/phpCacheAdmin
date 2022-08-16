@@ -325,6 +325,8 @@ trait RedisTrait {
     }
 
     /**
+     * Format view items.
+     *
      * @param Redis             $redis
      * @param string            $key
      * @param array<int, mixed> $value_items

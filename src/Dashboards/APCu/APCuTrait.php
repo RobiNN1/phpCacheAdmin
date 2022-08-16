@@ -147,6 +147,7 @@ trait APCuTrait {
         $ttl = $info['ttl'] === 0 ? -1 : $info['ttl'];
 
         return $this->template->render('partials/view_key', [
+            'key'        => $key,
             'value'      => $value,
             'type'       => 'string',
             'ttl'        => !empty($ttl) ? Helpers::formatSeconds($ttl) : null,

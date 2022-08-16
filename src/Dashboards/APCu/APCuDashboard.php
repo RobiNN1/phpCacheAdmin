@@ -62,7 +62,7 @@ class APCuDashboard implements DashboardInterface {
         }
 
         if (isset($_GET['delete'])) {
-            $return = $this->deletekey();
+            $return = $this->deleteKey();
         }
 
         return $return;

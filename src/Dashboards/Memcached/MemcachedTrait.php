@@ -197,6 +197,7 @@ trait MemcachedTrait {
         $ttl = Http::get('ttl', 'int');
 
         return $this->template->render('partials/view_key', [
+            'key'        => $key,
             'value'      => $value,
             'type'       => 'string', // In Memcache(d) everything is stored as a string.
             'ttl'        => !empty($ttl) ? Helpers::formatSeconds($ttl) : null,

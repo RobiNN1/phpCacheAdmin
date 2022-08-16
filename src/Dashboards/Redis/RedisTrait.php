@@ -296,19 +296,7 @@ trait RedisTrait {
         $is_formatted = null;
 
         if (is_array($value)) {
-            $items = [];
-
-            foreach ($value as $value_key => $item) {
-                [$item, $item_encode_fn, $item_is_formatted] = Helpers::decodeAndFormatValue($item);
-
-                $items[] = [
-                    'key'       => $value_key,
-                    'value'     => $item,
-                    'encode_fn' => $item_encode_fn,
-                    'formatted' => $item_is_formatted,
-                    'score'     => $type === 'zset' ? (string) $redis->zScore($key, $item) : $value_key,
-                ];
-            }
+            $items = $this->formatViewItems($redis, $key, $value, $type);
 
             $paginator = new Paginator($this->template, $items);
             $value = $paginator->getPaginated();
@@ -321,6 +309,7 @@ trait RedisTrait {
         $ttl = $redis->ttl($key);
 
         return $this->template->render('partials/view_key', [
+            'key'            => $key,
             'value'          => $value,
             'type'           => $type,
             'ttl'            => $ttl ? Helpers::formatSeconds($ttl) : null,
@@ -333,6 +322,33 @@ trait RedisTrait {
             'delete_url'     => Http::queryString(['db', 'view'], ['delete' => 'key', 'key' => $key]),
             'paginator'      => $paginator,
         ]);
+    }
+
+    /**
+     * @param Redis             $redis
+     * @param string            $key
+     * @param array<int, mixed> $value_items
+     * @param string            $type
+     *
+     * @return array<int, mixed>
+     * @throws RedisException
+     */
+    private function formatViewItems(Redis $redis, string $key, array $value_items, string $type): array {
+        $items = [];
+
+        foreach ($value_items as $value_key => $item) {
+            [$item, $item_encode_fn, $item_is_formatted] = Helpers::decodeAndFormatValue($item);
+
+            $items[] = [
+                'key'       => $value_key,
+                'value'     => $item,
+                'encode_fn' => $item_encode_fn,
+                'formatted' => $item_is_formatted,
+                'sub_key'   => $type === 'zset' ? (string) $redis->zScore($key, $item) : $value_key,
+            ];
+        }
+
+        return $items;
     }
 
     /**

@@ -14,6 +14,7 @@ namespace RobiNN\Pca\Dashboards\Redis;
 
 use Redis;
 use RedisException;
+use RobiNN\Pca\Dashboards\DashboardException;
 use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
 
@@ -24,16 +25,21 @@ trait TypesTrait {
      * @param int $type
      *
      * @return string
+     * @throws DashboardException
      */
     private function getType(int $type): string {
         $data_types = [
+            Redis::REDIS_NOT_FOUND => 'other',
             Redis::REDIS_STRING    => 'string',
             Redis::REDIS_SET       => 'set',
             Redis::REDIS_LIST      => 'list',
             Redis::REDIS_ZSET      => 'zset',
             Redis::REDIS_HASH      => 'hash',
-            Redis::REDIS_NOT_FOUND => 'other',
         ];
+
+        if (!isset($data_types[$type])) {
+            throw new DashboardException(sprintf('Unsupported data type: %s', $type));
+        }
 
         return $data_types[$type];
     }

@@ -205,7 +205,11 @@ trait RedisTrait {
         $this->template->addGlobal('search_value', $filter);
 
         foreach ($redis->keys($filter) as $key) {
-            $type = $this->getType($redis->type($key));
+            try {
+                $type = $this->getType($redis->type($key));
+            } catch (DashboardException $e) {
+                $type = 'unknown';
+            }
 
             $keys[] = [
                 'key'         => $key,
@@ -263,7 +267,11 @@ trait RedisTrait {
             Http::redirect(['db']);
         }
 
-        $type = $this->getType($redis->type($key));
+        try {
+            $type = $this->getType($redis->type($key));
+        } catch (DashboardException $e) {
+            return $e->getMessage();
+        }
 
         if (isset($_GET['deletesub'])) {
             $this->deleteSubKey($redis, $type, $key);
@@ -374,16 +382,19 @@ trait RedisTrait {
             $this->saveKey($redis);
         }
 
-        if (isset($_GET['key']) && $_GET['form'] === 'edit' && $redis->exists($key)) {
-            $type = $this->getType($redis->type($key));
+        // edit|subkeys
+        if (isset($_GET['key']) && $redis->exists($key)) {
+            try {
+                $type = $this->getType($redis->type($key));
+            } catch (DashboardException $e) {
+                Helpers::alert($this->template, $e->getMessage());
+                $type = 'unknown';
+            }
             $expire = $redis->ttl($key);
-            [$value, $index, $score, $hash_key] = $this->getKeyValue($redis, $type, $key);
         }
 
-        // subkeys
-        if (isset($_GET['key']) && $_GET['form'] === 'new' && $redis->exists($key)) {
-            $type = $this->getType($redis->type($key));
-            $expire = $redis->ttl($key);
+        if (isset($_GET['key']) && $_GET['form'] === 'edit' && $redis->exists($key)) {
+            [$value, $index, $score, $hash_key] = $this->getKeyValue($redis, $type, $key);
         }
 
         return $this->template->render('dashboards/redis/form', [

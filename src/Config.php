@@ -23,8 +23,10 @@ class Config {
     public static function get(?string $key = null) {
         if (is_file(__DIR__.'/../config.php')) {
             $config = (array) require __DIR__.'/../config.php';
-        } else {
+        } elseif (is_file(__DIR__.'/../config.dist.php')) {
             $config = (array) require __DIR__.'/../config.dist.php';
+        } else {
+            exit('The configuration file is missing.');
         }
 
         self::getEnvConfig($config);

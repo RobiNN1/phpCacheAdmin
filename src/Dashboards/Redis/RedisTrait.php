@@ -35,30 +35,39 @@ trait RedisTrait {
             $redis = $this->connect($servers[Http::get('panel', 'int')]);
             $server_info = $redis->info();
 
-            $all_keys = 0;
-
-            foreach ($server_info as $key => $value) {
-                if (Helpers::str_starts_with($key, 'db')) {
-                    $db = explode(',', $value);
-                    $keys = explode('=', $db[0]);
-                    $all_keys += (int) $keys[1];
-                }
-            }
-
-            $data = [
+            return [
                 'Version'           => $server_info['redis_version'],
                 'Connected clients' => $server_info['connected_clients'],
                 'Uptime'            => Helpers::formatSeconds($server_info['uptime_in_seconds']),
                 'Memory used'       => Helpers::formatBytes($server_info['used_memory']),
-                'Keys'              => Helpers::formatNumber($all_keys).' (all databases)',
+                'Keys'              => Helpers::formatNumber($this->getCountOfAllKeys($server_info)).' (all databases)',
             ];
         } catch (DashboardException|RedisException $e) {
-            $data = [
+            return [
                 'error' => $e->getMessage(),
             ];
         }
+    }
 
-        return $data;
+    /**
+     * Get a number of keys form all databases.
+     *
+     * @param array<string, mixed> $server_info
+     *
+     * @return int
+     */
+    private function getCountOfAllKeys(array $server_info): int {
+        $all_keys = 0;
+
+        foreach ($server_info as $key => $value) {
+            if (Helpers::str_starts_with($key, 'db')) {
+                $db = explode(',', $value);
+                $keys = explode('=', $db[0]);
+                $all_keys += (int) $keys[1];
+            }
+        }
+
+        return $all_keys;
     }
 
     /**
@@ -118,7 +127,7 @@ trait RedisTrait {
         foreach ($options as $option) {
             $info = $redis->info($option);
 
-            if (!empty($info)) {
+            if (count($info)) {
                 $array[$option] = $info;
             }
         }
@@ -237,8 +246,7 @@ trait RedisTrait {
             $this->import($redis);
         }
 
-        $paginator = new Paginator($this->template, $keys);
-        $paginator->setUrl([['db', 's', 'pp'], ['p' => '']]);
+        $paginator = new Paginator($this->template, $keys, [['db', 's', 'pp'], ['p' => '']]);
 
         return $this->template->render('dashboards/redis/redis', [
             'databases'   => $this->getDatabases($redis),
@@ -298,9 +306,8 @@ trait RedisTrait {
         if (is_array($value)) {
             $items = $this->formatViewItems($redis, $key, $value, $type);
 
-            $paginator = new Paginator($this->template, $items);
+            $paginator = new Paginator($this->template, $items, [['db', 'view', 'key', 'pp'], ['p' => '']]);
             $value = $paginator->getPaginated();
-            $paginator->setUrl([['db', 'view', 'key', 'pp'], ['p' => '']]);
             $paginator = $paginator->render();
         } else {
             [$value, $encode_fn, $is_formatted] = Helpers::decodeAndFormatValue($value);

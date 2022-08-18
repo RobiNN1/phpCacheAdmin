@@ -41,17 +41,17 @@ class Paginator {
     /**
      * @var array<int, mixed>
      */
-    private array $url = [
-        ['pp'],
-        ['p' => ''],
-    ];
+    private array $url;
 
     /**
      * @param Template                         $template
      * @param array<int, array<string, mixed>> $items
+     * @param array<int, mixed>                $queries
      */
-    public function __construct(Template $template, array $items) {
+    public function __construct(Template $template, array $items, array $queries = [['pp'], ['p' => ''],]) {
         $this->template = $template;
+        $this->url = $queries;
+
         $this->total = count($items);
         $this->page = Http::get('p', 'int', 1);
         $this->per_page = Http::get('pp', 'int', 25);
@@ -65,17 +65,6 @@ class Paginator {
      */
     public function getPaginated(): array {
         return $this->paginated;
-    }
-
-    /**
-     * Set Http::queryString() options.
-     *
-     * @param array<int, mixed> $queries
-     *
-     * @return void
-     */
-    public function setUrl(array $queries): void {
-        $this->url = $queries;
     }
 
     /**
@@ -97,7 +86,9 @@ class Paginator {
                 $pages[] = '...';
             }
 
-            for (; $i < min($this->page + 5, $total_pages); $i++) {
+            $min = min($this->page + 5, $total_pages);
+
+            for (; $i < $min; $i++) {
                 $pages[] = $i;
             }
 

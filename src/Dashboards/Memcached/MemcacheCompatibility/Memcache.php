@@ -33,7 +33,9 @@ class Memcache extends \Memcache implements MemcacheInterface {
      * @return bool
      */
     public function isConnected(): bool {
-        return $this->getServerStatus($this->server['host'], (int) $this->server['port']) !== 0;
+        $stats = @$this->getStats(); // Need to be silenced since Memcache doesn't throw exceptions..
+
+        return !empty($stats['pid']) && $stats['pid'] > 0;
     }
 
     /**

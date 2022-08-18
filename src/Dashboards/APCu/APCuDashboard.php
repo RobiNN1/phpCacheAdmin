@@ -141,7 +141,7 @@ class APCuDashboard implements DashboardInterface {
 
         if (isset($_GET['moreinfo'])) {
             $return = $this->moreInfo($info);
-        } elseif (isset($_GET['view']) && !empty($_GET['key'])) {
+        } elseif (isset($_GET['view'], $_GET['key'])) {
             $return = $this->viewKey();
         } elseif (isset($_GET['form'])) {
             $return = $this->form();

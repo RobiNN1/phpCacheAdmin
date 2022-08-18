@@ -35,7 +35,7 @@ trait ServerTrait {
     private function getDisabledFunctions(): string {
         $disabled_functions = 'None';
 
-        if (!empty(ini_get('disable_functions'))) {
+        if (ini_get('disable_functions') !== '') {
             $disable_functions = explode(',', ini_get('disable_functions'));
 
             $disabled_functions = '('.count($disable_functions).') ';

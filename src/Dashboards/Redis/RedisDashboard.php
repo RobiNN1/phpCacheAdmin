@@ -35,12 +35,8 @@ class RedisDashboard implements DashboardInterface {
         $this->template = $template;
 
         $this->current_server = Http::get('server', 'int');
-
         $server = Config::get('redis')[$this->current_server];
-
-        $db = empty($server['database']) ? null : $server['database'];
-        $db_get = Http::get('db', 'int');
-        $this->current_db = $db ?? $db_get;
+        $this->current_db = Http::get('db', 'int', $server['database'] ?? 0);
     }
 
     /**
@@ -193,7 +189,7 @@ class RedisDashboard implements DashboardInterface {
             try {
                 $redis = $this->connect($servers[$this->current_server]);
 
-                if (isset($_GET['view']) && !empty($_GET['key'])) {
+                if (isset($_GET['view'], $_GET['key'])) {
                     $return = $this->viewKey($redis);
                 } elseif (isset($_GET['form'])) {
                     $return = $this->form($redis);

@@ -168,7 +168,7 @@ class MemcachedDashboard implements DashboardInterface {
             try {
                 $memcached = $this->connect($servers[$this->current_server]);
 
-                if (isset($_GET['view']) && !empty($_GET['key'])) {
+                if (isset($_GET['view'], $_GET['key'])) {
                     $return = $this->viewKey($memcached);
                 } elseif (isset($_GET['form'])) {
                     $return = $this->form($memcached);

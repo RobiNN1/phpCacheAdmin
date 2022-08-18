@@ -219,7 +219,7 @@ class Helpers {
      * @return string
      */
     public static function enabledDisabledBadge(Template $template, bool $enabled = true, ?string $text = null, ?array $badge_text = null): string {
-        $badge_text = $badge_text ?: ['Enabled', 'Disabled'];
+        $badge_text = $badge_text ?? ['Enabled', 'Disabled'];
 
         return $template->render('components/badge', [
             'text' => $enabled ? $badge_text[0].$text : $badge_text[1],
@@ -261,7 +261,7 @@ class Helpers {
      */
     public static function str_starts_with(string $haystack, string $needle): bool {
         if (!function_exists('str_starts_with')) {
-            return 0 === strncmp($haystack, $needle, strlen($needle));
+            return strncmp($haystack, $needle, strlen($needle)) === 0;
         }
 
         return str_starts_with($haystack, $needle);
@@ -318,7 +318,7 @@ class Helpers {
     public static function getEncoders(): array {
         $encoders = Config::get('encoding');
 
-        if (empty($encoders)) {
+        if (count($encoders) === 0) {
             return [];
         }
 

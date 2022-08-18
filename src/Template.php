@@ -85,7 +85,7 @@ class Template {
 
             $twig->addFunction(new TwigFunction('svg', [Helpers::class, 'svg'], ['is_safe' => ['html']]));
 
-            $twig->addFilter(new TwigFilter('space', fn (?string $value): string => !empty($value) ? ' '.$value : '', ['is_safe' => ['html']]));
+            $twig->addFilter(new TwigFilter('space', static fn (?string $value): string => !empty($value) ? ' '.$value : '', ['is_safe' => ['html']]));
 
             foreach ($this->globals as $name => $value) {
                 $twig->addGlobal($name, $value);

@@ -51,7 +51,7 @@ class Http {
      *
      * @param string          $key
      * @param string          $type
-     * @param null|string|int $default
+     * @param string|int|null $default
      *
      * @return string|int
      */
@@ -72,7 +72,7 @@ class Http {
      *
      * @param string          $key
      * @param string          $type
-     * @param null|string|int $default
+     * @param string|int|null $default
      *
      * @return string|int
      */
@@ -106,7 +106,7 @@ class Http {
 
             echo '<script data-cfasync="false">window.location.replace("'.$location.'");</script>';
 
-            die();
+            exit();
         }
     }
 }

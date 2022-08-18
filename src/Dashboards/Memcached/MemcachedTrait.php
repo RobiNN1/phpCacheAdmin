@@ -33,27 +33,19 @@ trait MemcachedTrait {
             $memcached = $this->connect($servers[Http::get('panel', 'int')]);
             $server_info = $memcached->getServerStats();
 
-            if (!empty($server_info['version'])) {
-                $data = [
-                    'Version'          => $server_info['version'],
-                    'Open connections' => $server_info['curr_connections'],
-                    'Uptime'           => Helpers::formatSeconds((int) $server_info['uptime']),
-                    'Cache limit'      => Helpers::formatBytes((int) $server_info['limit_maxbytes']),
-                    'Used'             => Helpers::formatBytes((int) $server_info['bytes']),
-                    'Keys'             => Helpers::formatNumber(count($memcached->getKeys())),
-                ];
-            } else {
-                $data = [
-                    'error' => 'Failed to get server information.',
-                ];
-            }
+            return [
+                'Version'          => $server_info['version'],
+                'Open connections' => $server_info['curr_connections'],
+                'Uptime'           => Helpers::formatSeconds((int) $server_info['uptime']),
+                'Cache limit'      => Helpers::formatBytes((int) $server_info['limit_maxbytes']),
+                'Used'             => Helpers::formatBytes((int) $server_info['bytes']),
+                'Keys'             => Helpers::formatNumber(count($memcached->getKeys())),
+            ];
         } catch (DashboardException $e) {
-            $data = [
+            return [
                 'error' => $e->getMessage(),
             ];
         }
-
-        return $data;
     }
 
     /**

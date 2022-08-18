@@ -34,9 +34,11 @@ class RedisDashboard implements DashboardInterface {
     public function __construct(Template $template) {
         $this->template = $template;
 
-        $this->current_server = Http::get('server', 'int');
-        $server = Config::get('redis')[$this->current_server];
-        $this->current_db = Http::get('db', 'int', $server['database'] ?? 0);
+        $servers = Config::get('redis');
+        $server = Http::get('server', 'int');
+
+        $this->current_server = array_key_exists($server, $servers) ? $server : 0;
+        $this->current_db = Http::get('db', 'int', $servers[$this->current_server]['database'] ?? 0);
     }
 
     /**

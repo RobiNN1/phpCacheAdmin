@@ -49,7 +49,7 @@ class Config {
         // PCA_MEMCACHED_0_HOST ...
         $vars = preg_grep('/^PCA_/', array_keys(getenv()));
 
-        if (!empty($vars)) {
+        if (count($vars)) {
             foreach ($vars as $var) {
                 Helpers::envVarToArray($config, $var, getenv($var));
             }

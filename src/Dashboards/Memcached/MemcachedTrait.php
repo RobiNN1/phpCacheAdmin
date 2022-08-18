@@ -75,14 +75,16 @@ trait MemcachedTrait {
     private function deleteKey($memcached): string {
         $keys = explode(',', Http::get('delete'));
 
-        if (count($keys) === 1) {
+        if (count($keys) === 1 && @$memcached->get($keys[0]) !== false) {
             $memcached->delete($keys[0]);
             $message = sprintf('Key "%s" has been deleted.', $keys[0]);
-        } else {
+        } elseif (count($keys) > 1) {
             foreach ($keys as $key) {
                 $memcached->delete($key);
             }
             $message = 'Keys has been deleted.';
+        } else {
+            $message = 'No keys are selected.';
         }
 
         return $this->template->render('components/alert', ['message' => $message]);
@@ -166,7 +168,7 @@ trait MemcachedTrait {
     private function viewKey($memcached): string {
         $key = Http::get('key');
 
-        if (empty($memcached->get($key))) {
+        if ($memcached->get($key) === false) {
             Http::redirect();
         }
 
@@ -187,12 +189,13 @@ trait MemcachedTrait {
         [$value, $encode_fn, $is_formatted] = Helpers::decodeAndFormatValue($value);
 
         $ttl = Http::get('ttl', 'int');
+        $ttl = $ttl === 0 ? -1 : $ttl;
 
         return $this->template->render('partials/view_key', [
             'key'        => $key,
             'value'      => $value,
             'type'       => 'string', // In Memcache(d) everything is stored as a string.
-            'ttl'        => !empty($ttl) ? Helpers::formatSeconds($ttl) : null,
+            'ttl'        => Helpers::formatSeconds($ttl),
             'encode_fn'  => $encode_fn,
             'formatted'  => $is_formatted,
             'edit_url'   => Http::queryString(['ttl'], ['form' => 'edit', 'key' => $key]),
@@ -212,7 +215,7 @@ trait MemcachedTrait {
         if ($_FILES['import']['type'] === 'text/plain') {
             $key_name = Http::post('key_name');
 
-            if (empty($memcached->get($key_name))) {
+            if ($memcached->get($key_name) === false) {
                 $value = file_get_contents($_FILES['import']['tmp_name']);
 
                 $memcached->store($key_name, $value, Http::post('expire', 'int'));
@@ -246,7 +249,7 @@ trait MemcachedTrait {
             $encoder = Http::post('encoder');
             $value = Helpers::encodeValue($value, $encoder);
 
-            if (!empty($old_key) && $old_key !== $key) {
+            if ($old_key !== '' && $old_key !== $key) {
                 $memcached->delete($old_key);
             }
 

@@ -47,11 +47,11 @@ return [
             !isset($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']) ||
             $_SERVER['PHP_AUTH_USER'] !== $username || $_SERVER['PHP_AUTH_PW'] !== $password
         ) {
-            Header('WWW-Authenticate: Basic realm="phpCacheAdmin Login"');
-            Header('HTTP/1.0 401 Unauthorized');
+            header('WWW-Authenticate: Basic realm="phpCacheAdmin Login"');
+            header('HTTP/1.0 401 Unauthorized');
 
             echo 'Incorrect username or password!';
-            exit;
+            exit();
         }
 
         if (isset($_GET['logout'])) {
@@ -60,9 +60,7 @@ return [
                 (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https')
             );
 
-            $current_url = sprintf('http%s://reset:reset@%s', ($is_https ? 's' : ''), $_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI']);
-
-            RobiNN\Pca\Http::redirect([], [], $current_url);
+            header('Location: http'.($is_https ? 's' : '').'://reset:reset@'.($_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI']));
         }
     },*/
     // Decoding/Encoding functions

@@ -25,14 +25,15 @@ trait APCuTrait {
     private function deleteKey(): string {
         $keys = explode(',', Http::get('delete'));
 
-        if (count($keys) === 1) {
-            apcu_delete($keys[0]);
+        if (count($keys) === 1 && apcu_delete($keys[0])) {
             $message = sprintf('Key "%s" has been deleted.', $keys[0]);
-        } else {
+        } elseif (count($keys) > 1) {
             foreach ($keys as $key) {
                 apcu_delete($key);
             }
             $message = 'Keys has been deleted.';
+        } else {
+            $message = 'No keys are selected.';
         }
 
         return $this->template->render('components/alert', ['message' => $message]);
@@ -150,7 +151,7 @@ trait APCuTrait {
             'key'        => $key,
             'value'      => $value,
             'type'       => 'string',
-            'ttl'        => !empty($ttl) ? Helpers::formatSeconds($ttl) : null,
+            'ttl'        => Helpers::formatSeconds($ttl),
             'encode_fn'  => $encode_fn,
             'formatted'  => $is_formatted,
             'edit_url'   => Http::queryString(['ttl'], ['form' => 'edit', 'key' => $key]),
@@ -204,7 +205,7 @@ trait APCuTrait {
             $encoder = Http::post('encoder');
             $value = Helpers::encodeValue($value, $encoder);
 
-            if (!empty($old_key) && $old_key !== $key) {
+            if ($old_key !== '' && $old_key !== $key) {
                 apcu_delete($old_key);
             }
 

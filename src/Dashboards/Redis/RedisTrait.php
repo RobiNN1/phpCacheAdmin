@@ -101,11 +101,13 @@ trait RedisTrait {
 
         if (count($keys) === 1 && $redis->del($keys[0])) {
             $message = sprintf('Key "%s" has been deleted.', $keys[0]);
-        } else {
+        } elseif (count($keys) > 1) {
             foreach ($keys as $key) {
                 $redis->del($key);
             }
             $message = 'Keys has been deleted.';
+        } else {
+            $message = 'No keys are selected.';
         }
 
         return $this->template->render('components/alert', ['message' => $message]);
@@ -148,22 +150,9 @@ trait RedisTrait {
             $server_data = $servers[$id];
             $redis = $this->connect($server_data);
 
-            if (isset($_GET['reset'])) {
-                if ($redis->resetStat()) {
-                    Helpers::alert($this->template, 'Stats has been reseted.');
-                } else {
-                    Helpers::alert($this->template, 'An error occurred while resetting stats.', 'bg-red-500');
-                }
-
-                $reset_link = '<a href="'.Http::queryString(['moreinfo'], ['reset' => $id]).'" class="text-red-500 hover:text-red-700 font-semibold">
-                                  Reset stats
-                              </a>';
-            }
-
             return $this->template->render('partials/info_table', [
-                'panel_title'    => $server_data['name'] ?? $server_data['host'].':'.$server_data['port'],
-                'array'          => $this->getInfo($redis),
-                'bottom_content' => method_exists($redis, 'resetStat') && isset($reset_link) ? $reset_link : '',
+                'panel_title' => $server_data['name'] ?? $server_data['host'].':'.$server_data['port'],
+                'array'       => $this->getInfo($redis),
             ]);
         } catch (DashboardException|RedisException $e) {
             return $e->getMessage();
@@ -319,7 +308,7 @@ trait RedisTrait {
             'key'            => $key,
             'value'          => $value,
             'type'           => $type,
-            'ttl'            => $ttl ? Helpers::formatSeconds($ttl) : null,
+            'ttl'            => Helpers::formatSeconds($ttl),
             'encode_fn'      => $encode_fn,
             'formatted'      => $is_formatted,
             'add_subkey_url' => Http::queryString(['db'], ['form' => 'new', 'key' => $key]),

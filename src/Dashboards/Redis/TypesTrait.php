@@ -39,7 +39,7 @@ trait TypesTrait {
     private function getAllTypes(): array {
         static $types = [];
 
-        unset($this->data_types[0]); // do not show 'other'
+        unset($this->data_types[Redis::REDIS_NOT_FOUND]);
 
         foreach ($this->data_types as $type) {
             $types[$type] = ucfirst($type);
@@ -65,7 +65,9 @@ trait TypesTrait {
     }
 
     /**
-     * Get key's value. (For edit form)
+     * Get key's value.
+     *
+     * Used in edit form.
      *
      * @param Redis  $redis
      * @param string $type
@@ -116,7 +118,9 @@ trait TypesTrait {
     }
 
     /**
-     * Get all key's values. (For view key page)
+     * Get all key's values.
+     *
+     * Used in view page.
      *
      * @param Redis  $redis
      * @param string $type

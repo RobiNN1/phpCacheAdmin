@@ -33,9 +33,9 @@ class Memcache extends \Memcache implements MemcacheInterface {
      * @return bool
      */
     public function isConnected(): bool {
-        $stats = @$this->getStats(); // Need to be silenced since Memcache doesn't throw exceptions..
+        $stats = @$this->getStats(); // Need to be silenced since Memcache doesn't throw exceptions...
 
-        return !empty($stats['pid']) && $stats['pid'] > 0;
+        return isset($stats['pid']) && $stats['pid'] > 0;
     }
 
     /**

@@ -67,6 +67,6 @@ class Admin {
     public function currentDashboard(): string {
         $current = Http::get('type');
 
-        return !empty($current) && array_key_exists($current, $this->getDashboards()) ? $current : 'server';
+        return array_key_exists($current, $this->getDashboards()) ? $current : 'server';
     }
 }

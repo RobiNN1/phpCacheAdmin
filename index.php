@@ -62,11 +62,16 @@ $tpl->addGlobal('color', $info['color']);
 if (isset($_GET['ajax'])) {
     echo $dashboard->ajax();
 } else {
+    if (isset($_GET['moreinfo']) || isset($_GET['form']) || isset($_GET['view'], $_GET['key'])) {
+        $back_url = Http::queryString(['db', 's']);
+    }
+
     echo $tpl->render('layout', [
         'site_title' => $info['title'],
         'nav'        => $nav,
         'logout_url' => $auth ? Http::queryString([], ['logout' => 'yes']) : null,
         'version'    => Admin::VERSION,
+        'back_url'   => $back_url ?? null,
         'panels'     => $dashboard->showPanels(),
         'dashboard'  => $dashboard->dashboard(),
     ]);

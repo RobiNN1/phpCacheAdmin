@@ -411,4 +411,21 @@ class Helpers {
 
         return htmlspecialchars($value);
     }
+
+    /**
+     * Get configuration info for a given extension.
+     *
+     * @param string $extension
+     *
+     * @return array<string, array<string, int|string|bool>>
+     */
+    public static function getExtIniInfo(string $extension): array {
+        static $info = [];
+
+        foreach (ini_get_all($extension) as $ini_name => $ini_value) {
+            $info['ini_config'][$ini_name] = $ini_value['local_value'];
+        }
+
+        return $info;
+    }
 }

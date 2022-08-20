@@ -27,17 +27,19 @@
             {% if array and ajax == false %}
                 {% for name, value in array %}
                     {% if value is iterable %}
-                        <tr class="bg-{{ color }}-50 text-{{ color }}-900">
-                            <td colspan="2" class="px-4 py-2 text-xs font-bold uppercase whitespace-nowrap">{{ name|replace({'_': ' '}) }}</td>
-                        </tr>
-                        {% for sub_name, sub_value in value %}
-                            {% if sub_value is not iterable %}
-                                <tr class="[&:last-child>*]:border-b-0">
-                                    <td class="border-b border-gray-100 px-4 py-1 text-sm font-semibold whitespace-nowrap">{{ sub_name }}</td>
-                                    <td class="border-b border-gray-100 px-4 py-1 text-sm">{{ sub_value|raw }}</td>
-                                </tr>
-                            {% endif %}
-                        {% endfor %}
+                        {% if value|length > 0 %}
+                            <tr class="bg-{{ color }}-50 text-{{ color }}-900">
+                                <td colspan="2" class="px-4 py-2 text-xs font-bold uppercase whitespace-nowrap">{{ name|replace({'_': ' '}) }}</td>
+                            </tr>
+                            {% for sub_name, sub_value in value %}
+                                {% if sub_value is not iterable %}
+                                    <tr class="[&:last-child>*]:border-b-0">
+                                        <td class="border-b border-gray-100 px-4 py-1 text-sm font-semibold whitespace-nowrap">{{ sub_name }}</td>
+                                        <td class="border-b border-gray-100 px-4 py-1 text-sm">{{ sub_value|raw }}</td>
+                                    </tr>
+                                {% endif %}
+                            {% endfor %}
+                        {% endif %}
                     {% else %}
                         <tr class="[&:last-child>*]:border-b-0">
                             <td class="border-b border-gray-100 px-4 py-1 text-sm font-semibold whitespace-nowrap">{{ name }}</td>

@@ -102,9 +102,14 @@ trait MemcachedTrait {
             $id = Http::get('moreinfo', 'int');
             $server_data = $servers[$id];
 
+            $info = $this->connect($server_data)->getServerStats();
+            $memcached = extension_loaded('memcached') ? 'd' : '';
+
+            $info += Helpers::getExtIniInfo('memcache'.$memcached);
+
             return $this->template->render('partials/info_table', [
                 'panel_title' => $server_data['name'] ?? $server_data['host'].':'.$server_data['port'],
-                'array'       => $this->connect($server_data)->getServerStats(),
+                'array'       => Helpers::convertBoolToString($info),
             ]);
         } catch (DashboardException $e) {
             return $e->getMessage();

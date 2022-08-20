@@ -46,12 +46,8 @@ trait OPCacheTrait {
     private function moreInfo(array $status): string {
         unset($status['scripts']);
 
-        $directives = opcache_get_configuration()['directives'];
-
-        $status['directives'] = array_combine(
-            array_map(static fn ($key) => str_replace('opcache.', '', $key), array_keys($directives)),
-            $directives
-        );
+        $configuration = opcache_get_configuration();
+        $status['ini_config'] = $configuration['directives'];
 
         return $this->template->render('partials/info_table', [
             'panel_title' => 'OPCache Info',

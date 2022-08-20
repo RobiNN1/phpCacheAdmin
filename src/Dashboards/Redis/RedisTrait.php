@@ -149,10 +149,13 @@ trait RedisTrait {
             $id = Http::get('moreinfo', 'int');
             $server_data = $servers[$id];
             $redis = $this->connect($server_data);
+            $info = $this->getInfo($redis);
+
+            $info += Helpers::getExtIniInfo('redis');
 
             return $this->template->render('partials/info_table', [
                 'panel_title' => $server_data['name'] ?? $server_data['host'].':'.$server_data['port'],
-                'array'       => $this->getInfo($redis),
+                'array'       => Helpers::convertBoolToString($info),
             ]);
         } catch (DashboardException|RedisException $e) {
             return $e->getMessage();

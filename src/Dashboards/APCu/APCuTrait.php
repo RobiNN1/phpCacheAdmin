@@ -55,10 +55,7 @@ trait APCuTrait {
             }
         }
 
-        foreach (ini_get_all('apcu') as $ini_name => $ini_value) {
-            $ini_name = str_replace('apc.', '', $ini_name);
-            $info['ini_config'][$ini_name] = $ini_value['local_value'];
-        }
+        $info += Helpers::getExtIniInfo('apcu');
 
         return $this->template->render('partials/info_table', [
             'panel_title' => 'APCu Info',

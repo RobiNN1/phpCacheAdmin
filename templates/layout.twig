@@ -50,9 +50,11 @@
         <div id="alerts">{{ alerts|raw }}</div>
 
         {% if back_url %}
-            <a class="text-lg text-{{ color }}-500 hover:text-{{ color }}-700 font-semibold inline-flex items-center mb-2" href="{{ back_url }}">
-                {{ svg('back', 16, 'mr-1') }} Back
-            </a>
+            <div class="block">
+                <a class="text-lg text-{{ color }}-500 hover:text-{{ color }}-700 font-semibold inline-flex items-center mb-2" href="{{ back_url }}">
+                    {{ svg('back', 16, 'mr-1') }} Back
+                </a>
+            </div>
         {% endif %}
 
         {{ panels|raw }}

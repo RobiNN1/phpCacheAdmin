@@ -58,7 +58,7 @@ class MemcachedDashboard implements DashboardInterface {
     /**
      * Connect to the server.
      *
-     * @param array<string, mixed> $server
+     * @param array<string, int|string> $server
      *
      * @return MemcacheCompatibility\Memcache|MemcacheCompatibility\Memcached
      * @throws DashboardException

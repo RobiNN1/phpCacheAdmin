@@ -75,11 +75,11 @@ class OPCacheDashboard implements DashboardInterface {
      */
     public function info(): array {
         $status = opcache_get_status();
-        $directives = opcache_get_configuration()['directives'];
+        $configuration = opcache_get_configuration();
 
         $stats = $status['opcache_statistics'];
 
-        $total_memory = $directives['opcache.memory_consumption'];
+        $total_memory = $configuration['directives']['opcache.memory_consumption'];
         $memory = $status['memory_usage'];
         $memory_usage = ($memory['used_memory'] + $memory['wasted_memory']) / $total_memory;
 

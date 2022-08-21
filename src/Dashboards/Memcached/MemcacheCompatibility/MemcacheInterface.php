@@ -31,12 +31,12 @@ interface MemcacheInterface {
      * Store item.
      *
      * @param string $key
-     * @param mixed  $value
+     * @param string $value
      * @param int    $expiration
      *
      * @return bool
      */
-    public function store(string $key, $value, int $expiration = 0): bool;
+    public function store(string $key, string $value, int $expiration = 0): bool;
 
     /**
      * Get all keys.

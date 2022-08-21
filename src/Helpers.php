@@ -29,11 +29,11 @@ class Helpers {
      *
      * @param array<string, mixed> $array
      * @param string               $array_key
-     * @param mixed                $value
+     * @param string               $value
      *
      * @return void
      */
-    public static function envVarToArray(array &$array, string $array_key, $value): void {
+    public static function envVarToArray(array &$array, string $array_key, string $value): void {
         $array_key = str_replace('PCA_', '', $array_key);
         $keys = explode('_', $array_key);
         $keys = array_map('strtolower', $keys);

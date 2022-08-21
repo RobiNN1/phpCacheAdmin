@@ -22,7 +22,7 @@ use Twig\TwigFunction;
 
 class Template {
     /**
-     * @var array<string, mixed>
+     * @var array<string, int|string>
      */
     private array $globals = [];
 
@@ -34,8 +34,8 @@ class Template {
     /**
      * Add global template variable.
      *
-     * @param string $name
-     * @param mixed  $value
+     * @param string     $name
+     * @param int|string $value
      *
      * @return void
      */

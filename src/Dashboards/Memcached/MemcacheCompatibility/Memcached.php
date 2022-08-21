@@ -16,12 +16,12 @@ class Memcached extends \Memcached implements MemcacheInterface {
     use RunCommandTrait;
 
     /**
-     * @var array<string, mixed>
+     * @var array<string, int|string>
      */
     protected array $server;
 
     /**
-     * @param array<string, mixed> $server
+     * @param array<string, int|string> $server
      */
     public function __construct(array $server = []) {
         parent::__construct();
@@ -51,12 +51,12 @@ class Memcached extends \Memcached implements MemcacheInterface {
      * Store item.
      *
      * @param string $key
-     * @param mixed  $value
+     * @param string $value
      * @param int    $expiration
      *
      * @return bool
      */
-    public function store(string $key, $value, int $expiration = 0): bool {
+    public function store(string $key, string $value, int $expiration = 0): bool {
         return $this->set($key, $value, $expiration);
     }
 }

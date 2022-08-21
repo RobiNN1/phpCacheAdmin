@@ -28,19 +28,22 @@ class Http {
     /**
      * Query string manipulation.
      *
-     * @param array<int|string, string> $filter
-     * @param array<int|string, string> $additional
+     * @param array<int|string, string>     $filter
+     * @param array<int|string, int|string> $additional
      *
      * @return string
      */
     public static function queryString(array $filter = [], array $additional = []): string {
         $keep = ['type', 'server'];
         $filter = array_flip(array_merge($keep, $filter));
-        $url = parse_url($_SERVER['REQUEST_URI']);
+        $query = [];
 
-        parse_str($url['query'] ?? '', $query);
+        if ($url = parse_url($_SERVER['REQUEST_URI'])) {
+            parse_str($url['query'] ?? '', $query);
 
-        $query = array_intersect_key($query, $filter);
+            $query = array_intersect_key($query, $filter);
+        }
+
         $query += $additional;
 
         return ($query !== [] ? '?' : '').http_build_query($query);
@@ -91,8 +94,8 @@ class Http {
     /**
      * Redirect.
      *
-     * @param array<int|string, string> $filter
-     * @param array<int|string, string> $additional
+     * @param array<int|string, string>     $filter
+     * @param array<int|string, int|string> $additional
      *
      * @return void
      */

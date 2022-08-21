@@ -39,14 +39,14 @@ class Paginator {
     private int $per_page;
 
     /**
-     * @var array<int, mixed>
+     * @var array<int, array<int|string, string>>
      */
     private array $url;
 
     /**
-     * @param Template                         $template
-     * @param array<int, array<string, mixed>> $items
-     * @param array<int, mixed>                $queries
+     * @param Template                              $template
+     * @param array<int, array<string, int|string>> $items
+     * @param array<int, array<int|string, string>> $queries
      */
     public function __construct(Template $template, array $items, array $queries = [['pp'], ['p' => ''],]) {
         $this->template = $template;

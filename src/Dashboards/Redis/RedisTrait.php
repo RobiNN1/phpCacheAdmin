@@ -26,7 +26,7 @@ trait RedisTrait {
      * Get server info for ajax.
      * This allows loading data of each server separately.
      *
-     * @param array<int, mixed> $servers
+     * @param array<int, array<string, int|string>> $servers
      *
      * @return array<string, mixed>
      */
@@ -140,7 +140,7 @@ trait RedisTrait {
     /**
      * Show more info.
      *
-     * @param array<int, mixed> $servers
+     * @param array<int, array<string, int|string>> $servers
      *
      * @return string
      */

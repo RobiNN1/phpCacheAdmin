@@ -18,7 +18,7 @@ class Config {
      *
      * @param ?string $key
      *
-     * @return mixed
+     * @return int|string|bool|array<int|string, mixed>
      */
     public static function get(?string $key = null) {
         if (is_file(__DIR__.'/../config.php')) {

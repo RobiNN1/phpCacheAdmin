@@ -1,6 +1,8 @@
 {
   "name": "robinn/phpcacheadmin",
   "description": "A web dashboard for your favorite caching system.",
+  "license": "MIT",
+  "type": "project",
   "keywords": [
     "redis",
     "memcache",
@@ -12,8 +14,6 @@
     "dashboard",
     "gui"
   ],
-  "license": "MIT",
-  "type": "project",
   "authors": [
     {
       "name": "Róbert Kelčák",
@@ -21,32 +21,29 @@
       "homepage": "https://kelcak.com"
     }
   ],
-  "minimum-stability": "dev",
-  "prefer-stable": true,
   "require": {
     "php": ">=7.4",
     "twig/twig": "^3.4"
-  },
-  "suggest": {
-    "ext-redis": "Required for use the redis dashboard.",
-    "ext-memcache": "Required for  the memcache dashboard.",
-    "ext-memcached": "Required for the memcached dashboard.",
-    "ext-apcu": "Required for the apcu dashboard."
   },
   "require-dev": {
     "clue/phar-composer": "^1.4",
     "phpstan/phpstan": "^1.8"
   },
+  "suggest": {
+    "ext-apcu": "Required for the APCu dashboard.",
+    "ext-memcache": "Required for the Memcache dashboard.",
+    "ext-memcached": "Required for the Memcached dashboard.",
+    "ext-redis": "Required for use the Redis dashboard."
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true,
   "autoload": {
     "psr-4": {
       "RobiNN\\Pca\\": "src/"
     }
   },
   "scripts": {
-    "phpstan": "phpstan --ansi",
-    "phar": "phar-composer build twig/twig"
-  },
-  "config": {
-    "sort-packages": true
+    "phar": "phar-composer build twig/twig",
+    "phpstan": "phpstan --ansi"
   }
 }

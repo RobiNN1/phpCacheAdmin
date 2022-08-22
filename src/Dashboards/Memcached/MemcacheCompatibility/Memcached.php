@@ -35,7 +35,7 @@ class Memcached extends \Memcached implements MemcacheInterface {
      * @return bool
      */
     public function isConnected(): bool {
-        return $this->getVersion() || $this->getResultCode() === \Memcached::RES_SUCCESS;
+        return $this->getVersion() || $this->getResultCode() === self::RES_SUCCESS;
     }
 
     /**

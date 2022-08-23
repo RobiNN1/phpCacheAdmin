@@ -13,7 +13,7 @@ declare(strict_types=1);
 namespace RobiNN\Pca\Dashboards\APCu;
 
 use RobiNN\Pca\Dashboards\DashboardInterface;
-use RobiNN\Pca\Helpers;
+use RobiNN\Pca\Format;
 use RobiNN\Pca\Template;
 
 class APCuDashboard implements DashboardInterface {
@@ -89,24 +89,24 @@ class APCuDashboard implements DashboardInterface {
                     'title'    => 'Status',
                     'moreinfo' => true,
                     'data'     => [
-                        'Start time'       => Helpers::formatTime($info['start_time']),
+                        'Start time'       => Format::time($info['start_time']),
                         'Cache full count' => $info['expunges'],
                     ],
                 ],
                 [
                     'title' => 'Memory',
                     'data'  => [
-                        'Total' => Helpers::formatBytes((int) $total_memory),
-                        'Used'  => Helpers::formatBytes((int) $memory_used),
-                        'Free'  => Helpers::formatBytes((int) $memory_info['avail_mem']),
+                        'Total' => Format::bytes((int) $total_memory),
+                        'Used'  => Format::bytes((int) $memory_used),
+                        'Free'  => Format::bytes((int) $memory_info['avail_mem']),
                     ],
                 ],
                 [
                     'title' => 'Stats',
                     'data'  => [
                         'Cached scripts' => $info['num_entries'],
-                        'Hits'           => Helpers::formatNumber((int) $info['num_hits']),
-                        'Misses'         => Helpers::formatNumber((int) $info['num_misses']),
+                        'Hits'           => Format::number((int) $info['num_hits']),
+                        'Misses'         => Format::number((int) $info['num_misses']),
                         'Hit rate'       => round($hit_rate * 100).'%',
                     ],
                 ],

@@ -29,7 +29,7 @@ class Config {
             exit('The configuration file is missing.');
         }
 
-        self::getEnvConfig($config);
+        $config = self::getEnvConfig($config);
 
         return $config[$key] ?? null;
     }
@@ -39,9 +39,9 @@ class Config {
      *
      * @param array<string, mixed> $config
      *
-     * @return void
+     * @return array<string, mixed>
      */
-    private static function getEnvConfig(array &$config): void {
+    private static function getEnvConfig(array $config): array {
         // All keys must start with PCA_ prefix.
         // E.g.
         // PCA_TIMEFORMAT
@@ -51,8 +51,43 @@ class Config {
 
         if (count($vars)) {
             foreach ($vars as $var) {
-                Helpers::envVarToArray($config, $var, getenv($var));
+                self::envVarToArray($config, $var, getenv($var));
             }
         }
+
+        return $config;
+    }
+
+    /**
+     * Convert ENV variable to an array.
+     *
+     * It allows app to use ENV variables and config.php together.
+     *
+     * @param array<string, mixed> $array
+     * @param string               $array_key
+     * @param string               $value
+     *
+     * @return void
+     */
+    private static function envVarToArray(array &$array, string $array_key, string $value): void {
+        $array_key = str_replace('PCA_', '', $array_key);
+        $keys = explode('_', $array_key);
+        $keys = array_map('strtolower', $keys);
+
+        foreach ($keys as $i => $key) {
+            if (count($keys) === 1) {
+                break;
+            }
+
+            unset($keys[$i]);
+
+            if (!isset($array[$key]) || !is_array($array[$key])) {
+                $array[$key] = [];
+            }
+
+            $array = &$array[$key];
+        }
+
+        $array[array_shift($keys)] = $value;
     }
 }

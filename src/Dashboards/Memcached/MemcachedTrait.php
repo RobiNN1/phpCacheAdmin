@@ -15,6 +15,7 @@ namespace RobiNN\Pca\Dashboards\Memcached;
 use RobiNN\Pca\Dashboards\DashboardException;
 use RobiNN\Pca\Dashboards\Memcached\MemcacheCompatibility\Memcache;
 use RobiNN\Pca\Dashboards\Memcached\MemcacheCompatibility\Memcached;
+use RobiNN\Pca\Format;
 use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
 use RobiNN\Pca\Paginator;
@@ -36,10 +37,10 @@ trait MemcachedTrait {
             return [
                 'Version'          => $server_info['version'],
                 'Open connections' => $server_info['curr_connections'],
-                'Uptime'           => Helpers::formatSeconds((int) $server_info['uptime']),
-                'Cache limit'      => Helpers::formatBytes((int) $server_info['limit_maxbytes']),
-                'Used'             => Helpers::formatBytes((int) $server_info['bytes']),
-                'Keys'             => Helpers::formatNumber(count($memcached->getKeys())),
+                'Uptime'           => Format::seconds((int) $server_info['uptime']),
+                'Cache limit'      => Format::bytes((int) $server_info['limit_maxbytes']),
+                'Used'             => Format::bytes((int) $server_info['bytes']),
+                'Keys'             => Format::number(count($memcached->getKeys())),
             ];
         } catch (DashboardException $e) {
             return [
@@ -200,7 +201,7 @@ trait MemcachedTrait {
             'key'        => $key,
             'value'      => $value,
             'type'       => 'string', // In Memcache(d) everything is stored as a string.
-            'ttl'        => Helpers::formatSeconds($ttl),
+            'ttl'        => Format::seconds($ttl),
             'encode_fn'  => $encode_fn,
             'formatted'  => $is_formatted,
             'edit_url'   => Http::queryString(['ttl'], ['form' => 'edit', 'key' => $key]),

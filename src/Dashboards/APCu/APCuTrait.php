@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace RobiNN\Pca\Dashboards\APCu;
 
+use RobiNN\Pca\Format;
 use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
 use RobiNN\Pca\Paginator;
@@ -77,9 +78,9 @@ trait APCuTrait {
             $keys[] = [
                 'key'       => $key_data['info'],
                 'ttl'       => $key_data['ttl'] === 0 ? -1 : $key_data['ttl'],
-                'hits'      => Helpers::formatNumber((int) $key_data['num_hits']),
-                'last_used' => Helpers::formatTime($key_data['access_time']),
-                'created'   => Helpers::formatTime($key_data['creation_time']),
+                'hits'      => Format::number((int) $key_data['num_hits']),
+                'last_used' => Format::time($key_data['access_time']),
+                'created'   => Format::time($key_data['creation_time']),
             ];
         }
 
@@ -148,7 +149,7 @@ trait APCuTrait {
             'key'        => $key,
             'value'      => $value,
             'type'       => 'string',
-            'ttl'        => Helpers::formatSeconds($ttl),
+            'ttl'        => Format::seconds($ttl),
             'encode_fn'  => $encode_fn,
             'formatted'  => $is_formatted,
             'edit_url'   => Http::queryString(['ttl'], ['form' => 'edit', 'key' => $key]),

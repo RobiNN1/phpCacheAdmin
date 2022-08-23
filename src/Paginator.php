@@ -113,9 +113,9 @@ class Paginator {
         $select = [25, 50, 100, 200, 300, 400];
 
         return $this->template->render('components/paginator', [
-            'first_on_page' => Helpers::formatNumber(array_key_first($this->paginated) + ($on_page > 0 ? 1 : 0)),
-            'last_on_page'  => Helpers::formatNumber(array_key_last($this->paginated) + ($on_page > 0 ? 1 : 0)),
-            'total'         => Helpers::formatNumber($this->total),
+            'first_on_page' => Format::number((int) array_key_first($this->paginated) + ($on_page > 0 ? 1 : 0)),
+            'last_on_page'  => Format::number((int) array_key_last($this->paginated) + ($on_page > 0 ? 1 : 0)),
+            'total'         => Format::number($this->total),
             'current_page'  => $this->page,
             'per_page'      => $this->per_page,
             'select'        => array_combine($select, $select),

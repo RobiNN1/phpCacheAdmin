@@ -13,6 +13,7 @@ declare(strict_types=1);
 namespace RobiNN\Pca\Dashboards\OPCache;
 
 use RobiNN\Pca\Dashboards\DashboardInterface;
+use RobiNN\Pca\Format;
 use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Template;
 
@@ -90,19 +91,19 @@ class OPCacheDashboard implements DashboardInterface {
                     'moreinfo' => true,
                     'data'     => [
                         'JIT'          => Helpers::enabledDisabledBadge($this->template, isset($status['jit']) && $status['jit']['enabled']),
-                        'Start time'   => Helpers::formatTime($stats['start_time']),
-                        'Last restart' => Helpers::formatTime($stats['last_restart_time']),
+                        'Start time'   => Format::time($stats['start_time']),
+                        'Last restart' => Format::time($stats['last_restart_time']),
                         'Cache full'   => Helpers::enabledDisabledBadge($this->template, $status['cache_full'] === false, null, ['No', 'Yes']),
                     ],
                 ],
                 [
                     'title' => 'Memory',
                     'data'  => [
-                        'Total'          => Helpers::formatBytes($total_memory),
+                        'Total'          => Format::bytes($total_memory),
                         'Usage'          => round(100 * $memory_usage).'%',
-                        'Used'           => Helpers::formatBytes($memory['used_memory']),
-                        'Free'           => Helpers::formatBytes($memory['free_memory']),
-                        'Wasted'         => Helpers::formatBytes($memory['wasted_memory']),
+                        'Used'           => Format::bytes($memory['used_memory']),
+                        'Free'           => Format::bytes($memory['free_memory']),
+                        'Wasted'         => Format::bytes($memory['wasted_memory']),
                         'Current wasted' => round($memory['current_wasted_percentage'], 3).'%',
                     ],
                 ],
@@ -110,10 +111,10 @@ class OPCacheDashboard implements DashboardInterface {
                     'title' => 'Stats',
                     'data'  => [
                         'Cached scripts'  => $stats['num_cached_scripts'],
-                        'Cached keys'     => Helpers::formatNumber($stats['num_cached_keys']),
-                        'Max cached keys' => Helpers::formatNumber($stats['max_cached_keys']),
-                        'Hits'            => Helpers::formatNumber($stats['hits']),
-                        'Misses'          => Helpers::formatNumber($stats['misses']),
+                        'Cached keys'     => Format::number($stats['num_cached_keys']),
+                        'Max cached keys' => Format::number($stats['max_cached_keys']),
+                        'Hits'            => Format::number($stats['hits']),
+                        'Misses'          => Format::number($stats['misses']),
                         'Hit rate'        => round($stats['opcache_hit_rate']).'%',
                     ],
                 ],

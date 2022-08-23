@@ -15,6 +15,7 @@ namespace RobiNN\Pca\Dashboards\Redis;
 use Redis;
 use RedisException;
 use RobiNN\Pca\Dashboards\DashboardException;
+use RobiNN\Pca\Format;
 use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
 use RobiNN\Pca\Paginator;
@@ -38,9 +39,9 @@ trait RedisTrait {
             return [
                 'Version'           => $server_info['redis_version'],
                 'Connected clients' => $server_info['connected_clients'],
-                'Uptime'            => Helpers::formatSeconds($server_info['uptime_in_seconds']),
-                'Memory used'       => Helpers::formatBytes($server_info['used_memory']),
-                'Keys'              => Helpers::formatNumber($this->getCountOfAllKeys($server_info)).' (all databases)',
+                'Uptime'            => Format::seconds($server_info['uptime_in_seconds']),
+                'Memory used'       => Format::bytes($server_info['used_memory']),
+                'Keys'              => Format::number($this->getCountOfAllKeys($server_info)).' (all databases)',
             ];
         } catch (DashboardException|RedisException $e) {
             return [
@@ -182,7 +183,7 @@ trait RedisTrait {
             if (array_key_exists('db'.$d, $keyspace)) {
                 $db = explode(',', $keyspace['db'.$d]);
                 $keys = explode('=', $db[0]);
-                $keys_in_db = ' ('.Helpers::formatNumber((int) $keys[1]).' keys)';
+                $keys_in_db = ' ('.Format::number((int) $keys[1]).' keys)';
             }
 
             $databases[$d] = 'Database '.$d.$keys_in_db;
@@ -311,7 +312,7 @@ trait RedisTrait {
             'key'            => $key,
             'value'          => $value,
             'type'           => $type,
-            'ttl'            => Helpers::formatSeconds($ttl),
+            'ttl'            => Format::seconds($ttl),
             'encode_fn'      => $encode_fn,
             'formatted'      => $is_formatted,
             'add_subkey_url' => Http::queryString(['db'], ['form' => 'new', 'key' => $key]),
@@ -337,15 +338,15 @@ trait RedisTrait {
     private function formatViewItems(Redis $redis, string $key, array $value_items, string $type): array {
         $items = [];
 
-        foreach ($value_items as $value_key => $item) {
-            [$item, $item_encode_fn, $item_is_formatted] = Helpers::decodeAndFormatValue($item);
+        foreach ($value_items as $item_key => $item_value) {
+            [$value, $encode_fn, $is_formatted] = Helpers::decodeAndFormatValue($item_value);
 
             $items[] = [
-                'key'       => $value_key,
-                'value'     => $item,
-                'encode_fn' => $item_encode_fn,
-                'formatted' => $item_is_formatted,
-                'sub_key'   => $type === 'zset' ? (string) $redis->zScore($key, $item) : $value_key,
+                'key'       => $item_key,
+                'value'     => $value,
+                'encode_fn' => $encode_fn,
+                'formatted' => $is_formatted,
+                'sub_key'   => $type === 'zset' ? (string) $redis->zScore($key, $value) : $item_key,
             ];
         }
 

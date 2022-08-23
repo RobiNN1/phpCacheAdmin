@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace RobiNN\Pca\Dashboards\OPCache;
 
+use RobiNN\Pca\Format;
 use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
 use RobiNN\Pca\Paginator;
@@ -78,10 +79,10 @@ trait OPCacheTrait {
                 $cached_scripts[] = [
                     'path'           => $full_path,
                     'name'           => $script_name,
-                    'hits'           => Helpers::formatNumber($script['hits']),
-                    'memory'         => Helpers::formatBytes($script['memory_consumption']),
-                    'last_used'      => Helpers::formatTime($script['last_used_timestamp']),
-                    'created'        => Helpers::formatTime($script['timestamp']),
+                    'hits'           => Format::number($script['hits']),
+                    'memory'         => Format::bytes($script['memory_consumption']),
+                    'last_used'      => Format::time($script['last_used_timestamp']),
+                    'created'        => Format::time($script['timestamp']),
                     'invalidate_url' => base64_encode($script['full_path']),
                 ];
             }

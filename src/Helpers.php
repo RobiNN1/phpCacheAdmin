@@ -12,8 +12,6 @@ declare(strict_types=1);
 
 namespace RobiNN\Pca;
 
-use DateTimeImmutable;
-use DateTimeZone;
 use Exception;
 
 class Helpers {
@@ -21,134 +19,6 @@ class Helpers {
      * @var ?string
      */
     private static ?string $encode_fn = null;
-
-    /**
-     * Convert ENV variable to an array.
-     *
-     * It allows app to use ENV variables and config.php together.
-     *
-     * @param array<string, mixed> $array
-     * @param string               $array_key
-     * @param string               $value
-     *
-     * @return void
-     */
-    public static function envVarToArray(array &$array, string $array_key, string $value): void {
-        $array_key = str_replace('PCA_', '', $array_key);
-        $keys = explode('_', $array_key);
-        $keys = array_map('strtolower', $keys);
-
-        foreach ($keys as $i => $key) {
-            if (count($keys) === 1) {
-                break;
-            }
-
-            unset($keys[$i]);
-
-            if (!isset($array[$key]) || !is_array($array[$key])) {
-                $array[$key] = [];
-            }
-
-            $array = &$array[$key];
-        }
-
-        $array[array_shift($keys)] = $value;
-    }
-
-    /**
-     * Format bytes.
-     *
-     * @param int $bytes
-     *
-     * @return string
-     */
-    public static function formatBytes(int $bytes): string {
-        if ($bytes > 1048576) {
-            return sprintf('%.2fMB', $bytes / 1048576);
-        }
-
-        if ($bytes > 1024) {
-            return sprintf('%.2fkB', $bytes / 1024);
-        }
-
-        return sprintf('%dbytes', $bytes);
-    }
-
-    /**
-     * Format seconds.
-     *
-     * @param int $time
-     *
-     * @return string
-     */
-    public static function formatSeconds(int $time): string {
-        if ($time === -1) {
-            return (string) $time;
-        }
-
-        $seconds_in_minute = 60;
-        $seconds_in_hour = 60 * $seconds_in_minute;
-        $seconds_in_day = 24 * $seconds_in_hour;
-
-        $days = floor($time / $seconds_in_day);
-
-        $hour_seconds = $time % $seconds_in_day;
-        $hours = floor($hour_seconds / $seconds_in_hour);
-
-        $minute_seconds = $hour_seconds % $seconds_in_hour;
-        $minutes = floor($minute_seconds / $seconds_in_minute);
-
-        $remainingSeconds = $minute_seconds % $seconds_in_minute;
-        $seconds = ceil($remainingSeconds);
-
-        $time_parts = [];
-        $sections = [
-            'day'    => (int) $days,
-            'hour'   => (int) $hours,
-            'minute' => (int) $minutes,
-            'second' => (int) $seconds,
-        ];
-
-        foreach ($sections as $name => $value) {
-            if ($value > 0) {
-                $time_parts[] = $value.' '.$name.($value === 1 ? '' : 's');
-            }
-        }
-
-        return implode(' ', $time_parts);
-    }
-
-    /**
-     * Format timestamp.
-     *
-     * @param int $time
-     *
-     * @return string
-     */
-    public static function formatTime(int $time): string {
-        if ($time === 0) {
-            return 'Never';
-        }
-
-        try {
-            return (new DateTimeImmutable('@'.$time))
-                ->setTimezone(new DateTimeZone(date_default_timezone_get()))
-                ->format(Config::get('timeformat'));
-        } catch (Exception $e) {
-            return date(Config::get('timeformat'), $time);
-        }
-    }
-
-    /**
-     * Format number.
-     *
-     * @param int $number
-     *
-     * @return string
-     */
-    public static function formatNumber(int $number): string {
-        return number_format($number, 0, ',', ' ');
-    }
 
     /**
      * Return JSON data for ajax.
@@ -277,16 +147,20 @@ class Helpers {
     public static function decodeAndFormatValue(string $value): array {
         $is_formatted = false;
 
-        if (self::checkAndDecodeValue($value) !== null) {
-            $value = (string) self::checkAndDecodeValue($value);
+        $decoded_value = self::checkAndDecodeValue($value);
+
+        if ($decoded_value !== null) {
+            $value = $decoded_value;
         }
 
-        if (self::formatValue($value) !== null) {
-            $value = (string) self::formatValue($value);
+        $formatted_value = self::formatValue($value);
+
+        if ($formatted_value !== null) {
+            $value = $formatted_value;
             $is_formatted = true;
         }
 
-        $value = self::formatJson($value);
+        $value = self::prettyPrintJson($value);
 
         return [$value, self::$encode_fn, $is_formatted];
     }
@@ -308,6 +182,46 @@ class Helpers {
         }
 
         return null;
+    }
+
+    /**
+     * Format value.
+     *
+     * @param string $value
+     *
+     * @return ?string
+     */
+    private static function formatValue(string $value): ?string {
+        foreach (Config::get('formatters') as $formatter) {
+            if (is_callable($formatter) && $formatter($value) !== null) {
+                return $formatter($value);
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Format JSON.
+     *
+     * @param string $value
+     *
+     * @return string
+     */
+    private static function prettyPrintJson(string $value): string {
+        try {
+            $json_array = json_decode($value, false, 512, JSON_THROW_ON_ERROR);
+
+            if (!is_numeric($value) && $json_array !== null) {
+                $value = json_encode($json_array, JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT);
+
+                return '<pre>'.htmlspecialchars($value).'</pre>';
+            }
+        } catch (Exception $e) {
+            return htmlspecialchars($value);
+        }
+
+        return htmlspecialchars($value);
     }
 
     /**
@@ -370,46 +284,6 @@ class Helpers {
         }
 
         return $value;
-    }
-
-    /**
-     * Format value.
-     *
-     * @param string $value
-     *
-     * @return ?string
-     */
-    private static function formatValue(string $value): ?string {
-        foreach (Config::get('formatters') as $formatter) {
-            if (is_callable($formatter) && $formatter($value) !== null) {
-                return $formatter($value);
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Format JSON.
-     *
-     * @param string $value
-     *
-     * @return string
-     */
-    private static function formatJson(string $value): string {
-        try {
-            $json_array = json_decode($value, false, 512, JSON_THROW_ON_ERROR);
-
-            if (!is_numeric($value) && $json_array !== null) {
-                $value = json_encode($json_array, JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT);
-
-                return '<pre>'.htmlspecialchars($value).'</pre>';
-            }
-        } catch (Exception $e) {
-            return htmlspecialchars($value);
-        }
-
-        return htmlspecialchars($value);
     }
 
     /**

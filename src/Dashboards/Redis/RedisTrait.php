@@ -14,11 +14,13 @@ namespace RobiNN\Pca\Dashboards\Redis;
 
 use Redis;
 use RedisException;
+use RobiNN\Pca\Config;
 use RobiNN\Pca\Dashboards\DashboardException;
 use RobiNN\Pca\Format;
 use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
 use RobiNN\Pca\Paginator;
+use RobiNN\Pca\Value;
 
 trait RedisTrait {
     use TypesTrait;
@@ -303,7 +305,7 @@ trait RedisTrait {
             $value = $paginator->getPaginated();
             $paginator = $paginator->render();
         } else {
-            [$value, $encode_fn, $is_formatted] = Helpers::decodeAndFormatValue($value);
+            [$value, $encode_fn, $is_formatted] = Value::format($value);
         }
 
         $ttl = $redis->ttl($key);
@@ -339,7 +341,7 @@ trait RedisTrait {
         $items = [];
 
         foreach ($value_items as $item_key => $item_value) {
-            [$value, $encode_fn, $is_formatted] = Helpers::decodeAndFormatValue($item_value);
+            [$value, $encode_fn, $is_formatted] = Value::format($item_value);
 
             $items[] = [
                 'key'       => $item_key,
@@ -394,7 +396,7 @@ trait RedisTrait {
         $hash_key = Http::post('hash_key');
         $expire = Http::post('expire', 'int', -1);
         $encoder = Http::get('encoder', 'string', 'none');
-        $value = Helpers::decodeValue(Http::post('value'), $encoder);
+        $value = Http::post('value');
 
         if (isset($_POST['submit'])) {
             $this->saveKey($redis);
@@ -415,6 +417,8 @@ trait RedisTrait {
             [$value, $index, $score, $hash_key] = $this->getKeyValue($redis, $type, $key);
         }
 
+        $value = Value::decode($value, $encoder);
+
         return $this->template->render('dashboards/redis/form', [
             'key'      => $key,
             'value'    => $value,
@@ -424,7 +428,7 @@ trait RedisTrait {
             'score'    => $score,
             'hash_key' => $hash_key,
             'expire'   => $expire,
-            'encoders' => Helpers::getEncoders(),
+            'encoders' => Config::getEncoders(),
             'encoder'  => $encoder,
         ]);
     }

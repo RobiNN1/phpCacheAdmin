@@ -90,4 +90,22 @@ class Config {
 
         $array[array_shift($keys)] = $value;
     }
+
+    /**
+     * Get encoders.
+     *
+     * @return array<int, string>
+     */
+    public static function getEncoders(): array {
+        $encoders = self::get('encoding');
+
+        if (count($encoders) === 0) {
+            return [];
+        }
+
+        $array = array_keys($encoders);
+        $array[] = 'none';
+
+        return array_combine($array, $array);
+    }
 }

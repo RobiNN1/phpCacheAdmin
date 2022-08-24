@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace RobiNN\Pca\Dashboards\Memcached;
 
+use RobiNN\Pca\Config;
 use RobiNN\Pca\Dashboards\DashboardException;
 use RobiNN\Pca\Dashboards\Memcached\MemcacheCompatibility\Memcache;
 use RobiNN\Pca\Dashboards\Memcached\MemcacheCompatibility\Memcached;
@@ -19,6 +20,7 @@ use RobiNN\Pca\Format;
 use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
 use RobiNN\Pca\Paginator;
+use RobiNN\Pca\Value;
 
 trait MemcachedTrait {
     /**
@@ -192,7 +194,7 @@ trait MemcachedTrait {
 
         $value = $memcached->get($key);
 
-        [$value, $encode_fn, $is_formatted] = Helpers::decodeAndFormatValue($value);
+        [$value, $encode_fn, $is_formatted] = Value::format($value);
 
         $ttl = Http::get('ttl', 'int');
         $ttl = $ttl === 0 ? -1 : $ttl;
@@ -242,7 +244,7 @@ trait MemcachedTrait {
         $key = Http::get('key');
         $expire = Http::get('ttl', 'int');
         $encoder = Http::get('encoder', 'string', 'none');
-        $value = Helpers::decodeValue(Http::post('value'), $encoder);
+        $value = Http::post('value');
 
         if (isset($_GET['key']) && $memcached->get($key)) {
             $value = $memcached->get($key);
@@ -253,7 +255,7 @@ trait MemcachedTrait {
             $expire = Http::post('expire', 'int');
             $old_key = Http::post('old_key');
             $encoder = Http::post('encoder');
-            $value = Helpers::encodeValue($value, $encoder);
+            $value = Value::encode($value, $encoder);
 
             if ($old_key !== '' && $old_key !== $key) {
                 $memcached->delete($old_key);
@@ -264,11 +266,13 @@ trait MemcachedTrait {
             Http::redirect([], ['view' => 'key', 'ttl' => $expire, 'key' => $key]);
         }
 
+        $value = Value::decode($value, $encoder);
+
         return $this->template->render('dashboards/memcached/form', [
             'key'      => $key,
             'value'    => $value,
             'expire'   => $expire,
-            'encoders' => Helpers::getEncoders(),
+            'encoders' => Config::getEncoders(),
             'encoder'  => $encoder,
         ]);
     }

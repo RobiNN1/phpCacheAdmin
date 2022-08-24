@@ -12,10 +12,12 @@ declare(strict_types=1);
 
 namespace RobiNN\Pca\Dashboards\APCu;
 
+use RobiNN\Pca\Config;
 use RobiNN\Pca\Format;
 use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
 use RobiNN\Pca\Paginator;
+use RobiNN\Pca\Value;
 
 trait APCuTrait {
     /**
@@ -139,7 +141,7 @@ trait APCuTrait {
 
         $value = apcu_fetch($key);
 
-        [$value, $encode_fn, $is_formatted] = Helpers::decodeAndFormatValue($value);
+        [$value, $encode_fn, $is_formatted] = Value::format($value);
 
         $info = apcu_key_info($key);
 
@@ -187,7 +189,7 @@ trait APCuTrait {
         $expire = 0;
 
         $encoder = Http::get('encoder', 'string', 'none');
-        $value = Helpers::decodeValue(Http::post('value'), $encoder);
+        $value = Http::post('value');
 
         if (isset($_GET['key']) && apcu_exists($key)) {
             $value = apcu_fetch($key);
@@ -201,7 +203,7 @@ trait APCuTrait {
             $expire = Http::post('expire', 'int');
             $old_key = Http::post('old_key');
             $encoder = Http::post('encoder');
-            $value = Helpers::encodeValue($value, $encoder);
+            $value = Value::encode($value, $encoder);
 
             if ($old_key !== '' && $old_key !== $key) {
                 apcu_delete($old_key);
@@ -212,11 +214,13 @@ trait APCuTrait {
             Http::redirect([], ['view' => 'key', 'key' => $key]);
         }
 
+        $value = Value::decode($value, $encoder);
+
         return $this->template->render('dashboards/apcu/form', [
             'key'      => $key,
             'value'    => $value,
             'expire'   => $expire,
-            'encoders' => Helpers::getEncoders(),
+            'encoders' => Config::getEncoders(),
             'encoder'  => $encoder,
         ]);
     }

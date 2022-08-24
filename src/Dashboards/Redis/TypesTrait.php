@@ -17,6 +17,7 @@ use RedisException;
 use RobiNN\Pca\Dashboards\DashboardException;
 use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
+use RobiNN\Pca\Value;
 
 trait TypesTrait {
     /**
@@ -163,7 +164,7 @@ trait TypesTrait {
      */
     private function saveKey(Redis $redis): void {
         $key = Http::post('key');
-        $value = Helpers::encodeValue(Http::post('value'), Http::post('encoder'));
+        $value = Value::encode(Http::post('value'), Http::post('encoder'));
         $old_value = Http::post('old_value');
 
         switch (Http::post('redis_type')) {

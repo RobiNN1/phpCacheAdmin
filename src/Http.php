@@ -28,8 +28,8 @@ class Http {
     /**
      * Query string manipulation.
      *
-     * @param array<int|string, string>     $filter
-     * @param array<int|string, int|string> $additional
+     * @param array<int|string, string>     $filter     Parameters to be preserved.
+     * @param array<int|string, int|string> $additional Additional parameters with their new value.
      *
      * @return string
      */
@@ -94,8 +94,8 @@ class Http {
     /**
      * Redirect.
      *
-     * @param array<int|string, string>     $filter
-     * @param array<int|string, int|string> $additional
+     * @param array<int|string, string>     $filter     Parameters to be preserved.
+     * @param array<int|string, int|string> $additional Additional parameters with their new value.
      *
      * @return void
      */

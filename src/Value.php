@@ -12,7 +12,7 @@ declare(strict_types=1);
 
 namespace RobiNN\Pca;
 
-use Exception;
+use JsonException;
 
 class Value {
     /**
@@ -26,18 +26,21 @@ class Value {
         $encode_fn = null;
         $is_formatted = false;
 
-        $decoded = self::decoded($value, $encode_fn);
+        if (!self::isJson($value)) {
+            $decoded = self::decoded($value, $encode_fn);
 
-        if ($decoded !== null) {
-            $value = $decoded;
+            if ($decoded !== null) {
+                $value = $decoded;
+            }
+
+            $formatted = self::formatted($value, $is_formatted);
+
+            if ($formatted !== null) {
+                $value = $formatted;
+            }
         }
 
-        $formatted = self::formatted($value, $is_formatted);
-
-        if ($formatted !== null) {
-            $value = $formatted;
-        }
-
+        // Always pretty print the JSON because some formatter may return the value as JSON
         $value = self::prettyPrintJson($value);
 
         return [$value, $encode_fn, $is_formatted];
@@ -99,11 +102,32 @@ class Value {
 
                 return '<pre>'.htmlspecialchars($value).'</pre>';
             }
-        } catch (Exception $e) {
+        } catch (JsonException $e) {
             return htmlspecialchars($value);
         }
 
         return htmlspecialchars($value);
+    }
+
+    /**
+     * Check if string is valid JSON.
+     *
+     * @param string $value
+     *
+     * @return bool
+     */
+    private static function isJson(string $value): bool {
+        if (!is_string($value)) {
+            return false;
+        }
+
+        try {
+            json_decode($value, true, 512, JSON_THROW_ON_ERROR);
+        } catch (JsonException $e) {
+            return false;
+        }
+
+        return true;
     }
 
     /**

@@ -251,19 +251,7 @@ trait MemcachedTrait {
         }
 
         if (isset($_POST['submit'])) {
-            $key = Http::post('key');
-            $expire = Http::post('expire', 'int');
-            $old_key = Http::post('old_key');
-            $encoder = Http::post('encoder');
-            $value = Value::encode($value, $encoder);
-
-            if ($old_key !== '' && $old_key !== $key) {
-                $memcached->delete($old_key);
-            }
-
-            $memcached->store($key, $value, $expire);
-
-            Http::redirect([], ['view' => 'key', 'ttl' => $expire, 'key' => $key]);
+            $this->saveKey($memcached);
         }
 
         $value = Value::decode($value, $encoder);
@@ -275,5 +263,27 @@ trait MemcachedTrait {
             'encoders' => Config::getEncoders(),
             'encoder'  => $encoder,
         ]);
+    }
+
+    /**
+     * Save key.
+     *
+     * @param Memcache|Memcached $memcached
+     *
+     * @return void
+     */
+    private function saveKey($memcached): void {
+        $key = Http::post('key');
+        $expire = Http::post('expire', 'int');
+        $old_key = Http::post('old_key');
+        $value = Value::encode(Http::post('value'), Http::post('encoder'));
+
+        if ($old_key !== '' && $old_key !== $key) {
+            $memcached->delete($old_key);
+        }
+
+        $memcached->store($key, $value, $expire);
+
+        Http::redirect([], ['view' => 'key', 'ttl' => $expire, 'key' => $key]);
     }
 }

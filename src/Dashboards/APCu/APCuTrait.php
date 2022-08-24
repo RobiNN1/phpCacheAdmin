@@ -199,19 +199,7 @@ trait APCuTrait {
         }
 
         if (isset($_POST['submit'])) {
-            $key = Http::post('key');
-            $expire = Http::post('expire', 'int');
-            $old_key = Http::post('old_key');
-            $encoder = Http::post('encoder');
-            $value = Value::encode($value, $encoder);
-
-            if ($old_key !== '' && $old_key !== $key) {
-                apcu_delete($old_key);
-            }
-
-            apcu_store($key, $value, $expire);
-
-            Http::redirect([], ['view' => 'key', 'key' => $key]);
+            $this->saveKey();
         }
 
         $value = Value::decode($value, $encoder);
@@ -223,5 +211,25 @@ trait APCuTrait {
             'encoders' => Config::getEncoders(),
             'encoder'  => $encoder,
         ]);
+    }
+
+    /**
+     * Save key.
+     *
+     * @return void
+     */
+    private function saveKey(): void {
+        $key = Http::post('key');
+        $expire = Http::post('expire', 'int');
+        $old_key = Http::post('old_key');
+        $value = Value::encode(Http::post('value'), Http::post('encoder'));
+
+        if ($old_key !== '' && $old_key !== $key) {
+            apcu_delete($old_key);
+        }
+
+        apcu_store($key, $value, $expire);
+
+        Http::redirect([], ['view' => 'key', 'key' => $key]);
     }
 }

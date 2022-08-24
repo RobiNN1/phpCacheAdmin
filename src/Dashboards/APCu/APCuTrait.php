@@ -79,7 +79,7 @@ trait APCuTrait {
         foreach ($info['cache_list'] as $key_data) {
             $keys[] = [
                 'key'       => $key_data['info'],
-                'ttl'       => $key_data['ttl'] === 0 ? -1 : $key_data['ttl'],
+                'ttl'       => $key_data['ttl'] === 0 ? -1 : (($key_data['creation_time'] + $key_data['ttl']) - time()),
                 'hits'      => Format::number((int) $key_data['num_hits']),
                 'last_used' => Format::time($key_data['access_time']),
                 'created'   => Format::time($key_data['creation_time']),
@@ -143,9 +143,9 @@ trait APCuTrait {
 
         [$value, $encode_fn, $is_formatted] = Value::format($value);
 
-        $info = apcu_key_info($key);
+        $key_data = apcu_key_info($key);
 
-        $ttl = $info['ttl'] === 0 ? -1 : $info['ttl'];
+        $ttl = $key_data['ttl'] === 0 ? -1 : (($key_data['creation_time'] + $key_data['ttl']) - time());
 
         return $this->template->render('partials/view_key', [
             'key'        => $key,

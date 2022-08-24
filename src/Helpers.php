@@ -12,7 +12,7 @@ declare(strict_types=1);
 
 namespace RobiNN\Pca;
 
-use Exception;
+use JsonException;
 
 class Helpers {
     /**
@@ -27,7 +27,7 @@ class Helpers {
 
         try {
             return json_encode($data, JSON_THROW_ON_ERROR);
-        } catch (Exception $e) {
+        } catch (JsonException $e) {
             return '{"error": "'.$e->getMessage().'"}';
         }
     }

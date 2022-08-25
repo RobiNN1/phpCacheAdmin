@@ -79,17 +79,17 @@ services:
 
 Redis:
 
-- `PCA_REDIS_0_NAME` The server name for an info panel, useful when you have multiple servers added (Optional, default name is Localhost)
+- `PCA_REDIS_0_NAME` The server name for an info panel. Optional, default: Localhost.
 - `PCA_REDIS_0_HOST` Redis server host.
-- `PCA_REDIS_0_PORT` Redis server port (Optional, default is 6379)
-- `PCA_REDIS_0_DATABASE` Redis database (Optional, default is 0)
-- `PCA_REDIS_0_PASSWORD` (Optional, empty by default)
+- `PCA_REDIS_0_PORT` Redis server port. Optional, default: 6379.
+- `PCA_REDIS_0_DATABASE` Redis database. Optional, default: 0.
+- `PCA_REDIS_0_PASSWORD` Redis password. Optional, default: empty.
 
 Memcached:
 
-- `PCA_MEMCACHED_0_NAME` The server name for an info panel, useful when you have multiple servers added (Optional, default name is Localhost)
+- `PCA_MEMCACHED_0_NAME` The server name for an info panel. Optional, default: Localhost.
 - `PCA_MEMCACHED_0_HOST` Memcached server host.
-- `PCA_MEMCACHED_0_PORT` Memcached server port (Optional, default is 11211)
+- `PCA_MEMCACHED_0_PORT` Memcached server port. Optional, default: 11211.
 
 To add another server, add the same environment variables, but change 0 to 1 (2 for third server and so on).
 

@@ -36,7 +36,7 @@ trait TypesTrait {
     /**
      * Extra data for templates.
      *
-     * @return array<string, array<string, string>>
+     * @return array<string, array<string, array<int, string>|string>>
      */
     private function getTypesData(): array {
         // param is for getKeyValue() and deleteSubKey()

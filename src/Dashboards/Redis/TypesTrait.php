@@ -30,17 +30,40 @@ trait TypesTrait {
         Redis::REDIS_LIST      => 'list',
         Redis::REDIS_ZSET      => 'zset',
         Redis::REDIS_HASH      => 'hash',
+        Redis::REDIS_STREAM    => 'stream',
     ];
 
     /**
+     * Extra data for templates.
+     *
+     * @return array<string, array<string, string>>
+     */
+    private function getTypesData(): array {
+        // param is for getKeyValue() and deleteSubKey()
+        return [
+            'extra'  => [
+                'hide_title' => ['set'],
+                'hide_edit'  => ['stream'],
+            ],
+            'set'    => ['param' => 'member', 'title' => ''],
+            'list'   => ['param' => 'index', 'title' => 'Index'],
+            'zset'   => ['param' => 'range', 'title' => 'Score'],
+            'hash'   => ['param' => 'hash_key', 'title' => 'Field'],
+            'stream' => ['param' => 'stream_id', 'title' => 'Entry ID'],
+        ];
+    }
+
+    /**
      * Get all data types.
+     *
+     * Used in form.
      *
      * @return array<string, string>
      */
     private function getAllTypes(): array {
         static $types = [];
 
-        unset($this->data_types[Redis::REDIS_NOT_FOUND]);
+        unset($this->data_types[Redis::REDIS_NOT_FOUND], $this->data_types[Redis::REDIS_STREAM]);
 
         foreach ($this->data_types as $type) {
             $types[$type] = ucfirst($type);
@@ -147,6 +170,9 @@ trait TypesTrait {
             case 'hash':
                 $value = $redis->hGetAll($key);
                 break;
+            case 'stream':
+                $value = $redis->xRange($key, '-', '+');
+                break;
             default:
                 $value = $redis->get($key);
         }
@@ -249,6 +275,9 @@ trait TypesTrait {
             case 'hash':
                 $redis->hDel($key, Http::get('hash_key'));
                 break;
+            case 'stream':
+                $redis->xDel($key, [Http::get('stream_id')]);
+                break;
             default:
         }
 
@@ -278,6 +307,9 @@ trait TypesTrait {
                 break;
             case 'hash':
                 $items = $redis->hLen($key);
+                break;
+            case 'stream':
+                $items = $redis->xLen($key);
                 break;
             default:
                 $items = null;

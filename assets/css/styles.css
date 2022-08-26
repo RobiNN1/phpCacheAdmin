@@ -775,10 +775,6 @@ video {
   width: 8rem;
 }
 
-.w-14 {
-  width: 3.5rem;
-}
-
 .max-w-full {
   max-width: 100%;
 }
@@ -1803,10 +1799,6 @@ video {
     display: none;
   }
 
-  .md\:w-24 {
-    width: 6rem;
-  }
-
   .md\:grid-cols-3 {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
@@ -1858,20 +1850,12 @@ video {
     margin-bottom: 0px;
   }
 
-  .lg\:inline-block {
-    display: inline-block;
-  }
-
   .lg\:flex {
     display: flex;
   }
 
   .lg\:grid {
     display: grid;
-  }
-
-  .lg\:w-40 {
-    width: 10rem;
   }
 
   .lg\:max-w-7xl {

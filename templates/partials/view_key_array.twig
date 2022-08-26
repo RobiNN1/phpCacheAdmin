@@ -1,31 +1,19 @@
-{{ include('components/button.twig', {
-    text: 'Add another value',
-    icon: 'open',
-    link: add_subkey_url,
-    btn_green: true,
-    class: 'mb-5',
-}) }}
+{% if type not in types.extra.hide_edit %}
+    {{ include('components/button.twig', {
+        text: 'Add another value',
+        icon: 'open',
+        link: add_subkey_url,
+        btn_green: true,
+        class: 'mb-5',
+    }) }}
+{% endif %}
 
 {% for item in value %}
-    {% if type == 'set' %}
-        {% set param_name = 'member' %}
-        {% set title = '' %}
-    {% elseif type == 'list' %}
-        {% set param_name = 'index' %}
-        {% set title = 'Index' %}
-    {% elseif type == 'zset' %}
-        {% set param_name = 'range' %}
-        {% set title = 'Score' %}
-    {% elseif type == 'hash' %}
-        {% set param_name = 'hash_key' %}
-        {% set title = 'Key' %}
-    {% endif %}
-
     <div class="mb-5 rounded bg-white shadow-sm shadow-gray-300">
         <div class="flex justify-between overflow-y-auto border-b px-4 py-1.5">
             <span>
-                {% if type != 'set' %}
-                    {{ title }} {{ include('components/badge.twig', {text: item.sub_key, pill: true, class: 'font-bold', bg: 'bg-slate-400'}) }}
+                {% if type not in types.extra.hide_title %}
+                    {{ types[type].title }} {{ include('components/badge.twig', {text: item.sub_key, pill: true, class: 'font-bold', bg: 'bg-slate-400'}) }}
                 {% endif %}
 
                 {% if item.encode_fn %}
@@ -43,10 +31,12 @@
             </span>
 
             <div>
-                <a href="{{ edit_url }}&{{ param_name }}={{ item.key ~ item_encode_url }}" class="text-gray-500 hover:text-gray-700 font-semibold inline-flex items-center mr-3">
-                    {{ svg('edit', 16, 'mr-1') }} Edit
-                </a>
-                <a href="{{ deletesub_url }}&{{ param_name }}={{ item.key }}" class="text-red-500 hover:text-red-700 font-semibold inline-flex items-center"
+                {% if type not in types.extra.hide_edit %}
+                    <a href="{{ edit_url }}&{{ types[type].param }}={{ item.key ~ item_encode_url }}" class="text-gray-500 hover:text-gray-700 font-semibold inline-flex items-center mr-3">
+                        {{ svg('edit', 16, 'mr-1') }} Edit
+                    </a>
+                {% endif %}
+                <a href="{{ deletesub_url }}&{{ types[type].param }}={{ item.key }}" class="text-red-500 hover:text-red-700 font-semibold inline-flex items-center"
                    onclick="return confirm('Are you sure you want to remove this item?');">
                     {{ svg('trash', 16, 'mr-1') }} Delete
                 </a>

@@ -109,7 +109,6 @@ trait APCuTrait {
             'keys'        => $paginator->getPaginated(),
             'all_keys'    => count($keys),
             'new_key_url' => Http::queryString([], ['form' => 'new']),
-            'edit_url'    => Http::queryString([], ['form' => 'edit', 'key' => '']),
             'view_url'    => Http::queryString([], ['view' => 'key', 'key' => '']),
             'paginator'   => $paginator->render(),
         ]);

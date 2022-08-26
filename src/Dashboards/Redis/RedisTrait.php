@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace RobiNN\Pca\Dashboards\Redis;
 
+use JsonException;
 use Redis;
 use RedisException;
 use RobiNN\Pca\Config;
@@ -249,7 +250,6 @@ trait RedisTrait {
             'keys'        => $paginator->getPaginated(),
             'all_keys'    => $redis->dbSize(),
             'new_key_url' => Http::queryString(['db'], ['form' => 'new']),
-            'edit_url'    => Http::queryString(['db', 's'], ['form' => 'edit', 'key' => '']),
             'view_url'    => Http::queryString(['db', 's'], ['view' => 'key', 'key' => '']),
             'paginator'   => $paginator->render(),
         ]);
@@ -323,11 +323,12 @@ trait RedisTrait {
             'export_url'     => Http::queryString(['db', 'view', 'p', 'key'], ['export' => 'key']),
             'delete_url'     => Http::queryString(['db', 'view'], ['delete' => 'key', 'key' => $key]),
             'paginator'      => $paginator,
+            'types'          => $this->getTypesData(),
         ]);
     }
 
     /**
-     * Format view items.
+     * Format view array items.
      *
      * @param Redis             $redis
      * @param string            $key
@@ -341,6 +342,14 @@ trait RedisTrait {
         $items = [];
 
         foreach ($value_items as $item_key => $item_value) {
+            if (is_array($item_value)) {
+                try {
+                    $item_value = json_encode($item_value, JSON_THROW_ON_ERROR);
+                } catch (JsonException $e) {
+                    $item_value = $e->getMessage();
+                }
+            }
+
             [$value, $encode_fn, $is_formatted] = Value::format($item_value);
 
             $items[] = [

@@ -160,7 +160,6 @@ trait MemcachedTrait {
             'keys'        => $paginator->getPaginated(),
             'all_keys'    => count($keys),
             'new_key_url' => Http::queryString([], ['form' => 'new']),
-            'edit_url'    => Http::queryString([], ['form' => 'edit', 'ttl' => 'ttl_value', 'key' => '']),
             'view_url'    => Http::queryString([], ['view' => 'key', 'ttl' => 'ttl_value', 'key' => '']),
             'paginator'   => $paginator->render(),
         ]);

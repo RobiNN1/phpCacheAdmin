@@ -17,6 +17,18 @@
         </span>
     {% endif %}
 
+    {% if size %}
+        <span>
+            Size
+            {{ include('components/badge.twig', {
+                text: size,
+                pill: true,
+                class: 'font-bold',
+                bg: 'bg-sky-500',
+            }) }}
+        </span>
+    {% endif %}
+
     {% if encode_fn %}
         <span>Encoded with {{ include('components/badge.twig', {text: encode_fn, pill: true, class: 'uppercase font-bold', bg: 'bg-blue-500'}) }}</span>
         {% set encode_url = '&encoder=' ~ encode_fn %}

@@ -315,6 +315,7 @@ trait RedisTrait {
             'value'          => $value,
             'type'           => $type,
             'ttl'            => Format::seconds($ttl),
+            'size'           => Format::bytes($redis->rawCommand('MEMORY', 'usage', $key)),
             'encode_fn'      => $encode_fn,
             'formatted'      => $is_formatted,
             'add_subkey_url' => Http::queryString(['db'], ['form' => 'new', 'key' => $key]),

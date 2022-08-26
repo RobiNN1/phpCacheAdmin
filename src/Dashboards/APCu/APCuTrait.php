@@ -151,6 +151,7 @@ trait APCuTrait {
             'value'      => $value,
             'type'       => 'string',
             'ttl'        => Format::seconds($ttl),
+            'size'       => Format::bytes(strlen($value)),
             'encode_fn'  => $encode_fn,
             'formatted'  => $is_formatted,
             'edit_url'   => Http::queryString(['ttl'], ['form' => 'edit', 'key' => $key]),

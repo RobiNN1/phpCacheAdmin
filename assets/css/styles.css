@@ -1866,8 +1866,16 @@ video {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .lg\:items-center {
+    align-items: center;
+  }
+
   .lg\:justify-end {
     justify-content: flex-end;
+  }
+
+  .lg\:gap-2 {
+    gap: 0.5rem;
   }
 
   .lg\:gap-4 {

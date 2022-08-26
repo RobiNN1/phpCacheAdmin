@@ -2,7 +2,7 @@
 
 <div class="mb-2 text-lg font-semibold break-words">{{ key }}</div>
 
-<div class="mb-5 flex items-center gap-2">
+<div class="mb-5 lg:flex lg:items-center lg:gap-2">
     <span>Type {{ key_badge.key_type(type) }}</span>
 
     {% if ttl %}
@@ -38,14 +38,16 @@
         {{ include('components/badge.twig', {text: 'Formatted', pill: true, class: 'uppercase font-bold', bg: 'bg-blue-500'}) }}
     {% endif %}
 
-    <a href="{{ export_url }}" class="inline-flex items-center font-semibold text-gray-500 hover:text-gray-700">
-        {{ svg('export', 16, 'mr-1') }} Export
-    </a>
+    <span>
+        <a href="{{ export_url }}" class="inline-flex items-center font-semibold text-gray-500 hover:text-gray-700">
+            {{ svg('export', 16, 'mr-1') }} Export
+        </a>
 
-    <a href="{{ delete_url }}" class="inline-flex items-center font-semibold text-red-500 hover:text-red-700"
-       onclick="return confirm('Are you sure you want to remove this item?');">
-        {{ svg('trash', 16, 'mr-1') }} Delete
-    </a>
+        <a href="{{ delete_url }}" class="inline-flex items-center font-semibold text-red-500 hover:text-red-700"
+           onclick="return confirm('Are you sure you want to remove this item?');">
+            {{ svg('trash', 16, 'mr-1') }} Delete
+        </a>
+    </span>
 </div>
 
 {% if value is iterable %}

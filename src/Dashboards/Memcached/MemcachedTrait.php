@@ -182,7 +182,7 @@ trait MemcachedTrait {
         if (isset($_GET['export'])) {
             header('Content-disposition: attachment; filename='.$key.'.txt');
             header('Content-Type: text/plain');
-            echo $memcached->get($key);
+            echo $memcached->getKey($key);
             exit;
         }
 

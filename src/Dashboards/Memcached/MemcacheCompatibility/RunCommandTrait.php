@@ -101,4 +101,17 @@ trait RunCommandTrait {
 
         return $keys;
     }
+
+    /**
+     * Get original key.
+     *
+     * @param string $key
+     *
+     * @return string
+     */
+    public function getKey(string $key): string {
+        $data = $this->runCommand('get '.$key);
+
+        return $data[1];
+    }
 }

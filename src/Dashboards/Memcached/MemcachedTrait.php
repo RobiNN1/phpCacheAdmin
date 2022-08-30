@@ -191,7 +191,7 @@ trait MemcachedTrait {
             Http::redirect(['db']);
         }
 
-        $value = $memcached->get($key);
+        $value = $memcached->getKey($key);
 
         [$value, $encode_fn, $is_formatted] = Value::format($value);
 
@@ -243,11 +243,13 @@ trait MemcachedTrait {
     private function form($memcached): string {
         $key = Http::get('key');
         $expire = Http::get('ttl', 'int');
+        $expire = $expire === -1 ? 0 : $expire;
+
         $encoder = Http::get('encoder', 'string', 'none');
         $value = Http::post('value');
 
         if (isset($_GET['key']) && $memcached->get($key)) {
-            $value = $memcached->get($key);
+            $value = $memcached->getKey($key);
         }
 
         if (isset($_POST['submit'])) {

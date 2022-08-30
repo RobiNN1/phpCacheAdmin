@@ -86,13 +86,11 @@ return [
 
                 if (is_array($unserialized_value)) {
                     try {
-                        $unserialized_value = json_encode($unserialized_value, JSON_THROW_ON_ERROR);
-                    } catch (Exception $e) {
-                        // ...
+                        return json_encode($unserialized_value, JSON_THROW_ON_ERROR);
+                    } catch (JsonException $e) {
+                        return $e->getMessage();
                     }
                 }
-
-                return (string) $unserialized_value;
             }
 
             return null;

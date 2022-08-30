@@ -78,7 +78,7 @@ trait MemcachedTrait {
     private function deleteKey($memcached): string {
         $keys = explode(',', Http::get('delete'));
 
-        if (count($keys) === 1 && @$memcached->get($keys[0]) !== false) {
+        if (count($keys) === 1 && $memcached->exists($keys[0])) {
             $memcached->delete($keys[0]);
             $message = sprintf('Key "%s" has been deleted.', $keys[0]);
         } elseif (count($keys) > 1) {
@@ -175,7 +175,7 @@ trait MemcachedTrait {
     private function viewKey($memcached): string {
         $key = Http::get('key');
 
-        if ($memcached->get($key) === false) {
+        if (!$memcached->exists($key)) {
             Http::redirect();
         }
 
@@ -223,7 +223,7 @@ trait MemcachedTrait {
         if ($_FILES['import']['type'] === 'text/plain') {
             $key_name = Http::post('key_name');
 
-            if ($memcached->get($key_name) === false) {
+            if (!$memcached->exists($key_name)) {
                 $value = file_get_contents($_FILES['import']['tmp_name']);
 
                 $memcached->store($key_name, $value, Http::post('expire', 'int'));
@@ -248,7 +248,7 @@ trait MemcachedTrait {
         $encoder = Http::get('encoder', 'string', 'none');
         $value = Http::post('value');
 
-        if (isset($_GET['key']) && $memcached->get($key)) {
+        if (isset($_GET['key']) && $memcached->exists($key)) {
             $value = $memcached->getKey($key);
         }
 

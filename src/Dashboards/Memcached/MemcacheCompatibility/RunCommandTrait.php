@@ -107,11 +107,26 @@ trait RunCommandTrait {
      *
      * @param string $key
      *
-     * @return string
+     * @return string|false
      */
-    public function getKey(string $key): string {
+    public function getKey(string $key) {
         $data = $this->runCommand('get '.$key);
 
-        return $data[1];
+        if (!isset($data[0])) {
+            return false;
+        }
+
+        return !isset($data[1]) || $data[1] === 'N;' ? '' : $data[1];
+    }
+
+    /**
+     * Check if key exists.
+     *
+     * @param string $key
+     *
+     * @return bool
+     */
+    public function exists(string $key): bool {
+        return $this->getKey($key) !== false;
     }
 }

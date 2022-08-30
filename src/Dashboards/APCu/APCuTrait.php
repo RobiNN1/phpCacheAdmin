@@ -115,6 +115,23 @@ trait APCuTrait {
     }
 
     /**
+     * Get key and convert any value to a string.
+     *
+     * @param string $key
+     *
+     * @return string
+     */
+    private function getKey(string $key): string {
+        $data = apcu_fetch($key);
+
+        if (is_array($data) || is_object($data)) {
+            $data = serialize($data);
+        }
+
+        return (string) $data;
+    }
+
+    /**
      * View key value.
      *
      * @return string
@@ -129,7 +146,7 @@ trait APCuTrait {
         if (isset($_GET['export'])) {
             header('Content-disposition: attachment; filename='.$key.'.txt');
             header('Content-Type: text/plain');
-            echo apcu_fetch($key);
+            echo $this->getKey($key);
             exit;
         }
 
@@ -138,7 +155,7 @@ trait APCuTrait {
             Http::redirect(['db']);
         }
 
-        $value = apcu_fetch($key);
+        $value = $this->getKey($key);
 
         [$value, $encode_fn, $is_formatted] = Value::format($value);
 
@@ -149,7 +166,7 @@ trait APCuTrait {
         return $this->template->render('partials/view_key', [
             'key'        => $key,
             'value'      => $value,
-            'type'       => 'string',
+            'type'       => 'string', // Checking the original data type with gettype() can affect performance.
             'ttl'        => Format::seconds($ttl),
             'size'       => Format::bytes(strlen($value)),
             'encode_fn'  => $encode_fn,
@@ -192,7 +209,7 @@ trait APCuTrait {
         $value = Http::post('value');
 
         if (isset($_GET['key']) && apcu_exists($key)) {
-            $value = apcu_fetch($key);
+            $value = $this->getKey($key);
             $info = apcu_key_info($key);
 
             $expire = $info['ttl'];

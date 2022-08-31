@@ -69,4 +69,34 @@ class Admin {
 
         return array_key_exists($current, $this->getDashboards()) ? $current : 'server';
     }
+
+    /**
+     * Get git info.
+     *
+     * @return ?array<string, string>
+     */
+    public function getGitInfo(): ?array {
+        $git_path = __DIR__.'/../.git';
+        $head_file = $git_path.'/HEAD';
+
+        if (!is_file($head_file)) {
+            return null;
+        }
+
+        $head_file_parts = explode('/', file_get_contents($head_file));
+        $branch = isset($head_file_parts[2]) ? trim($head_file_parts[2]) : '';
+        $branch_file = $git_path.'/refs/heads/'.$branch;
+
+        if (!is_file($branch_file)) {
+            return null;
+        }
+
+        $commit = trim(file_get_contents($branch_file));
+
+        return [
+            'commit'    => $commit,
+            'short_sha' => substr($commit, 0, 7),
+            'branch'    => $branch,
+        ];
+    }
 }

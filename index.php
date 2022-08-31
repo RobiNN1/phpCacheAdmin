@@ -71,6 +71,8 @@ if (isset($_GET['ajax'])) {
         'nav'        => $nav,
         'logout_url' => $auth ? Http::queryString([], ['logout' => 'yes']) : null,
         'version'    => Admin::VERSION,
+        'repo'       => 'https://github.com/RobiNN1/phpCacheAdmin',
+        'git'        => $admin->getGitInfo(),
         'back_url'   => $back_url ?? null,
         'panels'     => $dashboard->showPanels(),
         'dashboard'  => $dashboard->dashboard(),

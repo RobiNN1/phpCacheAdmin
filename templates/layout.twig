@@ -18,18 +18,24 @@
                 </a>
             {% endfor %}
             <footer class="my-4 text-center text-white">
-
                 {% if logout_url %}
                     <a class="block py-2 text-white hover:text-gray-200" href="{{ logout_url }}">Logout</a>
                 {% endif %}
 
                 <div class="font-light">
                     &copy; {{ 'now'|date('Y') }}
-                    <a class="font-semibold text-white hover:text-gray-200" href="https://github.com/RobiNN1/phpCacheAdmin" target="_blank" rel="noopener">
-                        phpCacheAdmin
-                    </a>
+                    <a class="font-semibold text-white hover:text-gray-200" href="{{ repo }}" target="_blank" rel="noopener">phpCacheAdmin</a>
+                    v{{ version }}
+
+                    {% if git %}
+                        <div class="text-xs">
+                            Git revision:
+                            <a class="font-semibold text-white hover:text-gray-200" href="{{ repo }}/commit/{{ git.commit }}" target="_blank">{{ git.short_sha }}</a>,
+                            branch:
+                            <a class="font-semibold text-white hover:text-gray-200" href="{{ repo }}/tree/{{ git.branch }}" target="_blank">{{ git.branch }}</a>.
+                        </div>
+                    {% endif %}
                 </div>
-                v{{ version }}
             </footer>
         </div>
     </nav>

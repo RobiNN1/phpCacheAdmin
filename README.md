@@ -98,6 +98,20 @@ To add another server, add the same environment variables, but change 0 to 1 (2 
 - PHP >= 7.4
 - redis, memcache(d), opcache or apcu php extensions (if none of them is installed, only the Server tab will be available)
 
+## Testing
+
+PHPUnit
+
+```
+composer test
+```
+
+PHPStan
+
+```
+composer phpstan
+```
+
 ## Development
 
 For compiling Tailwind CSS run `npm install` and then

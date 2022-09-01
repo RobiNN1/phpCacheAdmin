@@ -27,7 +27,8 @@
   },
   "require-dev": {
     "clue/phar-composer": "^1.4",
-    "phpstan/phpstan": "^1.8"
+    "phpstan/phpstan": "^1.8",
+    "phpunit/phpunit": "^9.5"
   },
   "suggest": {
     "ext-apcu": "Required for the APCu dashboard.",
@@ -42,8 +43,14 @@
       "RobiNN\\Pca\\": "src/"
     }
   },
+  "autoload-dev": {
+    "psr-4": {
+      "Tests\\": "tests/"
+    }
+  },
   "scripts": {
     "phar": "phar-composer build twig/twig",
-    "phpstan": "phpstan --ansi"
+    "phpstan": "phpstan --ansi",
+    "test": "phpunit --colors=always"
   }
 }

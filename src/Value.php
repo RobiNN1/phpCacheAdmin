@@ -54,7 +54,7 @@ class Value {
      *
      * @return ?string
      */
-    private static function decoded(string $value, ?string &$encode_fn): ?string {
+    private static function decoded(string $value, ?string &$encode_fn = null): ?string {
         foreach (Config::get('encoding') as $name => $decoder) {
             if (is_callable($decoder['view']) && $decoder['view']($value) !== null) {
                 $encode_fn = (string) $name;
@@ -74,7 +74,7 @@ class Value {
      *
      * @return ?string
      */
-    private static function formatted(string $value, bool &$is_formatted): ?string {
+    private static function formatted(string $value, bool &$is_formatted = false): ?string {
         foreach (Config::get('formatters') as $formatter) {
             if (is_callable($formatter) && $formatter($value) !== null) {
                 $is_formatted = true;
@@ -117,7 +117,7 @@ class Value {
      * @return bool
      */
     private static function isJson(string $value): bool {
-        if (!is_string($value)) {
+        if (!is_string($value) || is_numeric($value)) {
             return false;
         }
 
@@ -145,7 +145,7 @@ class Value {
 
         $encoder = Config::get('encoding')[$encoder];
 
-        if (is_callable($encoder['save']) && $encoder['save']($value) !== null) {
+        if (is_callable($encoder['save'])) {
             return $encoder['save']($value);
         }
 

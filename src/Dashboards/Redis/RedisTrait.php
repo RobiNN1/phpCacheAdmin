@@ -177,9 +177,10 @@ trait RedisTrait {
     private function getDatabases(Redis $redis): array {
         $databases = [];
 
-        $db_count = (array) $redis->config('GET', 'databases');
+        $dbs = (array) $redis->config('GET', 'databases');
+        $db_count = $dbs['databases']; // @phpstan-ignore-line
 
-        for ($d = 0; $d < $db_count['databases']; ++$d) {
+        for ($d = 0; $d < $db_count; ++$d) {
             $keyspace = $redis->info('KEYSPACE');
             $keys_in_db = '';
 

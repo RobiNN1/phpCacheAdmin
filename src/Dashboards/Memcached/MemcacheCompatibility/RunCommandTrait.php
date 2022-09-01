@@ -25,6 +25,8 @@ trait RunCommandTrait {
     public function runCommand(string $command): ?array {
         $data = [];
 
+        $this->server['port'] ??= 11211;
+
         $fp = @fsockopen($this->server['host'], (int) $this->server['port'], $error_code, $error_message, 3);
 
         if ($fp === false) {

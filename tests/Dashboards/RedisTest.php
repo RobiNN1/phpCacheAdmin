@@ -15,6 +15,7 @@ namespace Tests\Dashboards;
 use Redis;
 use RedisException;
 use RobiNN\Pca\Dashboards\Redis\RedisDashboard;
+use RobiNN\Pca\Http;
 use RobiNN\Pca\Template;
 use Tests\TestCase;
 
@@ -106,6 +107,27 @@ final class RedisTest extends TestCase {
             foreach ($keys as $key => $value) {
                 $this->redis->del('pu-test-'.$key);
             }
+        } catch (RedisException $e) {
+            echo $e->getMessage();
+        }
+    }
+
+    public function testSaveKey(): void {
+        try {
+            $key = 'pu-test-save';
+
+            $_POST['redis_type'] = 'string';
+            $_POST['key'] = $key;
+            $_POST['value'] = 'test-value';
+            $_POST['expire'] = -1;
+            $_POST['encoder'] = 'none';
+
+            Http::stopRedirect();
+            self::callMethod($this->dashboard, 'saveKey', $this->redis);
+
+            $this->assertSame('test-value', $this->redis->get($key));
+
+            $this->redis->del($key);
         } catch (RedisException $e) {
             echo $e->getMessage();
         }

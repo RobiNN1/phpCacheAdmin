@@ -13,6 +13,7 @@ declare(strict_types=1);
 namespace Tests\Dashboards;
 
 use RobiNN\Pca\Dashboards\APCu\APCuDashboard;
+use RobiNN\Pca\Http;
 use RobiNN\Pca\Template;
 use Tests\TestCase;
 
@@ -92,5 +93,20 @@ final class APCuTest extends TestCase {
         foreach ($keys as $key => $value) {
             apcu_delete('pu-test-'.$key);
         }
+    }
+
+    public function testSaveKey(): void {
+        $key = 'pu-test-save';
+
+        $_POST['key'] = $key;
+        $_POST['value'] = 'test-value';
+        $_POST['encoder'] = 'none';
+
+        Http::stopRedirect();
+        self::callMethod($this->apcu, 'saveKey');
+
+        $this->assertSame('test-value', self::callMethod($this->apcu, 'getKey', $key));
+
+        apcu_delete($key);
     }
 }

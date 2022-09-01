@@ -15,6 +15,7 @@ namespace Tests\Dashboards;
 use RobiNN\Pca\Dashboards\Memcached\MemcacheCompatibility\Memcache;
 use RobiNN\Pca\Dashboards\Memcached\MemcacheCompatibility\Memcached;
 use RobiNN\Pca\Dashboards\Memcached\MemcachedDashboard;
+use RobiNN\Pca\Http;
 use RobiNN\Pca\Template;
 use Tests\TestCase;
 
@@ -100,5 +101,20 @@ final class MemcachedTest extends TestCase {
         foreach ($keys as $key => $value) {
             $this->memcached->delete('pu-test-'.$key);
         }
+    }
+
+    public function testSaveKey(): void {
+        $key = 'pu-test-save';
+
+        $_POST['key'] = $key;
+        $_POST['value'] = 'test-value';
+        $_POST['encoder'] = 'none';
+
+        Http::stopRedirect();
+        self::callMethod($this->dashboard, 'saveKey', $this->memcached);
+
+        $this->assertSame('test-value', $this->memcached->getKey($key));
+
+        $this->memcached->delete($key);
     }
 }

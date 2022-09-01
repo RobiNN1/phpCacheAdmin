@@ -244,9 +244,11 @@ trait RedisTrait {
 
         $paginator = new Paginator($this->template, $keys, [['db', 's', 'pp'], ['p' => '']]);
 
+        $servers = Config::get('redis');
+
         return $this->template->render('dashboards/redis/redis', [
             'databases'   => $this->getDatabases($redis),
-            'current_db'  => $this->current_db,
+            'current_db'  => Http::get('db', 'int', $servers[$this->current_server]['database'] ?? 0),
             'keys'        => $paginator->getPaginated(),
             'all_keys'    => $redis->dbSize(),
             'new_key_url' => Http::queryString(['db'], ['form' => 'new']),

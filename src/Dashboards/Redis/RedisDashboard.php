@@ -29,8 +29,6 @@ class RedisDashboard implements DashboardInterface {
 
     private int $current_server;
 
-    private int $current_db;
-
     public function __construct(Template $template) {
         $this->template = $template;
 
@@ -38,7 +36,6 @@ class RedisDashboard implements DashboardInterface {
         $server = Http::get('server', 'int');
 
         $this->current_server = array_key_exists($server, $servers) ? $server : 0;
-        $this->current_db = Http::get('db', 'int', $servers[$this->current_server]['database'] ?? 0);
     }
 
     /**
@@ -99,7 +96,7 @@ class RedisDashboard implements DashboardInterface {
         }
 
         try {
-            $redis->select($this->current_db);
+            $redis->select(Http::get('db', 'int', $server['database'] ?? 0));
         } catch (Exception $e) {
             throw new DashboardException(
                 sprintf('Could not select Redis database (%s:%s). Error: %s', $server['host'], $server['port'], $e->getMessage())

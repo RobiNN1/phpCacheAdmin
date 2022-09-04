@@ -31,7 +31,7 @@ class OPCacheDashboard implements DashboardInterface {
      *
      * @return bool
      */
-    public function check(): bool {
+    public static function check(): bool {
         return extension_loaded('Zend OPcache');
     }
 

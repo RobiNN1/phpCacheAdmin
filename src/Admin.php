@@ -30,9 +30,8 @@ class Admin {
      */
     public function __construct(?Template $template = null) {
         foreach (Config::get('dashboards') as $class) {
-            $dashboard = new $class($template);
-
-            if ($dashboard instanceof DashboardInterface && $dashboard->check()) {
+            if (is_subclass_of($class, DashboardInterface::class) && $class::check()) {
+                $dashboard = new $class($template);
                 $info = $dashboard->getDashboardInfo();
                 $this->dashboards[$info['key']] = $dashboard;
             }

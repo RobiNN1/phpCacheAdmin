@@ -43,7 +43,7 @@ class RedisDashboard implements DashboardInterface {
      *
      * @return bool
      */
-    public function check(): bool {
+    public static function check(): bool {
         return extension_loaded('redis');
     }
 

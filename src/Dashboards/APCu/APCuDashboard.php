@@ -30,7 +30,7 @@ class APCuDashboard implements DashboardInterface {
      *
      * @return bool
      */
-    public function check(): bool {
+    public static function check(): bool {
         return extension_loaded('apcu');
     }
 

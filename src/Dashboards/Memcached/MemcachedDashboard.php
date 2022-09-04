@@ -38,7 +38,7 @@ class MemcachedDashboard implements DashboardInterface {
      *
      * @return bool
      */
-    public function check(): bool {
+    public static function check(): bool {
         return extension_loaded('memcache') || extension_loaded('memcached');
     }
 

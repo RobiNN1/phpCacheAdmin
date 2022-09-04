@@ -18,7 +18,7 @@ interface DashboardInterface {
      *
      * @return bool
      */
-    public function check(): bool;
+    public static function check(): bool;
 
     /**
      * Get dashboard info.

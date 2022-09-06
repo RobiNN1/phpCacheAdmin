@@ -25,9 +25,13 @@ trait RunCommandTrait {
     public function runCommand(string $command): ?array {
         $data = [];
 
-        $this->server['port'] ??= 11211;
+        if (isset($this->server['path'])) {
+            $fp = stream_socket_client('unix://'.$this->server['path']);
+        } else {
+            $this->server['port'] ??= 11211;
 
-        $fp = @fsockopen($this->server['host'], (int) $this->server['port'], $error_code, $error_message, 3);
+            $fp = fsockopen($this->server['host'], (int) $this->server['port'], $error_code, $error_message, 3);
+        }
 
         if ($fp === false) {
             return null;

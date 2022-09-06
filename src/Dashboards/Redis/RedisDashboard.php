@@ -75,13 +75,23 @@ class RedisDashboard implements DashboardInterface {
             throw new DashboardException('Redis extension is not installed.');
         }
 
-        $server['port'] ??= 6379;
+        if (isset($server['path'])) {
+            $redis_server = $server['path'];
+        } else {
+            $server['port'] ??= 6379;
+
+            $redis_server = $server['host'].':'.$server['port'];
+        }
 
         try {
-            $redis->connect($server['host'], (int) $server['port'], 3);
+            if (isset($server['path'])) {
+                $redis->connect($server['path']);
+            } else {
+                $redis->connect($server['host'], (int) $server['port'], 3);
+            }
         } catch (Exception $e) {
             throw new DashboardException(
-                sprintf('Failed to connect to Redis server (%s:%s). Error: %s', $server['host'], $server['port'], $e->getMessage())
+                sprintf('Failed to connect to Redis server (%s). Error: %s', $redis_server, $e->getMessage())
             );
         }
 
@@ -91,7 +101,7 @@ class RedisDashboard implements DashboardInterface {
             }
         } catch (Exception $e) {
             throw new DashboardException(
-                sprintf('Could not authenticate with Redis server (%s:%s). Error: %s', $server['host'], $server['port'], $e->getMessage())
+                sprintf('Could not authenticate with Redis server (%s). Error: %s', $redis_server, $e->getMessage())
             );
         }
 
@@ -99,7 +109,7 @@ class RedisDashboard implements DashboardInterface {
             $redis->select(Http::get('db', 'int', $server['database'] ?? 0));
         } catch (Exception $e) {
             throw new DashboardException(
-                sprintf('Could not select Redis database (%s:%s). Error: %s', $server['host'], $server['port'], $e->getMessage())
+                sprintf('Could not select Redis database (%s). Error: %s', $redis_server, $e->getMessage())
             );
         }
 

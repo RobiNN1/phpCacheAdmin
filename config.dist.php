@@ -23,17 +23,19 @@ return [
     'redis'      => [
         [
             'name' => 'Localhost', // Optional
-            'host' => '127.0.0.1',
+            'host' => '127.0.0.1', // Optional, when a path is specified
             'port' => 6379, // Optional
             //'database' => 0, // Optional
             //'password' => '', // Optional
+            //'path'     => '/var/run/redis/redis-server.sock', // Optional
         ],
     ],
     'memcached'  => [
         [
             'name' => 'Localhost', // Optional
-            'host' => '127.0.0.1',
+            'host' => '127.0.0.1', // Optional, when a path is specified
             'port' => 11211, // Optional
+            //'path' => '/var/run/memcached/memcached.sock', // Optional
         ],
     ],
     'timeformat' => 'd. m. Y H:i:s',

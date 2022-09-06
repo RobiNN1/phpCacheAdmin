@@ -80,16 +80,18 @@ services:
 Redis:
 
 - `PCA_REDIS_0_NAME` The server name for an info panel. Optional, default: Localhost.
-- `PCA_REDIS_0_HOST` Redis server host.
-- `PCA_REDIS_0_PORT` Redis server port. Optional, default: 6379.
+- `PCA_REDIS_0_HOST` Redis host. Optional, when a path is specified.
+- `PCA_REDIS_0_PORT` Redis port. Optional, default: 6379.
 - `PCA_REDIS_0_DATABASE` Redis database. Optional, default: 0.
 - `PCA_REDIS_0_PASSWORD` Redis password. Optional, default: empty.
+- `PCA_REDIS_0_PATH` Redis unix path. Optional, default: /var/run/redis/redis-server.sock.
 
 Memcached:
 
 - `PCA_MEMCACHED_0_NAME` The server name for an info panel. Optional, default: Localhost.
-- `PCA_MEMCACHED_0_HOST` Memcached server host.
-- `PCA_MEMCACHED_0_PORT` Memcached server port. Optional, default: 11211.
+- `PCA_MEMCACHED_0_HOST` Memcached host. Optional, when a path is specified.
+- `PCA_MEMCACHED_0_PORT` Memcached port. Optional, default: 11211.
+- `PCA_MEMCACHED_0_PATH` Memcached unix path. Optional, default: /var/run/memcached/memcached.sock.
 
 To add another server, add the same environment variables, but change 0 to 1 (2 for third server and so on).
 

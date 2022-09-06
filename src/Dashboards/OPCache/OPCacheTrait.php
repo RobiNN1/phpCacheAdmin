@@ -72,7 +72,10 @@ trait OPCacheTrait {
                 $name = explode('/', $full_path);
                 $script_name = $name[array_key_last($name)];
 
-                if ((isset($_GET['ignore']) && $_GET['ignore'] === 'yes') && Helpers::str_starts_with($full_path, $_SERVER['DOCUMENT_ROOT'])) {
+                if (
+                    (isset($_GET['ignore']) && $_GET['ignore'] === 'yes') &&
+                    Helpers::str_starts_with(str_replace('phar://', '', $full_path), $_SERVER['DOCUMENT_ROOT'])
+                ) {
                     continue;
                 }
 

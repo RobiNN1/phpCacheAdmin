@@ -134,6 +134,10 @@ trait TypesTrait {
                 $hash_key = Http::get('hash_key', 'string', $keys[0]);
                 $value = $redis->hGet($key, $hash_key);
                 break;
+            case 'stream':
+                $ranges = $redis->xRange($key, '-', '+');
+                $value = $ranges[Http::get('stream_id')];
+                break;
             default:
                 $value = '';
         }
@@ -207,9 +211,9 @@ trait TypesTrait {
                 $size = $redis->lLen($key);
                 $index = $_POST['index'] ?? '';
 
-                if ($index === '' || $index === (string) $size) {
+                if ($index === '' || $index === (string) $size) { // append
                     $redis->rPush($key, $value);
-                } elseif ($index === '-1') {
+                } elseif ($index === '-1') { // prepend
                     $redis->lPush($key, $value);
                 } elseif ($index >= 0 && $index < $size) {
                     $redis->lSet($key, (int) $index, $value);
@@ -228,6 +232,9 @@ trait TypesTrait {
                 }
 
                 $redis->hSet($key, Http::post('hash_key'), $value);
+                break;
+            case 'stream':
+                $redis->xAdd($key, Http::post('stream_id', 'string', '*'), [Http::post('field') => $value]);
                 break;
             default:
         }

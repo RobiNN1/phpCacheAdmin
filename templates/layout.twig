@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ site_title }} - phpCacheAdmin</title>
     <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon.png">
-    <link rel="stylesheet" href="assets/css/styles.css">
+    <link rel="stylesheet" href="assets/css/styles.css?v={{ version }}">
 </head>
 <body class="bg-gray-50 text-gray-900 md:ml-64" data-dashboard="{{ current }}">
 <aside id="sidebar" class="hidden md:block">
@@ -70,6 +70,6 @@
         {{ dashboard|raw }}
     </div>
 </div>
-<script src="assets/js/scripts.js"></script>
+<script src="assets/js/scripts.js?v={{ version }}"></script>
 </body>
 </html>

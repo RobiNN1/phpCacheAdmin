@@ -12,7 +12,7 @@ declare(strict_types=1);
 
 return [
     // The order of the items also changes the position of the sidebar links.
-    // You can comment out any item except ServerDashboard because it's default dashboard.
+    // You can comment out (delete) any dashboard except ServerDashboard because it's a default dashboard.
     'dashboards' => [
         RobiNN\Pca\Dashboards\Server\ServerDashboard::class,
         RobiNN\Pca\Dashboards\Redis\RedisDashboard::class,
@@ -24,7 +24,7 @@ return [
         [
             'name' => 'Localhost', // Optional
             'host' => '127.0.0.1', // Optional, when a path is specified
-            'port' => 6379, // Optional
+            'port' => 6379, // Optional, when the default port is used
             //'database' => 0, // Optional
             //'password' => '', // Optional
             //'path'     => '/var/run/redis/redis-server.sock', // Optional
@@ -34,14 +34,15 @@ return [
         [
             'name' => 'Localhost', // Optional
             'host' => '127.0.0.1', // Optional, when a path is specified
-            'port' => 11211, // Optional
+            'port' => 11211, // Optional, when the default port is used
             //'path' => '/var/run/memcached/memcached.sock', // Optional
         ],
     ],
     'timeformat' => 'd. m. Y H:i:s',
     'twigdebug'  => false,
-    // Auth function, this is an example with http auth, but you can add own logic
     /*'auth'       => static function (): void {
+        // Example of authentication with http auth.
+
         $username = 'admin';
         $password = 'pass';
 
@@ -56,6 +57,8 @@ return [
             exit();
         }
 
+        // Use this section for the logout.
+        // It will display a link in the sidebar.
         if (isset($_GET['logout'])) {
             $is_https = (
                 (isset($_SERVER['HTTPS']) && ($_SERVER['HTTPS'] === 'on' || $_SERVER['HTTPS'] === 1)) ||

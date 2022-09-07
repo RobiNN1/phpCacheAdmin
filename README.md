@@ -24,8 +24,8 @@
 
 Simply extract the content. Optional but highly recommended, run `composer install` before use.
 
-If you need to customize or add servers in the configuration file, do not edit `config.dist.php` directly,
-copy `config.dist.php` to `config.php` instead.
+If you need to customize or add servers to the configuration file,
+do not edit `config.dist.php` directly, but copy it to `config.php`.
 
 ## Updating
 

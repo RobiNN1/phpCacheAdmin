@@ -192,6 +192,10 @@ class RedisDashboard implements DashboardInterface {
     public function dashboard(): string {
         $servers = Config::get('redis');
 
+        if (empty($servers)) {
+            return 'No servers';
+        }
+
         if (isset($_GET['moreinfo'])) {
             $return = $this->moreInfo($servers);
         } else {

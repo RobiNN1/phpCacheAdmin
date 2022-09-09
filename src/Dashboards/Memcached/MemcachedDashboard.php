@@ -169,6 +169,10 @@ class MemcachedDashboard implements DashboardInterface {
     public function dashboard(): string {
         $servers = Config::get('memcached');
 
+        if (empty($servers)) {
+            return 'No servers';
+        }
+
         if (isset($_GET['moreinfo'])) {
             $return = $this->moreInfo($servers);
         } else {

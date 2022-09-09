@@ -91,7 +91,7 @@ class RedisDashboard implements DashboardInterface {
             }
         } catch (Exception $e) {
             throw new DashboardException(
-                sprintf('Failed to connect to Redis server (%s). Error: %s', $redis_server, $e->getMessage())
+                sprintf('Failed to connect to Redis server %s. Error: %s', $redis_server, $e->getMessage())
             );
         }
 
@@ -101,7 +101,7 @@ class RedisDashboard implements DashboardInterface {
             }
         } catch (Exception $e) {
             throw new DashboardException(
-                sprintf('Could not authenticate with Redis server (%s). Error: %s', $redis_server, $e->getMessage())
+                sprintf('Could not authenticate with Redis server %s. Error: %s', $redis_server, $e->getMessage())
             );
         }
 
@@ -109,7 +109,7 @@ class RedisDashboard implements DashboardInterface {
             $redis->select(Http::get('db', 'int', $server['database'] ?? 0));
         } catch (Exception $e) {
             throw new DashboardException(
-                sprintf('Could not select Redis database (%s). Error: %s', $redis_server, $e->getMessage())
+                sprintf('Could not select Redis database %s. Error: %s', $redis_server, $e->getMessage())
             );
         }
 

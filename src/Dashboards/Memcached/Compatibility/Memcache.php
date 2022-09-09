@@ -10,10 +10,10 @@
 
 declare(strict_types=1);
 
-namespace RobiNN\Pca\Dashboards\Memcached\MemcacheCompatibility;
+namespace RobiNN\Pca\Dashboards\Memcached\Compatibility;
 
-class Memcached extends \Memcached implements MemcacheInterface {
-    use RunCommandTrait;
+class Memcache extends \Memcache implements CompatibilityInterface {
+    use CommandTrait;
 
     /**
      * @var array<string, int|string>
@@ -24,8 +24,6 @@ class Memcached extends \Memcached implements MemcacheInterface {
      * @param array<string, int|string> $server
      */
     public function __construct(array $server = []) {
-        parent::__construct();
-
         $this->server = $server;
     }
 
@@ -35,7 +33,9 @@ class Memcached extends \Memcached implements MemcacheInterface {
      * @return bool
      */
     public function isConnected(): bool {
-        return $this->getVersion() || $this->getResultCode() === self::RES_SUCCESS;
+        $stats = @$this->getStats(); // Need to be silenced since Memcache doesn't throw exceptions...
+
+        return isset($stats['pid']) && $stats['pid'] > 0;
     }
 
     /**
@@ -44,7 +44,7 @@ class Memcached extends \Memcached implements MemcacheInterface {
      * @return array<string, mixed>
      */
     public function getServerStats(): array {
-        return array_values(@$this->getStats())[0];
+        return (array) @$this->getStats();
     }
 
     /**
@@ -57,6 +57,6 @@ class Memcached extends \Memcached implements MemcacheInterface {
      * @return bool
      */
     public function store(string $key, string $value, int $expiration = 0): bool {
-        return $this->set($key, $value, $expiration);
+        return $this->set($key, $value, 0, $expiration);
     }
 }

@@ -60,14 +60,14 @@ class MemcachedDashboard implements DashboardInterface {
      *
      * @param array<string, int|string> $server
      *
-     * @return MemcacheCompatibility\Memcache|MemcacheCompatibility\Memcached
+     * @return Compatibility\Memcache|Compatibility\Memcached
      * @throws DashboardException
      */
     private function connect(array $server) {
         if (extension_loaded('memcached')) {
-            $memcache = new MemcacheCompatibility\Memcached($server);
+            $memcached = new Compatibility\Memcached($server);
         } elseif (extension_loaded('memcache')) {
-            $memcache = new MemcacheCompatibility\Memcache($server);
+            $memcached = new Compatibility\Memcache($server);
         } else {
             throw new DashboardException('Memcache(d) extension is not installed.');
         }
@@ -75,20 +75,20 @@ class MemcachedDashboard implements DashboardInterface {
         if (isset($server['path'])) {
             $memcached_server = $server['path'];
 
-            $memcache->addServer($server['path'], 0);
+            $memcached->addServer($server['path'], 0);
         } else {
             $server['port'] ??= 11211;
 
             $memcached_server = $server['host'].':'.$server['port'];
 
-            $memcache->addServer($server['host'], (int) $server['port']);
+            $memcached->addServer($server['host'], (int) $server['port']);
         }
 
-        if (!$memcache->isConnected()) {
-            throw new DashboardException(sprintf('Failed to connect to Memcache(d) server (%s).', $memcached_server));
+        if (!$memcached->isConnected()) {
+            throw new DashboardException(sprintf('Failed to connect to Memcache(d) server %s.', $memcached_server));
         }
 
-        return $memcache;
+        return $memcached;
     }
 
     /**

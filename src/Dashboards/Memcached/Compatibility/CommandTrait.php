@@ -10,27 +10,32 @@
 
 declare(strict_types=1);
 
-namespace RobiNN\Pca\Dashboards\Memcached\MemcacheCompatibility;
+namespace RobiNN\Pca\Dashboards\Memcached\Compatibility;
 
-trait RunCommandTrait {
+use RobiNN\Pca\Dashboards\DashboardException;
+
+trait CommandTrait {
     /**
      * Run command.
      *
-     * https://github.com/memcached/memcached/wiki/Commands
-     *
-     * @param string $command
+     * @param string $command https://github.com/memcached/memcached/wiki/Commands
      *
      * @return ?array<int, mixed>
+     * @throws DashboardException
      */
-    public function runCommand(string $command): ?array {
+    public function command(string $command): ?array {
         $data = [];
 
         if (isset($this->server['path'])) {
-            $fp = stream_socket_client('unix://'.$this->server['path']);
+            $fp = @stream_socket_client('unix://'.$this->server['path'], $error_code, $error_message);
         } else {
             $this->server['port'] ??= 11211;
 
-            $fp = fsockopen($this->server['host'], (int) $this->server['port'], $error_code, $error_message, 3);
+            $fp = @fsockopen($this->server['host'], (int) $this->server['port'], $error_code, $error_message, 3);
+        }
+
+        if ($error_message !== '') {
+            throw new DashboardException('command() method: '.$error_message);
         }
 
         if ($fp === false) {
@@ -63,7 +68,7 @@ trait RunCommandTrait {
     }
 
     /**
-     * Get data from line.
+     * Format key output.
      *
      * @param string $line
      *
@@ -92,12 +97,16 @@ trait RunCommandTrait {
     /**
      * Get all keys.
      *
+     * This command requires Memcached server >= 1.4.18
+     * https://github.com/memcached/memcached/wiki/ReleaseNotes1418#lru-crawler
+     *
      * @return array<int, mixed>
+     * @throws DashboardException
      */
     public function getKeys(): array {
         static $keys = [];
 
-        $all_keys = $this->runCommand('lru_crawler metadump all');
+        $all_keys = $this->command('lru_crawler metadump all');
 
         if ($all_keys !== null) {
             foreach ($all_keys as $line) {
@@ -114,9 +123,10 @@ trait RunCommandTrait {
      * @param string $key
      *
      * @return string|false
+     * @throws DashboardException
      */
     public function getKey(string $key) {
-        $data = $this->runCommand('get '.$key);
+        $data = $this->command('get '.$key);
 
         if (!isset($data[0])) {
             return false;
@@ -131,6 +141,7 @@ trait RunCommandTrait {
      * @param string $key
      *
      * @return bool
+     * @throws DashboardException
      */
     public function exists(string $key): bool {
         return $this->getKey($key) !== false;

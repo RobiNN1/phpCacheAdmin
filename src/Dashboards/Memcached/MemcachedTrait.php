@@ -14,8 +14,8 @@ namespace RobiNN\Pca\Dashboards\Memcached;
 
 use RobiNN\Pca\Config;
 use RobiNN\Pca\Dashboards\DashboardException;
-use RobiNN\Pca\Dashboards\Memcached\MemcacheCompatibility\Memcache;
-use RobiNN\Pca\Dashboards\Memcached\MemcacheCompatibility\Memcached;
+use RobiNN\Pca\Dashboards\Memcached\Compatibility\Memcache;
+use RobiNN\Pca\Dashboards\Memcached\Compatibility\Memcached;
 use RobiNN\Pca\Format;
 use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
@@ -74,6 +74,7 @@ trait MemcachedTrait {
      * @param Memcache|Memcached $memcached
      *
      * @return string
+     * @throws DashboardException
      */
     private function deleteKey($memcached): string {
         $keys = explode(',', Http::get('delete'));
@@ -125,6 +126,7 @@ trait MemcachedTrait {
      * @param Memcache|Memcached $memcached
      *
      * @return array<int, array<string, string|int>>
+     * @throws DashboardException
      */
     private function getAllKeys($memcached): array {
         static $keys = [];
@@ -146,6 +148,7 @@ trait MemcachedTrait {
      * @param Memcache|Memcached $memcached
      *
      * @return string
+     * @throws DashboardException
      */
     private function mainDashboard($memcached): string {
         $keys = $this->getAllKeys($memcached);
@@ -171,6 +174,7 @@ trait MemcachedTrait {
      * @param Memcache|Memcached $memcached
      *
      * @return string
+     * @throws DashboardException
      */
     private function viewKey($memcached): string {
         $key = Http::get('key');
@@ -218,6 +222,7 @@ trait MemcachedTrait {
      * @param Memcache|Memcached $memcached
      *
      * @return void
+     * @throws DashboardException
      */
     private function import($memcached): void {
         if ($_FILES['import']['type'] === 'text/plain') {
@@ -239,6 +244,7 @@ trait MemcachedTrait {
      * @param Memcache|Memcached $memcached
      *
      * @return string
+     * @throws DashboardException
      */
     private function form($memcached): string {
         $key = Http::get('key');

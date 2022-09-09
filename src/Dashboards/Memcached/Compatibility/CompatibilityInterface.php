@@ -10,9 +10,9 @@
 
 declare(strict_types=1);
 
-namespace RobiNN\Pca\Dashboards\Memcached\MemcacheCompatibility;
+namespace RobiNN\Pca\Dashboards\Memcached\Compatibility;
 
-interface MemcacheInterface {
+interface CompatibilityInterface {
     /**
      * Check connection.
      *

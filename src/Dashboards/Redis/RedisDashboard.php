@@ -12,7 +12,6 @@ declare(strict_types=1);
 
 namespace RobiNN\Pca\Dashboards\Redis;
 
-use Exception;
 use Redis;
 use RedisException;
 use RobiNN\Pca\Config;
@@ -89,7 +88,7 @@ class RedisDashboard implements DashboardInterface {
             } else {
                 $redis->connect($server['host'], (int) $server['port'], 3);
             }
-        } catch (Exception $e) {
+        } catch (RedisException $e) {
             throw new DashboardException(
                 sprintf('Failed to connect to Redis server %s. Error: %s', $redis_server, $e->getMessage())
             );
@@ -99,7 +98,7 @@ class RedisDashboard implements DashboardInterface {
             if (isset($server['password'])) {
                 $redis->auth($server['password']);
             }
-        } catch (Exception $e) {
+        } catch (RedisException $e) {
             throw new DashboardException(
                 sprintf('Could not authenticate with Redis server %s. Error: %s', $redis_server, $e->getMessage())
             );
@@ -107,7 +106,7 @@ class RedisDashboard implements DashboardInterface {
 
         try {
             $redis->select(Http::get('db', 'int', $server['database'] ?? 0));
-        } catch (Exception $e) {
+        } catch (RedisException $e) {
             throw new DashboardException(
                 sprintf('Could not select Redis database %s. Error: %s', $redis_server, $e->getMessage())
             );

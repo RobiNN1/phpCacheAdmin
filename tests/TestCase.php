@@ -24,15 +24,12 @@ class TestCase extends \PHPUnit\Framework\TestCase {
      * @param mixed  ...$args
      *
      * @return mixed|string
+     * @throws ReflectionException
      */
     protected static function callMethod(object $object, string $name, ...$args) {
-        try {
-            $method = new ReflectionMethod($object, $name);
-            $method->setAccessible(true);
+        $method = new ReflectionMethod($object, $name);
+        $method->setAccessible(true);
 
-            return $method->invokeArgs($object, $args);
-        } catch (ReflectionException $e) {
-            return $e->getMessage();
-        }
+        return $method->invokeArgs($object, $args);
     }
 }

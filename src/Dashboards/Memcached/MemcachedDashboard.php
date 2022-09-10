@@ -84,6 +84,9 @@ class MemcachedDashboard implements DashboardInterface {
             $memcached->addServer($server['host'], (int) $server['port']);
         }
 
+        // Add to config.dist.php when SASL is fully supported.
+        //'sasl_username' => '', // Optional, when not using SASL
+        //'sasl_password' => '', // Optional, when not using SASL
         if (isset($server['sasl_username'], $server['sasl_password'])) {
             try {
                 $memcached->sasl();

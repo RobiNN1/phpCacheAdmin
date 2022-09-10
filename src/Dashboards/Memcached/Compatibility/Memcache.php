@@ -12,6 +12,8 @@ declare(strict_types=1);
 
 namespace RobiNN\Pca\Dashboards\Memcached\Compatibility;
 
+use RobiNN\Pca\Dashboards\Memcached\MemcachedException;
+
 class Memcache extends \Memcache implements CompatibilityInterface {
     use CommandTrait;
 
@@ -58,5 +60,15 @@ class Memcache extends \Memcache implements CompatibilityInterface {
      */
     public function store(string $key, string $value, int $expiration = 0): bool {
         return $this->set($key, $value, 0, $expiration);
+    }
+
+    /**
+     * SASL authentication.
+     *
+     * @return void
+     * @throws MemcachedException
+     */
+    public function sasl(): void {
+        throw new MemcachedException('Memcache does not support SASL authentication, use Memcached extension.');
     }
 }

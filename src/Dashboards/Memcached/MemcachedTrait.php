@@ -44,7 +44,7 @@ trait MemcachedTrait {
                 'Used'             => Format::bytes((int) $server_info['bytes']),
                 'Keys'             => Format::number(count($memcached->getKeys())),
             ];
-        } catch (DashboardException $e) {
+        } catch (DashboardException|MemcachedException $e) {
             return [
                 'error' => $e->getMessage(),
             ];
@@ -74,7 +74,7 @@ trait MemcachedTrait {
      * @param Memcache|Memcached $memcached
      *
      * @return string
-     * @throws DashboardException
+     * @throws MemcachedException
      */
     private function deleteKey($memcached): string {
         $keys = explode(',', Http::get('delete'));
@@ -126,7 +126,7 @@ trait MemcachedTrait {
      * @param Memcache|Memcached $memcached
      *
      * @return array<int, array<string, string|int>>
-     * @throws DashboardException
+     * @throws MemcachedException
      */
     private function getAllKeys($memcached): array {
         static $keys = [];
@@ -148,7 +148,7 @@ trait MemcachedTrait {
      * @param Memcache|Memcached $memcached
      *
      * @return string
-     * @throws DashboardException
+     * @throws MemcachedException
      */
     private function mainDashboard($memcached): string {
         $keys = $this->getAllKeys($memcached);
@@ -174,7 +174,7 @@ trait MemcachedTrait {
      * @param Memcache|Memcached $memcached
      *
      * @return string
-     * @throws DashboardException
+     * @throws MemcachedException
      */
     private function viewKey($memcached): string {
         $key = Http::get('key');
@@ -222,7 +222,7 @@ trait MemcachedTrait {
      * @param Memcache|Memcached $memcached
      *
      * @return void
-     * @throws DashboardException
+     * @throws MemcachedException
      */
     private function import($memcached): void {
         if ($_FILES['import']['type'] === 'text/plain') {
@@ -244,7 +244,7 @@ trait MemcachedTrait {
      * @param Memcache|Memcached $memcached
      *
      * @return string
-     * @throws DashboardException
+     * @throws MemcachedException
      */
     private function form($memcached): string {
         $key = Http::get('key');

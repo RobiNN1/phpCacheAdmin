@@ -12,10 +12,10 @@ declare(strict_types=1);
 
 namespace Tests\Dashboards;
 
-use RobiNN\Pca\Dashboards\DashboardException;
 use RobiNN\Pca\Dashboards\Memcached\Compatibility\Memcache;
 use RobiNN\Pca\Dashboards\Memcached\Compatibility\Memcached;
 use RobiNN\Pca\Dashboards\Memcached\MemcachedDashboard;
+use RobiNN\Pca\Dashboards\Memcached\MemcachedException;
 use RobiNN\Pca\Http;
 use RobiNN\Pca\Template;
 use Tests\TestCase;
@@ -49,7 +49,7 @@ final class MemcachedTest extends TestCase {
                 self::callMethod($this->dashboard, 'deleteKey', $this->memcached)
             );
             $this->assertFalse($this->memcached->exists($key));
-        } catch (DashboardException $e) {
+        } catch (MemcachedException $e) {
             echo $e->getMessage();
         }
     }
@@ -73,7 +73,7 @@ final class MemcachedTest extends TestCase {
             $this->assertFalse($this->memcached->exists($key1));
             $this->assertFalse($this->memcached->exists($key2));
             $this->assertFalse($this->memcached->exists($key3));
-        } catch (DashboardException $e) {
+        } catch (MemcachedException $e) {
             echo $e->getMessage();
         }
     }
@@ -111,7 +111,7 @@ final class MemcachedTest extends TestCase {
             foreach ($keys as $key => $value) {
                 $this->memcached->delete('pu-test-'.$key);
             }
-        } catch (DashboardException $e) {
+        } catch (MemcachedException $e) {
             echo $e->getMessage();
         }
     }
@@ -130,7 +130,7 @@ final class MemcachedTest extends TestCase {
             $this->assertSame('test-value', $this->memcached->getKey($key));
 
             $this->memcached->delete($key);
-        } catch (DashboardException $e) {
+        } catch (MemcachedException $e) {
             echo $e->getMessage();
         }
     }

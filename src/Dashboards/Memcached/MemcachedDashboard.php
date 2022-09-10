@@ -84,6 +84,14 @@ class MemcachedDashboard implements DashboardInterface {
             $memcached->addServer($server['host'], (int) $server['port']);
         }
 
+        if (isset($server['sasl_username'], $server['sasl_password'])) {
+            try {
+                $memcached->sasl();
+            } catch (MemcachedException $e) {
+                throw new DashboardException($e->getMessage());
+            }
+        }
+
         if (!$memcached->isConnected()) {
             throw new DashboardException(sprintf('Failed to connect to Memcache(d) server %s.', $memcached_server));
         }
@@ -113,7 +121,7 @@ class MemcachedDashboard implements DashboardInterface {
                 if (isset($_GET['delete'])) {
                     $return = $this->deleteKey($memcached);
                 }
-            } catch (DashboardException $e) {
+            } catch (DashboardException|MemcachedException $e) {
                 $return = $e->getMessage();
             }
         }
@@ -186,7 +194,7 @@ class MemcachedDashboard implements DashboardInterface {
                 } else {
                     $return = $this->mainDashboard($memcached);
                 }
-            } catch (DashboardException $e) {
+            } catch (DashboardException|MemcachedException $e) {
                 return $e->getMessage();
             }
         }

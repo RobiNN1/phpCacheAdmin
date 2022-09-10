@@ -12,7 +12,7 @@ declare(strict_types=1);
 
 namespace RobiNN\Pca\Dashboards\Memcached\Compatibility;
 
-use RobiNN\Pca\Dashboards\DashboardException;
+use RobiNN\Pca\Dashboards\Memcached\MemcachedException;
 
 trait CommandTrait {
     /**
@@ -21,11 +21,9 @@ trait CommandTrait {
      * @param string $command https://github.com/memcached/memcached/wiki/Commands
      *
      * @return ?array<int, mixed>
-     * @throws DashboardException
+     * @throws MemcachedException
      */
     public function command(string $command): ?array {
-        $data = [];
-
         if (isset($this->server['path'])) {
             $fp = @stream_socket_client('unix://'.$this->server['path'], $error_code, $error_message);
         } else {
@@ -35,7 +33,7 @@ trait CommandTrait {
         }
 
         if ($error_message !== '') {
-            throw new DashboardException('command() method: '.$error_message);
+            throw new MemcachedException('command() method: '.$error_message);
         }
 
         if ($fp === false) {
@@ -45,6 +43,7 @@ trait CommandTrait {
         fwrite($fp, $command."\n");
 
         $part = '';
+        $data = [];
 
         while (true) {
             $part .= fgets($fp, 1024);
@@ -101,10 +100,15 @@ trait CommandTrait {
      * https://github.com/memcached/memcached/wiki/ReleaseNotes1418#lru-crawler
      *
      * @return array<int, mixed>
-     * @throws DashboardException
+     * @throws MemcachedException
      */
     public function getKeys(): array {
         static $keys = [];
+
+        if (isset($this->server['sasl_username'], $this->server['sasl_password'])) {
+            // for future updates, currently it is not possible to list all keys with enabled SASL
+            return [];
+        }
 
         $all_keys = $this->command('lru_crawler metadump all');
 
@@ -123,7 +127,7 @@ trait CommandTrait {
      * @param string $key
      *
      * @return string|false
-     * @throws DashboardException
+     * @throws MemcachedException
      */
     public function getKey(string $key) {
         $data = $this->command('get '.$key);
@@ -141,7 +145,7 @@ trait CommandTrait {
      * @param string $key
      *
      * @return bool
-     * @throws DashboardException
+     * @throws MemcachedException
      */
     public function exists(string $key): bool {
         return $this->getKey($key) !== false;

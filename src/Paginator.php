@@ -13,14 +13,8 @@ declare(strict_types=1);
 namespace RobiNN\Pca;
 
 class Paginator {
-    /**
-     * @var Template
-     */
     private Template $template;
 
-    /**
-     * @var int
-     */
     private int $total;
 
     /**
@@ -28,14 +22,8 @@ class Paginator {
      */
     private array $paginated;
 
-    /**
-     * @var int
-     */
     private int $page;
 
-    /**
-     * @var int
-     */
     private int $per_page;
 
     /**

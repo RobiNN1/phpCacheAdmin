@@ -84,7 +84,7 @@ class Helpers {
      * @return string
      */
     public static function enabledDisabledBadge(Template $template, bool $enabled = true, ?string $text = null, ?array $badge_text = null): string {
-        $badge_text = $badge_text ?? ['Enabled', 'Disabled'];
+        $badge_text ??= ['Enabled', 'Disabled'];
 
         return $template->render('components/badge', [
             'text' => $enabled ? $badge_text[0].$text : $badge_text[1],

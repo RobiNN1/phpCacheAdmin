@@ -96,7 +96,13 @@ class RedisDashboard implements DashboardInterface {
 
         try {
             if (isset($server['password'])) {
-                $redis->auth($server['password']);
+                if (isset($server['username'])) {
+                    $credentials = [$server['username'], $server['password']];
+                } else {
+                    $credentials = $server['password'];
+                }
+
+                $redis->auth($credentials);
             }
         } catch (RedisException $e) {
             throw new DashboardException(

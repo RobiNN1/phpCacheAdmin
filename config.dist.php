@@ -26,6 +26,7 @@ return [
             'host' => '127.0.0.1', // Optional, when a path is specified
             'port' => 6379, // Optional, when the default port is used
             //'database' => 0, // Optional
+            //'username' => '', // Optional, requires Redis >= 6.0
             //'password' => '', // Optional
             //'path'     => '/var/run/redis/redis-server.sock', // Optional
         ],

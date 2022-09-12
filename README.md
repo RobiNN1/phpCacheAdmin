@@ -83,6 +83,7 @@ Redis:
 - `PCA_REDIS_0_HOST` Redis host. Optional, when a `path` is specified.
 - `PCA_REDIS_0_PORT` Redis port. Optional, when the default port is used.
 - `PCA_REDIS_0_DATABASE` Redis database. Optional.
+- `PCA_REDIS_0_USERNAME` Redis username. Optional, requires Redis >= 6.0.
 - `PCA_REDIS_0_PASSWORD` Redis password. Optional.
 - `PCA_REDIS_0_PATH` Redis unix domain socket. Optional.
 
@@ -99,6 +100,7 @@ To add another server, add the same environment variables, but change 0 to 1 (2 
 
 - PHP >= 7.4
 - redis, memcache(d), opcache or apcu php extensions (if none of them is installed, only the Server tab will be available)
+- Memcached server >= 1.4.18
 
 ## Testing
 

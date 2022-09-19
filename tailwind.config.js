@@ -33,5 +33,13 @@ module.exports = {
         'bg-green-600',
         'bg-red-600',
     ],
+    corePlugins: {
+        textOpacity: false,
+        backgroundOpacity: false,
+        borderOpacity: false,
+        divideOpacity: false,
+        placeholderOpacity: false,
+        ringOpacity: false,
+    },
     plugins: [],
 }

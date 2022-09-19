@@ -125,7 +125,7 @@ class APCuDashboard implements DashboardInterface {
         }
 
         return $this->template->render('partials/info', [
-            'title'             => 'APCu',
+            'title'             => 'PHP <span class="font-semibold">APCu</span> extension',
             'extension_version' => phpversion('apcu'),
             'info'              => $this->info(),
         ]);

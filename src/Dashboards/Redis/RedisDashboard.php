@@ -183,7 +183,7 @@ class RedisDashboard implements DashboardInterface {
         }
 
         return $this->template->render('partials/info', [
-            'title'             => 'Redis',
+            'title'             => 'PHP <span class="font-semibold">Redis</span> extension',
             'extension_version' => phpversion('redis'),
             'info'              => $this->info(),
         ]);

@@ -133,7 +133,7 @@ class OPCacheDashboard implements DashboardInterface {
         }
 
         return $this->template->render('partials/info', [
-            'title'             => 'OPCache',
+            'title'             => 'PHP <span class="font-semibold">OPCache</span> extension',
             'extension_version' => phpversion('Zend OPcache'),
             'info'              => $this->info(),
         ]);

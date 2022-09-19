@@ -166,7 +166,7 @@ class MemcachedDashboard implements DashboardInterface {
         $memcached = extension_loaded('memcached') ? 'd' : '';
 
         return $this->template->render('partials/info', [
-            'title'             => 'Memcache'.$memcached,
+            'title'             => 'PHP <span class="font-semibold">Memcache'.$memcached.'</span> extension',
             'extension_version' => phpversion('memcache'.$memcached),
             'info'              => $this->info(),
         ]);

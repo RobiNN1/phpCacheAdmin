@@ -40,7 +40,7 @@ trait CommandTrait {
             return null;
         }
 
-        fwrite($fp, $command."\n");
+        fwrite($fp, $command."\r\n");
 
         $part = '';
         $data = [];

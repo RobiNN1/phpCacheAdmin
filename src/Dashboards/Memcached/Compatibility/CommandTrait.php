@@ -45,7 +45,7 @@ trait CommandTrait {
         $part = '';
         $data = [];
 
-        while (true) {
+        while (!feof($fp)) {
             $part .= fgets($fp, 1024);
             $lines = explode("\n", $part);
             $part = array_pop($lines);

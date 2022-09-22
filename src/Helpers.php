@@ -117,8 +117,6 @@ class Helpers {
     /**
      * Checks if a string starts with a given substring.
      *
-     * From Symfony polyfills.
-     *
      * @param string $haystack
      * @param string $needle
      *
@@ -130,6 +128,24 @@ class Helpers {
         }
 
         return str_starts_with($haystack, $needle);
+    }
+
+    /**
+     * Checks if a string ends with a given substring.
+     *
+     * @param string $haystack
+     * @param string $needle
+     *
+     * @return bool
+     */
+    public static function str_ends_with(string $haystack, string $needle): bool {
+        if (!function_exists('str_ends_with')) {
+            $needleLength = strlen($needle);
+
+            return $needleLength <= strlen($haystack) && 0 === substr_compare($haystack, $needle, -$needleLength);
+        }
+
+        return str_ends_with($haystack, $needle);
     }
 
     /**

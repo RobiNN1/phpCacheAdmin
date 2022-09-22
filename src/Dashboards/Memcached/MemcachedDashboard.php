@@ -39,7 +39,10 @@ class MemcachedDashboard implements DashboardInterface {
      * @return bool
      */
     public static function check(): bool {
-        return extension_loaded('memcached') || extension_loaded('memcache');
+        return
+            extension_loaded('memcached') ||
+            extension_loaded('memcache') ||
+            class_exists(Compatibility\PHPMem::class);
     }
 
     /**
@@ -60,7 +63,7 @@ class MemcachedDashboard implements DashboardInterface {
      *
      * @param array<string, int|string> $server
      *
-     * @return Compatibility\Memcache|Compatibility\Memcached
+     * @return Compatibility\Memcache|Compatibility\Memcached|Compatibility\PHPMem
      * @throws DashboardException
      */
     private function connect(array $server) {
@@ -68,8 +71,10 @@ class MemcachedDashboard implements DashboardInterface {
             $memcached = new Compatibility\Memcached($server);
         } elseif (extension_loaded('memcache')) {
             $memcached = new Compatibility\Memcache($server);
+        } elseif (class_exists(Compatibility\PHPMem::class)) {
+            $memcached = new Compatibility\PHPMem($server);
         } else {
-            throw new DashboardException('Memcache(d) extension is not installed.');
+            throw new DashboardException('Memcache(d) extension or PHPMem client is not installed.');
         }
 
         if (isset($server['path'])) {
@@ -96,7 +101,7 @@ class MemcachedDashboard implements DashboardInterface {
         }
 
         if (!$memcached->isConnected()) {
-            throw new DashboardException(sprintf('Failed to connect to Memcache(d) server %s.', $memcached_server));
+            throw new DashboardException(sprintf('Failed to connect to Memcached server %s.', $memcached_server));
         }
 
         return $memcached;
@@ -163,11 +168,18 @@ class MemcachedDashboard implements DashboardInterface {
             return '';
         }
 
-        $memcached = extension_loaded('memcached') ? 'd' : '';
+        if (extension_loaded('memcached') || extension_loaded('memcache')) {
+            $memcached = extension_loaded('memcached') ? 'd' : '';
+            $title = 'PHP <span class="font-semibold">Memcache'.$memcached.'</span> extension';
+            $version = phpversion('memcache'.$memcached);
+        } elseif (class_exists(Compatibility\PHPMem::class)) {
+            $title = 'PHPMem';
+            $version = Compatibility\PHPMem::VERSION;
+        }
 
         return $this->template->render('partials/info', [
-            'title'             => 'PHP <span class="font-semibold">Memcache'.$memcached.'</span> extension',
-            'extension_version' => phpversion('memcache'.$memcached),
+            'title'             => $title ?? null,
+            'extension_version' => $version ?? null,
             'info'              => $this->info(),
         ]);
     }

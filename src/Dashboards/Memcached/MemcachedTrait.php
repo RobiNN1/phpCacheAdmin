@@ -14,8 +14,6 @@ namespace RobiNN\Pca\Dashboards\Memcached;
 
 use RobiNN\Pca\Config;
 use RobiNN\Pca\Dashboards\DashboardException;
-use RobiNN\Pca\Dashboards\Memcached\Compatibility\Memcache;
-use RobiNN\Pca\Dashboards\Memcached\Compatibility\Memcached;
 use RobiNN\Pca\Format;
 use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
@@ -54,7 +52,7 @@ trait MemcachedTrait {
     /**
      * Delete all keys.
      *
-     * @param Memcache|Memcached $memcached
+     * @param Compatibility\Memcache|Compatibility\Memcached|Compatibility\PHPMem $memcached
      *
      * @return string
      */
@@ -71,7 +69,7 @@ trait MemcachedTrait {
     /**
      * Delete key or selected keys.
      *
-     * @param Memcache|Memcached $memcached
+     * @param Compatibility\Memcache|Compatibility\Memcached|Compatibility\PHPMem $memcached
      *
      * @return string
      * @throws MemcachedException
@@ -107,9 +105,11 @@ trait MemcachedTrait {
             $server_data = $servers[$id];
 
             $info = $this->connect($server_data)->getServerStats();
-            $memcached = extension_loaded('memcached') ? 'd' : '';
 
-            $info += Helpers::getExtIniInfo('memcache'.$memcached);
+            if (extension_loaded('memcached') || extension_loaded('memcache')) {
+                $memcached = extension_loaded('memcached') ? 'd' : '';
+                $info += Helpers::getExtIniInfo('memcache'.$memcached);
+            }
 
             return $this->template->render('partials/info_table', [
                 'panel_title' => $server_data['name'] ?? $server_data['host'].':'.$server_data['port'],
@@ -123,7 +123,7 @@ trait MemcachedTrait {
     /**
      * Get all keys with data.
      *
-     * @param Memcache|Memcached $memcached
+     * @param Compatibility\Memcache|Compatibility\Memcached|Compatibility\PHPMem $memcached
      *
      * @return array<int, array<string, string|int>>
      * @throws MemcachedException
@@ -145,7 +145,7 @@ trait MemcachedTrait {
     /**
      * Main dashboard content.
      *
-     * @param Memcache|Memcached $memcached
+     * @param Compatibility\Memcache|Compatibility\Memcached|Compatibility\PHPMem $memcached
      *
      * @return string
      * @throws MemcachedException
@@ -171,7 +171,7 @@ trait MemcachedTrait {
     /**
      * View key value.
      *
-     * @param Memcache|Memcached $memcached
+     * @param Compatibility\Memcache|Compatibility\Memcached|Compatibility\PHPMem $memcached
      *
      * @return string
      * @throws MemcachedException
@@ -219,7 +219,7 @@ trait MemcachedTrait {
     /**
      * Import key.
      *
-     * @param Memcache|Memcached $memcached
+     * @param Compatibility\Memcache|Compatibility\Memcached|Compatibility\PHPMem $memcached
      *
      * @return void
      * @throws MemcachedException
@@ -241,7 +241,7 @@ trait MemcachedTrait {
     /**
      * Add/edit form.
      *
-     * @param Memcache|Memcached $memcached
+     * @param Compatibility\Memcache|Compatibility\Memcached|Compatibility\PHPMem $memcached
      *
      * @return string
      * @throws MemcachedException
@@ -276,7 +276,7 @@ trait MemcachedTrait {
     /**
      * Save key.
      *
-     * @param Memcache|Memcached $memcached
+     * @param Compatibility\Memcache|Compatibility\Memcached|Compatibility\PHPMem $memcached
      *
      * @return void
      */

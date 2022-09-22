@@ -69,6 +69,6 @@ class Memcache extends \Memcache implements CompatibilityInterface {
      * @throws MemcachedException
      */
     public function sasl(): void {
-        throw new MemcachedException('Memcache does not support SASL authentication, use Memcached extension.');
+        throw new MemcachedException('Memcache extension does not support SASL authentication.');
     }
 }

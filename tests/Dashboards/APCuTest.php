@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace Tests\Dashboards;
 
+use ReflectionException;
 use RobiNN\Pca\Dashboards\APCu\APCuDashboard;
 use RobiNN\Pca\Http;
 use RobiNN\Pca\Template;
@@ -27,6 +28,9 @@ final class APCuTest extends TestCase {
         $this->apcu = new APCuDashboard($this->template);
     }
 
+    /**
+     * @throws ReflectionException
+     */
     public function testDeleteKey(): void {
         $key = 'pu-test-delete-key';
 
@@ -41,6 +45,9 @@ final class APCuTest extends TestCase {
         $this->assertFalse(apcu_exists($key));
     }
 
+    /**
+     * @throws ReflectionException
+     */
     public function testDeleteKeys(): void {
         $key1 = 'pu-test-delete-key1';
         $key2 = 'pu-test-delete-key2';
@@ -61,6 +68,9 @@ final class APCuTest extends TestCase {
         $this->assertFalse(apcu_exists($key3));
     }
 
+    /**
+     * @throws ReflectionException
+     */
     public function testGetKey(): void {
         $keys = [
             'string' => ['original' => 'phpCacheAdmin', 'expected' => 'phpCacheAdmin'],
@@ -95,6 +105,9 @@ final class APCuTest extends TestCase {
         }
     }
 
+    /**
+     * @throws ReflectionException
+     */
     public function testSaveKey(): void {
         $key = 'pu-test-save';
 

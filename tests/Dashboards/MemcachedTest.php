@@ -12,8 +12,10 @@ declare(strict_types=1);
 
 namespace Tests\Dashboards;
 
+use ReflectionException;
 use RobiNN\Pca\Dashboards\Memcached\Compatibility\Memcache;
 use RobiNN\Pca\Dashboards\Memcached\Compatibility\Memcached;
+use RobiNN\Pca\Dashboards\Memcached\Compatibility\PHPMem;
 use RobiNN\Pca\Dashboards\Memcached\MemcachedDashboard;
 use RobiNN\Pca\Dashboards\Memcached\MemcachedException;
 use RobiNN\Pca\Http;
@@ -26,10 +28,13 @@ final class MemcachedTest extends TestCase {
     private MemcachedDashboard $dashboard;
 
     /**
-     * @var Memcache|Memcached
+     * @var Memcached|Memcache|PHPMem
      */
     private $memcached;
 
+    /**
+     * @throws ReflectionException
+     */
     protected function setUp(): void {
         $this->template = new Template();
         $this->dashboard = new MemcachedDashboard($this->template);
@@ -37,7 +42,7 @@ final class MemcachedTest extends TestCase {
     }
 
     /**
-     * @throws MemcachedException
+     * @throws MemcachedException|ReflectionException
      */
     public function testDeleteKey(): void {
         $key = 'pu-test-delete-key';
@@ -54,7 +59,7 @@ final class MemcachedTest extends TestCase {
     }
 
     /**
-     * @throws MemcachedException
+     * @throws MemcachedException|ReflectionException
      */
     public function testDeleteKeys(): void {
         $key1 = 'pu-test-delete-key1';
@@ -114,7 +119,7 @@ final class MemcachedTest extends TestCase {
     }
 
     /**
-     * @throws MemcachedException
+     * @throws MemcachedException|ReflectionException
      */
     public function testSaveKey(): void {
         $key = 'pu-test-save';

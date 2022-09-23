@@ -14,6 +14,7 @@ namespace Tests\Dashboards;
 
 use Redis;
 use RedisException;
+use ReflectionException;
 use RobiNN\Pca\Dashboards\Redis\RedisDashboard;
 use RobiNN\Pca\Http;
 use RobiNN\Pca\Template;
@@ -26,6 +27,9 @@ final class RedisTest extends TestCase {
 
     private Redis $redis;
 
+    /**
+     * @throws ReflectionException
+     */
     protected function setUp(): void {
         $this->template = new Template();
         $this->dashboard = new RedisDashboard($this->template);
@@ -33,7 +37,7 @@ final class RedisTest extends TestCase {
     }
 
     /**
-     * @throws RedisException
+     * @throws RedisException|ReflectionException
      */
     public function testDeleteKey(): void {
         $key = 'pu-test-delete-key';
@@ -50,7 +54,7 @@ final class RedisTest extends TestCase {
     }
 
     /**
-     * @throws RedisException
+     * @throws RedisException|ReflectionException
      */
     public function testDeleteKeys(): void {
         $key1 = 'pu-test-delete-key1';
@@ -110,7 +114,7 @@ final class RedisTest extends TestCase {
     }
 
     /**
-     * @throws RedisException
+     * @throws RedisException|ReflectionException
      */
     public function testSaveKey(): void {
         $key = 'pu-test-save';

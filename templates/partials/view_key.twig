@@ -3,7 +3,9 @@
 <div class="mb-2 text-lg font-semibold break-words">{{ key }}</div>
 
 <div class="mb-5 lg:flex lg:items-center lg:gap-2">
-    <span>Type {{ key_badge.key_type(type) }}</span>
+    {% if type %}
+        <span>Type {{ key_badge.key_type(type) }}</span>
+    {% endif %}
 
     {% if ttl %}
         <span>

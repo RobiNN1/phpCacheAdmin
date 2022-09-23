@@ -14,16 +14,14 @@ namespace RobiNN\Pca\Dashboards\Memcached\Compatibility;
 
 use RobiNN\Pca\Dashboards\Memcached\MemcachedException;
 
-trait CommandTrait {
+trait KeysTrait {
     /**
      * Run command.
      *
-     * @param string $command https://github.com/memcached/memcached/wiki/Commands
-     *
-     * @return ?array<int, mixed>
+     * @return array<int, mixed>
      * @throws MemcachedException
      */
-    public function command(string $command): ?array {
+    public function command(string $command): array {
         if (isset($this->server['path'])) {
             $fp = @stream_socket_client('unix://'.$this->server['path'], $error_code, $error_message);
         } else {
@@ -32,23 +30,19 @@ trait CommandTrait {
             $fp = @fsockopen($this->server['host'], (int) $this->server['port'], $error_code, $error_message, 3);
         }
 
-        if ($error_message !== '') {
-            throw new MemcachedException('command() method: '.$error_message);
-        }
-
-        if ($fp === false) {
-            return null;
+        if ($error_message !== '' || $fp === false) {
+            throw new MemcachedException('Command: "'.$command.'": '.$error_message);
         }
 
         fwrite($fp, $command."\r\n");
 
-        $part = '';
+        $buffer = '';
         $data = [];
 
         while (!feof($fp)) {
-            $part .= fgets($fp, 1024);
-            $lines = explode("\n", $part);
-            $part = array_pop($lines);
+            $buffer .= fgets($fp, 1024);
+            $lines = explode("\n", $buffer);
+            $buffer = array_pop($lines);
 
             foreach ($lines as $line) {
                 $line = trim($line);

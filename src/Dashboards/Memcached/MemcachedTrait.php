@@ -34,13 +34,19 @@ trait MemcachedTrait {
             $memcached = $this->connect($servers[Http::get('panel', 'int')]);
             $server_info = $memcached->getServerStats();
 
+            try {
+                $keys = Format::number(count($memcached->getKeys()));
+            } catch (MemcachedException $e) {
+                $keys = 'An error occurred while retrieving keys.';
+            }
+
             return [
                 'Version'          => $server_info['version'],
                 'Open connections' => $server_info['curr_connections'],
                 'Uptime'           => Format::seconds((int) $server_info['uptime']),
                 'Cache limit'      => Format::bytes((int) $server_info['limit_maxbytes']),
                 'Used'             => Format::bytes((int) $server_info['bytes']),
-                'Keys'             => Format::number(count($memcached->getKeys())),
+                'Keys'             => $keys,
             ];
         } catch (DashboardException|MemcachedException $e) {
             return [
@@ -52,9 +58,10 @@ trait MemcachedTrait {
     /**
      * Delete all keys.
      *
-     * @param Compatibility\Memcache|Compatibility\Memcached|Compatibility\PHPMem $memcached
+     * @param Compatibility\Memcached|Compatibility\Memcache|Compatibility\PHPMem $memcached
      *
      * @return string
+     * @throws MemcachedException
      */
     private function deleteAllKeys($memcached): string {
         if ($memcached->flush()) {
@@ -69,7 +76,7 @@ trait MemcachedTrait {
     /**
      * Delete key or selected keys.
      *
-     * @param Compatibility\Memcache|Compatibility\Memcached|Compatibility\PHPMem $memcached
+     * @param Compatibility\Memcached|Compatibility\Memcache|Compatibility\PHPMem $memcached
      *
      * @return string
      * @throws MemcachedException
@@ -115,7 +122,7 @@ trait MemcachedTrait {
                 'panel_title' => $server_data['name'] ?? $server_data['host'].':'.$server_data['port'],
                 'array'       => Helpers::convertBoolToString($info),
             ]);
-        } catch (DashboardException $e) {
+        } catch (DashboardException|MemcachedException $e) {
             return $e->getMessage();
         }
     }
@@ -123,7 +130,7 @@ trait MemcachedTrait {
     /**
      * Get all keys with data.
      *
-     * @param Compatibility\Memcache|Compatibility\Memcached|Compatibility\PHPMem $memcached
+     * @param Compatibility\Memcached|Compatibility\Memcache|Compatibility\PHPMem $memcached
      *
      * @return array<int, array<string, string|int>>
      * @throws MemcachedException
@@ -135,7 +142,7 @@ trait MemcachedTrait {
             $keys[] = [
                 'key'  => $key_data['key'],
                 'ttl'  => $key_data['exp'],
-                'type' => 'string', // In Memcache(d) everything is stored as a string.
+                'type' => 'string', // In Memcached everything is stored as a string. Calling gettype() will slow down page loading.
             ];
         }
 
@@ -145,7 +152,7 @@ trait MemcachedTrait {
     /**
      * Main dashboard content.
      *
-     * @param Compatibility\Memcache|Compatibility\Memcached|Compatibility\PHPMem $memcached
+     * @param Compatibility\Memcached|Compatibility\Memcache|Compatibility\PHPMem $memcached
      *
      * @return string
      * @throws MemcachedException
@@ -171,7 +178,7 @@ trait MemcachedTrait {
     /**
      * View key value.
      *
-     * @param Compatibility\Memcache|Compatibility\Memcached|Compatibility\PHPMem $memcached
+     * @param Compatibility\Memcached|Compatibility\Memcache|Compatibility\PHPMem $memcached
      *
      * @return string
      * @throws MemcachedException
@@ -205,7 +212,7 @@ trait MemcachedTrait {
         return $this->template->render('partials/view_key', [
             'key'        => $key,
             'value'      => $value,
-            'type'       => 'string', // In Memcache(d) everything is stored as a string.
+            'type'       => null,
             'ttl'        => Format::seconds($ttl),
             'size'       => Format::bytes(strlen($value)),
             'encode_fn'  => $encode_fn,
@@ -219,7 +226,7 @@ trait MemcachedTrait {
     /**
      * Import key.
      *
-     * @param Compatibility\Memcache|Compatibility\Memcached|Compatibility\PHPMem $memcached
+     * @param Compatibility\Memcached|Compatibility\Memcache|Compatibility\PHPMem $memcached
      *
      * @return void
      * @throws MemcachedException
@@ -241,7 +248,7 @@ trait MemcachedTrait {
     /**
      * Add/edit form.
      *
-     * @param Compatibility\Memcache|Compatibility\Memcached|Compatibility\PHPMem $memcached
+     * @param Compatibility\Memcached|Compatibility\Memcache|Compatibility\PHPMem $memcached
      *
      * @return string
      * @throws MemcachedException
@@ -276,9 +283,10 @@ trait MemcachedTrait {
     /**
      * Save key.
      *
-     * @param Compatibility\Memcache|Compatibility\Memcached|Compatibility\PHPMem $memcached
+     * @param Compatibility\Memcached|Compatibility\Memcache|Compatibility\PHPMem $memcached
      *
      * @return void
+     * @throws MemcachedException
      */
     private function saveKey($memcached): void {
         $key = Http::post('key');

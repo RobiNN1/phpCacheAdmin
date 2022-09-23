@@ -53,7 +53,7 @@ class MemcachedDashboard implements DashboardInterface {
     public function getDashboardInfo(): array {
         return [
             'key'   => 'memcached',
-            'title' => 'Memcache(d)',
+            'title' => 'Memcached',
             'color' => 'emerald',
         ];
     }
@@ -63,7 +63,7 @@ class MemcachedDashboard implements DashboardInterface {
      *
      * @param array<string, int|string> $server
      *
-     * @return Compatibility\Memcache|Compatibility\Memcached|Compatibility\PHPMem
+     * @return Compatibility\Memcached|Compatibility\Memcache|Compatibility\PHPMem
      * @throws DashboardException
      */
     private function connect(array $server) {
@@ -100,8 +100,12 @@ class MemcachedDashboard implements DashboardInterface {
             }
         }
 
-        if (!$memcached->isConnected()) {
-            throw new DashboardException(sprintf('Failed to connect to Memcached server %s.', $memcached_server));
+        try {
+            if (!$memcached->isConnected()) {
+                throw new DashboardException(sprintf('Failed to connect to Memcached server %s.', $memcached_server));
+            }
+        } catch (MemcachedException $e) {
+            throw new DashboardException($e->getMessage());
         }
 
         return $memcached;

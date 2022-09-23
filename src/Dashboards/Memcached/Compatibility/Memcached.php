@@ -13,7 +13,7 @@ declare(strict_types=1);
 namespace RobiNN\Pca\Dashboards\Memcached\Compatibility;
 
 class Memcached extends \Memcached implements CompatibilityInterface {
-    use CommandTrait;
+    use KeysTrait;
 
     /**
      * @var array<string, int|string>
@@ -48,7 +48,7 @@ class Memcached extends \Memcached implements CompatibilityInterface {
     }
 
     /**
-     * Store item.
+     * Alias to a set() but with the same order of parameters.
      *
      * @param string $key
      * @param string $value

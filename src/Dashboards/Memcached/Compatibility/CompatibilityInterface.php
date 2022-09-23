@@ -28,7 +28,7 @@ interface CompatibilityInterface {
     public function getServerStats(): array;
 
     /**
-     * Store item.
+     * Alias to a set() but with the same order of parameters.
      *
      * @param string $key
      * @param string $value

@@ -16,7 +16,7 @@ use RobiNN\Pca\Dashboards\Memcached\MemcachedException;
 use RobiNN\Pca\Helpers;
 
 class PHPMem implements CompatibilityInterface {
-    use CommandTrait;
+    use KeysTrait;
 
     /**
      * @const string PHPMem version.
@@ -59,17 +59,18 @@ class PHPMem implements CompatibilityInterface {
      *
      * @param string $command
      *
-     * @return ?string
+     * @return string
+     * @throws MemcachedException
      */
-    private function send(string $command): ?string {
+    private function send(string $command): string {
         if (isset($this->server['path'])) {
-            $fp = @stream_socket_client('unix://'.$this->host);
+            $fp = @stream_socket_client('unix://'.$this->host, $error_code, $error_message);
         } else {
             $fp = @fsockopen($this->host, $this->port, $error_code, $error_message, 3);
         }
 
-        if ($fp === false) {
-            return null;
+        if ($error_message !== '' || $fp === false) {
+            throw new MemcachedException('Command: "'.$command.'": '.$error_message);
         }
 
         fwrite($fp, $command."\r\n");
@@ -99,15 +100,16 @@ class PHPMem implements CompatibilityInterface {
      * @param int    $expiration
      *
      * @return bool
+     * @throws MemcachedException
      */
     public function set(string $key, $value, int $expiration = 0): bool {
         $type = gettype($value);
 
-        if (($type !== 'string' && $type !== 'integer' && $type !== 'double' && $type !== 'boolean') === true) {
+        if ($type !== 'string' && $type !== 'integer' && $type !== 'double' && $type !== 'boolean') {
             $value = serialize($value);
         }
 
-        $raw = $this->send('set'.' '.$key.' '.'0 '.$expiration.' '.strlen($value)."\r\n".$value."\r\n");
+        $raw = $this->send('set'.' '.$key.' '.'0 '.$expiration.' '.strlen((string) $value)."\r\n".$value."\r\n");
 
         if (Helpers::str_starts_with($raw, 'STORED')) {
             return true;
@@ -122,6 +124,7 @@ class PHPMem implements CompatibilityInterface {
      * @param string $key
      *
      * @return string|false
+     * @throws MemcachedException
      */
     public function get(string $key) {
         $raw = $this->send('get '.$key);
@@ -140,6 +143,7 @@ class PHPMem implements CompatibilityInterface {
      * @param string $key
      *
      * @return bool
+     * @throws MemcachedException
      */
     public function delete(string $key): bool {
         $raw = $this->send('delete '.$key);
@@ -151,6 +155,7 @@ class PHPMem implements CompatibilityInterface {
      * Invalidate all items in the cache.
      *
      * @return bool
+     * @throws MemcachedException
      */
     public function flush(): bool {
         $raw = $this->send('flush_all');
@@ -162,6 +167,7 @@ class PHPMem implements CompatibilityInterface {
      * Check connection.
      *
      * @return bool
+     * @throws MemcachedException
      */
     public function isConnected(): bool {
         $stats = $this->getServerStats();
@@ -173,6 +179,7 @@ class PHPMem implements CompatibilityInterface {
      * Get server statistics.
      *
      * @return array<string, mixed>
+     * @throws MemcachedException
      */
     public function getServerStats(): array {
         $raw = $this->send('stats');
@@ -194,13 +201,14 @@ class PHPMem implements CompatibilityInterface {
     }
 
     /**
-     * Store item.
+     * Alias to a set() but with the same order of parameters.
      *
      * @param string $key
      * @param string $value
      * @param int    $expiration
      *
      * @return bool
+     * @throws MemcachedException
      */
     public function store(string $key, string $value, int $expiration = 0): bool {
         return $this->set($key, $value, $expiration);

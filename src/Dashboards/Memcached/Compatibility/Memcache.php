@@ -15,7 +15,7 @@ namespace RobiNN\Pca\Dashboards\Memcached\Compatibility;
 use RobiNN\Pca\Dashboards\Memcached\MemcachedException;
 
 class Memcache extends \Memcache implements CompatibilityInterface {
-    use CommandTrait;
+    use KeysTrait;
 
     /**
      * @var array<string, int|string>
@@ -50,7 +50,7 @@ class Memcache extends \Memcache implements CompatibilityInterface {
     }
 
     /**
-     * Store item.
+     * Alias to a set() but with the same order of parameters.
      *
      * @param string $key
      * @param string $value

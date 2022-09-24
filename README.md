@@ -100,7 +100,14 @@ To add another server, add the same environment variables, but change 0 to 1 (2 
 
 - PHP >= 7.4
 - redis, memcache(d), opcache or apcu php extensions (if none of them is installed, only the Server tab will be available)
+- Redis server >= 3.0.0
 - Memcached server >= 1.4.18
+
+> **Note**
+> 
+> For better performance, always use extensions, however:
+> - If the Redis extension is not installed, the system will use a Predis client (if you are using composer, install Predis manually via `composer require predis/predis`)
+> - If the Memcache(d) extension is not installed, the system will use a custom PHPMem client.
 
 ## Testing
 

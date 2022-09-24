@@ -201,6 +201,7 @@ if (redis_type) {
         document.getElementById('redis_index').style.display = e.target.value === 'list' ? 'block' : 'none';
         document.getElementById('redis_score').style.display = e.target.value === 'zset' ? 'block' : 'none';
         document.getElementById('redis_hash_key').style.display = e.target.value === 'hash' ? 'block' : 'none';
+        document.getElementById('hash_key').required = e.target.value === 'hash';
     });
 }
 

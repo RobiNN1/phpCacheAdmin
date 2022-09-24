@@ -288,12 +288,14 @@ trait RedisTrait {
 
         $ttl = $redis->ttl($key);
 
+        $size = $redis->rawCommand('MEMORY', 'usage', $key); // requires Redis >= 4.0.0
+
         return $this->template->render('partials/view_key', [
             'key'            => $key,
             'value'          => $value,
             'type'           => $type,
             'ttl'            => Format::seconds($ttl),
-            'size'           => Format::bytes($redis->rawCommand('MEMORY', 'usage', $key)),
+            'size'           => is_int($size) ? Format::bytes($size) : null,
             'encode_fn'      => $encode_fn,
             'formatted'      => $is_formatted,
             'add_subkey_url' => Http::queryString(['db'], ['form' => 'new', 'key' => $key]),

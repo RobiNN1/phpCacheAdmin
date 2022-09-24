@@ -12,9 +12,10 @@ declare(strict_types=1);
 
 namespace Tests\Dashboards;
 
-use Redis;
 use RedisException;
 use ReflectionException;
+use RobiNN\Pca\Dashboards\Redis\Compatibility\Predis;
+use RobiNN\Pca\Dashboards\Redis\Compatibility\Redis;
 use RobiNN\Pca\Dashboards\Redis\RedisDashboard;
 use RobiNN\Pca\Http;
 use RobiNN\Pca\Template;
@@ -25,7 +26,10 @@ final class RedisTest extends TestCase {
 
     private RedisDashboard $dashboard;
 
-    private Redis $redis;
+    /**
+     * @var Redis|Predis
+     */
+    private $redis;
 
     /**
      * @throws ReflectionException

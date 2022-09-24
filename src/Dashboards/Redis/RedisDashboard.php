@@ -12,8 +12,8 @@ declare(strict_types=1);
 
 namespace RobiNN\Pca\Dashboards\Redis;
 
-use Redis;
-use RedisException;
+use Exception;
+use Predis\Client as Predis;
 use RobiNN\Pca\Config;
 use RobiNN\Pca\Dashboards\DashboardException;
 use RobiNN\Pca\Dashboards\DashboardInterface;
@@ -43,7 +43,7 @@ class RedisDashboard implements DashboardInterface {
      * @return bool
      */
     public static function check(): bool {
-        return extension_loaded('redis');
+        return extension_loaded('redis') || class_exists(Predis::class);
     }
 
     /**
@@ -64,14 +64,16 @@ class RedisDashboard implements DashboardInterface {
      *
      * @param array<string, int|string> $server
      *
-     * @return Redis
+     * @return Compatibility\Redis|Compatibility\Predis
      * @throws DashboardException
      */
-    private function connect(array $server): Redis {
+    private function connect(array $server) {
         if (extension_loaded('redis')) {
-            $redis = new Redis();
+            $redis = new Compatibility\Redis();
+        } elseif (class_exists(Predis::class)) {
+            $redis = new Compatibility\Predis();
         } else {
-            throw new DashboardException('Redis extension is not installed.');
+            throw new DashboardException('Redis extension or Predis is not installed.');
         }
 
         if (isset($server['path'])) {
@@ -88,7 +90,7 @@ class RedisDashboard implements DashboardInterface {
             } else {
                 $redis->connect($server['host'], (int) $server['port'], 3);
             }
-        } catch (RedisException $e) {
+        } catch (Exception $e) {
             throw new DashboardException(
                 sprintf('Failed to connect to Redis server %s. Error: %s', $redis_server, $e->getMessage())
             );
@@ -104,7 +106,7 @@ class RedisDashboard implements DashboardInterface {
 
                 $redis->auth($credentials);
             }
-        } catch (RedisException $e) {
+        } catch (Exception $e) {
             throw new DashboardException(
                 sprintf('Could not authenticate with Redis server %s. Error: %s', $redis_server, $e->getMessage())
             );
@@ -112,7 +114,7 @@ class RedisDashboard implements DashboardInterface {
 
         try {
             $redis->select(Http::get('db', 'int', $server['database'] ?? 0));
-        } catch (RedisException $e) {
+        } catch (Exception $e) {
             throw new DashboardException(
                 sprintf('Could not select Redis database %s. Error: %s', $redis_server, $e->getMessage())
             );
@@ -143,7 +145,7 @@ class RedisDashboard implements DashboardInterface {
                 if (isset($_GET['delete'])) {
                     $return = $this->deleteKey($redis);
                 }
-            } catch (DashboardException|RedisException $e) {
+            } catch (DashboardException|Exception $e) {
                 $return = $e->getMessage();
             }
         }
@@ -182,9 +184,17 @@ class RedisDashboard implements DashboardInterface {
             return '';
         }
 
+        if (extension_loaded('redis')) {
+            $title = 'PHP <span class="font-semibold">Redis</span> extension';
+            $version = phpversion('redis');
+        } elseif (class_exists(Predis::class)) {
+            $title = 'Predis';
+            $version = Predis::VERSION;
+        }
+
         return $this->template->render('partials/info', [
-            'title'             => 'PHP <span class="font-semibold">Redis</span> extension',
-            'extension_version' => phpversion('redis'),
+            'title'             => $title ?? null,
+            'extension_version' => $version ?? null,
             'info'              => $this->info(),
         ]);
     }
@@ -214,7 +224,7 @@ class RedisDashboard implements DashboardInterface {
                 } else {
                     $return = $this->mainDashboard($redis);
                 }
-            } catch (DashboardException|RedisException $e) {
+            } catch (DashboardException|Exception $e) {
                 return $e->getMessage();
             }
         }

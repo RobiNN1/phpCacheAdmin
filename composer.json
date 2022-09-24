@@ -34,7 +34,8 @@
     "ext-apcu": "Required for the APCu dashboard.",
     "ext-memcache": "Required for the Memcache dashboard.",
     "ext-memcached": "Required for the Memcached dashboard.",
-    "ext-redis": "Required for use the Redis dashboard."
+    "ext-redis": "Required for use the Redis dashboard.",
+    "predis/predis": "Required for use the Redis dashboard, when Redis extension is not installed."
   },
   "minimum-stability": "dev",
   "prefer-stable": true,
@@ -49,7 +50,8 @@
     }
   },
   "scripts": {
-    "phar": "phar-composer build twig/twig",
+    "phar:twig": "phar-composer build twig/twig",
+    "phar:predis": "phar-composer build predis/predis",
     "phpstan": "phpstan --ansi",
     "test": "phpunit --colors=always"
   }

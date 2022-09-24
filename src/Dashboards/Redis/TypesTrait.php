@@ -12,27 +12,12 @@ declare(strict_types=1);
 
 namespace RobiNN\Pca\Dashboards\Redis;
 
-use Redis;
-use RedisException;
-use RobiNN\Pca\Dashboards\DashboardException;
+use Exception;
 use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
 use RobiNN\Pca\Value;
 
 trait TypesTrait {
-    /**
-     * @var array<int, string>
-     */
-    private array $data_types = [
-        Redis::REDIS_NOT_FOUND => 'other',
-        Redis::REDIS_STRING    => 'string',
-        Redis::REDIS_SET       => 'set',
-        Redis::REDIS_LIST      => 'list',
-        Redis::REDIS_ZSET      => 'zset',
-        Redis::REDIS_HASH      => 'hash',
-        Redis::REDIS_STREAM    => 'stream',
-    ];
-
     /**
      * Extra data for templates.
      *
@@ -54,53 +39,18 @@ trait TypesTrait {
     }
 
     /**
-     * Get all data types.
-     *
-     * Used in form.
-     *
-     * @return array<string, string>
-     */
-    private function getAllTypes(): array {
-        static $types = [];
-
-        unset($this->data_types[Redis::REDIS_NOT_FOUND], $this->data_types[Redis::REDIS_STREAM]);
-
-        foreach ($this->data_types as $type) {
-            $types[$type] = ucfirst($type);
-        }
-
-        return $types;
-    }
-
-    /**
-     * Get a key type.
-     *
-     * @param int $type
-     *
-     * @return string
-     * @throws DashboardException
-     */
-    private function getType(int $type): string {
-        if (!isset($this->data_types[$type])) {
-            throw new DashboardException(sprintf('Unsupported data type: %s', $type));
-        }
-
-        return $this->data_types[$type];
-    }
-
-    /**
      * Get key's value.
      *
      * Used in edit form.
      *
-     * @param Redis  $redis
-     * @param string $type
-     * @param string $key
+     * @param Compatibility\Redis|Compatibility\Predis $redis
+     * @param string                                   $type
+     * @param string                                   $key
      *
      * @return array<int, mixed>
-     * @throws RedisException
+     * @throws Exception
      */
-    private function getKeyValue(Redis $redis, string $type, string $key): array {
+    private function getKeyValue($redis, string $type, string $key): array {
         $index = null;
         $score = 0;
         $hash_key = '';
@@ -150,14 +100,14 @@ trait TypesTrait {
      *
      * Used in view page.
      *
-     * @param Redis  $redis
-     * @param string $type
-     * @param string $key
+     * @param Compatibility\Redis|Compatibility\Predis $redis
+     * @param string                                   $type
+     * @param string                                   $key
      *
      * @return array<int, mixed>|string
-     * @throws RedisException
+     * @throws Exception
      */
-    private function getAllKeyValues(Redis $redis, string $type, string $key) {
+    private function getAllKeyValues($redis, string $type, string $key) {
         switch ($type) {
             case 'string':
                 $value = $redis->get($key);
@@ -187,12 +137,12 @@ trait TypesTrait {
     /**
      * Save key.
      *
-     * @param Redis $redis
+     * @param Compatibility\Redis|Compatibility\Predis $redis
      *
      * @return void
-     * @throws RedisException
+     * @throws Exception
      */
-    private function saveKey(Redis $redis): void {
+    private function saveKey($redis): void {
         $key = Http::post('key');
         $value = Value::encode(Http::post('value'), Http::post('encoder'));
         $old_value = Http::post('old_value');
@@ -249,7 +199,7 @@ trait TypesTrait {
 
         $old_key = Http::post('old_key');
 
-        if ($old_key !== $key) {
+        if ($old_key !== '' && $old_key !== $key) {
             $redis->rename($old_key, $key);
         }
 
@@ -259,21 +209,21 @@ trait TypesTrait {
     /**
      * Delete sub key.
      *
-     * @param Redis  $redis
-     * @param string $type
-     * @param string $key
+     * @param Compatibility\Redis|Compatibility\Predis $redis
+     * @param string                                   $type
+     * @param string                                   $key
      *
      * @return void
-     * @throws RedisException
+     * @throws Exception
      */
-    private function deleteSubKey(Redis $redis, string $type, string $key): void {
+    private function deleteSubKey($redis, string $type, string $key): void {
         switch ($type) {
             case 'set':
                 $members = $redis->sMembers($key);
                 $redis->sRem($key, $members[Http::get('member', 'int')]);
                 break;
             case 'list':
-                $redis->lRem($key, $redis->lIndex($key, Http::get('index', 'int')), -1);
+                $redis->listRem($key, $redis->lIndex($key, Http::get('index', 'int')), -1);
                 break;
             case 'zset':
                 $ranges = $redis->zRange($key, 0, -1);
@@ -294,14 +244,14 @@ trait TypesTrait {
     /**
      * Get a number of items in a key.
      *
-     * @param Redis  $redis
-     * @param string $type
-     * @param string $key
+     * @param Compatibility\Redis|Compatibility\Predis $redis
+     * @param string                                   $type
+     * @param string                                   $key
      *
      * @return int|null
-     * @throws RedisException
+     * @throws Exception
      */
-    private function getCountOfItemsInKey(Redis $redis, string $type, string $key): ?int {
+    private function getCountOfItemsInKey($redis, string $type, string $key): ?int {
         switch ($type) {
             case 'set':
                 $items = $redis->sCard($key);

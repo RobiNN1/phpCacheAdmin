@@ -12,9 +12,8 @@ declare(strict_types=1);
 
 namespace RobiNN\Pca\Dashboards\Redis;
 
+use Exception;
 use JsonException;
-use Redis;
-use RedisException;
 use RobiNN\Pca\Config;
 use RobiNN\Pca\Dashboards\DashboardException;
 use RobiNN\Pca\Format;
@@ -37,16 +36,16 @@ trait RedisTrait {
     private function serverInfo(array $servers): array {
         try {
             $redis = $this->connect($servers[Http::get('panel', 'int')]);
-            $server_info = $redis->info();
+            $server_info = $redis->getInfo();
 
             return [
-                'Version'           => $server_info['redis_version'],
-                'Connected clients' => $server_info['connected_clients'],
-                'Uptime'            => Format::seconds($server_info['uptime_in_seconds']),
-                'Memory used'       => Format::bytes($server_info['used_memory']),
-                'Keys'              => Format::number($this->getCountOfAllKeys($server_info)).' (all databases)',
+                'Version'           => $server_info['server']['redis_version'],
+                'Connected clients' => $server_info['clients']['connected_clients'],
+                'Uptime'            => Format::seconds((int) $server_info['server']['uptime_in_seconds']),
+                'Memory used'       => Format::bytes((int) $server_info['memory']['used_memory']),
+                'Keys'              => Format::number($this->getCountOfAllKeys($server_info['keyspace'])).' (all databases)',
             ];
-        } catch (DashboardException|RedisException $e) {
+        } catch (DashboardException|Exception $e) {
             return [
                 'error' => $e->getMessage(),
             ];
@@ -56,19 +55,17 @@ trait RedisTrait {
     /**
      * Get a number of keys form all databases.
      *
-     * @param array<string, mixed> $server_info
+     * @param array<string, mixed> $keyspace
      *
      * @return int
      */
-    private function getCountOfAllKeys(array $server_info): int {
+    private function getCountOfAllKeys(array $keyspace): int {
         $all_keys = 0;
 
-        foreach ($server_info as $key => $value) {
-            if (Helpers::str_starts_with($key, 'db')) {
-                $db = explode(',', $value);
-                $keys = explode('=', $db[0]);
-                $all_keys += (int) $keys[1];
-            }
+        foreach ($keyspace as $value) {
+            $db = explode(',', $value);
+            $keys = explode('=', $db[0]);
+            $all_keys += (int) $keys[1];
         }
 
         return $all_keys;
@@ -77,12 +74,12 @@ trait RedisTrait {
     /**
      * Delete all keys from the current database.
      *
-     * @param Redis $redis
+     * @param Compatibility\Redis|Compatibility\Predis $redis
      *
      * @return string
-     * @throws RedisException
+     * @throws Exception
      */
-    private function deleteAllKeys(Redis $redis): string {
+    private function deleteAllKeys($redis): string {
         if ($redis->flushDB()) {
             $message = 'All keys from the current database have been removed.';
         } else {
@@ -95,12 +92,12 @@ trait RedisTrait {
     /**
      * Delete key or selected keys.
      *
-     * @param Redis $redis
+     * @param Compatibility\Redis|Compatibility\Predis $redis
      *
      * @return string
-     * @throws RedisException
+     * @throws Exception
      */
-    private function deleteKey(Redis $redis): string {
+    private function deleteKey($redis): string {
         $keys = explode(',', Http::get('delete'));
 
         if (count($keys) === 1 && $redis->del($keys[0])) {
@@ -118,30 +115,6 @@ trait RedisTrait {
     }
 
     /**
-     * Get Redis info.
-     *
-     * @param Redis $redis
-     *
-     * @return array<string, mixed>
-     * @throws RedisException
-     */
-    private function getInfo(Redis $redis): array {
-        $options = ['SERVER', 'CLIENTS', 'MEMORY', 'PERSISTENCE', 'STATS', 'REPLICATION', 'CPU', 'CLASTER', 'KEYSPACE', 'COMANDSTATS'];
-
-        $array = [];
-
-        foreach ($options as $option) {
-            $info = $redis->info($option);
-
-            if (count($info)) {
-                $array[$option] = $info;
-            }
-        }
-
-        return $array;
-    }
-
-    /**
      * Show more info.
      *
      * @param array<int, array<string, int|string>> $servers
@@ -153,15 +126,17 @@ trait RedisTrait {
             $id = Http::get('moreinfo', 'int');
             $server_data = $servers[$id];
             $redis = $this->connect($server_data);
-            $info = $this->getInfo($redis);
+            $info = $redis->getInfo();
 
-            $info += Helpers::getExtIniInfo('redis');
+            if (extension_loaded('redis')) {
+                $info += Helpers::getExtIniInfo('redis');
+            }
 
             return $this->template->render('partials/info_table', [
                 'panel_title' => $server_data['name'] ?? $server_data['host'].':'.$server_data['port'],
                 'array'       => Helpers::convertBoolToString($info),
             ]);
-        } catch (DashboardException|RedisException $e) {
+        } catch (DashboardException|Exception $e) {
             return $e->getMessage();
         }
     }
@@ -169,19 +144,19 @@ trait RedisTrait {
     /**
      * Get server databases.
      *
-     * @param Redis $redis
+     * @param Compatibility\Redis|Compatibility\Predis $redis
      *
      * @return array<int, string>
-     * @throws RedisException
+     * @throws Exception
      */
-    private function getDatabases(Redis $redis): array {
+    private function getDatabases($redis): array {
         $databases = [];
 
         $dbs = (array) $redis->config('GET', 'databases');
         $db_count = $dbs['databases']; // @phpstan-ignore-line
 
         for ($d = 0; $d < $db_count; ++$d) {
-            $keyspace = $redis->info('KEYSPACE');
+            $keyspace = $redis->getInfo('keyspace');
             $keys_in_db = '';
 
             if (array_key_exists('db'.$d, $keyspace)) {
@@ -199,12 +174,12 @@ trait RedisTrait {
     /**
      * Get all keys with data.
      *
-     * @param Redis $redis
+     * @param Compatibility\Redis|Compatibility\Predis $redis
      *
      * @return array<int, array<string, string|int>>
-     * @throws RedisException
+     * @throws Exception
      */
-    private function getAllKeys(Redis $redis): array {
+    private function getAllKeys($redis): array {
         static $keys = [];
         $filter = Http::get('s', 'string', '*');
 
@@ -212,7 +187,7 @@ trait RedisTrait {
 
         foreach ($redis->keys($filter) as $key) {
             try {
-                $type = $this->getType($redis->type($key));
+                $type = $redis->getType($key);
             } catch (DashboardException $e) {
                 $type = 'unknown';
             }
@@ -231,12 +206,12 @@ trait RedisTrait {
     /**
      * Main dashboard content.
      *
-     * @param Redis $redis
+     * @param Compatibility\Redis|Compatibility\Predis $redis
      *
      * @return string
-     * @throws RedisException
+     * @throws Exception
      */
-    private function mainDashboard(Redis $redis): string {
+    private function mainDashboard($redis): string {
         $keys = $this->getAllKeys($redis);
 
         if (isset($_POST['submit_import_key'])) {
@@ -261,12 +236,12 @@ trait RedisTrait {
     /**
      * View key values.
      *
-     * @param Redis $redis
+     * @param Compatibility\Redis|Compatibility\Predis $redis
      *
      * @return string
-     * @throws RedisException
+     * @throws Exception
      */
-    private function viewKey(Redis $redis): string {
+    private function viewKey($redis): string {
         $key = Http::get('key');
 
         if (!$redis->exists($key)) {
@@ -274,7 +249,7 @@ trait RedisTrait {
         }
 
         try {
-            $type = $this->getType($redis->type($key));
+            $type = $redis->getType($key);
         } catch (DashboardException $e) {
             return $e->getMessage();
         }
@@ -334,15 +309,15 @@ trait RedisTrait {
     /**
      * Format view array items.
      *
-     * @param Redis             $redis
-     * @param string            $key
-     * @param array<int, mixed> $value_items
-     * @param string            $type
+     * @param Compatibility\Redis|Compatibility\Predis $redis
+     * @param string                                   $key
+     * @param array<int, mixed>                        $value_items
+     * @param string                                   $type
      *
      * @return array<int, mixed>
-     * @throws RedisException
+     * @throws Exception
      */
-    private function formatViewItems(Redis $redis, string $key, array $value_items, string $type): array {
+    private function formatViewItems($redis, string $key, array $value_items, string $type): array {
         $items = [];
 
         foreach ($value_items as $item_key => $item_value) {
@@ -371,12 +346,12 @@ trait RedisTrait {
     /**
      * Import key.
      *
-     * @param Redis $redis
+     * @param Compatibility\Redis|Compatibility\Predis $redis
      *
      * @return void
-     * @throws RedisException
+     * @throws Exception
      */
-    private function import(Redis $redis): void {
+    private function import($redis): void {
         if ($_FILES['import']['type'] === 'application/octet-stream') {
             $key_name = Http::post('key_name');
 
@@ -396,12 +371,12 @@ trait RedisTrait {
     /**
      * Add/edit a form.
      *
-     * @param Redis $redis
+     * @param Compatibility\Redis|Compatibility\Predis $redis
      *
      * @return string
-     * @throws RedisException
+     * @throws Exception
      */
-    private function form(Redis $redis): string {
+    private function form($redis): string {
         $key = Http::get('key', 'string', Http::post('key'));
         $type = Http::post('redis_type');
         $index = $_POST['index'] ?? '';
@@ -418,7 +393,7 @@ trait RedisTrait {
         // edit|subkeys
         if (isset($_GET['key']) && $redis->exists($key)) {
             try {
-                $type = $this->getType($redis->type($key));
+                $type = $redis->getType($key);
             } catch (DashboardException $e) {
                 Helpers::alert($this->template, $e->getMessage());
                 $type = 'unknown';
@@ -435,7 +410,7 @@ trait RedisTrait {
         return $this->template->render('dashboards/redis/form', [
             'key'      => $key,
             'value'    => $value,
-            'types'    => $this->getAllTypes(),
+            'types'    => $redis->getAllTypes(),
             'type'     => $type,
             'index'    => $index,
             'score'    => $score,

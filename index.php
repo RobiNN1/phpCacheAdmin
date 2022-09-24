@@ -18,7 +18,13 @@ use RobiNN\Pca\Template;
 if (is_file(__DIR__.'/vendor/autoload.php')) {
     require_once __DIR__.'/vendor/autoload.php';
 } else {
-    require_once 'phar://twig.phar/vendor/autoload.php';
+    if (is_file(__DIR__.'/twig.phar')) {
+        require_once 'phar://twig.phar/vendor/autoload.php';
+    }
+
+    if (!extension_loaded('redis') && is_file(__DIR__.'/predis.phar')) {
+        require_once 'phar://predis.phar/vendor/autoload.php';
+    }
 
     spl_autoload_register(static function ($class_name) {
         $class_name = str_replace("RobiNN\\Pca\\", '', $class_name);

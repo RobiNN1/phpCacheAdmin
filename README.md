@@ -106,7 +106,7 @@ To add another server, add the same environment variables, but change 0 to 1 (2 
 > **Note**
 > 
 > For better performance, always use extensions, however:
-> - If the Redis extension is not installed, the system will use a Predis client (if you are using composer, install Predis manually via `composer require predis/predis`)
+> - If the Redis extension is not installed, the system will use a Predis client (if you are using composer, install Predis manually via `composer require predis/predis`).
 > - If the Memcache(d) extension is not installed, the system will use a custom PHPMem client.
 
 ## Testing

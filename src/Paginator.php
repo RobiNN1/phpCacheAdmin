@@ -39,7 +39,6 @@ class Paginator {
     public function __construct(Template $template, array $items, array $queries = [['pp'], ['p' => ''],]) {
         $this->template = $template;
         $this->url = $queries;
-
         $this->total = count($items);
         $this->page = Http::get('p', 'int', 1);
         $this->per_page = Http::get('pp', 'int', 25);
@@ -96,13 +95,12 @@ class Paginator {
      * @return string
      */
     public function render(): string {
-        $on_page = count($this->paginated);
-
+        $on_page = count($this->paginated) > 0 ? 1 : 0;
         $select = [25, 50, 100, 200, 300, 400];
 
         return $this->template->render('components/paginator', [
-            'first_on_page' => Format::number((int) array_key_first($this->paginated) + ($on_page > 0 ? 1 : 0)),
-            'last_on_page'  => Format::number((int) array_key_last($this->paginated) + ($on_page > 0 ? 1 : 0)),
+            'first_on_page' => Format::number((int) array_key_first($this->paginated) + $on_page),
+            'last_on_page'  => Format::number((int) array_key_last($this->paginated) + $on_page),
             'total'         => Format::number($this->total),
             'current_page'  => $this->page,
             'per_page'      => $this->per_page,

@@ -80,7 +80,9 @@ class PHPMem implements CompatibilityInterface {
         while (!feof($fp)) {
             $buffer .= fgets($fp, 256);
 
-            foreach (['END', 'DELETED', 'NOT_FOUND', 'OK', 'EXISTS', 'ERROR', 'RESET', 'STORED', 'NOT_STORED', 'VERSION'] as $end) {
+            $ends = ['END', 'DELETED', 'NOT_FOUND', 'OK', 'EXISTS', 'ERROR', 'RESET', 'STORED', 'NOT_STORED', 'VERSION'];
+
+            foreach ($ends as $end) {
                 if (preg_match('/^'.$end.'/imu', $buffer)) {
                     break 2;
                 }
@@ -109,7 +111,8 @@ class PHPMem implements CompatibilityInterface {
             $value = serialize($value);
         }
 
-        $raw = $this->send('set'.' '.$key.' '.'0 '.$expiration.' '.strlen((string) $value)."\r\n".$value."\r\n");
+        // set <key> <flags> <exptime> <bytes> [noreply]\r\n<value>\r\n
+        $raw = $this->send('set'.' '.$key.' '.'0 '.$expiration.' '.strlen((string) $value)."\r\n".$value);
 
         if (Helpers::str_starts_with($raw, 'STORED')) {
             return true;

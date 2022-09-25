@@ -90,10 +90,10 @@ class OPCacheDashboard implements DashboardInterface {
                     'title'    => 'Status',
                     'moreinfo' => true,
                     'data'     => [
-                        'JIT'          => Helpers::enabledDisabledBadge($this->template, isset($status['jit']) && $status['jit']['enabled']),
+                        'JIT'          => Helpers::stateBadge($this->template, isset($status['jit']) && $status['jit']['enabled']),
                         'Start time'   => Format::time($stats['start_time']),
                         'Last restart' => Format::time($stats['last_restart_time']),
-                        'Cache full'   => Helpers::enabledDisabledBadge($this->template, $status['cache_full'] === false, null, ['No', 'Yes']),
+                        'Cache full'   => Helpers::stateBadge($this->template, $status['cache_full'] === false, null, ['No', 'Yes']),
                     ],
                 ],
                 [

@@ -90,7 +90,9 @@ class Predis extends Client implements CompatibilityInterface {
     public function getInfo(string $option = null): array {
         static $array = [];
 
-        foreach (['Server', 'Clients', 'Memory', 'Persistence', 'Stats', 'Replication', 'CPU', 'Cluster', 'Keyspace'] as $option_name) {
+        $options = ['Server', 'Clients', 'Memory', 'Persistence', 'Stats', 'Replication', 'CPU', 'Cluster', 'Keyspace'];
+
+        foreach ($options as $option_name) {
             $data = $this->info()[$option_name];
 
             if ($option_name === 'Keyspace') {

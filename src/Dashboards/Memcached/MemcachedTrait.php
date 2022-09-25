@@ -140,8 +140,8 @@ trait MemcachedTrait {
 
         foreach ($memcached->getKeys() as $key_data) {
             $keys[] = [
-                'key'  => $key_data['key'],
-                'ttl'  => $key_data['exp'],
+                'key'  => $key_data['key'] ?? $key_data,
+                'ttl'  => $key_data['exp'] ?? null,
                 'type' => 'string', // In Memcached everything is stored as a string. Calling gettype() will slow down page loading.
             ];
         }

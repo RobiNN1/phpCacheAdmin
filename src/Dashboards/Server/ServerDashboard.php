@@ -62,11 +62,7 @@ class ServerDashboard implements DashboardInterface {
      * @return array<string, mixed>
      */
     public function info(): array {
-        $xdebug = Helpers::enabledDisabledBadge(
-            $this->template,
-            extension_loaded('xdebug'),
-            ' - v'.phpversion('xdebug')
-        );
+        $xdebug = Helpers::stateBadge($this->template, extension_loaded('xdebug'), ' - v'.phpversion('xdebug'));
 
         return [
             'panels' => [

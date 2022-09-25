@@ -41,15 +41,20 @@ trait KeysTrait {
 
         while (!feof($fp)) {
             $buffer .= fgets($fp, 1024);
+
+            $ends = ['END', 'DELETED', 'NOT_FOUND', 'OK', 'EXISTS', 'ERROR', 'RESET', 'STORED', 'NOT_STORED', 'VERSION'];
+
+            foreach ($ends as $end) {
+                if (preg_match('/^'.$end.'/imu', $buffer)) {
+                    break 2;
+                }
+            }
+
             $lines = explode("\n", $buffer);
             $buffer = array_pop($lines);
 
             foreach ($lines as $line) {
                 $line = trim($line);
-
-                if ($line === 'END' || $line === 'ERROR' || $line === '') {
-                    break 2;
-                }
 
                 $data[] = $line;
             }
@@ -71,17 +76,19 @@ trait KeysTrait {
         static $data = [];
 
         foreach (explode(' ', $line) as $part) {
-            [$key, $val] = explode('=', $part);
+            if ($part !== '') {
+                [$key, $val] = explode('=', $part);
 
-            if ($key === 'exp') {
-                if ($val !== '-1') {
-                    $val = (int) $val - time();
-                } else {
-                    $val = (int) $val;
+                if ($key === 'exp') {
+                    if ($val !== '-1') {
+                        $val = (int) $val - time();
+                    } else {
+                        $val = (int) $val;
+                    }
                 }
-            }
 
-            $data[$key] = $val;
+                $data[$key] = $val;
+            }
         }
 
         return $data;
@@ -106,10 +113,8 @@ trait KeysTrait {
 
         $all_keys = $this->command('lru_crawler metadump all');
 
-        if ($all_keys !== null) {
-            foreach ($all_keys as $line) {
-                $keys[] = $this->keyData($line);
-            }
+        foreach ($all_keys as $line) {
+            $keys[] = $this->keyData($line);
         }
 
         return $keys;

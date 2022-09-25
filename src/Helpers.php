@@ -74,16 +74,16 @@ class Helpers {
     }
 
     /**
-     * Show enabled/disabled badge.
+     * Show state badge.
      *
      * @param Template            $template
      * @param bool                $enabled
-     * @param ?string             $text
+     * @param string|null         $text
      * @param ?array<int, string> $badge_text
      *
      * @return string
      */
-    public static function enabledDisabledBadge(Template $template, bool $enabled = true, ?string $text = null, ?array $badge_text = null): string {
+    public static function stateBadge(Template $template, bool $enabled, string $text = null, ?array $badge_text = null): string {
         $badge_text ??= ['Enabled', 'Disabled'];
 
         return $template->render('components/badge', [

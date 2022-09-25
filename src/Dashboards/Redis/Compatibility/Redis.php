@@ -91,7 +91,9 @@ class Redis extends \Redis implements CompatibilityInterface {
     public function getInfo(string $option = null): array {
         static $info = [];
 
-        foreach (['SERVER', 'CLIENTS', 'MEMORY', 'PERSISTENCE', 'STATS', 'REPLICATION', 'CPU', 'CLUSTER', 'KEYSPACE'] as $option_name) {
+        $options = ['SERVER', 'CLIENTS', 'MEMORY', 'PERSISTENCE', 'STATS', 'REPLICATION', 'CPU', 'CLUSTER', 'KEYSPACE'];
+
+        foreach ($options as $option_name) {
             $info[strtolower($option_name)] = $this->info($option_name);
         }
 

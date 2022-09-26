@@ -132,12 +132,17 @@ class Predis extends Client implements CompatibilityInterface {
      * @param string             $id
      * @param array<int, string> $messages
      * @param int                $maxLen
-     * @param bool               $isApproximate
      *
      * @return string
      */
-    public function xAdd(string $key, string $id, array $messages, int $maxLen = 0, bool $isApproximate = false): string {
-        return $this->executeRaw(['XADD', $key, $id, $messages, $maxLen, $isApproximate]);
+    public function xAdd(string $key, string $id, array $messages, int $maxLen = 0): string {
+        $messages_arr = [];
+
+        foreach ($messages as $field => $value) {
+            $messages_arr[] = $field.' '.$value;
+        }
+
+        return $this->executeRaw(['XADD', $key, $id, $maxLen, implode(' ', $messages_arr)]);
     }
 
     /**

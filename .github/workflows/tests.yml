@@ -47,5 +47,7 @@ jobs:
 
       - name: Install dependencies
         run: composer update --prefer-dist --no-interaction --no-progress
+      - name: Install Predis
+        run: composer require predis/predis
       - name: Execute tests
         run: vendor/bin/phpunit --verbose

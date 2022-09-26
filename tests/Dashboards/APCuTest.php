@@ -71,7 +71,7 @@ final class APCuTest extends TestCase {
     /**
      * @throws ReflectionException
      */
-    public function testGetKey(): void {
+    public function testSetGetKey(): void {
         $keys = [
             'string' => ['original' => 'phpCacheAdmin', 'expected' => 'phpCacheAdmin'],
             'int'    => ['original' => 23, 'expected' => '23'],

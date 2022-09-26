@@ -84,7 +84,7 @@ final class MemcachedTest extends TestCase {
     /**
      * @throws MemcachedException
      */
-    public function testGetKey(): void {
+    public function testSetGetKey(): void {
         $keys = [
             'string' => ['original' => 'phpCacheAdmin', 'expected' => 'phpCacheAdmin'],
             'int'    => ['original' => 23, 'expected' => '23'],

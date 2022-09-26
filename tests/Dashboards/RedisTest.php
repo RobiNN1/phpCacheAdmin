@@ -83,7 +83,7 @@ final class RedisTest extends TestCase {
     /**
      * @throws RedisException
      */
-    public function testGetKey(): void {
+    public function testSetGetKey(): void {
         $keys = [
             'string' => ['original' => 'phpCacheAdmin', 'expected' => 'phpCacheAdmin'],
             'int'    => ['original' => 23, 'expected' => '23'],

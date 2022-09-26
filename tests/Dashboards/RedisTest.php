@@ -136,4 +136,11 @@ final class RedisTest extends TestCase {
 
         $this->redis->del($key);
     }
+
+    /**
+     * @throws RedisException
+     */
+    public function testGetInfo(): void {
+        $this->assertArrayHasKey('redis_version', $this->redis->getInfo('server'));
+    }
 }

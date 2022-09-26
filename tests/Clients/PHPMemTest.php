@@ -84,9 +84,6 @@ final class PHPMemTest extends TestCase {
      * @throws MemcachedException
      */
     public function testGetServerStats(): void {
-        $stats = $this->phpmem->getServerStats();
-
-        $this->assertIsArray($stats);
-        $this->assertArrayHasKey('version', $stats);
+        $this->assertArrayHasKey('version', $this->phpmem->getServerStats());
     }
 }

@@ -60,4 +60,8 @@ final class PredisTest extends TestCase {
         $this->assertSame(0, $this->predis->exists('pu-pred-test-hash'));
         $this->assertSame(0, $this->predis->exists('pu-pred-test-stream'));
     }
+
+    public function testGetInfo(): void {
+        $this->assertArrayHasKey('redis_version', $this->predis->getInfo('server'));
+    }
 }

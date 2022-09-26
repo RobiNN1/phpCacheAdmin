@@ -135,4 +135,11 @@ final class MemcachedTest extends TestCase {
 
         $this->memcached->delete($key);
     }
+
+    /**
+     * @throws MemcachedException
+     */
+    public function testGetServerStats(): void {
+        $this->assertArrayHasKey('version', $this->memcached->getServerStats());
+    }
 }

@@ -15,22 +15,24 @@ use RobiNN\Pca\Config;
 use RobiNN\Pca\Http;
 use RobiNN\Pca\Template;
 
-if (is_file(__DIR__.'/vendor/autoload.php')) {
-    require_once __DIR__.'/vendor/autoload.php';
+const ROOT_PATH = __DIR__.'/';
+
+if (is_file(ROOT_PATH.'vendor/autoload.php')) {
+    require_once ROOT_PATH.'vendor/autoload.php';
 } else {
-    if (is_file(__DIR__.'/twig.phar')) {
-        require_once 'phar://twig.phar/vendor/autoload.php';
+    if (is_file(ROOT_PATH.'twig.phar')) {
+        require_once 'phar://'.ROOT_PATH.'twig.phar/vendor/autoload.php';
     }
 
-    if (!extension_loaded('redis') && is_file(__DIR__.'/predis.phar')) {
-        require_once 'phar://predis.phar/vendor/autoload.php';
+    if (!extension_loaded('redis') && is_file(ROOT_PATH.'predis.phar')) {
+        require_once 'phar://'.ROOT_PATH.'predis.phar/vendor/autoload.php';
     }
 
     spl_autoload_register(static function ($class_name) {
         $class_name = str_replace("RobiNN\\Pca\\", '', $class_name);
         $filename = str_replace("\\", DIRECTORY_SEPARATOR, $class_name);
 
-        $fullpath = __DIR__.'/src/'.$filename.'.php';
+        $fullpath = ROOT_PATH.'src/'.$filename.'.php';
 
         if (is_file($fullpath)) {
             require_once $fullpath;

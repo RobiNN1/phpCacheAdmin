@@ -60,36 +60,41 @@ class Template {
      *
      * @param string               $tpl
      * @param array<string, mixed> $data
+     * @param bool                 $string
      *
      * @return string
      */
-    public function render(string $tpl, array $data = []): string {
+    public function render(string $tpl, array $data = [], bool $string = false): string {
+        $loader = new FilesystemLoader(__DIR__.'/../templates');
+        $twig = new Environment($loader, [
+            'cache' => __DIR__.'/../cache',
+            'debug' => Config::get('twigdebug'),
+        ]);
+
+        foreach ($this->paths as $namespace => $path) {
+            try {
+                $loader->addPath(realpath($path), $namespace);
+            } catch (LoaderError $e) {
+                echo $e->getMessage();
+            }
+        }
+
+        if (Config::get('twigdebug')) {
+            $twig->addExtension(new DebugExtension());
+        }
+
+        $twig->addFunction(new TwigFunction('svg', [Helpers::class, 'svg'], ['is_safe' => ['html']]));
+
+        $space_filter = static fn (?string $value): string => $value !== '' ? ' '.$value : '';
+        $twig->addFilter(new TwigFilter('space', $space_filter, ['is_safe' => ['html']]));
+
+        foreach ($this->globals as $name => $value) {
+            $twig->addGlobal($name, $value);
+        }
+
         try {
-            $loader = new FilesystemLoader(__DIR__.'/../templates');
-            $twig = new Environment($loader, [
-                'cache' => __DIR__.'/../cache',
-                'debug' => Config::get('twigdebug'),
-            ]);
-
-            foreach ($this->paths as $namespace => $path) {
-                try {
-                    $loader->addPath(realpath($path), $namespace);
-                } catch (LoaderError $e) {
-                    echo $e->getMessage();
-                }
-            }
-
-            if (Config::get('twigdebug')) {
-                $twig->addExtension(new DebugExtension());
-            }
-
-            $twig->addFunction(new TwigFunction('svg', [Helpers::class, 'svg'], ['is_safe' => ['html']]));
-
-            $space_filter = static fn (?string $value): string => $value !== '' ? ' '.$value : '';
-            $twig->addFilter(new TwigFilter('space', $space_filter, ['is_safe' => ['html']]));
-
-            foreach ($this->globals as $name => $value) {
-                $twig->addGlobal($name, $value);
+            if ($string) {
+                return $twig->createTemplate($tpl)->render($data);
             }
 
             return $twig->render($tpl.'.twig', $data);

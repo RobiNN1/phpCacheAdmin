@@ -152,7 +152,7 @@ trait APCuTrait {
 
         if (isset($_GET['delete'])) {
             apcu_delete($key);
-            Http::redirect(['db']);
+            Http::redirect();
         }
 
         $value = $this->getKey($key);

@@ -39,16 +39,17 @@ class Helpers {
      * @param ?int    $size
      * @param ?string $class
      *
-     * @return ?string
+     * @return string
      */
-    public static function svg(string $icon, ?int $size = 16, ?string $class = null): ?string {
+    public static function svg(string $icon, ?int $size = 16, ?string $class = null): string {
         $file = is_file($icon) ? $icon : __DIR__.'/../assets/icons/'.$icon.'.svg';
 
-        if (!is_file($file)) {
-            return null;
+        if (is_file($file)) {
+            $content = trim(file_get_contents($file));
+        } else {
+            $content = $icon;
         }
 
-        $content = trim(file_get_contents($file));
         preg_match('~<svg([^<>]*)>~', $content, $attributes);
 
         $size_attr = $size ? ' width="'.$size.'" height="'.$size.'"' : '';

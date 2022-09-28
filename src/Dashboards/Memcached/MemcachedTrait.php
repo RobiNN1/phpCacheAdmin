@@ -199,7 +199,7 @@ trait MemcachedTrait {
 
         if (isset($_GET['delete'])) {
             $memcached->delete($key);
-            Http::redirect(['db']);
+            Http::redirect();
         }
 
         $value = $memcached->getKey($key);

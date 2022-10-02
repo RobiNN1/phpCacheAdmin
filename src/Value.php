@@ -117,7 +117,7 @@ class Value {
      * @return bool
      */
     private static function isJson(string $value): bool {
-        if (!is_string($value) || is_numeric($value)) {
+        if (is_numeric($value)) {
             return false;
         }
 

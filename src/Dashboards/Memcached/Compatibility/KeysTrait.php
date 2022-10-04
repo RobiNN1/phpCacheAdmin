@@ -106,11 +106,6 @@ trait KeysTrait {
     public function getKeys(): array {
         static $keys = [];
 
-        if (isset($this->server['sasl_username'], $this->server['sasl_password'])) {
-            // for future updates, currently it is not possible to list all keys with enabled SASL
-            return [];
-        }
-
         $all_keys = $this->command('lru_crawler metadump all');
 
         foreach ($all_keys as $line) {

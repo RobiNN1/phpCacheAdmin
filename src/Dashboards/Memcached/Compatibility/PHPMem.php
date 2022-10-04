@@ -216,14 +216,4 @@ class PHPMem implements CompatibilityInterface {
     public function store(string $key, string $value, int $expiration = 0): bool {
         return $this->set($key, $value, $expiration);
     }
-
-    /**
-     * SASL authentication.
-     *
-     * @return void
-     * @throws MemcachedException
-     */
-    public function sasl(): void {
-        throw new MemcachedException('PHPMem does not support SASL authentication.');
-    }
 }

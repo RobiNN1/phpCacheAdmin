@@ -44,11 +44,4 @@ interface CompatibilityInterface {
      * @return array<int, mixed>
      */
     public function getKeys(): array;
-
-    /**
-     * SASL authentication.
-     *
-     * @return void
-     */
-    public function sasl(): void;
 }

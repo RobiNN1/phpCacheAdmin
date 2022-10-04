@@ -59,14 +59,4 @@ class Memcached extends \Memcached implements CompatibilityInterface {
     public function store(string $key, string $value, int $expiration = 0): bool {
         return $this->set($key, $value, $expiration);
     }
-
-    /**
-     * SASL authentication.
-     *
-     * @return void
-     */
-    public function sasl(): void {
-        $this->setOption(self::OPT_BINARY_PROTOCOL, true);
-        $this->setSaslAuthData($this->server['sasl_username'], $this->server['sasl_password']);
-    }
 }

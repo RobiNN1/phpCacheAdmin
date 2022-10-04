@@ -16,11 +16,11 @@ class Config {
     /**
      * Get config.
      *
-     * @param ?string $key
+     * @param string $key
      *
-     * @return int|string|bool|array<int|string, mixed>
+     * @return array<int|string, mixed>|bool|int|string|null
      */
-    public static function get(?string $key = null) {
+    public static function get(string $key) {
         if (is_file(__DIR__.'/../config.php')) {
             $config = (array) require __DIR__.'/../config.php';
         } elseif (is_file(__DIR__.'/../config.dist.php')) {

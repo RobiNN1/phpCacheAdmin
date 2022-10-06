@@ -72,16 +72,16 @@ return [
     // Decoding/Encoding functions
     'encoding'   => [
         'gzcompress' => [
-            'view' => static fn (string $value): ?string => @gzuncompress($value) !== false ? gzuncompress($value) : null,
-            'save' => static fn (string $value): string => gzcompress($value),
+            'view' => static fn (string $value): ?string => extension_loaded('zlib') && @gzuncompress($value) !== false ? gzuncompress($value) : null,
+            'save' => static fn (string $value): string => extension_loaded('zlib') ? gzcompress($value) : $value,
         ],
         'gzencode'   => [
-            'view' => static fn (string $value): ?string => @gzdecode($value) !== false ? gzdecode($value) : null,
-            'save' => static fn (string $value): string => gzencode($value),
+            'view' => static fn (string $value): ?string => extension_loaded('zlib') && @gzdecode($value) !== false ? gzdecode($value) : null,
+            'save' => static fn (string $value): string => extension_loaded('zlib') ? gzencode($value) : $value,
         ],
         'gzdeflate'  => [
-            'view' => static fn (string $value): ?string => @gzinflate($value) !== false ? gzinflate($value) : null,
-            'save' => static fn (string $value): string => gzdeflate($value),
+            'view' => static fn (string $value): ?string => extension_loaded('zlib') && @gzinflate($value) !== false ? gzinflate($value) : null,
+            'save' => static fn (string $value): string => extension_loaded('zlib') ? gzdeflate($value) : $value,
         ],
     ],
     // Formatting functions, it runs after decoding

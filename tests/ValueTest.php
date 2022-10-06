@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace Tests;
 
+use ReflectionException;
 use RobiNN\Pca\Value;
 
 final class ValueTest extends TestCase {
@@ -32,6 +33,9 @@ final class ValueTest extends TestCase {
         $this->assertEqualsCanonicalizing([$expected, null, true], Value::format(serialize($array)));
     }
 
+    /**
+     * @throws ReflectionException
+     */
     public function testDecoded(): void {
         $gzcompress = gzcompress('gzcompress-data');
         $this->assertSame('gzcompress-data', self::callMethod(new Value(), 'decoded', $gzcompress));
@@ -45,6 +49,9 @@ final class ValueTest extends TestCase {
         $this->assertNull(self::callMethod(new Value(), 'decoded', 'random string'));
     }
 
+    /**
+     * @throws ReflectionException
+     */
     public function testFormatted(): void {
         $value = serialize(['test', 'test' => 'data']);
         $this->assertSame('{"0":"test","test":"data"}', self::callMethod(new Value(), 'formatted', $value));
@@ -52,6 +59,9 @@ final class ValueTest extends TestCase {
         $this->assertNull(self::callMethod(new Value(), 'formatted', 'random string'));
     }
 
+    /**
+     * @throws ReflectionException
+     */
     public function testPrettyPrintJson(): void {
         $value = '{"0":"test","test":"data"}';
 
@@ -65,6 +75,9 @@ final class ValueTest extends TestCase {
         $this->assertSame('data', self::callMethod(new Value(), 'prettyPrintJson', 'data'));
     }
 
+    /**
+     * @throws ReflectionException
+     */
     public function testIsJson(): void {
         $this->assertTrue(self::callMethod(new Value(), 'isJson', '{"0":"test","test":"data"}'));
         $this->assertFalse(self::callMethod(new Value(), 'isJson', 'test'));
@@ -72,12 +85,18 @@ final class ValueTest extends TestCase {
         $this->assertFalse(self::callMethod(new Value(), 'isJson', 1));
     }
 
+    /**
+     * @throws ReflectionException
+     */
     public function testEncode(): void {
         $this->assertSame(gzcompress('gzcompress-data'), self::callMethod(new Value(), 'encode', 'gzcompress-data', 'gzcompress'));
         $this->assertSame(gzencode('gzencode-data'), self::callMethod(new Value(), 'encode', 'gzencode-data', 'gzencode'));
         $this->assertSame(gzdeflate('gzdeflate-data'), self::callMethod(new Value(), 'encode', 'gzdeflate-data', 'gzdeflate'));
     }
 
+    /**
+     * @throws ReflectionException
+     */
     public function testDecode(): void {
         $this->assertSame('gzcompress-data', self::callMethod(new Value(), 'decode', gzcompress('gzcompress-data'), 'gzcompress'));
         $this->assertSame('gzencode-data', self::callMethod(new Value(), 'decode', gzencode('gzencode-data'), 'gzencode'));

@@ -112,7 +112,7 @@ class PHPMem implements CompatibilityInterface {
         }
 
         // set <key> <flags> <exptime> <bytes> [noreply]\r\n<value>\r\n
-        $raw = $this->send('set'.' '.$key.' '.'0 '.$expiration.' '.strlen((string) $value)."\r\n".$value);
+        $raw = $this->send('set '.$key.' 0 '.$expiration.' '.strlen((string) $value)."\r\n".$value);
 
         if (Helpers::str_starts_with($raw, 'STORED')) {
             return true;

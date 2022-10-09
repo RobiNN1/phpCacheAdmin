@@ -21,7 +21,7 @@ class PHPMem implements CompatibilityInterface {
     /**
      * @const string PHPMem version.
      */
-    public const VERSION = '1.0.0';
+    public const VERSION = '1.0.1';
 
     private string $host;
 
@@ -170,10 +170,13 @@ class PHPMem implements CompatibilityInterface {
      * Check connection.
      *
      * @return bool
-     * @throws MemcachedException
      */
     public function isConnected(): bool {
-        $stats = $this->getServerStats();
+        try {
+            $stats = $this->getServerStats();
+        } catch (MemcachedException $e) {
+            return false;
+        }
 
         return isset($stats['pid']) && $stats['pid'] > 0;
     }

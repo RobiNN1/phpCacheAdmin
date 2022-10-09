@@ -89,12 +89,8 @@ class MemcachedDashboard implements DashboardInterface {
             $memcached->addServer($server['host'], (int) $server['port']);
         }
 
-        try {
-            if (!$memcached->isConnected()) {
-                throw new DashboardException(sprintf('Failed to connect to Memcached server %s.', $memcached_server));
-            }
-        } catch (MemcachedException $e) {
-            throw new DashboardException($e->getMessage());
+        if (!$memcached->isConnected()) {
+            throw new DashboardException(sprintf('Failed to connect to Memcached server %s.', $memcached_server));
         }
 
         return $memcached;

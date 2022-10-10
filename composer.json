@@ -12,7 +12,8 @@
     "cache",
     "admin",
     "dashboard",
-    "gui"
+    "gui",
+    "phpcacheadmin"
   ],
   "authors": [
     {

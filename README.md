@@ -109,6 +109,10 @@ To add another server, add the same environment variables, but change 0 to 1 (2 
 > - If the Redis extension is not installed, the system will use a Predis client (if you are using composer, install Predis manually via `composer require predis/predis`).
 > - If the Memcache(d) extension is not installed, the system will use a custom PHPMem client.
 
+## Custom Dashboards
+
+- Dashboard for [FileCache](https://github.com/RobiNN1/FileCache-Dashboard) from [`robinn/cache`](https://github.com/RobiNN1/Cache).
+
 ## Testing
 
 PHPUnit

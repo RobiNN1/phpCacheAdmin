@@ -15,7 +15,7 @@ namespace Tests;
 use ReflectionException;
 use ReflectionMethod;
 
-class TestCase extends \PHPUnit\Framework\TestCase {
+abstract class TestCase extends \PHPUnit\Framework\TestCase {
     /**
      * Call private method.
      *

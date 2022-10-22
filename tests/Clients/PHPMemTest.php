@@ -25,9 +25,6 @@ final class PHPMemTest extends TestCase {
         $this->phpmem->addServer($server['host']);
     }
 
-    /**
-     * @throws MemcachedException
-     */
     public function testIsConnected(): void {
         $this->assertTrue($this->phpmem->isConnected());
     }

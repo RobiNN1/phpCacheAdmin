@@ -950,10 +950,6 @@ video {
   background-color: #dc2626;
 }
 
-.bg-slate-50 {
-  background-color: #f8fafc;
-}
-
 .bg-slate-100 {
   background-color: #f1f5f9;
 }
@@ -966,20 +962,12 @@ video {
   background-color: #475569;
 }
 
-.bg-red-50 {
-  background-color: #fef2f2;
-}
-
 .bg-red-100 {
   background-color: #fee2e2;
 }
 
 .bg-red-500 {
   background-color: #ef4444;
-}
-
-.bg-emerald-50 {
-  background-color: #ecfdf5;
 }
 
 .bg-emerald-100 {
@@ -992,10 +980,6 @@ video {
 
 .bg-emerald-600 {
   background-color: #059669;
-}
-
-.bg-sky-50 {
-  background-color: #f0f9ff;
 }
 
 .bg-sky-100 {

@@ -28,7 +28,7 @@
                 {% for name, value in array %}
                     {% if value is iterable %}
                         {% if value|length > 0 %}
-                            <tr class="bg-{{ color }}-50 text-{{ color }}-900">
+                            <tr class="bg-{{ color }}-100 opacity-75 text-{{ color }}-900">
                                 <td colspan="2" class="px-4 py-2 text-xs font-bold uppercase whitespace-nowrap">{{ name|replace({'_': ' '}) }}</td>
                             </tr>
                             {% for sub_name, sub_value in value %}

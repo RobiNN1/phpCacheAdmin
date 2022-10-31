@@ -7,7 +7,7 @@ module.exports = {
     },
     safelist: [
         {
-            pattern: /^bg-(slate|red|emerald|sky)-(50|100|500)?$/,
+            pattern: /^bg-(slate|red|emerald|sky)-(100|500)?$/,
         },
         {
             pattern: /^bg-(slate|red|emerald|sky)-600?$/,

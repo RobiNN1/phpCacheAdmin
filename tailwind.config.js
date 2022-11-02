@@ -25,7 +25,7 @@ module.exports = {
             variants: ['focus']
         },
         {
-            pattern: /^ring-(slate|red|emerald|sky)-(100|200|300)?$/,
+            pattern: /^ring-(slate|red|emerald|sky)-200?$/,
             variants: ['focus']
         },
         'ml-64',

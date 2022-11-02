@@ -10,12 +10,11 @@
                     <div class="flex">
                         <input type="text" id="search_key" value="{{ search_value }}" placeholder="Search key"
                                class="w-full rounded-l border border-gray-300 bg-white py-1.5 px-3 text-base text-gray-600 placeholder-gray-400
-                           focus:outline-none focus:ring focus:ring-{{ color }}-100 focus:border-{{ color }}-300" aria-label="Search key..">
+                           focus:outline-none focus:ring focus:ring-{{ color }}-200 focus:border-{{ color }}-300" aria-label="Search key..">
                         {{ include('components/button.twig', {
                             text: '',
                             icon: 'search',
                             id: 'submit_search',
-                            btn_red: true,
                             class: 'rounded-l-none',
                         }) }}
                     </div>

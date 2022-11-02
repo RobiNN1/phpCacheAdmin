@@ -10,8 +10,8 @@
         <label class="-mt-1.5 font-semibold" for="per_page">per page</label>
     </div>
 
-    <div class="flex items-center md:justify-end">
-        {% if pages and pages|length > 1 %}
+    {% if pages and pages|length > 1 %}
+        <div class="flex items-center md:justify-end">
             <ul class="inline-flex">
                 {% for page in pages %}
                     {% if page == current_page %}
@@ -32,6 +32,6 @@
                     </li>
                 {% endfor %}
             </ul>
-        {% endif %}
-    </div>
+        </div>
+    {% endif %}
 </div>

@@ -1,22 +1,22 @@
 {% if btn_green %}
-    {% set btn_color = 'bg-green-500 hover:bg-green-600 focus:ring-green-300' %}
+    {% set btn_color = 'bg-green-500 hover:bg-green-600 focus:ring-green-200' %}
 {% elseif btn_red %}
-    {% set btn_color = 'bg-red-500 hover:bg-red-600 focus:ring-red-300' %}
+    {% set btn_color = 'bg-red-500 hover:bg-red-600 focus:ring-red-200' %}
 {% else %}
-    {% set btn_color = btn_color ? btn_color : 'bg-' ~ color ~ '-500 hover:bg-' ~ color ~ '-600 focus:ring-' ~ color ~ '-300' %}
+    {% set btn_color = 'bg-' ~ color ~ '-500 hover:bg-' ~ color ~ '-600 focus:ring-' ~ color ~ '-200' %}
 {% endif %}
 
+{% set classes = 'inline-flex items-center border border-transparent rounded py-1.5 px-3 text-base font-semibold text-white align-middle shadow focus:ring ' ~ btn_color %}
+
 {% if link %}
-    <a href="{{ link }}"
-       class="inline-flex items-center border border-transparent rounded py-1.5 px-3 text-base font-semibold text-white align-middle shadow focus:ring-4 {{ btn_color }}{{ class|space }}">
+    <a href="{{ link }}" class="{{ classes ~ class|space }}">
         {% if icon %}
             {{ svg(icon, 16, (text ? 'mr-1' : '')) }}
         {% endif %}
         {{ text }}
     </a>
 {% else %}
-    <button type="{{ submit ? 'submit' : 'button' }}" id="{{ id }}" name="{{ id }}"
-            class="inline-flex items-center border border-transparent rounded py-1.5 px-3 text-base font-semibold text-white align-middle shadow focus:ring-4 {{ btn_color }}{{ class|space }}">
+    <button type="{{ submit ? 'submit' : 'button' }}" id="{{ id }}" name="{{ id }}" class="{{ classes ~ class|space }}">
         {% if icon %}
             {{ svg(icon, 16, (text ? 'mr-1' : '')) }}
         {% endif %}

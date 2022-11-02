@@ -14,10 +14,10 @@
             <thead>
             <tr class="bg-{{ color }}-100 text-{{ color }}-900">
                 <th class="bg-{{ color }}-100 w-3 rounded-tl px-3 py-2 md:px-5">
-                    <input type="checkbox"
-                           class="check-all checkbox text-{{ color }}-500 -mt-1.5 h-4 w-4 select-none appearance-none rounded border border-gray-300 bg-white align-middle
-                           focus:outline-none focus:ring-2 focus:border-{{ color }}-300 focus:ring-{{ color }}-200"
-                           aria-label=""{{ keys|length == 0 ? ' disabled' : '' }}>
+                    {{ include('components/checkbox.twig', {
+                        disabled: keys|length == 0,
+                        class: 'check-all',
+                    }) }}
                 </th>
                 <th class="px-3 py-2.5 text-xs font-bold uppercase whitespace-nowrap md:px-5">Key</th>
                 <th class="px-3 py-2.5 text-xs font-bold uppercase whitespace-nowrap md:px-5">Hits</th>
@@ -32,9 +32,7 @@
                 {% for key in keys %}
                     <tr class="[&:last-child>*]:border-b-0" data-key="{{ key.key }}">
                         <td class="border-b border-gray-100 px-3 py-2 md:px-5">
-                            <input type="checkbox"
-                                   class="checkbox-key checkbox text-{{ color }}-500 -mt-1.5 h-4 w-4 select-none appearance-none rounded border border-gray-300 bg-white align-middle
-                                   focus:outline-none focus:ring-2 focus:border-{{ color }}-300 focus:ring-{{ color }}-200" aria-label="">
+                            {{ include('components/checkbox.twig', {class: 'checkbox-key'}) }}
                         </td>
                         <td class="truncate border-b border-gray-100 px-3 py-2 text-sm whitespace-nowrap md:px-5">
                             <a class="text-{{ color }}-500 hover:text-{{ color }}-700 font-semibold" href="{{ view_url ~ key.key }}" title="{{ key.key }}">

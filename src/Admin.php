@@ -72,10 +72,11 @@ class Admin {
     /**
      * Get git info.
      *
+     * @param string $git_path Path to the .git folder.
+     *
      * @return ?array<string, string>
      */
-    public function getGitInfo(): ?array {
-        $git_path = __DIR__.'/../.git';
+    public function getGitInfo(string $git_path): ?array {
         $head_file = $git_path.'/HEAD';
 
         if (!is_file($head_file)) {

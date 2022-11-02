@@ -942,14 +942,6 @@ video {
   border-color: #f3f4f6;
 }
 
-.bg-green-600 {
-  background-color: #16a34a;
-}
-
-.bg-red-600 {
-  background-color: #dc2626;
-}
-
 .bg-slate-100 {
   background-color: #f1f5f9;
 }
@@ -968,6 +960,10 @@ video {
 
 .bg-red-500 {
   background-color: #ef4444;
+}
+
+.bg-red-600 {
+  background-color: #dc2626;
 }
 
 .bg-emerald-100 {

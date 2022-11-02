@@ -30,8 +30,6 @@ module.exports = {
         },
         'ml-64',
         'p-4',
-        'bg-green-600',
-        'bg-red-600',
         'font-semibold',
     ],
     corePlugins: {

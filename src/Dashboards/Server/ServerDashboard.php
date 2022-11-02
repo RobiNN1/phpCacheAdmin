@@ -13,7 +13,6 @@ declare(strict_types=1);
 namespace RobiNN\Pca\Dashboards\Server;
 
 use RobiNN\Pca\Dashboards\DashboardInterface;
-use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Template;
 
 class ServerDashboard implements DashboardInterface {
@@ -62,8 +61,6 @@ class ServerDashboard implements DashboardInterface {
      * @return array<string, mixed>
      */
     public function info(): array {
-        $xdebug = Helpers::stateBadge($this->template, extension_loaded('xdebug'), ' - v'.phpversion('xdebug'));
-
         return [
             'panels' => [
                 [
@@ -74,7 +71,7 @@ class ServerDashboard implements DashboardInterface {
                         'PHP Interface'        => PHP_SAPI,
                         'Max Upload File Size' => ini_get('file_uploads') ? ini_get('upload_max_filesize').'B' : 'n/a',
                         'Disabled functions'   => $this->getDisabledFunctions(),
-                        'Xdebug'               => $xdebug,
+                        'Xdebug'               => extension_loaded('xdebug') ? 'Enabled - v'.phpversion('xdebug') : 'Disabled',
                     ],
                 ],
                 [

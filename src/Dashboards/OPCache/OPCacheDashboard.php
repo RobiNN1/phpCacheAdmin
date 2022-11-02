@@ -14,7 +14,6 @@ namespace RobiNN\Pca\Dashboards\OPCache;
 
 use RobiNN\Pca\Dashboards\DashboardInterface;
 use RobiNN\Pca\Format;
-use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Template;
 
 class OPCacheDashboard implements DashboardInterface {
@@ -90,10 +89,10 @@ class OPCacheDashboard implements DashboardInterface {
                     'title'    => 'Status',
                     'moreinfo' => true,
                     'data'     => [
-                        'JIT'          => Helpers::stateBadge($this->template, isset($status['jit']) && $status['jit']['enabled']),
+                        'JIT'          => isset($status['jit']) && $status['jit']['enabled'] ? 'Enabled' : 'Disabled',
                         'Start time'   => Format::time($stats['start_time']),
                         'Last restart' => Format::time($stats['last_restart_time']),
-                        'Cache full'   => Helpers::stateBadge($this->template, $status['cache_full'] === false, null, ['No', 'Yes']),
+                        'Cache full'   => $status['cache_full'] ? 'Yes' : 'No',
                     ],
                 ],
                 [

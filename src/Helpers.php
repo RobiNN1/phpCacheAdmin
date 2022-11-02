@@ -75,26 +75,6 @@ class Helpers {
     }
 
     /**
-     * Show state badge.
-     *
-     * @param Template            $template
-     * @param bool                $enabled
-     * @param string|null         $text
-     * @param ?array<int, string> $badge_text
-     *
-     * @return string
-     */
-    public static function stateBadge(Template $template, bool $enabled, string $text = null, ?array $badge_text = null): string {
-        $badge_text ??= ['Enabled', 'Disabled'];
-
-        return $template->render('components/badge', [
-            'text' => $enabled ? $badge_text[0].$text : $badge_text[1],
-            'bg'   => $enabled ? 'bg-green-600' : 'bg-red-600',
-            'pill' => true,
-        ]);
-    }
-
-    /**
      * Convert bool to string in an array.
      *
      * @param array<int|string, mixed> $array

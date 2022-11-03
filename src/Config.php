@@ -94,7 +94,7 @@ class Config {
     /**
      * Get encoders.
      *
-     * @return array<int, string>
+     * @return array<string, string>
      */
     public static function getEncoders(): array {
         $encoders = self::get('encoding');

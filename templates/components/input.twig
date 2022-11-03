@@ -1,9 +1,8 @@
 <div class="mb-3"{{ extra_attr|raw }}>
     <label for="{{ id }}" class="mb-2 block text-sm font-semibold">{{ label }}</label>
     <input id="{{ id }}" name="{{ id }}" type="{{ type ? type : 'text' }}" value="{{ value }}"
-           class="w-full rounded border border-gray-300 bg-white py-1.5 px-3 text-base text-gray-600 placeholder-gray-400
-           focus:outline-none focus:ring focus:ring-{{ color }}-200 focus:border-{{ color }}-300"{{ required ? ' required' : '' }}{{ attr|raw }}>
+           class="w-full rounded border border-gray-300 bg-white py-1.5 px-3 text-base focus:outline-none focus:ring focus:ring-primary-200 focus:border-primary-300"{{ required ? ' required' : '' }}{{ attr|raw }}>
     {% if help %}
-        <small class="text-xs text-gray-500">{{ help }}</small>
+        <small class="text-xs">{{ help }}</small>
     {% endif %}
 </div>

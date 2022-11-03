@@ -42,7 +42,6 @@ class ServerDashboard implements DashboardInterface {
         return [
             'key'   => 'server',
             'title' => 'Server',
-            'color' => 'slate',
         ];
     }
 

@@ -12,8 +12,8 @@
     <div class="w-full overflow-x-auto">
         <table class="w-full table-auto text-left">
             <thead>
-            <tr class="bg-{{ color }}-100 text-{{ color }}-900">
-                <th class="bg-{{ color }}-100 w-3 rounded-tl px-3 py-2 md:px-5">
+            <tr class="bg-primary-100 text-primary-900">
+                <th class="bg-primary-100 w-3 rounded-tl px-3 py-2 md:px-5">
                     {{ include('components/checkbox.twig', {
                         disabled: keys|length == 0,
                         class: 'check-all',
@@ -35,7 +35,7 @@
                             {{ include('components/checkbox.twig', {class: 'checkbox-key'}) }}
                         </td>
                         <td class="truncate border-b border-gray-100 px-3 py-2 text-sm whitespace-nowrap md:px-5">
-                            <a class="text-{{ color }}-500 hover:text-{{ color }}-700 font-semibold" href="{{ view_url ~ key.key }}" title="{{ key.key }}">
+                            <a class="text-primary-500 hover:text-primary-700 font-semibold" href="{{ view_url ~ key.key }}" title="{{ key.key }}">
                                 {{- key.key -}}
                             </a>
                         </td>

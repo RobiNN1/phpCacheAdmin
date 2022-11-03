@@ -2,6 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+    :root {
+        --primary-color-100: #f1f5f9;
+        --primary-color-200: #e2e8f0;
+        --primary-color-300: #cbd5e1;
+        --primary-color-500: #64748b;
+        --primary-color-600: #475569;
+        --primary-color-700: #334155;
+        --primary-color-900: #0f172a;
+    }
+}
+
 .select {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%23475569' stroke-width='3' stroke-linecap='round' stroke-linejoin='round' d='m2 5 6 6 6-6'/%3E%3C/svg%3E");
     background-repeat: no-repeat;

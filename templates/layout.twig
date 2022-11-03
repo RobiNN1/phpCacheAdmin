@@ -6,10 +6,19 @@
     <title>{{ site_title }} - phpCacheAdmin</title>
     <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon.png">
     <link rel="stylesheet" href="assets/css/styles.css?v={{ version }}">
+    {%- if colors -%}
+        <style>
+            :root {
+            {%- for key,value in colors -%}
+                --primary-color-{{ key }}:{{ value }};
+            {%- endfor -%}
+            }
+        </style>
+    {%- endif %}
 </head>
 <body class="bg-gray-50 text-gray-900 md:ml-64" data-dashboard="{{ current }}">
 <aside id="sidebar" class="hidden md:block">
-    <nav class="bg-{{ color }}-500 fixed top-0 left-0 bottom-0 block w-64 overflow-hidden overflow-y-auto py-4 pt-6 px-6 shadow-xl shadow-gray-500">
+    <nav class="bg-primary-500 fixed top-0 left-0 bottom-0 block w-64 overflow-hidden overflow-y-auto py-4 pt-6 px-6 shadow-xl shadow-gray-500">
         <div class="mx-auto min-h-full w-full px-0 flex flex-col justify-between">
             <div>
                 <a class="hidden pb-2 text-white md:block md:pb-5" href="index.php">{{ svg('logo', null) }}</a>
@@ -60,7 +69,7 @@
 
         {% if back_url %}
             <div class="block">
-                <a class="text-lg text-{{ color }}-500 hover:text-{{ color }}-700 font-semibold inline-flex items-center mb-2" href="{{ back_url }}">
+                <a class="text-lg text-primary-500 hover:text-primary-700 font-semibold inline-flex items-center mb-2" href="{{ back_url }}">
                     {{ svg('back', 16, 'mr-1') }} Back
                 </a>
             </div>

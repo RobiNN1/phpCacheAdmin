@@ -3,34 +3,22 @@ module.exports = {
     content: ['./templates/**/*.twig'],
     darkMode: 'class',
     theme: {
-        extend: {},
+        extend: {
+            colors: {
+                "primary": {
+                    100: "var(--primary-color-100)",
+                    200: "var(--primary-color-200)",
+                    300: "var(--primary-color-300)",
+                    500: "var(--primary-color-500)",
+                    600: "var(--primary-color-600)",
+                    700: "var(--primary-color-700)",
+                    900: "var(--primary-color-900)",
+                },
+            },
+        },
     },
     safelist: [
-        {
-            pattern: /^bg-(slate|red|emerald|sky)-(100|500)?$/,
-        },
-        {
-            pattern: /^bg-(slate|red|emerald|sky)-600?$/,
-            variants: ['hover']
-        },
-        {
-            pattern: /^text-(slate|red|emerald|sky)-(500|900)?$/,
-        },
-        {
-            pattern: /^text-(slate|red|emerald|sky)-700?$/,
-            variants: ['hover']
-        },
-        {
-            pattern: /^border-(slate|red|emerald|sky)-300?$/,
-            variants: ['focus']
-        },
-        {
-            pattern: /^ring-(slate|red|emerald|sky)-200?$/,
-            variants: ['focus']
-        },
         'ml-64',
-        'p-4',
-        'font-semibold',
     ],
     corePlugins: {
         textOpacity: false,
@@ -41,4 +29,7 @@ module.exports = {
         ringOpacity: false,
     },
     plugins: [],
+    experimental: {
+        optimizeUniversalDefaults: true
+    }
 }

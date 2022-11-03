@@ -37,13 +37,21 @@ class APCuDashboard implements DashboardInterface {
     /**
      * Get dashboard info.
      *
-     * @return array<string, string>
+     * @return array<string, string|array<int, string>>
      */
     public function getDashboardInfo(): array {
         return [
-            'key'   => 'apcu',
-            'title' => 'APCu',
-            'color' => 'slate',
+            'key'    => 'apcu',
+            'title'  => 'APCu',
+            'colors' => [
+                100 => '#dbeafe',
+                200 => '#bfdbfe',
+                300 => '#93c5fd',
+                500 => '#3b82f6',
+                600 => '#2563eb',
+                700 => '#1d4ed8',
+                900 => '#1e3a8a',
+            ],
         ];
     }
 

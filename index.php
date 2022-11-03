@@ -65,7 +65,6 @@ $dashboard = $admin->getDashboard($current);
 $info = $dashboard->getDashboardInfo();
 
 $tpl->addGlobal('current', $current);
-$tpl->addGlobal('color', $info['color']);
 
 if (isset($_GET['ajax'])) {
     echo $dashboard->ajax();
@@ -75,6 +74,7 @@ if (isset($_GET['ajax'])) {
     }
 
     echo $tpl->render('layout', [
+        'colors'     => $info['colors'] ?? null,
         'site_title' => $info['title'],
         'nav'        => $nav,
         'logout_url' => $auth ? Http::queryString([], ['logout' => 'yes']) : null,

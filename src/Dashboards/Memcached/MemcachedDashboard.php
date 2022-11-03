@@ -48,13 +48,21 @@ class MemcachedDashboard implements DashboardInterface {
     /**
      * Get dashboard info.
      *
-     * @return array<string, string>
+     * @return array<string, string|array<int, string>>
      */
     public function getDashboardInfo(): array {
         return [
-            'key'   => 'memcached',
-            'title' => 'Memcached',
-            'color' => 'emerald',
+            'key'    => 'memcached',
+            'title'  => 'Memcached',
+            'colors' => [
+                100 => '#d1fae5',
+                200 => '#a7f3d0',
+                300 => '#6ee7b7',
+                500 => '#10b981',
+                600 => '#059669',
+                700 => '#047857',
+                900 => '#064e3b',
+            ],
         ];
     }
 

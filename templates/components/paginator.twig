@@ -15,9 +15,9 @@
             <ul class="inline-flex">
                 {% for page in pages %}
                     {% if page == current_page %}
-                        {% set class = 'border-' ~ color ~ '-300 bg-' ~ color ~ '-500 text-white hover:bg-' ~ color ~ '-600' %}
+                        {% set class = 'border-primary-300 bg-primary-500 text-white hover:bg-primary-600' %}
                     {% else %}
-                        {% set class = 'border-gray-300 bg-white text-gray-500 hover:bg-gray-100 hover:text-gray-700' %}
+                        {% set class = 'border-gray-300 bg-white hover:bg-gray-100 hover:text-gray-700' %}
                     {% endif %}
 
                     {% set first_item = loop.first ? ' rounded-l' : '' %}

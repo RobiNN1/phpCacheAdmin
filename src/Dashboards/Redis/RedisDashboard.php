@@ -49,13 +49,21 @@ class RedisDashboard implements DashboardInterface {
     /**
      * Get dashboard info.
      *
-     * @return array<string, string>
+     * @return array<string, string|array<int, string>>
      */
     public function getDashboardInfo(): array {
         return [
-            'key'   => 'redis',
-            'title' => 'Redis',
-            'color' => 'red',
+            'key'    => 'redis',
+            'title'  => 'Redis',
+            'colors' => [
+                100 => '#fee2e2',
+                200 => '#fecaca',
+                300 => '#fca5a5',
+                500 => '#ef4444',
+                600 => '#dc2626',
+                700 => '#b91c1c',
+                900 => '#7f1d1d',
+            ],
         ];
     }
 

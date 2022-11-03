@@ -2,14 +2,14 @@
     <div class="px-4 py-1.5">
         <div class="flex flex-wrap items-center">
             <div class="relative w-full max-w-full flex-1 flex-grow">
-                <h2 class="text-{{ color }}-900 text-lg font-semibold">{{ panel_title }}</h2>
+                <h2 class="text-primary-900 text-lg font-semibold">{{ panel_title }}</h2>
             </div>
             {% if selection %}
                 <div class="panel-selection relative w-full max-w-full flex-1 flex-grow text-right"{{ (ajax ? ' style="display: none;"' : '')|raw }}>
                     {% if current_server == key %}
-                        {{ include('components/badge.twig', {text: 'Selected', bg: 'bg-' ~ color ~ '-500'}) }}
+                        {{ include('components/badge.twig', {text: 'Selected', bg: 'bg-primary-500'}) }}
                     {% else %}
-                        <a class="text-{{ color }}-500 hover:text-{{ color }}-700 font-semibold" href="?type={{ current }}&server={{ key }}">Select this server</a>
+                        <a class="text-primary-500 hover:text-primary-700 font-semibold" href="?type={{ current }}&server={{ key }}">Select this server</a>
                     {% endif %}
                 </div>
             {% endif %}
@@ -18,7 +18,7 @@
     <div class="w-full overflow-x-auto">
         <table class="w-full table-auto text-left">
             <thead>
-            <tr class="bg-{{ color }}-100 text-{{ color }}-900">
+            <tr class="bg-primary-100 text-primary-900">
                 <th class="px-4 py-2 text-xs font-bold uppercase whitespace-nowrap">Name</th>
                 <th class="px-4 py-2 text-xs font-bold uppercase whitespace-nowrap">Value</th>
             </tr>
@@ -28,7 +28,7 @@
                 {% for name, value in array %}
                     {% if value is iterable %}
                         {% if value|length > 0 %}
-                            <tr class="bg-{{ color }}-100 opacity-75 text-{{ color }}-900">
+                            <tr class="bg-primary-100 opacity-75 text-primary-900">
                                 <td colspan="2" class="px-4 py-2 text-xs font-bold uppercase whitespace-nowrap">{{ name|replace({'_': ' '}) }}</td>
                             </tr>
                             {% for sub_name, sub_value in value %}
@@ -61,7 +61,7 @@
     </div>
     {% if moreinfo %}
         <div class="panel-moreinfo border-t px-4 py-1 text-right"{{ (ajax ? ' style="display: none;"' : '')|raw }}>
-            <a class="text-{{ color }}-500 hover:text-{{ color }}-700 font-semibold" href="?type={{ current }}&moreinfo={{ key }}">Show more info</a>
+            <a class="text-primary-500 hover:text-primary-700 font-semibold" href="?type={{ current }}&moreinfo={{ key }}">Show more info</a>
         </div>
     {% endif %}
 </div>

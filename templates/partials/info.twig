@@ -5,7 +5,7 @@
             {% if extension_version %}
                 {{ include('components/badge.twig', {
                     text: 'v' ~ extension_version,
-                    bg: 'bg-' ~ color ~ '-500',
+                    bg: 'bg-primary-500',
                     class: 'font-semibold',
                 }) }}
             {% endif %}
@@ -18,7 +18,7 @@
                 <input type="checkbox" id="toggle-panels"
                        class="sr-only [&:checked~.dot]:translate-x-full [&:checked~.dot]:bg-gray-900 [&:checked~.dot]:text-white
                        [&:checked~.dot>.open]:block [&:checked~.dot>.close]:hidden">
-                <span class="dot absolute left-1 top-1 inline-flex h-4 w-4 items-center justify-center rounded-full text-gray-600 bg-gray-50 transition-transform">
+                <span class="dot absolute left-1 top-1 inline-flex h-4 w-4 items-center justify-center rounded-full bg-gray-50 transition-transform">
                     {{ svg('open', 11, 'open hidden') }}
                     {{ svg('close', 11, 'close') }}
                 </span>

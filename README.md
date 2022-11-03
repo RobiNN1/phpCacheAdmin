@@ -111,7 +111,7 @@ To add another server, add the same environment variables, but change 0 to 1 (2 
 
 ## Custom Dashboards
 
-- [FileCache](https://github.com/RobiNN1/FileCache-Dashboard) dashboard from [`robinn/cache`](https://github.com/RobiNN1/Cache).
+- [FileCache](https://github.com/RobiNN1/FileCache-Dashboard) ([`robinn/cache`](https://github.com/RobiNN1/Cache)) dashboard.
 
 ## Testing
 

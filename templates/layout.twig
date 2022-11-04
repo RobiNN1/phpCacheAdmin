@@ -6,15 +6,15 @@
     <title>{{ site_title }} - phpCacheAdmin</title>
     <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon.png">
     <link rel="stylesheet" href="assets/css/styles.css?v={{ version }}">
+
     {%- if colors -%}
         <style>
             :root {
-            {%- for key,value in colors -%}
-                --primary-color-{{ key }}:{{ value }};
-            {%- endfor -%}
+            {{ colors }}
             }
         </style>
     {%- endif %}
+
 </head>
 <body class="bg-gray-50 text-gray-900 md:ml-64" data-dashboard="{{ current }}">
 <aside id="sidebar" class="hidden md:block">
@@ -23,7 +23,7 @@
             <div>
                 <a class="hidden pb-2 text-white md:block md:pb-5" href="index.php">{{ svg('logo', null) }}</a>
                 {% for link, item in nav %}
-                    <a class="flex items-center py-2 {{ current == link ? ' font-bold' : '' }} text-white hover:text-gray-200" href="?type={{ link }}">
+                    <a class="flex items-center py-2{{ current == link ? ' font-bold' : '' }} text-white hover:text-gray-200" href="?type={{ link }}">
                         {{ svg(item.icon, 16, 'mr-1' ~ (current == link ? '' : ' opacity-75')) }} {{~ item.title ~}}
                     </a>
                 {% endfor %}

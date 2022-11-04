@@ -73,8 +73,16 @@ if (isset($_GET['ajax'])) {
         $back_url = Http::queryString(['db', 's']);
     }
 
+    if (isset($info['colors'])) {
+        $colors = '';
+
+        foreach ((array) $info['colors'] as $key => $color) {
+            $colors .= '--primary-color-'.$key.':'.$color.';';
+        }
+    }
+
     echo $tpl->render('layout', [
-        'colors'     => $info['colors'] ?? null,
+        'colors'     => $colors ?? null,
         'site_title' => $info['title'],
         'nav'        => $nav,
         'logout_url' => $auth ? Http::queryString([], ['logout' => 'yes']) : null,

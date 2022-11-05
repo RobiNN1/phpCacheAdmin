@@ -13,12 +13,7 @@
         <table class="w-full table-auto text-left">
             <thead>
             <tr class="bg-primary-100 text-primary-900">
-                <th class="bg-primary-100 w-3 rounded-tl px-3 py-2 md:px-5">
-                    {{ include('components/checkbox.twig', {
-                        disabled: keys|length == 0,
-                        class: 'check-all',
-                    }) }}
-                </th>
+                <th class="w-3 rounded-tl px-3 py-2 md:px-5">{{ include('components/checkbox.twig', {disabled: keys|length == 0, class: 'check-all'}) }}</th>
                 <th class="px-3 py-2.5 text-xs font-bold uppercase whitespace-nowrap md:px-5">Key</th>
                 <th class="px-3 py-2.5 text-xs font-bold uppercase whitespace-nowrap md:px-5">Hits</th>
                 <th class="hidden px-3 py-2.5 text-xs font-bold uppercase whitespace-nowrap md:table-cell md:px-5">Last used</th>
@@ -31,9 +26,7 @@
             {% if keys %}
                 {% for key in keys %}
                     <tr class="[&:last-child>*]:border-b-0" data-key="{{ key.key }}">
-                        <td class="border-b border-gray-100 px-3 py-2 md:px-5">
-                            {{ include('components/checkbox.twig', {class: 'checkbox-key'}) }}
-                        </td>
+                        <td class="border-b border-gray-100 px-3 py-2 md:px-5">{{ include('components/checkbox.twig', {class: 'checkbox-key'}) }}</td>
                         <td class="truncate border-b border-gray-100 px-3 py-2 text-sm whitespace-nowrap md:px-5">
                             <a class="text-primary-500 hover:text-primary-700 font-semibold" href="{{ view_url ~ key.key }}" title="{{ key.key }}">
                                 {{- key.key -}}

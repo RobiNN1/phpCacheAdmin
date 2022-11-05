@@ -10,6 +10,14 @@
             text: 'Reset cache',
             icon: 'reset',
             id: 'delete_all',
+            btn_red: true,
+        }) }}
+
+        {{ include('components/button.twig', {
+            text: 'Delete selected',
+            icon: 'trash',
+            id: 'delete_selected',
+            btn_red: true,
         }) }}
     </div>
 </div>
@@ -19,6 +27,7 @@
         <table class="w-full table-auto text-left">
             <thead>
             <tr class="bg-primary-100 text-primary-900">
+                <th class="w-3 rounded-tl px-3 py-2 md:px-5">{{ include('components/checkbox.twig', {disabled: cached_scripts|length == 0, class: 'check-all'}) }}</th>
                 <th class="px-3 py-2.5 text-xs font-bold uppercase whitespace-nowrap md:px-5">Filename</th>
                 <th class="px-3 py-2.5 text-xs font-bold uppercase whitespace-nowrap md:px-5">Hits</th>
                 <th class="px-3 py-2.5 text-xs font-bold uppercase whitespace-nowrap md:px-5">Memory</th>
@@ -30,18 +39,18 @@
             <tbody>
             {% if cached_scripts %}
                 {% for script in cached_scripts %}
-                    <tr class="[&:nth-last-child(2)>*]:border-b-0" data-key="{{ script.invalidate_url }}">
-                        <td class="show-path cursor-pointer border-b border-gray-100 px-3 py-2 text-sm font-semibold text-primary-500 hover:text-primary-700 md:px-5">{{ script.name }}</td>
+                    <tr class="[&:last-child>*]:border-b-0" data-key="{{ script.invalidate_url }}">
+                        <td class="border-b border-gray-100 px-3 py-2 md:px-5">{{ include('components/checkbox.twig', {class: 'checkbox-key'}) }}</td>
+                        <td class="border-b border-gray-100 px-3 py-2 text-sm md:px-5" title="{{ script.path }}">{{ script.name }}</td>
                         <td class="border-b border-gray-100 px-3 py-2 text-sm md:px-5">{{ script.hits }}</td>
                         <td class="border-b border-gray-100 px-3 py-2 text-sm md:px-5">{{ script.memory }}</td>
                         <td class="hidden border-b border-gray-100 px-3 py-2 text-sm md:table-cell md:px-5">{{ script.last_used }}</td>
                         <td class="hidden border-b border-gray-100 px-3 py-2 text-sm md:table-cell md:px-5">{{ script.created }}</td>
                         <td class="border-b border-gray-100 px-3 py-2 text-sm md:px-5">
-                            <button type="button" class="delete-key font-semibold text-red-500 hover:text-red-700">Invalidate</button>
+                            <button class="delete-key text-red-500 hover:text-red-700 font-semibold inline-flex items-center" type="button" title="Delete">
+                                {{ svg('trash', 16, 'mr-1') }} Delete
+                            </button>
                         </td>
-                    </tr>
-                    <tr class="hidden [&:last-child>*]:border-b-0" data-path="{{ script.invalidate_url }}">
-                        <td colspan="6" class="border-b border-t border-gray-100 px-3 py-2 text-sm md:px-5">{{ script.path }}</td>
                     </tr>
                 {% endfor %}
             {% else %}

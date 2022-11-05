@@ -24,14 +24,18 @@ trait OPCacheTrait {
      * @return string
      */
     private function deleteScript(): string {
-        $file = base64_decode(Http::get('delete'));
+        $files = explode(',', Http::get('delete'));
 
-        if (opcache_invalidate($file, true)) {
-            $name = explode(DIRECTORY_SEPARATOR, $file);
-
+        if (count($files) > 1) {
+            foreach ($files as $key) {
+                opcache_invalidate(base64_decode($key), true);
+            }
+            $message = 'Files has been deleted.';
+        } elseif ($files[0] !== '' && opcache_invalidate(base64_decode($files[0]), true)) {
+            $name = explode(DIRECTORY_SEPARATOR, base64_decode($files[0]));
             $message = sprintf('File "%s" was invalidated.', $name[array_key_last($name)]);
         } else {
-            $message = 'An error occurred while invalidating the script.';
+            $message = 'No files are selected.';
         }
 
         return $this->template->render('components/alert', ['message' => $message]);

@@ -85,8 +85,11 @@ class Template {
 
         $twig->addFunction(new TwigFunction('svg', [Helpers::class, 'svg'], ['is_safe' => ['html']]));
 
-        $space_filter = static fn (?string $value): string => $value !== '' ? ' '.$value : '';
-        $twig->addFilter(new TwigFilter('space', $space_filter, ['is_safe' => ['html']]));
+        $twig->addFilter(new TwigFilter('space', static function (?string $value, bool $right = false): string {
+            $right_side = $right ? $value.' ' : ' '.$value;
+
+            return $value !== null && $value !== '' ? $right_side : '';
+        }, ['is_safe' => ['html']]));
 
         foreach ($this->globals as $name => $value) {
             $twig->addGlobal($name, $value);

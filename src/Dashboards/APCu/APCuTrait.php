@@ -28,13 +28,13 @@ trait APCuTrait {
     private function deleteKey(): string {
         $keys = explode(',', Http::get('delete'));
 
-        if (count($keys) === 1 && apcu_delete($keys[0])) {
-            $message = sprintf('Key "%s" has been deleted.', $keys[0]);
-        } elseif (count($keys) > 1) {
+        if (count($keys) > 1) {
             foreach ($keys as $key) {
                 apcu_delete($key);
             }
             $message = 'Keys has been deleted.';
+        } elseif ($keys[0] !== '' && apcu_delete($keys[0])) {
+            $message = sprintf('Key "%s" has been deleted.', $keys[0]);
         } else {
             $message = 'No keys are selected.';
         }

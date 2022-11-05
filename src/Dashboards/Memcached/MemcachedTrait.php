@@ -84,14 +84,14 @@ trait MemcachedTrait {
     private function deleteKey($memcached): string {
         $keys = explode(',', Http::get('delete'));
 
-        if (count($keys) === 1 && $memcached->exists($keys[0])) {
-            $memcached->delete($keys[0]);
-            $message = sprintf('Key "%s" has been deleted.', $keys[0]);
-        } elseif (count($keys) > 1) {
+        if (count($keys) > 1) {
             foreach ($keys as $key) {
                 $memcached->delete($key);
             }
             $message = 'Keys has been deleted.';
+        } elseif ($keys[0] !== '' && $memcached->exists($keys[0])) {
+            $memcached->delete($keys[0]);
+            $message = sprintf('Key "%s" has been deleted.', $keys[0]);
         } else {
             $message = 'No keys are selected.';
         }

@@ -77,12 +77,17 @@ trait APCuTrait {
         static $keys = [];
 
         foreach ($info['cache_list'] as $key_data) {
+            $key = $key_data['info'];
+
             $keys[] = [
-                'key'       => $key_data['info'],
-                'ttl'       => $key_data['ttl'] === 0 ? -1 : (($key_data['creation_time'] + $key_data['ttl']) - time()),
-                'hits'      => Format::number((int) $key_data['num_hits']),
-                'last_used' => Format::time($key_data['access_time']),
-                'created'   => Format::time($key_data['creation_time']),
+                'key'   => $key,
+                'items' => [
+                    'title'     => ['title' => $key, 'link' => true,],
+                    'hits'      => Format::number((int) $key_data['num_hits']),
+                    'last_used' => Format::time($key_data['access_time']),
+                    'created'   => Format::time($key_data['creation_time']),
+                    'ttl'       => $key_data['ttl'] === 0 ? 'Doesn\'t expire' : (($key_data['creation_time'] + $key_data['ttl']) - time()),
+                ],
             ];
         }
 

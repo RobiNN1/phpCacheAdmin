@@ -1,15 +1,13 @@
-{% import 'partials/key_type_badge.twig' as key_badge %}
-
 <div class="mb-5 rounded bg-white shadow-sm shadow-gray-300">
     <div class="w-full overflow-x-auto">
-        <table class="w-full table-fixed text-left">
+        <table class="w-full table-auto text-left">
             <thead>
             <tr class="bg-primary-100 text-primary-900">
-                <th class="w-3 rounded-tl px-3 py-2 md:px-5">{{ include('components/checkbox.twig', {disabled: keys|length == 0, class: 'check-all'}) }}</th>
-                <th class="px-3 py-2 text-xs font-bold uppercase whitespace-nowrap md:px-5">Key</th>
-                <th class="hidden w-24 px-3 py-2 text-xs font-bold uppercase whitespace-nowrap md:table-cell md:px-5">Type</th>
-                <th class="w-32 px-3 py-2 text-xs font-bold uppercase whitespace-nowrap md:px-5">TTL</th>
-                <th class="w-24 rounded-tr px-3 py-2 text-xs font-bold uppercase whitespace-nowrap md:px-5">Actions</th>
+                <th class="px-3 py-2 md:px-5 w-3 rounded-tl">{{ include('components/checkbox.twig', {disabled: keys|length == 0, class: 'check-all'}) }}</th>
+                {% for item in head_items %}
+                    <th class="px-3 py-2 text-xs font-bold uppercase whitespace-nowrap md:px-5{{ item.class|space }}">{{ item.title }}</th>
+                {% endfor %}
+                <th class="px-3 py-2 text-xs font-bold uppercase whitespace-nowrap md:px-5 w-24 rounded-tr">Actions</th>
             </tr>
             </thead>
             <tbody>
@@ -17,19 +15,28 @@
                 {% for key in keys %}
                     <tr class="[&:last-child>*]:border-b-0" data-key="{{ key.key }}">
                         <td class="border-b border-gray-100 px-3 py-2 md:px-5">{{ include('components/checkbox.twig', {class: 'checkbox-key'}) }}</td>
-                        <td class="truncate border-b border-gray-100 px-3 py-2 text-sm whitespace-nowrap md:px-5">
-                            <a class="text-primary-500 hover:text-primary-700 font-semibold" href="{{ view_url|replace({'ttl_value': key.ttl}) ~ key.key }}" title="{{ key.key }}">
-                                {{- (key.items_total ? '<span class="hidden md:inline-block">(' ~ key.items_total ~ ' items)&nbsp;</span>' : '')|raw -}}{{- key.key -}}
-                            </a>
-                        </td>
-                        <td class="hidden border-b border-gray-100 px-3 py-2 text-sm whitespace-nowrap md:table-cell md:px-5">{{ key_badge.key_type(key.type) }}</td>
-                        <td class="border-b border-gray-100 px-3 py-2 text-sm whitespace-nowrap md:px-5">
-                            {% if key.ttl == -1 %}
-                                Doesn't expire
-                            {% else %}
-                                {{ key.ttl }}
-                            {% endif %}
-                        </td>
+                        {% for item_key, item in key.items %}
+                            {% set ttl = item_key == 'ttl' ? item : '' %}
+                            {% set full = item.full ? ' title="' ~ item.full ~ '"' : '' %}
+
+                            <td class="border-b border-gray-100 px-3 py-2 text-sm whitespace-nowrap md:px-5{{ classes[loop.index]|space }}"{{ full|raw }}>
+                                {% if item.title %}
+                                    {% if item.link %}
+                                        <a class="text-primary-500 hover:text-primary-700 font-semibold" href="{{ view_url|replace({'ttl_value': ttl}) ~ key.key }}">
+                                            {{- item.title -}}
+                                        </a>
+                                    {% else %}
+                                        {{- item.title -}}
+                                    {% endif %}
+                                {% elseif item_key == 'type' %}
+                                    {% import 'partials/key_type_badge.twig' as key_badge %}
+                                    {{ key_badge.key_type(item) }}
+                                {% else %}
+                                    {{ item }}
+                                {% endif %}
+                            </td>
+                        {% endfor %}
+
                         <td class="border-b border-gray-100 px-3 py-2 text-sm whitespace-nowrap md:px-5">
                             <button class="delete-key text-red-500 hover:text-red-700 font-semibold inline-flex items-center" type="button" title="Delete">
                                 {{ svg('trash', 16, 'mr-1') }} Delete
@@ -39,7 +46,7 @@
                 {% endfor %}
             {% else %}
                 <tr>
-                    <td colspan="5" class="p-5 text-center">No keys.</td>
+                    <td colspan="{{ head_items|length + 2 }}" class="p-5 text-center">No keys.</td>
                 </tr>
             {% endif %}
             </tbody>

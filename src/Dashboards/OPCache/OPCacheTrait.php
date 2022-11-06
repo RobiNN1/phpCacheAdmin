@@ -86,13 +86,14 @@ trait OPCacheTrait {
                 }
 
                 $cached_scripts[] = [
-                    'path'           => $full_path,
-                    'name'           => $script_name,
-                    'hits'           => Format::number($script['hits']),
-                    'memory'         => Format::bytes($script['memory_consumption']),
-                    'last_used'      => Format::time($script['last_used_timestamp']),
-                    'created'        => Format::time($script['timestamp']),
-                    'invalidate_url' => base64_encode($script['full_path']),
+                    'key'   => base64_encode($script['full_path']),
+                    'items' => [
+                        'title'     => ['title' => $script_name, 'full' => $full_path,],
+                        'hits'      => Format::number($script['hits']),
+                        'memory'    => Format::bytes($script['memory_consumption']),
+                        'last_used' => Format::time($script['last_used_timestamp']),
+                        'created'   => Format::time($script['timestamp']),
+                    ],
                 ];
             }
         }
@@ -116,6 +117,7 @@ trait OPCacheTrait {
 
         return $this->template->render('dashboards/opcache', [
             'cached_scripts' => $paginator->getPaginated(),
+            'all_files'      => count($cached_scripts),
             'paginator'      => $paginator->render(),
             'ignore_url'     => Http::queryString(['pp', 'p'], ['ignore' => $is_ignored ? 'no' : 'yes']),
             'is_ignored'     => $is_ignored,

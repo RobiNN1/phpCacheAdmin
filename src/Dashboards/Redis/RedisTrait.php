@@ -192,11 +192,16 @@ trait RedisTrait {
                 $type = 'unknown';
             }
 
+            $ttl = $redis->ttl($key);
+            $total = $this->getCountOfItemsInKey($redis, $type, $key);
+
             $keys[] = [
-                'key'         => $key,
-                'type'        => $type,
-                'ttl'         => $redis->ttl($key),
-                'items_total' => $this->getCountOfItemsInKey($redis, $type, $key),
+                'key'   => $key,
+                'items' => [
+                    'title' => ['title' => ($total !== null ? '('.$total.' items) ' : '').$key, 'link' => true, 'full' => $key],
+                    'type'  => $type,
+                    'ttl'   => $ttl === -1 ? 'Doesn\'t expire' : $ttl,
+                ],
             ];
         }
 

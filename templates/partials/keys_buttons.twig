@@ -1,18 +1,22 @@
 <div>
-    {{ include('components/button.twig', {
-        text: 'Import',
-        icon: 'import',
-        id: 'import_btn',
-        btn_green: true,
-        class: 'mr-1',
-    }) }}
+    {% if import_btn %}
+        {{ include('components/button.twig', {
+            text: 'Import',
+            icon: 'import',
+            id: 'import_btn',
+            btn_green: true,
+            class: 'mr-1',
+        }) }}
+    {% endif %}
 
-    {{ include('components/button.twig', {
-        text: 'Add new',
-        icon: 'open',
-        link: new_key_url,
-        btn_green: true,
-    }) }}
+    {% if add_new_btn %}
+        {{ include('components/button.twig', {
+            text: 'Add new',
+            icon: 'open',
+            link: new_key_url,
+            btn_green: true,
+        }) }}
+    {% endif %}
 
     {% if all_keys != 0 %}
         {{ include('components/button.twig', {

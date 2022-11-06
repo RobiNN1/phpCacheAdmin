@@ -1,5 +1,8 @@
 <div class="mb-5 lg:flex lg:justify-end">
-    {{ include('partials/keys_buttons.twig') }}
+    {{ include('partials/keys_buttons.twig', {
+        import_btn: true,
+        add_new_btn: true,
+    }) }}
 </div>
 
 {{ include('partials/import_form.twig', {
@@ -8,4 +11,10 @@
     key_desc: 'The text value in the .txt file.',
 }) }}
 
-{{ include('partials/keys_table.twig') }}
+{{ include('partials/keys_table.twig', {
+    head_items: [
+        {'title': 'Key'},
+        {'title': 'Type', 'class': 'w-24'},
+        {'title': 'TTL', 'class': 'w-32'},
+    ],
+}) }}

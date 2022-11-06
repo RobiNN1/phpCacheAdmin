@@ -12,7 +12,7 @@
 
     {% if pages and pages|length > 1 %}
         <div class="flex items-center md:justify-end">
-            <ul class="inline-flex">
+            <ul class="inline-flex -space-x-px">
                 {% for page in pages %}
                     {% if page == current_page %}
                         {% set class = 'border-primary-300 bg-primary-500 text-white hover:bg-primary-600' %}

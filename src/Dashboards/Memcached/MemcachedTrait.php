@@ -175,7 +175,7 @@ trait MemcachedTrait {
 
         $paginator = new Paginator($this->template, $keys);
 
-        return $this->template->render('dashboards/memcached/memcached', [
+        return $this->template->render('dashboards/memcached', [
             'keys'        => $paginator->getPaginated(),
             'all_keys'    => count($keys),
             'new_key_url' => Http::queryString([], ['form' => 'new']),
@@ -280,7 +280,8 @@ trait MemcachedTrait {
 
         $value = Value::decode($value, $encoder);
 
-        return $this->template->render('dashboards/memcached/form', [
+        return $this->template->render('partials/form', [
+            'exp_attr' => ' min="0" max="2592000"',
             'key'      => $key,
             'value'    => $value,
             'expire'   => $expire,

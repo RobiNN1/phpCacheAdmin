@@ -18,7 +18,6 @@
                         {% for item_key, item in key.items %}
                             {% set ttl = item_key == 'ttl' ? item : '' %}
                             {% set full = item.full ? ' title="' ~ item.full ~ '"' : '' %}
-
                             <td class="border-b border-gray-100 px-3 py-2 text-sm whitespace-nowrap md:px-5{{ classes[loop.index]|space }}"{{ full|raw }}>
                                 {% if item.title %}
                                     {% if item.link %}
@@ -30,13 +29,12 @@
                                     {% endif %}
                                 {% elseif item_key == 'type' %}
                                     {% import 'partials/key_type_badge.twig' as key_badge %}
-                                    {{ key_badge.key_type(item) }}
+                                    {{- key_badge.key_type(item) -}}
                                 {% else %}
-                                    {{ item }}
+                                    {{- item -}}
                                 {% endif %}
                             </td>
                         {% endfor %}
-
                         <td class="border-b border-gray-100 px-3 py-2 text-sm whitespace-nowrap md:px-5">
                             <button class="delete-key text-red-500 hover:text-red-700 font-semibold inline-flex items-center" type="button" title="Delete">
                                 {{ svg('trash', 16, 'mr-1') }} Delete

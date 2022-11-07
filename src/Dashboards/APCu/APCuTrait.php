@@ -110,7 +110,7 @@ trait APCuTrait {
 
         $paginator = new Paginator($this->template, $keys);
 
-        return $this->template->render('dashboards/apcu/apcu', [
+        return $this->template->render('dashboards/apcu', [
             'keys'        => $paginator->getPaginated(),
             'all_keys'    => count($keys),
             'new_key_url' => Http::queryString([], ['form' => 'new']),
@@ -226,7 +226,8 @@ trait APCuTrait {
 
         $value = Value::decode($value, $encoder);
 
-        return $this->template->render('dashboards/apcu/form', [
+        return $this->template->render('partials/form', [
+            'exp_attr' => ' min="0"',
             'key'      => $key,
             'value'    => $value,
             'expire'   => $expire,

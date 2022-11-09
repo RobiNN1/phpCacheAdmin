@@ -151,9 +151,14 @@ trait RedisTrait {
      */
     private function getDatabases($redis): array {
         $databases = [];
+        $servers = Config::get('redis');
 
-        $dbs = (array) $redis->config('GET', 'databases');
-        $db_count = $dbs['databases']; // @phpstan-ignore-line
+        if (isset($servers[$this->current_server]['databases'])) {
+            $db_count = (int) $servers[$this->current_server]['databases'];
+        } else {
+            $dbs = (array) $redis->config('GET', 'databases');
+            $db_count = $dbs['databases']; // @phpstan-ignore-line
+        }
 
         for ($d = 0; $d < $db_count; ++$d) {
             $keyspace = $redis->getInfo('keyspace');

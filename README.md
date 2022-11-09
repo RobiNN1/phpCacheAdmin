@@ -82,10 +82,11 @@ Redis:
 - `PCA_REDIS_0_NAME` The server name for an info panel. Optional.
 - `PCA_REDIS_0_HOST` Redis host. Optional, when a `path` is specified.
 - `PCA_REDIS_0_PORT` Redis port. Optional, when the default port is used.
-- `PCA_REDIS_0_DATABASE` Redis database. Optional.
+- `PCA_REDIS_0_DATABASE` Redis database. Optional, default database.
 - `PCA_REDIS_0_USERNAME` Redis username. Optional, requires Redis >= 6.0.
 - `PCA_REDIS_0_PASSWORD` Redis password. Optional.
 - `PCA_REDIS_0_PATH` Redis unix domain socket. Optional.
+- `PCA_REDIS_0_DATABASES` Optional, number of databases (use this if the `CONFIG` command is disabled).
 
 Memcached:
 

@@ -25,10 +25,11 @@ return [
             'name' => 'Localhost', // Optional
             'host' => '127.0.0.1', // Optional, when a path is specified
             'port' => 6379, // Optional, when the default port is used
-            //'database' => 0, // Optional
+            //'database' => 0, // Optional, default database
             //'username' => '', // Optional, requires Redis >= 6.0
             //'password' => '', // Optional
             //'path'     => '/var/run/redis/redis-server.sock', // Optional
+            //'databases' => 15, // Optional, number of databases (use this if the CONFIG command is disabled)
         ],
     ],
     'memcached'  => [

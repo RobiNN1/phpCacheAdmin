@@ -157,7 +157,7 @@ trait RedisTrait {
             $db_count = (int) $servers[$this->current_server]['databases'];
         } else {
             $dbs = (array) $redis->config('GET', 'databases');
-            $db_count = $dbs['databases']; // @phpstan-ignore-line
+            $db_count = $dbs['databases'];
         }
 
         for ($d = 0; $d < $db_count; ++$d) {

@@ -13,6 +13,7 @@ declare(strict_types=1);
 namespace RobiNN\Pca\Dashboards\Server;
 
 use RobiNN\Pca\Dashboards\DashboardInterface;
+use RobiNN\Pca\Http;
 use RobiNN\Pca\Template;
 
 class ServerDashboard implements DashboardInterface {
@@ -113,6 +114,7 @@ class ServerDashboard implements DashboardInterface {
 
         return $this->template->render('dashboards/server', [
             'extensions' => get_loaded_extensions(),
+            'ext_link'   => Http::queryString([], ['moreinfo' => 0]),
         ]);
     }
 }

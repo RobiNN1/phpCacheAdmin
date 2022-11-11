@@ -1,15 +1,19 @@
-const ajax = (endpoint, callback) => {
-    let request = new XMLHttpRequest();
-
+const ajax = (endpoint, callback, data = null) => {
     let url = window.location.href;
     url += url.includes('?') ? '&' : '?';
     url += !url.includes('type=') ? 'type=' + document.body.dataset.dashboard : '';
+    url = url + '&ajax&' + endpoint;
 
-    request.open('GET', url + '&ajax&' + endpoint, true);
+    let request = new XMLHttpRequest();
+    request.open((data === null ? 'GET' : 'POST'), url, true);
+
+    if (data !== null) {
+        request.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+        data = endpoint + '=' + JSON.stringify(data);
+    }
+
     request.onload = callback;
-    request.send();
-
-    return request;
+    request.send(data);
 }
 
 const replace_query_param = (param, value) => {
@@ -105,12 +109,12 @@ keys.forEach(key => {
             return;
         }
 
-        ajax('delete=' + key.dataset.key, function (request) {
+        ajax('delete', function (request) {
             if (this.status >= 200 && this.status < 400) {
                 document.getElementById('alerts').innerHTML = request.currentTarget.response;
                 key.remove();
             }
-        });
+        }, key.dataset.key);
     });
 });
 
@@ -140,11 +144,11 @@ if (delete_selected) {
             parent.remove();
         });
 
-        ajax('delete=' + selected_keys.join(','), function (request) {
+        ajax('delete', function (request) {
             if (this.status >= 200 && this.status < 400) {
                 document.getElementById('alerts').innerHTML = request.currentTarget.response;
             }
-        });
+        }, selected_keys);
     });
 }
 

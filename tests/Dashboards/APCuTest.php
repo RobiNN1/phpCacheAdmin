@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace Tests\Dashboards;
 
+use JsonException;
 use ReflectionException;
 use RobiNN\Pca\Dashboards\APCu\APCuDashboard;
 use RobiNN\Pca\Http;
@@ -29,14 +30,14 @@ final class APCuTest extends TestCase {
     }
 
     /**
-     * @throws ReflectionException
+     * @throws ReflectionException|JsonException
      */
     public function testDeleteKey(): void {
         $key = 'pu-test-delete-key';
 
         apcu_store($key, 'data');
 
-        $_GET['delete'] = $key;
+        $_POST['delete'] = json_encode($key, JSON_THROW_ON_ERROR);
 
         $this->assertSame(
             $this->template->render('components/alert', ['message' => 'Key "'.$key.'" has been deleted.']),
@@ -46,7 +47,7 @@ final class APCuTest extends TestCase {
     }
 
     /**
-     * @throws ReflectionException
+     * @throws ReflectionException|JsonException
      */
     public function testDeleteKeys(): void {
         $key1 = 'pu-test-delete-key1';
@@ -57,7 +58,7 @@ final class APCuTest extends TestCase {
         apcu_store($key2, 'data2');
         apcu_store($key3, 'data3');
 
-        $_GET['delete'] = implode(',', [$key1, $key2, $key3]);
+        $_POST['delete'] = json_encode([$key1, $key2, $key3], JSON_THROW_ON_ERROR);
 
         $this->assertSame(
             $this->template->render('components/alert', ['message' => 'Keys has been deleted.']),

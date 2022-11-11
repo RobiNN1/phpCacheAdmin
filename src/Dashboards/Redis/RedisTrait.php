@@ -98,15 +98,19 @@ trait RedisTrait {
      * @throws Exception
      */
     private function deleteKey($redis): string {
-        $keys = explode(',', Http::get('delete'));
+        try {
+            $keys = json_decode(Http::post('delete'), false, 512, JSON_THROW_ON_ERROR);
+        } catch (JsonException $e) {
+            $keys = [];
+        }
 
-        if (count($keys) > 1) {
+        if (is_array($keys) && count($keys)) {
             foreach ($keys as $key) {
                 $redis->del($key);
             }
             $message = 'Keys has been deleted.';
-        } elseif ($keys[0] !== '' && $redis->del($keys[0])) {
-            $message = sprintf('Key "%s" has been deleted.', $keys[0]);
+        } elseif (is_string($keys) && $redis->del($keys)) {
+            $message = sprintf('Key "%s" has been deleted.', $keys);
         } else {
             $message = 'No keys are selected.';
         }

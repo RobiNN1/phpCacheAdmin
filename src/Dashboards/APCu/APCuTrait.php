@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace RobiNN\Pca\Dashboards\APCu;
 
+use JsonException;
 use RobiNN\Pca\Config;
 use RobiNN\Pca\Format;
 use RobiNN\Pca\Helpers;
@@ -26,15 +27,19 @@ trait APCuTrait {
      * @return string
      */
     private function deleteKey(): string {
-        $keys = explode(',', Http::get('delete'));
+        try {
+            $keys = json_decode(Http::post('delete'), false, 512, JSON_THROW_ON_ERROR);
+        } catch (JsonException $e) {
+            $keys = [];
+        }
 
-        if (count($keys) > 1) {
+        if (is_array($keys) && count($keys)) {
             foreach ($keys as $key) {
                 apcu_delete($key);
             }
             $message = 'Keys has been deleted.';
-        } elseif ($keys[0] !== '' && apcu_delete($keys[0])) {
-            $message = sprintf('Key "%s" has been deleted.', $keys[0]);
+        } elseif (is_string($keys) && apcu_delete($keys)) {
+            $message = sprintf('Key "%s" has been deleted.', $keys);
         } else {
             $message = 'No keys are selected.';
         }

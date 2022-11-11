@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace RobiNN\Pca\Dashboards\Memcached;
 
+use JsonException;
 use RobiNN\Pca\Config;
 use RobiNN\Pca\Dashboards\DashboardException;
 use RobiNN\Pca\Format;
@@ -82,16 +83,20 @@ trait MemcachedTrait {
      * @throws MemcachedException
      */
     private function deleteKey($memcached): string {
-        $keys = explode(',', Http::get('delete'));
+        try {
+            $keys = json_decode(Http::post('delete'), false, 512, JSON_THROW_ON_ERROR);
+        } catch (JsonException $e) {
+            $keys = [];
+        }
 
-        if (count($keys) > 1) {
+        if (is_array($keys) && count($keys)) {
             foreach ($keys as $key) {
                 $memcached->delete($key);
             }
             $message = 'Keys has been deleted.';
-        } elseif ($keys[0] !== '' && $memcached->exists($keys[0])) {
-            $memcached->delete($keys[0]);
-            $message = sprintf('Key "%s" has been deleted.', $keys[0]);
+        } elseif (is_string($keys) && $memcached->exists($keys)) {
+            $memcached->delete($keys);
+            $message = sprintf('Key "%s" has been deleted.', $keys);
         } else {
             $message = 'No keys are selected.';
         }

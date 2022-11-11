@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace RobiNN\Pca\Dashboards\OPCache;
 
+use JsonException;
 use RobiNN\Pca\Format;
 use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
@@ -24,15 +25,19 @@ trait OPCacheTrait {
      * @return string
      */
     private function deleteScript(): string {
-        $files = explode(',', Http::get('delete'));
+        try {
+            $files = json_decode(Http::post('delete'), false, 512, JSON_THROW_ON_ERROR);
+        } catch (JsonException $e) {
+            $files = [];
+        }
 
-        if (count($files) > 1) {
+        if (is_array($files) && count($files)) {
             foreach ($files as $key) {
-                opcache_invalidate(base64_decode($key), true);
+                opcache_invalidate($key, true);
             }
             $message = 'Files has been deleted.';
-        } elseif ($files[0] !== '' && opcache_invalidate(base64_decode($files[0]), true)) {
-            $name = explode(DIRECTORY_SEPARATOR, base64_decode($files[0]));
+        } elseif (is_string($files) && opcache_invalidate($files, true)) {
+            $name = explode(DIRECTORY_SEPARATOR, $files);
             $message = sprintf('File "%s" was invalidated.', $name[array_key_last($name)]);
         } else {
             $message = 'No files are selected.';
@@ -86,7 +91,7 @@ trait OPCacheTrait {
                 }
 
                 $cached_scripts[] = [
-                    'key'   => base64_encode($script['full_path']),
+                    'key'   => $script['full_path'],
                     'items' => [
                         'title'     => ['title' => $script_name, 'full' => $full_path,],
                         'hits'      => Format::number($script['hits']),

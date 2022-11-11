@@ -50,7 +50,7 @@ final class RedisTest extends TestCase {
 
         $this->redis->set($key, 'data');
 
-        $_POST['delete'] = json_encode($key, JSON_THROW_ON_ERROR);
+        $_POST['delete'] = json_encode(base64_encode($key), JSON_THROW_ON_ERROR);
 
         $this->assertSame(
             $this->template->render('components/alert', ['message' => 'Key "'.$key.'" has been deleted.']),
@@ -71,7 +71,7 @@ final class RedisTest extends TestCase {
         $this->redis->set($key2, 'data2');
         $this->redis->set($key3, 'data3');
 
-        $_POST['delete'] = json_encode([$key1, $key2, $key3], JSON_THROW_ON_ERROR);
+        $_POST['delete'] = json_encode(array_map(static fn ($key) => base64_encode($key), [$key1, $key2, $key3]), JSON_THROW_ON_ERROR);
 
         $this->assertSame(
             $this->template->render('components/alert', ['message' => 'Keys has been deleted.']),

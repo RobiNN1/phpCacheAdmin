@@ -14,7 +14,10 @@
 {{ include('partials/keys_table.twig', {
     head_items: [
         {'title': 'Key'},
-        {'title': 'Type', 'class': 'w-24'},
+        {'title': 'Type', 'class': 'w-24 hidden md:table-cell'},
         {'title': 'TTL', 'class': 'w-32'},
     ],
+    classes: {
+        2: 'hidden md:table-cell',
+    },
 }) }}

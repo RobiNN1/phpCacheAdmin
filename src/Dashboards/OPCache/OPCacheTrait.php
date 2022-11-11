@@ -12,7 +12,6 @@ declare(strict_types=1);
 
 namespace RobiNN\Pca\Dashboards\OPCache;
 
-use JsonException;
 use RobiNN\Pca\Format;
 use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
@@ -25,25 +24,7 @@ trait OPCacheTrait {
      * @return string
      */
     private function deleteScript(): string {
-        try {
-            $files = json_decode(Http::post('delete'), false, 512, JSON_THROW_ON_ERROR);
-        } catch (JsonException $e) {
-            $files = [];
-        }
-
-        if (is_array($files) && count($files)) {
-            foreach ($files as $key) {
-                opcache_invalidate($key, true);
-            }
-            $message = 'Files has been deleted.';
-        } elseif (is_string($files) && opcache_invalidate($files, true)) {
-            $name = explode(DIRECTORY_SEPARATOR, $files);
-            $message = sprintf('File "%s" was invalidated.', $name[array_key_last($name)]);
-        } else {
-            $message = 'No files are selected.';
-        }
-
-        return $this->template->render('components/alert', ['message' => $message]);
+        return Helpers::deleteKey($this->template, static fn (string $key): bool => opcache_invalidate($key, true));
     }
 
     /**
@@ -93,7 +74,10 @@ trait OPCacheTrait {
                 $cached_scripts[] = [
                     'key'   => $script['full_path'],
                     'items' => [
-                        'title'     => ['title' => $script_name, 'full' => $full_path,],
+                        'title'     => [
+                            'title'      => $script_name,
+                            'title_attr' => $full_path,
+                        ],
                         'hits'      => Format::number($script['hits']),
                         'memory'    => Format::bytes($script['memory_consumption']),
                         'last_used' => Format::time($script['last_used_timestamp']),

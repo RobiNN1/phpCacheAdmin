@@ -12,7 +12,6 @@ declare(strict_types=1);
 
 namespace RobiNN\Pca\Dashboards\APCu;
 
-use JsonException;
 use RobiNN\Pca\Config;
 use RobiNN\Pca\Format;
 use RobiNN\Pca\Helpers;
@@ -27,24 +26,7 @@ trait APCuTrait {
      * @return string
      */
     private function deleteKey(): string {
-        try {
-            $keys = json_decode(Http::post('delete'), false, 512, JSON_THROW_ON_ERROR);
-        } catch (JsonException $e) {
-            $keys = [];
-        }
-
-        if (is_array($keys) && count($keys)) {
-            foreach ($keys as $key) {
-                apcu_delete($key);
-            }
-            $message = 'Keys has been deleted.';
-        } elseif (is_string($keys) && apcu_delete($keys)) {
-            $message = sprintf('Key "%s" has been deleted.', $keys);
-        } else {
-            $message = 'No keys are selected.';
-        }
-
-        return $this->template->render('components/alert', ['message' => $message]);
+        return Helpers::deleteKey($this->template, static fn (string $key): bool => apcu_delete($key), true);
     }
 
     /**
@@ -85,9 +67,12 @@ trait APCuTrait {
             $key = $key_data['info'];
 
             $keys[] = [
-                'key'   => $key,
+                'key'   => base64_encode($key),
                 'items' => [
-                    'title'     => ['title' => $key, 'link' => true,],
+                    'title'     => [
+                        'title' => $key,
+                        'link'  => Http::queryString([], ['view' => 'key', 'key' => $key]),
+                    ],
                     'hits'      => Format::number((int) $key_data['num_hits']),
                     'last_used' => Format::time($key_data['access_time']),
                     'created'   => Format::time($key_data['creation_time']),
@@ -119,7 +104,6 @@ trait APCuTrait {
             'keys'        => $paginator->getPaginated(),
             'all_keys'    => count($keys),
             'new_key_url' => Http::queryString([], ['form' => 'new']),
-            'view_url'    => Http::queryString([], ['view' => 'key', 'key' => '']),
             'paginator'   => $paginator->render(),
         ]);
     }

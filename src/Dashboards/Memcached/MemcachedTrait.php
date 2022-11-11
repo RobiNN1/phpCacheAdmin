@@ -12,7 +12,6 @@ declare(strict_types=1);
 
 namespace RobiNN\Pca\Dashboards\Memcached;
 
-use JsonException;
 use RobiNN\Pca\Config;
 use RobiNN\Pca\Dashboards\DashboardException;
 use RobiNN\Pca\Format;
@@ -83,25 +82,9 @@ trait MemcachedTrait {
      * @throws MemcachedException
      */
     private function deleteKey($memcached): string {
-        try {
-            $keys = json_decode(Http::post('delete'), false, 512, JSON_THROW_ON_ERROR);
-        } catch (JsonException $e) {
-            $keys = [];
-        }
-
-        if (is_array($keys) && count($keys)) {
-            foreach ($keys as $key) {
-                $memcached->delete($key);
-            }
-            $message = 'Keys has been deleted.';
-        } elseif (is_string($keys) && $memcached->exists($keys)) {
-            $memcached->delete($keys);
-            $message = sprintf('Key "%s" has been deleted.', $keys);
-        } else {
-            $message = 'No keys are selected.';
-        }
-
-        return $this->template->render('components/alert', ['message' => $message]);
+        return Helpers::deleteKey($this->template, static function (string $key) use ($memcached): bool {
+            return $memcached->delete($key);
+        });
     }
 
     /**
@@ -152,7 +135,7 @@ trait MemcachedTrait {
                 'items' => [
                     'title' => [
                         'title' => $key,
-                        'link'  => true,
+                        'link'  => Http::queryString([], ['view' => 'key', 'ttl' => $ttl, 'key' => $key]),
                     ],
                     'type'  => 'string', // In Memcached everything is stored as a string. Calling gettype() will slow down page loading.
                     'ttl'   => $ttl === -1 ? 'Doesn\'t expire' : $ttl,
@@ -184,7 +167,6 @@ trait MemcachedTrait {
             'keys'        => $paginator->getPaginated(),
             'all_keys'    => count($keys),
             'new_key_url' => Http::queryString([], ['form' => 'new']),
-            'view_url'    => Http::queryString([], ['view' => 'key', 'ttl' => 'ttl_value', 'key' => '']),
             'paginator'   => $paginator->render(),
         ]);
     }

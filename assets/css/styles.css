@@ -677,10 +677,6 @@ video {
   width: 5rem;
 }
 
-.w-3 {
-  width: 0.75rem;
-}
-
 .max-w-full {
   max-width: 100%;
 }
@@ -757,12 +753,6 @@ video {
 
 .overflow-y-auto {
   overflow-y: auto;
-}
-
-.truncate {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .whitespace-nowrap {
@@ -1295,6 +1285,10 @@ video {
     display: block;
   }
 
+  .md\:table-cell {
+    display: table-cell;
+  }
+
   .md\:grid {
     display: grid;
   }
@@ -1341,11 +1335,6 @@ video {
 
   .md\:p-7 {
     padding: 1.75rem;
-  }
-
-  .md\:px-5 {
-    padding-left: 1.25rem;
-    padding-right: 1.25rem;
   }
 
   .md\:pb-5 {

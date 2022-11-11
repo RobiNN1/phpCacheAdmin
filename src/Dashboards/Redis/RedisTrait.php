@@ -98,24 +98,9 @@ trait RedisTrait {
      * @throws Exception
      */
     private function deleteKey($redis): string {
-        try {
-            $keys = json_decode(Http::post('delete'), false, 512, JSON_THROW_ON_ERROR);
-        } catch (JsonException $e) {
-            $keys = [];
-        }
-
-        if (is_array($keys) && count($keys)) {
-            foreach ($keys as $key) {
-                $redis->del($key);
-            }
-            $message = 'Keys has been deleted.';
-        } elseif (is_string($keys) && $redis->del($keys)) {
-            $message = sprintf('Key "%s" has been deleted.', $keys);
-        } else {
-            $message = 'No keys are selected.';
-        }
-
-        return $this->template->render('components/alert', ['message' => $message]);
+        return Helpers::deleteKey($this->template, static function (string $key) use ($redis): bool {
+            return $redis->del($key) > 0;
+        }, true);
     }
 
     /**
@@ -205,9 +190,13 @@ trait RedisTrait {
             $total = $this->getCountOfItemsInKey($redis, $type, $key);
 
             $keys[] = [
-                'key'   => $key,
+                'key'   => base64_encode($key),
                 'items' => [
-                    'title' => ['title' => ($total !== null ? '('.$total.' items) ' : '').$key, 'link' => true, 'full' => $key],
+                    'title' => [
+                        'title'      => ($total !== null ? '('.$total.' items) ' : '').$key,
+                        'title_attr' => $key,
+                        'link'       => Http::queryString(['db', 's'], ['view' => 'key', 'key' => $key]),
+                    ],
                     'type'  => $type,
                     'ttl'   => $ttl === -1 ? 'Doesn\'t expire' : $ttl,
                 ],
@@ -242,7 +231,6 @@ trait RedisTrait {
             'keys'        => $paginator->getPaginated(),
             'all_keys'    => $redis->dbSize(),
             'new_key_url' => Http::queryString(['db'], ['form' => 'new']),
-            'view_url'    => Http::queryString(['db', 's'], ['view' => 'key', 'key' => '']),
             'paginator'   => $paginator->render(),
         ]);
     }

@@ -18,7 +18,7 @@ class Admin {
     /**
      * @const string phpCacheAdmin version.
      */
-    public const VERSION = '1.3.2';
+    public const VERSION = '1.4.0';
 
     /**
      * @var array<string, DashboardInterface>

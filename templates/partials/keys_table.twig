@@ -1,27 +1,26 @@
 <div class="mb-5 rounded bg-white shadow-sm shadow-gray-300">
-    <div class="w-full overflow-x-auto">
+    <div class="overflow-hidden overflow-x-auto">
         <table class="w-full table-auto text-left">
             <thead>
             <tr class="bg-primary-100 text-primary-900">
-                <th class="px-3 py-2 md:px-5 w-3 rounded-tl">{{ include('components/checkbox.twig', {disabled: keys|length == 0, class: 'check-all'}) }}</th>
+                <th class="px-3 py-2 w-4 rounded-tl">{{ include('components/checkbox.twig', {disabled: keys|length == 0, class: 'check-all'}) }}</th>
                 {% for item in head_items %}
-                    <th class="px-3 py-2 text-xs font-bold uppercase whitespace-nowrap md:px-5{{ item.class|space }}">{{ item.title }}</th>
+                    <th class="px-3 py-2 text-xs font-bold uppercase whitespace-nowrap{{ item.class|space }}">{{ item.title }}</th>
                 {% endfor %}
-                <th class="px-3 py-2 text-xs font-bold uppercase whitespace-nowrap md:px-5 w-24 rounded-tr">Actions</th>
+                <th class="px-3 py-2 text-xs font-bold uppercase whitespace-nowrap rounded-tr w-24">Actions</th>
             </tr>
             </thead>
             <tbody>
             {% if keys %}
                 {% for key in keys %}
                     <tr class="[&:last-child>*]:border-b-0" data-key="{{ key.key }}">
-                        <td class="border-b border-gray-100 px-3 py-2 md:px-5">{{ include('components/checkbox.twig', {class: 'checkbox-key'}) }}</td>
+                        <td class="px-3 py-2 border-b border-gray-100">{{ include('components/checkbox.twig', {class: 'checkbox-key'}) }}</td>
                         {% for item_key, item in key.items %}
-                            {% set ttl = item_key == 'ttl' ? item : '' %}
-                            {% set full = item.full ? ' title="' ~ item.full ~ '"' : '' %}
-                            <td class="border-b border-gray-100 px-3 py-2 text-sm whitespace-nowrap md:px-5{{ classes[loop.index]|space }}"{{ full|raw }}>
+                            {% set title_attr = item.title_attr ? ' title="' ~ item.title_attr|escape ~ '"' : '' %}
+                            <td class="px-3 py-2 border-b border-gray-100 text-sm whitespace-nowrap{{ classes[loop.index]|space }}"{{ title_attr|raw }}>
                                 {% if item.title %}
                                     {% if item.link %}
-                                        <a class="text-primary-500 hover:text-primary-700 font-semibold" href="{{ view_url|replace({'ttl_value': ttl}) ~ key.key }}">
+                                        <a class="text-primary-500 hover:text-primary-700 font-semibold" href="{{ item.link|raw }}">
                                             {{- item.title -}}
                                         </a>
                                     {% else %}
@@ -35,7 +34,7 @@
                                 {% endif %}
                             </td>
                         {% endfor %}
-                        <td class="border-b border-gray-100 px-3 py-2 text-sm whitespace-nowrap md:px-5">
+                        <td class="px-3 py-2 border-b border-gray-100 text-sm whitespace-nowrap">
                             <button class="delete-key text-red-500 hover:text-red-700 font-semibold inline-flex items-center" type="button" title="Delete">
                                 {{ svg('trash', 16, 'mr-1') }} Delete
                             </button>

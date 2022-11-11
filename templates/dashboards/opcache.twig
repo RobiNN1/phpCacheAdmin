@@ -12,10 +12,13 @@
 {{ include('partials/keys_table.twig', {
     head_items: [
         {'title': 'Filename'},
-        {'title': 'Hits'},
+        {'title': 'Hits', 'class': 'w-16'},
         {'title': 'Memory'},
         {'title': 'Last used'},
-        {'title': 'Created'},
+        {'title': 'Created', 'class': 'hidden md:table-cell'},
     ],
+    classes: {
+        5: 'hidden md:table-cell',
+    },
     keys: cached_scripts,
 }) }}

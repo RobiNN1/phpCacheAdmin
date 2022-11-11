@@ -145,4 +145,34 @@ class Helpers {
 
         return $info;
     }
+
+    /**
+     * Delete key or selected keys.
+     *
+     * @param Template $template
+     * @param callable $function
+     * @param bool     $base64
+     *
+     * @return string
+     */
+    public static function deleteKey(Template $template, callable $function, bool $base64 = false): string {
+        try {
+            $keys = json_decode(Http::post('delete'), false, 512, JSON_THROW_ON_ERROR);
+        } catch (JsonException $e) {
+            $keys = [];
+        }
+
+        if (is_array($keys) && count($keys)) {
+            foreach ($keys as $key) {
+                $function($base64 ? base64_decode($key) : $key);
+            }
+            $message = 'Keys has been deleted.';
+        } elseif (is_string($keys) && $function($base64 ? base64_decode($keys) : $keys)) {
+            $message = sprintf('Key "%s" has been deleted.', $base64 ? base64_decode($keys) : $keys);
+        } else {
+            $message = 'No keys are selected.';
+        }
+
+        return $template->render('components/alert', ['message' => $message]);
+    }
 }

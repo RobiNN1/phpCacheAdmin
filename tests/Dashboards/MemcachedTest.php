@@ -14,6 +14,7 @@ namespace Tests\Dashboards;
 
 use JsonException;
 use ReflectionException;
+use RobiNN\Pca\Dashboards\DashboardException;
 use RobiNN\Pca\Dashboards\Memcached\Compatibility\Memcache;
 use RobiNN\Pca\Dashboards\Memcached\Compatibility\Memcached;
 use RobiNN\Pca\Dashboards\Memcached\Compatibility\PHPMem;
@@ -34,12 +35,12 @@ final class MemcachedTest extends TestCase {
     private $memcached;
 
     /**
-     * @throws ReflectionException
+     * @throws DashboardException
      */
     protected function setUp(): void {
         $this->template = new Template();
         $this->dashboard = new MemcachedDashboard($this->template);
-        $this->memcached = self::callMethod($this->dashboard, 'connect', ['host' => '127.0.0.1']);
+        $this->memcached = $this->dashboard->connect(['host' => '127.0.0.1']);
     }
 
     /**

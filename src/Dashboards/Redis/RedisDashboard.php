@@ -75,7 +75,7 @@ class RedisDashboard implements DashboardInterface {
      * @return Compatibility\Redis|Compatibility\Predis
      * @throws DashboardException
      */
-    private function connect(array $server) {
+    public function connect(array $server) {
         if (extension_loaded('redis')) {
             $redis = new Compatibility\Redis();
         } elseif (class_exists(Predis::class)) {

@@ -74,7 +74,7 @@ class MemcachedDashboard implements DashboardInterface {
      * @return Compatibility\Memcached|Compatibility\Memcache|Compatibility\PHPMem
      * @throws DashboardException
      */
-    private function connect(array $server) {
+    public function connect(array $server) {
         if (extension_loaded('memcached')) {
             $memcached = new Compatibility\Memcached($server);
         } elseif (extension_loaded('memcache')) {

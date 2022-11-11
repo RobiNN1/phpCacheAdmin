@@ -15,6 +15,7 @@ namespace Tests\Dashboards;
 use JsonException;
 use RedisException;
 use ReflectionException;
+use RobiNN\Pca\Dashboards\DashboardException;
 use RobiNN\Pca\Dashboards\Redis\Compatibility\Predis;
 use RobiNN\Pca\Dashboards\Redis\Compatibility\Redis;
 use RobiNN\Pca\Dashboards\Redis\RedisDashboard;
@@ -33,12 +34,12 @@ final class RedisTest extends TestCase {
     private $redis;
 
     /**
-     * @throws ReflectionException
+     * @throws DashboardException
      */
     protected function setUp(): void {
         $this->template = new Template();
         $this->dashboard = new RedisDashboard($this->template);
-        $this->redis = self::callMethod($this->dashboard, 'connect', ['host' => '127.0.0.1', 'database' => 10]);
+        $this->redis = $this->dashboard->connect(['host' => '127.0.0.1', 'database' => 10]);
     }
 
     /**

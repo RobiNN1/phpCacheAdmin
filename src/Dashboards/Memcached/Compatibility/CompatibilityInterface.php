@@ -13,11 +13,6 @@ declare(strict_types=1);
 namespace RobiNN\Pca\Dashboards\Memcached\Compatibility;
 
 interface CompatibilityInterface {
-    /**
-     * Check connection.
-     *
-     * @return bool
-     */
     public function isConnected(): bool;
 
     /**
@@ -29,12 +24,6 @@ interface CompatibilityInterface {
 
     /**
      * Alias to a set() but with the same order of parameters.
-     *
-     * @param string $key
-     * @param string $value
-     * @param int    $expiration
-     *
-     * @return bool
      */
     public function store(string $key, string $value, int $expiration = 0): bool;
 

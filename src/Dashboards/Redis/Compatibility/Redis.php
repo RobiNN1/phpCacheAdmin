@@ -51,9 +51,6 @@ class Redis extends \Redis implements CompatibilityInterface {
     /**
      * Get a key type.
      *
-     * @param string $key
-     *
-     * @return string
      * @throws RedisException|DashboardException
      */
     public function getType(string $key): string {
@@ -69,11 +66,6 @@ class Redis extends \Redis implements CompatibilityInterface {
     /**
      * Alias to a lRem() but with the same order of parameters.
      *
-     * @param string $key
-     * @param string $value
-     * @param int    $count
-     *
-     * @return int
      * @throws RedisException
      */
     public function listRem(string $key, string $value, int $count): int {

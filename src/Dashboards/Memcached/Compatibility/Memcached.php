@@ -29,33 +29,17 @@ class Memcached extends \Memcached implements CompatibilityInterface {
         $this->server = $server;
     }
 
-    /**
-     * Check connection.
-     *
-     * @return bool
-     */
     public function isConnected(): bool {
         return $this->getVersion() || $this->getResultCode() === self::RES_SUCCESS;
     }
 
     /**
-     * Get server statistics.
-     *
      * @return array<string, mixed>
      */
     public function getServerStats(): array {
         return array_values(@$this->getStats())[0];
     }
 
-    /**
-     * Alias to a set() but with the same order of parameters.
-     *
-     * @param string $key
-     * @param string $value
-     * @param int    $expiration
-     *
-     * @return bool
-     */
     public function store(string $key, string $value, int $expiration = 0): bool {
         return $this->set($key, $value, $expiration);
     }

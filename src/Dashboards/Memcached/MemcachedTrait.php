@@ -60,7 +60,6 @@ trait MemcachedTrait {
      *
      * @param Compatibility\Memcached|Compatibility\Memcache|Compatibility\PHPMem $memcached
      *
-     * @return string
      * @throws MemcachedException
      */
     private function deleteAllKeys($memcached): string {
@@ -78,21 +77,16 @@ trait MemcachedTrait {
      *
      * @param Compatibility\Memcached|Compatibility\Memcache|Compatibility\PHPMem $memcached
      *
-     * @return string
      * @throws MemcachedException
      */
     private function deleteKey($memcached): string {
-        return Helpers::deleteKey($this->template, static function (string $key) use ($memcached): bool {
-            return $memcached->delete($key);
-        });
+        return Helpers::deleteKey($this->template, static fn (string $key): bool => $memcached->delete($key));
     }
 
     /**
      * Show more info.
      *
      * @param array<int, array<string, int|string>> $servers
-     *
-     * @return string
      */
     private function moreInfo(array $servers): string {
         try {
@@ -116,67 +110,10 @@ trait MemcachedTrait {
     }
 
     /**
-     * Get all keys with data.
-     *
-     * @param Compatibility\Memcached|Compatibility\Memcache|Compatibility\PHPMem $memcached
-     *
-     * @return array<int, array<string, string|int>>
-     * @throws MemcachedException
-     */
-    private function getAllKeys($memcached): array {
-        static $keys = [];
-
-        foreach ($memcached->getKeys() as $key_data) {
-            $key = $key_data['key'] ?? $key_data;
-            $ttl = $key_data['exp'] ?? null;
-
-            $keys[] = [
-                'key'   => $key,
-                'items' => [
-                    'title' => [
-                        'title' => $key,
-                        'link'  => Http::queryString([], ['view' => 'key', 'ttl' => $ttl, 'key' => $key]),
-                    ],
-                    'type'  => 'string', // In Memcached everything is stored as a string. Calling gettype() will slow down page loading.
-                    'ttl'   => $ttl === -1 ? 'Doesn\'t expire' : $ttl,
-                ],
-            ];
-        }
-
-        return $keys;
-    }
-
-    /**
-     * Main dashboard content.
-     *
-     * @param Compatibility\Memcached|Compatibility\Memcache|Compatibility\PHPMem $memcached
-     *
-     * @return string
-     * @throws MemcachedException
-     */
-    private function mainDashboard($memcached): string {
-        $keys = $this->getAllKeys($memcached);
-
-        if (isset($_POST['submit_import_key'])) {
-            $this->import($memcached);
-        }
-
-        $paginator = new Paginator($this->template, $keys);
-
-        return $this->template->render('dashboards/memcached', [
-            'keys'        => $paginator->getPaginated(),
-            'all_keys'    => count($keys),
-            'new_key_url' => Http::queryString([], ['form' => 'new']),
-            'paginator'   => $paginator->render(),
-        ]);
-    }
-
-    /**
      * View key value.
      *
      * @param Compatibility\Memcached|Compatibility\Memcache|Compatibility\PHPMem $memcached
      *
-     * @return string
      * @throws MemcachedException
      */
     private function viewKey($memcached): string {
@@ -220,25 +157,25 @@ trait MemcachedTrait {
     }
 
     /**
-     * Import key.
+     * Save key.
      *
      * @param Compatibility\Memcached|Compatibility\Memcache|Compatibility\PHPMem $memcached
      *
-     * @return void
      * @throws MemcachedException
      */
-    private function import($memcached): void {
-        if ($_FILES['import']['type'] === 'text/plain') {
-            $key_name = Http::post('key_name');
+    private function saveKey($memcached): void {
+        $key = Http::post('key');
+        $expire = Http::post('expire', 'int');
+        $old_key = Http::post('old_key');
+        $value = Value::encode(Http::post('value'), Http::post('encoder'));
 
-            if (!$memcached->exists($key_name)) {
-                $value = file_get_contents($_FILES['import']['tmp_name']);
-
-                $memcached->store($key_name, $value, Http::post('expire', 'int'));
-
-                Http::redirect();
-            }
+        if ($old_key !== '' && $old_key !== $key) {
+            $memcached->delete($old_key);
         }
+
+        $memcached->store($key, $value, $expire);
+
+        Http::redirect([], ['view' => 'key', 'ttl' => $expire, 'key' => $key]);
     }
 
     /**
@@ -246,7 +183,6 @@ trait MemcachedTrait {
      *
      * @param Compatibility\Memcached|Compatibility\Memcache|Compatibility\PHPMem $memcached
      *
-     * @return string
      * @throws MemcachedException
      */
     private function form($memcached): string {
@@ -278,25 +214,78 @@ trait MemcachedTrait {
     }
 
     /**
-     * Save key.
+     * Get all keys with data.
      *
      * @param Compatibility\Memcached|Compatibility\Memcache|Compatibility\PHPMem $memcached
      *
-     * @return void
+     * @return array<int, array<string, string|int>>
      * @throws MemcachedException
      */
-    private function saveKey($memcached): void {
-        $key = Http::post('key');
-        $expire = Http::post('expire', 'int');
-        $old_key = Http::post('old_key');
-        $value = Value::encode(Http::post('value'), Http::post('encoder'));
+    private function getAllKeys($memcached): array {
+        static $keys = [];
 
-        if ($old_key !== '' && $old_key !== $key) {
-            $memcached->delete($old_key);
+        foreach ($memcached->getKeys() as $key_data) {
+            $key = $key_data['key'] ?? $key_data;
+            $ttl = $key_data['exp'] ?? null;
+
+            $keys[] = [
+                'key'   => $key,
+                'items' => [
+                    'title' => [
+                        'title' => $key,
+                        'link'  => Http::queryString([], ['view' => 'key', 'ttl' => $ttl, 'key' => $key]),
+                    ],
+                    'type'  => 'string', // In Memcached everything is stored as a string. Calling gettype() will slow down page loading.
+                    'ttl'   => $ttl === -1 ? 'Doesn\'t expire' : $ttl,
+                ],
+            ];
         }
 
-        $memcached->store($key, $value, $expire);
+        return $keys;
+    }
 
-        Http::redirect([], ['view' => 'key', 'ttl' => $expire, 'key' => $key]);
+    /**
+     * Import key.
+     *
+     * @param Compatibility\Memcached|Compatibility\Memcache|Compatibility\PHPMem $memcached
+     *
+     * @throws MemcachedException
+     */
+    private function import($memcached): void {
+        if ($_FILES['import']['type'] === 'text/plain') {
+            $key_name = Http::post('key_name');
+
+            if (!$memcached->exists($key_name)) {
+                $value = file_get_contents($_FILES['import']['tmp_name']);
+
+                $memcached->store($key_name, $value, Http::post('expire', 'int'));
+
+                Http::redirect();
+            }
+        }
+    }
+
+    /**
+     * Main dashboard content.
+     *
+     * @param Compatibility\Memcached|Compatibility\Memcache|Compatibility\PHPMem $memcached
+     *
+     * @throws MemcachedException
+     */
+    private function mainDashboard($memcached): string {
+        $keys = $this->getAllKeys($memcached);
+
+        if (isset($_POST['submit_import_key'])) {
+            $this->import($memcached);
+        }
+
+        $paginator = new Paginator($this->template, $keys);
+
+        return $this->template->render('dashboards/memcached', [
+            'keys'        => $paginator->getPaginated(),
+            'all_keys'    => count($keys),
+            'new_key_url' => Http::queryString([], ['form' => 'new']),
+            'paginator'   => $paginator->render(),
+        ]);
     }
 }

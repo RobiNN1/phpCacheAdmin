@@ -18,8 +18,6 @@ class Value {
     /**
      * Decode and format key value.
      *
-     * @param string $value
-     *
      * @return array<int, mixed>
      */
     public static function format(string $value): array {
@@ -46,14 +44,6 @@ class Value {
         return [$value, $encode_fn, $is_formatted];
     }
 
-    /**
-     * Decoded value.
-     *
-     * @param string  $value
-     * @param ?string $encode_fn
-     *
-     * @return ?string
-     */
     private static function decoded(string $value, ?string &$encode_fn = null): ?string {
         foreach (Config::get('encoding') as $name => $decoder) {
             if (is_callable($decoder['view']) && $decoder['view']($value) !== null) {
@@ -66,14 +56,6 @@ class Value {
         return null;
     }
 
-    /**
-     * Formatted value.
-     *
-     * @param string $value
-     * @param bool   $is_formatted
-     *
-     * @return ?string
-     */
     private static function formatted(string $value, bool &$is_formatted = false): ?string {
         foreach (Config::get('formatters') as $formatter) {
             if (is_callable($formatter) && $formatter($value) !== null) {
@@ -86,13 +68,6 @@ class Value {
         return null;
     }
 
-    /**
-     * Format JSON.
-     *
-     * @param string $value
-     *
-     * @return string
-     */
     private static function prettyPrintJson(string $value): string {
         try {
             $json_array = json_decode($value, false, 512, JSON_THROW_ON_ERROR);
@@ -109,13 +84,6 @@ class Value {
         return htmlspecialchars($value);
     }
 
-    /**
-     * Check if string is valid JSON.
-     *
-     * @param string $value
-     *
-     * @return bool
-     */
     private static function isJson(string $value): bool {
         if (is_numeric($value)) {
             return false;
@@ -130,14 +98,6 @@ class Value {
         return true;
     }
 
-    /**
-     * Encode value.
-     *
-     * @param string $value
-     * @param string $encoder
-     *
-     * @return string
-     */
     public static function encode(string $value, string $encoder): string {
         if ($encoder === 'none') {
             return $value;
@@ -152,14 +112,6 @@ class Value {
         return $value;
     }
 
-    /**
-     * Decode value.
-     *
-     * @param string $value
-     * @param string $decoder
-     *
-     * @return string
-     */
     public static function decode(string $value, string $decoder): string {
         if ($decoder === 'none') {
             return $value;

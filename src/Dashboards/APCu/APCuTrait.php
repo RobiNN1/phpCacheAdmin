@@ -20,21 +20,12 @@ use RobiNN\Pca\Paginator;
 use RobiNN\Pca\Value;
 
 trait APCuTrait {
-    /**
-     * Delete key.
-     *
-     * @return string
-     */
     private function deleteKey(): string {
         return Helpers::deleteKey($this->template, static fn (string $key): bool => apcu_delete($key), true);
     }
 
     /**
-     * Show more info.
-     *
      * @param array<string, mixed> $info
-     *
-     * @return string
      */
     private function moreInfo(array $info): string {
         unset($info['cache_list']);
@@ -50,6 +41,95 @@ trait APCuTrait {
         return $this->template->render('partials/info_table', [
             'panel_title' => 'APCu Info',
             'array'       => Helpers::convertBoolToString($info),
+        ]);
+    }
+
+    private function viewKey(): string {
+        $key = Http::get('key');
+
+        if (!apcu_exists($key)) {
+            Http::redirect();
+        }
+
+        $value = Helpers::mixedToString(apcu_fetch($key));
+
+        if (isset($_GET['export'])) {
+            header('Content-disposition: attachment; filename='.$key.'.txt');
+            header('Content-Type: text/plain');
+            echo $value;
+            exit;
+        }
+
+        if (isset($_GET['delete'])) {
+            apcu_delete($key);
+            Http::redirect();
+        }
+
+        [$value, $encode_fn, $is_formatted] = Value::format($value);
+
+        $key_data = apcu_key_info($key);
+
+        $ttl = $key_data['ttl'] === 0 ? -1 : (($key_data['creation_time'] + $key_data['ttl']) - time());
+
+        return $this->template->render('partials/view_key', [
+            'key'        => $key,
+            'value'      => $value,
+            'type'       => 'string', // Checking the original data type with gettype() can affect performance.
+            'ttl'        => Format::seconds($ttl),
+            'size'       => Format::bytes(strlen($value)),
+            'encode_fn'  => $encode_fn,
+            'formatted'  => $is_formatted,
+            'edit_url'   => Http::queryString(['ttl'], ['form' => 'edit', 'key' => $key]),
+            'export_url' => Http::queryString(['ttl', 'view', 'p', 'key'], ['export' => 'key']),
+            'delete_url' => Http::queryString(['view'], ['delete' => 'key', 'key' => $key]),
+        ]);
+    }
+
+    private function saveKey(): void {
+        $key = Http::post('key');
+        $expire = Http::post('expire', 'int');
+        $old_key = Http::post('old_key');
+        $value = Value::encode(Http::post('value'), Http::post('encoder'));
+
+        if ($old_key !== '' && $old_key !== $key) {
+            apcu_delete($old_key);
+        }
+
+        apcu_store($key, $value, $expire);
+
+        Http::redirect([], ['view' => 'key', 'key' => $key]);
+    }
+
+    /**
+     * Add/edit form.
+     */
+    private function form(): string {
+        $key = Http::get('key');
+        $expire = 0;
+
+        $encoder = Http::get('encoder', 'string', 'none');
+        $value = Http::post('value');
+
+        if (isset($_GET['key']) && apcu_exists($key)) {
+            $value = Helpers::mixedToString(apcu_fetch($key));
+            $info = apcu_key_info($key);
+
+            $expire = $info['ttl'];
+        }
+
+        if (isset($_POST['submit'])) {
+            $this->saveKey();
+        }
+
+        $value = Value::decode($value, $encoder);
+
+        return $this->template->render('partials/form', [
+            'exp_attr' => ' min="0"',
+            'key'      => $key,
+            'value'    => $value,
+            'expire'   => $expire,
+            'encoders' => Config::getEncoders(),
+            'encoder'  => $encoder,
         ]);
     }
 
@@ -84,12 +164,22 @@ trait APCuTrait {
         return $keys;
     }
 
+    private function import(): void {
+        if ($_FILES['import']['type'] === 'text/plain') {
+            $key_name = Http::post('key_name');
+
+            if (!apcu_exists($key_name)) {
+                $value = file_get_contents($_FILES['import']['tmp_name']);
+
+                apcu_store($key_name, $value, Http::post('expire', 'int'));
+
+                Http::redirect();
+            }
+        }
+    }
+
     /**
-     * Main dashboard content.
-     *
      * @param array<string, mixed> $info
-     *
-     * @return string
      */
     private function mainDashboard(array $info): string {
         $keys = $this->getAllKeys($info);
@@ -106,142 +196,5 @@ trait APCuTrait {
             'new_key_url' => Http::queryString([], ['form' => 'new']),
             'paginator'   => $paginator->render(),
         ]);
-    }
-
-    /**
-     * Get key and convert any value to a string.
-     *
-     * @param string $key
-     *
-     * @return string
-     */
-    private function getKey(string $key): string {
-        $data = apcu_fetch($key);
-
-        if (is_array($data) || is_object($data)) {
-            $data = serialize($data);
-        }
-
-        return (string) $data;
-    }
-
-    /**
-     * View key value.
-     *
-     * @return string
-     */
-    private function viewKey(): string {
-        $key = Http::get('key');
-
-        if (!apcu_exists($key)) {
-            Http::redirect();
-        }
-
-        if (isset($_GET['export'])) {
-            header('Content-disposition: attachment; filename='.$key.'.txt');
-            header('Content-Type: text/plain');
-            echo $this->getKey($key);
-            exit;
-        }
-
-        if (isset($_GET['delete'])) {
-            apcu_delete($key);
-            Http::redirect();
-        }
-
-        $value = $this->getKey($key);
-
-        [$value, $encode_fn, $is_formatted] = Value::format($value);
-
-        $key_data = apcu_key_info($key);
-
-        $ttl = $key_data['ttl'] === 0 ? -1 : (($key_data['creation_time'] + $key_data['ttl']) - time());
-
-        return $this->template->render('partials/view_key', [
-            'key'        => $key,
-            'value'      => $value,
-            'type'       => 'string', // Checking the original data type with gettype() can affect performance.
-            'ttl'        => Format::seconds($ttl),
-            'size'       => Format::bytes(strlen($value)),
-            'encode_fn'  => $encode_fn,
-            'formatted'  => $is_formatted,
-            'edit_url'   => Http::queryString(['ttl'], ['form' => 'edit', 'key' => $key]),
-            'export_url' => Http::queryString(['ttl', 'view', 'p', 'key'], ['export' => 'key']),
-            'delete_url' => Http::queryString(['view'], ['delete' => 'key', 'key' => $key]),
-        ]);
-    }
-
-    /**
-     * Import key.
-     *
-     * @return void
-     */
-    private function import(): void {
-        if ($_FILES['import']['type'] === 'text/plain') {
-            $key_name = Http::post('key_name');
-
-            if (!apcu_exists($key_name)) {
-                $value = file_get_contents($_FILES['import']['tmp_name']);
-
-                apcu_store($key_name, $value, Http::post('expire', 'int'));
-
-                Http::redirect();
-            }
-        }
-    }
-
-    /**
-     * Add/edit form.
-     *
-     * @return string
-     */
-    private function form(): string {
-        $key = Http::get('key');
-        $expire = 0;
-
-        $encoder = Http::get('encoder', 'string', 'none');
-        $value = Http::post('value');
-
-        if (isset($_GET['key']) && apcu_exists($key)) {
-            $value = $this->getKey($key);
-            $info = apcu_key_info($key);
-
-            $expire = $info['ttl'];
-        }
-
-        if (isset($_POST['submit'])) {
-            $this->saveKey();
-        }
-
-        $value = Value::decode($value, $encoder);
-
-        return $this->template->render('partials/form', [
-            'exp_attr' => ' min="0"',
-            'key'      => $key,
-            'value'    => $value,
-            'expire'   => $expire,
-            'encoders' => Config::getEncoders(),
-            'encoder'  => $encoder,
-        ]);
-    }
-
-    /**
-     * Save key.
-     *
-     * @return void
-     */
-    private function saveKey(): void {
-        $key = Http::post('key');
-        $expire = Http::post('expire', 'int');
-        $old_key = Http::post('old_key');
-        $value = Value::encode(Http::post('value'), Http::post('encoder'));
-
-        if ($old_key !== '' && $old_key !== $key) {
-            apcu_delete($old_key);
-        }
-
-        apcu_store($key, $value, $expire);
-
-        Http::redirect([], ['view' => 'key', 'key' => $key]);
     }
 }

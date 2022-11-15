@@ -25,18 +25,11 @@ class APCuDashboard implements DashboardInterface {
         $this->template = $template;
     }
 
-    /**
-     * Check if an extension is installed.
-     *
-     * @return bool
-     */
     public static function check(): bool {
         return extension_loaded('apcu');
     }
 
     /**
-     * Get dashboard info.
-     *
      * @return array<string, string|array<int, string>>
      */
     public function getDashboardInfo(): array {
@@ -55,11 +48,6 @@ class APCuDashboard implements DashboardInterface {
         ];
     }
 
-    /**
-     * Ajax content.
-     *
-     * @return string
-     */
     public function ajax(): string {
         $return = '';
 
@@ -76,14 +64,12 @@ class APCuDashboard implements DashboardInterface {
         return $return;
     }
 
-    /**
-     * Data for info panels.
-     *
-     * @return array<string, mixed>
-     */
-    public function info(): array {
-        $info = apcu_cache_info();
+    public function infoPanels(): string {
+        if (isset($_GET['moreinfo']) || isset($_GET['form']) || isset($_GET['view'], $_GET['key'])) {
+            return '';
+        }
 
+        $info = apcu_cache_info();
         $memory_info = apcu_sma_info();
 
         $total_memory = $memory_info['num_seg'] * $memory_info['seg_size'];
@@ -91,59 +77,41 @@ class APCuDashboard implements DashboardInterface {
 
         $hit_rate = (int) $info['num_hits'] !== 0 ? $info['num_hits'] / ($info['num_hits'] + $info['num_misses']) : 0;
 
-        return [
-            'panels' => [
-                [
-                    'title'    => 'Status',
-                    'moreinfo' => true,
-                    'data'     => [
-                        'Start time'       => Format::time($info['start_time']),
-                        'Cache full count' => $info['expunges'],
-                    ],
-                ],
-                [
-                    'title' => 'Memory',
-                    'data'  => [
-                        'Total' => Format::bytes((int) $total_memory),
-                        'Used'  => Format::bytes((int) $memory_used),
-                        'Free'  => Format::bytes((int) $memory_info['avail_mem']),
-                    ],
-                ],
-                [
-                    'title' => 'Stats',
-                    'data'  => [
-                        'Cached scripts' => $info['num_entries'],
-                        'Hits'           => Format::number((int) $info['num_hits']),
-                        'Misses'         => Format::number((int) $info['num_misses']),
-                        'Hit rate'       => round($hit_rate * 100).'%',
-                    ],
-                ],
-            ],
-        ];
-    }
-
-    /**
-     * Show info panels.
-     *
-     * @return string
-     */
-    public function showPanels(): string {
-        if (isset($_GET['moreinfo']) || isset($_GET['form']) || isset($_GET['view'], $_GET['key'])) {
-            return '';
-        }
-
         return $this->template->render('partials/info', [
             'title'             => 'PHP <span class="font-semibold">APCu</span> extension',
             'extension_version' => phpversion('apcu'),
-            'info'              => $this->info(),
+            'info'              => [
+                'panels' => [
+                    [
+                        'title'    => 'Status',
+                        'moreinfo' => true,
+                        'data'     => [
+                            'Start time'       => Format::time($info['start_time']),
+                            'Cache full count' => $info['expunges'],
+                        ],
+                    ],
+                    [
+                        'title' => 'Memory',
+                        'data'  => [
+                            'Total' => Format::bytes((int) $total_memory),
+                            'Used'  => Format::bytes((int) $memory_used),
+                            'Free'  => Format::bytes((int) $memory_info['avail_mem']),
+                        ],
+                    ],
+                    [
+                        'title' => 'Stats',
+                        'data'  => [
+                            'Cached scripts' => $info['num_entries'],
+                            'Hits'           => Format::number((int) $info['num_hits']),
+                            'Misses'         => Format::number((int) $info['num_misses']),
+                            'Hit rate'       => round($hit_rate * 100).'%',
+                        ],
+                    ],
+                ],
+            ],
         ]);
     }
 
-    /**
-     * Dashboard content.
-     *
-     * @return string
-     */
     public function dashboard(): string {
         $info = apcu_cache_info();
 

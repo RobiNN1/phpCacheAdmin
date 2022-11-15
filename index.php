@@ -90,7 +90,7 @@ if (isset($_GET['ajax'])) {
         'repo'       => 'https://github.com/RobiNN1/phpCacheAdmin',
         'git'        => $admin->getGitInfo(__DIR__.'/.git'),
         'back_url'   => $back_url ?? null,
-        'panels'     => $dashboard->showPanels(),
+        'panels'     => $dashboard->infoPanels(),
         'dashboard'  => $dashboard->dashboard(),
     ]);
 }

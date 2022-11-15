@@ -18,21 +18,12 @@ use RobiNN\Pca\Http;
 use RobiNN\Pca\Paginator;
 
 trait OPCacheTrait {
-    /**
-     * Delete script.
-     *
-     * @return string
-     */
     private function deleteScript(): string {
         return Helpers::deleteKey($this->template, static fn (string $key): bool => opcache_invalidate($key, true));
     }
 
     /**
-     * Show more info.
-     *
      * @param array<string, mixed> $status
-     *
-     * @return string
      */
     private function moreInfo(array $status): string {
         unset($status['scripts']);
@@ -94,8 +85,6 @@ trait OPCacheTrait {
      * Main dashboard content.
      *
      * @param array<string, mixed> $status
-     *
-     * @return string
      */
     private function mainDashboard(array $status): string {
         $cached_scripts = $this->getCachedScripts($status);

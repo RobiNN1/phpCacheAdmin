@@ -15,6 +15,7 @@ namespace Tests\Dashboards;
 use JsonException;
 use ReflectionException;
 use RobiNN\Pca\Dashboards\APCu\APCuDashboard;
+use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
 use RobiNN\Pca\Template;
 use Tests\TestCase;
@@ -93,13 +94,13 @@ final class APCuTest extends TestCase {
             apcu_store('pu-test-'.$key, $value['original']);
         }
 
-        $this->assertSame($keys['string']['expected'], self::callMethod($this->apcu, 'getKey', 'pu-test-string'));
-        $this->assertSame($keys['int']['expected'], self::callMethod($this->apcu, 'getKey', 'pu-test-int'));
-        $this->assertSame($keys['float']['expected'], self::callMethod($this->apcu, 'getKey', 'pu-test-float'));
-        $this->assertSame($keys['bool']['expected'], self::callMethod($this->apcu, 'getKey', 'pu-test-bool'));
-        $this->assertSame($keys['null']['expected'], self::callMethod($this->apcu, 'getKey', 'pu-test-null'));
-        $this->assertSame($keys['array']['expected'], self::callMethod($this->apcu, 'getKey', 'pu-test-array'));
-        $this->assertSame($keys['object']['expected'], self::callMethod($this->apcu, 'getKey', 'pu-test-object'));
+        $this->assertSame($keys['string']['expected'], Helpers::mixedToString(apcu_fetch('pu-test-string')));
+        $this->assertSame($keys['int']['expected'], Helpers::mixedToString(apcu_fetch('pu-test-int')));
+        $this->assertSame($keys['float']['expected'], Helpers::mixedToString(apcu_fetch('pu-test-float')));
+        $this->assertSame($keys['bool']['expected'], Helpers::mixedToString(apcu_fetch('pu-test-bool')));
+        $this->assertSame($keys['null']['expected'], Helpers::mixedToString(apcu_fetch('pu-test-null')));
+        $this->assertSame($keys['array']['expected'], Helpers::mixedToString(apcu_fetch('pu-test-array')));
+        $this->assertSame($keys['object']['expected'], Helpers::mixedToString(apcu_fetch('pu-test-object')));
 
         foreach ($keys as $key => $value) {
             apcu_delete('pu-test-'.$key);
@@ -119,7 +120,7 @@ final class APCuTest extends TestCase {
         Http::stopRedirect();
         self::callMethod($this->apcu, 'saveKey');
 
-        $this->assertSame('test-value', self::callMethod($this->apcu, 'getKey', $key));
+        $this->assertSame('test-value', Helpers::mixedToString(apcu_fetch($key)));
 
         apcu_delete($key);
     }

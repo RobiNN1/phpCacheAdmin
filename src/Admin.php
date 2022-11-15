@@ -25,9 +25,6 @@ class Admin {
      */
     private array $dashboards = [];
 
-    /**
-     * @param ?Template $template
-     */
     public function __construct(?Template $template = null) {
         foreach (Config::get('dashboards') as $class) {
             if (is_subclass_of($class, DashboardInterface::class) && $class::check()) {
@@ -39,30 +36,16 @@ class Admin {
     }
 
     /**
-     * Get all dashboards.
-     *
      * @return array<string, DashboardInterface>
      */
     public function getDashboards(): array {
         return $this->dashboards;
     }
 
-    /**
-     * Get dashboard object.
-     *
-     * @param string $dashboard
-     *
-     * @return DashboardInterface
-     */
     public function getDashboard(string $dashboard): DashboardInterface {
         return $this->dashboards[$dashboard];
     }
 
-    /**
-     * Get current dashboard.
-     *
-     * @return string
-     */
     public function currentDashboard(): string {
         $current = Http::get('type');
         $dashboards = $this->getDashboards();
@@ -71,8 +54,6 @@ class Admin {
     }
 
     /**
-     * Get git info.
-     *
      * @param string $git_path Path to the .git folder.
      *
      * @return ?array<string, string>

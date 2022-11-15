@@ -52,9 +52,6 @@ class Predis extends Client implements CompatibilityInterface {
     /**
      * Get a key type.
      *
-     * @param string $key
-     *
-     * @return string
      * @throws DashboardException
      */
     public function getType(string $key): string {
@@ -69,12 +66,6 @@ class Predis extends Client implements CompatibilityInterface {
 
     /**
      * Alias to a lRem() but with the same order of parameters.
-     *
-     * @param string $key
-     * @param string $value
-     * @param int    $count
-     *
-     * @return int
      */
     public function listRem(string $key, string $value, int $count): int {
         return $this->lrem($key, $count, $value);
@@ -115,10 +106,6 @@ class Predis extends Client implements CompatibilityInterface {
     /**
      * Get a range of messages from a given stream.
      *
-     * @param string $stream
-     * @param string $start
-     * @param string $end
-     *
      * @return array<int|string, mixed>
      */
     public function xRange(string $stream, string $start, string $end): array {
@@ -128,12 +115,7 @@ class Predis extends Client implements CompatibilityInterface {
     /**
      * Add a message to a stream.
      *
-     * @param string             $key
-     * @param string             $id
      * @param array<int, string> $messages
-     * @param int                $maxLen
-     *
-     * @return string
      */
     public function xAdd(string $key, string $id, array $messages, int $maxLen = 0): string {
         $messages_arr = [];
@@ -148,10 +130,7 @@ class Predis extends Client implements CompatibilityInterface {
     /**
      * Delete one or more messages from a stream.
      *
-     * @param string             $key
      * @param array<int, string> $ids
-     *
-     * @return int
      */
     public function xDel(string $key, array $ids): int {
         return $this->executeRaw(['XDEL', $key, implode(' ', $ids)]);
@@ -159,10 +138,6 @@ class Predis extends Client implements CompatibilityInterface {
 
     /**
      * Get the length of a given stream.
-     *
-     * @param string $stream
-     *
-     * @return int
      */
     public function xLen(string $stream): int {
         return (int) $this->executeRaw(['XLEN', $stream]);
@@ -171,8 +146,7 @@ class Predis extends Client implements CompatibilityInterface {
     /**
      *  Execute any generic command.
      *
-     * @param string $command
-     * @param mixed  ...$arguments
+     * @param mixed ...$arguments
      *
      * @return mixed
      */

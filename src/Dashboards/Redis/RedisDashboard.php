@@ -37,18 +37,11 @@ class RedisDashboard implements DashboardInterface {
         $this->current_server = array_key_exists($server, $servers) ? $server : 0;
     }
 
-    /**
-     * Check if an extension is installed.
-     *
-     * @return bool
-     */
     public static function check(): bool {
         return extension_loaded('redis') || class_exists(Predis::class);
     }
 
     /**
-     * Get dashboard info.
-     *
      * @return array<string, string|array<int, string>>
      */
     public function getDashboardInfo(): array {
@@ -131,11 +124,6 @@ class RedisDashboard implements DashboardInterface {
         return $redis;
     }
 
-    /**
-     * Ajax content.
-     *
-     * @return string
-     */
     public function ajax(): string {
         $return = '';
         $servers = Config::get('redis');
@@ -161,33 +149,7 @@ class RedisDashboard implements DashboardInterface {
         return $return;
     }
 
-    /**
-     * Data for info panels.
-     *
-     * @return array<string, mixed>
-     */
-    public function info(): array {
-        $info = [];
-        $info['ajax'] = true;
-
-        foreach (Config::get('redis') as $server) {
-            $info['panels'][] = [
-                'title'            => $server['name'] ?? $server['host'].':'.$server['port'],
-                'server_selection' => true,
-                'current_server'   => $this->current_server,
-                'moreinfo'         => true,
-            ];
-        }
-
-        return $info;
-    }
-
-    /**
-     * Show info panels.
-     *
-     * @return string
-     */
-    public function showPanels(): string {
+    public function infoPanels(): string {
         if (isset($_GET['moreinfo']) || isset($_GET['form']) || isset($_GET['view'], $_GET['key'])) {
             return '';
         }
@@ -200,22 +162,29 @@ class RedisDashboard implements DashboardInterface {
             $version = Predis::VERSION;
         }
 
+        $info = [];
+        $info['ajax'] = true;
+
+        foreach (Config::get('redis') as $server) {
+            $info['panels'][] = [
+                'title'            => $server['name'] ?? $server['host'].':'.$server['port'],
+                'server_selection' => true,
+                'current_server'   => $this->current_server,
+                'moreinfo'         => true,
+            ];
+        }
+
         return $this->template->render('partials/info', [
             'title'             => $title ?? null,
             'extension_version' => $version ?? null,
-            'info'              => $this->info(),
+            'info'              => $info,
         ]);
     }
 
-    /**
-     * Dashboard content.
-     *
-     * @return string
-     */
     public function dashboard(): string {
         $servers = Config::get('redis');
 
-        if (count($servers) === 0) {
+        if (($servers === null ? 0 : count($servers)) === 0) {
             return 'No servers';
         }
 

@@ -24,7 +24,6 @@
   ],
   "require": {
     "php": ">=7.4",
-    "ext-json": "*",
     "twig/twig": "^3.4"
   },
   "require-dev": {

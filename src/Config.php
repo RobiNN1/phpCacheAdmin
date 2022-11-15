@@ -14,10 +14,6 @@ namespace RobiNN\Pca;
 
 class Config {
     /**
-     * Get config.
-     *
-     * @param string $key
-     *
      * @return array<int|string, mixed>|bool|int|string|null
      */
     public static function get(string $key) {
@@ -66,8 +62,6 @@ class Config {
      * @param array<string, mixed> $array
      * @param string               $array_key
      * @param string               $value
-     *
-     * @return void
      */
     private static function envVarToArray(array &$array, string $array_key, string $value): void {
         $array_key = str_replace('PCA_', '', $array_key);
@@ -99,7 +93,7 @@ class Config {
     public static function getEncoders(): array {
         $encoders = self::get('encoding');
 
-        if (count($encoders) === 0) {
+        if (($encoders === null ? 0 : count($encoders)) === 0) {
             return [];
         }
 

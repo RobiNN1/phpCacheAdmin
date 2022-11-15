@@ -25,18 +25,11 @@ class ServerDashboard implements DashboardInterface {
         $this->template = $template;
     }
 
-    /**
-     * Check if an extension is installed.
-     *
-     * @return bool
-     */
     public static function check(): bool {
         return true; // No extension required, just return true.
     }
 
     /**
-     * Get dashboard info.
-     *
      * @return array<string, string>
      */
     public function getDashboardInfo(): array {
@@ -46,70 +39,46 @@ class ServerDashboard implements DashboardInterface {
         ];
     }
 
-    /**
-     * Ajax content.
-     *
-     * @return string
-     */
     public function ajax(): string {
         return '';
     }
 
-    /**
-     * Data for info panels.
-     *
-     * @return array<string, mixed>
-     */
-    public function info(): array {
-        return [
-            'panels' => [
-                [
-                    'title'    => 'PHP Info',
-                    'moreinfo' => true,
-                    'data'     => [
-                        'PHP Version'          => PHP_VERSION,
-                        'PHP Interface'        => PHP_SAPI,
-                        'Max Upload File Size' => ini_get('file_uploads') ? ini_get('upload_max_filesize').'B' : 'n/a',
-                        'Disabled functions'   => $this->getDisabledFunctions(),
-                        'Xdebug'               => extension_loaded('xdebug') ? 'Enabled - v'.phpversion('xdebug') : 'Disabled',
-                    ],
-                ],
-                [
-                    'title' => 'Server Info',
-                    'data'  => [
-                        'Server'     => php_uname(),
-                        'Web Server' => $_SERVER['SERVER_SOFTWARE'],
-                        'User Agent' => $_SERVER['HTTP_USER_AGENT'],
-                    ],
-                ],
-            ],
-        ];
-    }
-
-    /**
-     * Show info panels.
-     *
-     * @return string
-     */
-    public function showPanels(): string {
+    public function infoPanels(): string {
         if (isset($_GET['moreinfo'])) {
             return '';
         }
 
         return $this->template->render('partials/info', [
             'panels_toggler' => false,
-            'info'           => $this->info(),
+            'info'           => [
+                'panels' => [
+                    [
+                        'title'    => 'PHP Info',
+                        'moreinfo' => true,
+                        'data'     => [
+                            'PHP Version'          => PHP_VERSION,
+                            'PHP Interface'        => PHP_SAPI,
+                            'Max Upload File Size' => ini_get('file_uploads') ? ini_get('upload_max_filesize').'B' : 'n/a',
+                            'Disabled functions'   => $this->getDisabledFunctions(),
+                            'Xdebug'               => extension_loaded('xdebug') ? 'Enabled - v'.phpversion('xdebug') : 'Disabled',
+                        ],
+                    ],
+                    [
+                        'title' => 'Server Info',
+                        'data'  => [
+                            'Server'     => php_uname(),
+                            'Web Server' => $_SERVER['SERVER_SOFTWARE'],
+                            'User Agent' => $_SERVER['HTTP_USER_AGENT'],
+                        ],
+                    ],
+                ],
+            ],
         ]);
     }
 
-    /**
-     * Dashboard content.
-     *
-     * @return string
-     */
     public function dashboard(): string {
         if (isset($_GET['moreinfo'])) {
-            return $this->phpinfo();
+            return $this->phpInfo();
         }
 
         return $this->template->render('dashboards/server', [

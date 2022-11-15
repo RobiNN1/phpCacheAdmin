@@ -41,11 +41,6 @@ class PHPMem implements CompatibilityInterface {
 
     /**
      * Add a server to the server pool.
-     *
-     * @param string $host
-     * @param int    $port
-     *
-     * @return bool
      */
     public function addServer(string $host, int $port = 11211): bool {
         $this->host = $host;
@@ -57,9 +52,6 @@ class PHPMem implements CompatibilityInterface {
     /**
      * Semd data to the server.
      *
-     * @param string $command
-     *
-     * @return string
      * @throws MemcachedException
      */
     private function send(string $command): string {
@@ -97,11 +89,8 @@ class PHPMem implements CompatibilityInterface {
     /**
      * Store an item.
      *
-     * @param string $key
-     * @param mixed  $value
-     * @param int    $expiration
+     * @param mixed $value
      *
-     * @return bool
      * @throws MemcachedException
      */
     public function set(string $key, $value, int $expiration = 0): bool {
@@ -124,8 +113,6 @@ class PHPMem implements CompatibilityInterface {
     /**
      * Retrieve an item.
      *
-     * @param string $key
-     *
      * @return string|false
      * @throws MemcachedException
      */
@@ -143,9 +130,6 @@ class PHPMem implements CompatibilityInterface {
     /**
      * Delete item from the server.
      *
-     * @param string $key
-     *
-     * @return bool
      * @throws MemcachedException
      */
     public function delete(string $key): bool {
@@ -157,7 +141,6 @@ class PHPMem implements CompatibilityInterface {
     /**
      * Invalidate all items in the cache.
      *
-     * @return bool
      * @throws MemcachedException
      */
     public function flush(): bool {
@@ -166,11 +149,6 @@ class PHPMem implements CompatibilityInterface {
         return $raw === 'OK';
     }
 
-    /**
-     * Check connection.
-     *
-     * @return bool
-     */
     public function isConnected(): bool {
         try {
             $stats = $this->getServerStats();
@@ -182,8 +160,6 @@ class PHPMem implements CompatibilityInterface {
     }
 
     /**
-     * Get server statistics.
-     *
      * @return array<string, mixed>
      * @throws MemcachedException
      */
@@ -207,13 +183,6 @@ class PHPMem implements CompatibilityInterface {
     }
 
     /**
-     * Alias to a set() but with the same order of parameters.
-     *
-     * @param string $key
-     * @param string $value
-     * @param int    $expiration
-     *
-     * @return bool
      * @throws MemcachedException
      */
     public function store(string $key, string $value, int $expiration = 0): bool {

@@ -16,8 +16,6 @@ use RobiNN\Pca\Dashboards\Memcached\MemcachedException;
 
 trait KeysTrait {
     /**
-     * Run command.
-     *
      * @return array<int, mixed>
      * @throws MemcachedException
      */
@@ -68,8 +66,6 @@ trait KeysTrait {
     /**
      * Format key output.
      *
-     * @param string $line
-     *
      * @return array<string, string|int>
      */
     private function keyData(string $line): array {
@@ -118,8 +114,6 @@ trait KeysTrait {
     /**
      * Get original key.
      *
-     * @param string $key
-     *
      * @return string|false
      * @throws MemcachedException
      */
@@ -136,9 +130,6 @@ trait KeysTrait {
     /**
      * Check if key exists.
      *
-     * @param string $key
-     *
-     * @return bool
      * @throws MemcachedException
      */
     public function exists(string $key): bool {

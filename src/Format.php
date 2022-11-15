@@ -17,16 +17,9 @@ use DateTimeZone;
 use Exception;
 
 class Format {
-    /**
-     * Format bytes.
-     *
-     * @param int $bytes
-     *
-     * @return string
-     */
     public static function bytes(int $bytes): string {
-        if ($bytes > 1048576) {
-            return sprintf('%.2fMB', $bytes / 1048576);
+        if ($bytes > 1_048_576) {
+            return sprintf('%.2fMB', $bytes / 1_048_576);
         }
 
         if ($bytes > 1024) {
@@ -36,13 +29,6 @@ class Format {
         return sprintf('%dbytes', $bytes);
     }
 
-    /**
-     * Format seconds.
-     *
-     * @param int $time
-     *
-     * @return string
-     */
     public static function seconds(int $time): string {
         if ($time === -1) {
             return (string) $time;
@@ -80,13 +66,6 @@ class Format {
         return implode(' ', $time_parts);
     }
 
-    /**
-     * Format timestamp.
-     *
-     * @param int $time
-     *
-     * @return string
-     */
     public static function time(int $time): string {
         if ($time === 0) {
             return 'Never';
@@ -101,13 +80,6 @@ class Format {
         }
     }
 
-    /**
-     * Format number.
-     *
-     * @param int $number
-     *
-     * @return string
-     */
     public static function number(int $number): string {
         return number_format($number, 0, ',', ' ');
     }

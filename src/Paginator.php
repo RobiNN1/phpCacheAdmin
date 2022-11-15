@@ -32,7 +32,6 @@ class Paginator {
     private array $url;
 
     /**
-     * @param Template                              $template
      * @param array<int, array<string, int|string>> $items
      * @param array<int, array<int|string, string>> $queries
      */
@@ -46,8 +45,6 @@ class Paginator {
     }
 
     /**
-     * Get paginated items.
-     *
      * @return array<int|string, mixed>
      */
     public function getPaginated(): array {
@@ -55,8 +52,6 @@ class Paginator {
     }
 
     /**
-     * Get pages for paginator.
-     *
      * @return array<int, int>
      */
     private function getPages(): array {
@@ -89,11 +84,6 @@ class Paginator {
         return $pages;
     }
 
-    /**
-     * Render paginator.
-     *
-     * @return string
-     */
     public function render(): string {
         $on_page = count($this->paginated) > 0 ? 1 : 0;
         $select = [25, 50, 100, 200, 300, 400];

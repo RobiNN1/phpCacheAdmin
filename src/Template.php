@@ -32,25 +32,12 @@ class Template {
     private array $paths = [];
 
     /**
-     * Add global template variable.
-     *
-     * @param string     $name
-     * @param int|string $value
-     *
-     * @return void
+     * @param mixed $value
      */
     public function addGlobal(string $name, $value): void {
         $this->globals[$name] = $value;
     }
 
-    /**
-     * Add a path with namespace.
-     *
-     * @param string $namespace
-     * @param string $path
-     *
-     * @return void
-     */
     public function addPath(string $namespace, string $path): void {
         $this->paths[$namespace] = $path;
     }
@@ -58,11 +45,7 @@ class Template {
     /**
      * Render template.
      *
-     * @param string               $tpl
      * @param array<string, mixed> $data
-     * @param bool                 $string
-     *
-     * @return string
      */
     public function render(string $tpl, array $data = [], bool $string = false): string {
         $loader = new FilesystemLoader(__DIR__.'/../templates');

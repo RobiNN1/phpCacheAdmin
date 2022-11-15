@@ -15,12 +15,6 @@ namespace RobiNN\Pca;
 class Http {
     private static bool $stop_redirect = false;
 
-    /**
-     * Prevent redirecting.
-     *
-     * @return void
-     *
-     */
     public static function stopRedirect(): void {
         self::$stop_redirect = true;
     }
@@ -30,8 +24,6 @@ class Http {
      *
      * @param array<int|string, string>     $filter     Parameters to be preserved.
      * @param array<int|string, int|string> $additional Additional parameters with their new value.
-     *
-     * @return string
      */
     public static function queryString(array $filter = [], array $additional = []): string {
         $keep = ['type', 'server'];
@@ -52,8 +44,6 @@ class Http {
     /**
      * Get query parameter.
      *
-     * @param string          $key
-     * @param string          $type
      * @param string|int|null $default
      *
      * @return string|int
@@ -73,8 +63,6 @@ class Http {
     /**
      * Get post value.
      *
-     * @param string          $key
-     * @param string          $type
      * @param string|int|null $default
      *
      * @return string|int
@@ -96,8 +84,6 @@ class Http {
      *
      * @param array<int|string, string>     $filter     Parameters to be preserved.
      * @param array<int|string, int|string> $additional Additional parameters with their new value.
-     *
-     * @return void
      */
     public static function redirect(array $filter = [], array $additional = []): void {
         if (self::$stop_redirect === false) {

@@ -139,7 +139,6 @@ trait TypesTrait {
      *
      * @param Compatibility\Redis|Compatibility\Predis $redis
      *
-     * @return void
      * @throws Exception
      */
     private function saveKey($redis): void {
@@ -210,10 +209,7 @@ trait TypesTrait {
      * Delete sub key.
      *
      * @param Compatibility\Redis|Compatibility\Predis $redis
-     * @param string                                   $type
-     * @param string                                   $key
      *
-     * @return void
      * @throws Exception
      */
     private function deleteSubKey($redis, string $type, string $key): void {
@@ -245,10 +241,7 @@ trait TypesTrait {
      * Get a number of items in a key.
      *
      * @param Compatibility\Redis|Compatibility\Predis $redis
-     * @param string                                   $type
-     * @param string                                   $key
      *
-     * @return int|null
      * @throws Exception
      */
     private function getCountOfItemsInKey($redis, string $type, string $key): ?int {

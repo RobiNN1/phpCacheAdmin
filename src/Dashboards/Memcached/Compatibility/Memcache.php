@@ -27,11 +27,6 @@ class Memcache extends \Memcache implements CompatibilityInterface {
         $this->server = $server;
     }
 
-    /**
-     * Check connection.
-     *
-     * @return bool
-     */
     public function isConnected(): bool {
         $stats = @$this->getStats(); // Need to be silenced since Memcache doesn't throw exceptions...
 
@@ -39,23 +34,12 @@ class Memcache extends \Memcache implements CompatibilityInterface {
     }
 
     /**
-     * Get server statistics.
-     *
      * @return array<string, mixed>
      */
     public function getServerStats(): array {
         return (array) @$this->getStats();
     }
 
-    /**
-     * Alias to a set() but with the same order of parameters.
-     *
-     * @param string $key
-     * @param string $value
-     * @param int    $expiration
-     *
-     * @return bool
-     */
     public function store(string $key, string $value, int $expiration = 0): bool {
         return $this->set($key, $value, 0, $expiration);
     }

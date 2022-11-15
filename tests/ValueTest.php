@@ -85,22 +85,16 @@ final class ValueTest extends TestCase {
         $this->assertFalse(self::callMethod(new Value(), 'isJson', 1));
     }
 
-    /**
-     * @throws ReflectionException
-     */
     public function testEncode(): void {
-        $this->assertSame(gzcompress('gzcompress-data'), self::callMethod(new Value(), 'encode', 'gzcompress-data', 'gzcompress'));
-        $this->assertSame(gzencode('gzencode-data'), self::callMethod(new Value(), 'encode', 'gzencode-data', 'gzencode'));
-        $this->assertSame(gzdeflate('gzdeflate-data'), self::callMethod(new Value(), 'encode', 'gzdeflate-data', 'gzdeflate'));
+        $this->assertSame(gzcompress('gzcompress-data'), Value::encode('gzcompress-data', 'gzcompress'));
+        $this->assertSame(gzencode('gzencode-data'), Value::encode('gzencode-data', 'gzencode'));
+        $this->assertSame(gzdeflate('gzdeflate-data'), Value::encode('gzdeflate-data', 'gzdeflate'));
     }
 
-    /**
-     * @throws ReflectionException
-     */
     public function testDecode(): void {
-        $this->assertSame('gzcompress-data', self::callMethod(new Value(), 'decode', gzcompress('gzcompress-data'), 'gzcompress'));
-        $this->assertSame('gzencode-data', self::callMethod(new Value(), 'decode', gzencode('gzencode-data'), 'gzencode'));
-        $this->assertSame('gzdeflate-data', self::callMethod(new Value(), 'decode', gzdeflate('gzdeflate-data'), 'gzdeflate'));
-        $this->assertSame('random string', self::callMethod(new Value(), 'decode', 'random string', 'gzdeflate'));
+        $this->assertSame('gzcompress-data', Value::decode(gzcompress('gzcompress-data'), 'gzcompress'));
+        $this->assertSame('gzencode-data', Value::decode(gzencode('gzencode-data'), 'gzencode'));
+        $this->assertSame('gzdeflate-data', Value::decode(gzdeflate('gzdeflate-data'), 'gzdeflate'));
+        $this->assertSame('random string', Value::decode('random string', 'gzdeflate'));
     }
 }

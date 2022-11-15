@@ -26,6 +26,23 @@ trait RedisTrait {
     use TypesTrait;
 
     /**
+     * Get a number of keys form all databases.
+     *
+     * @param array<string, mixed> $keyspace
+     */
+    private function getCountOfAllKeys(array $keyspace): int {
+        $all_keys = 0;
+
+        foreach ($keyspace as $value) {
+            $db = explode(',', $value);
+            $keys = explode('=', $db[0]);
+            $all_keys += (int) $keys[1];
+        }
+
+        return $all_keys;
+    }
+
+    /**
      * Get server info for ajax.
      * This allows loading data of each server separately.
      *
@@ -53,30 +70,10 @@ trait RedisTrait {
     }
 
     /**
-     * Get a number of keys form all databases.
-     *
-     * @param array<string, mixed> $keyspace
-     *
-     * @return int
-     */
-    private function getCountOfAllKeys(array $keyspace): int {
-        $all_keys = 0;
-
-        foreach ($keyspace as $value) {
-            $db = explode(',', $value);
-            $keys = explode('=', $db[0]);
-            $all_keys += (int) $keys[1];
-        }
-
-        return $all_keys;
-    }
-
-    /**
      * Delete all keys from the current database.
      *
      * @param Compatibility\Redis|Compatibility\Predis $redis
      *
-     * @return string
      * @throws Exception
      */
     private function deleteAllKeys($redis): string {
@@ -94,21 +91,14 @@ trait RedisTrait {
      *
      * @param Compatibility\Redis|Compatibility\Predis $redis
      *
-     * @return string
      * @throws Exception
      */
     private function deleteKey($redis): string {
-        return Helpers::deleteKey($this->template, static function (string $key) use ($redis): bool {
-            return $redis->del($key) > 0;
-        }, true);
+        return Helpers::deleteKey($this->template, static fn (string $key): bool => $redis->del($key) > 0, true);
     }
 
     /**
-     * Show more info.
-     *
      * @param array<int, array<string, int|string>> $servers
-     *
-     * @return string
      */
     private function moreInfo(array $servers): string {
         try {
@@ -131,108 +121,38 @@ trait RedisTrait {
     }
 
     /**
-     * Get server databases.
+     * Format view array items.
      *
      * @param Compatibility\Redis|Compatibility\Predis $redis
+     * @param array<int, mixed>                        $value_items
      *
-     * @return array<int, string>
+     * @return array<int, mixed>
      * @throws Exception
      */
-    private function getDatabases($redis): array {
-        $databases = [];
-        $servers = Config::get('redis');
+    private function formatViewItems($redis, string $key, array $value_items, string $type): array {
+        $items = [];
 
-        if (isset($servers[$this->current_server]['databases'])) {
-            $db_count = (int) $servers[$this->current_server]['databases'];
-        } else {
-            $dbs = (array) $redis->config('GET', 'databases');
-            $db_count = $dbs['databases'];
-        }
-
-        for ($d = 0; $d < $db_count; ++$d) {
-            $keyspace = $redis->getInfo('keyspace');
-            $keys_in_db = '';
-
-            if (array_key_exists('db'.$d, $keyspace)) {
-                $db = explode(',', $keyspace['db'.$d]);
-                $keys = explode('=', $db[0]);
-                $keys_in_db = ' ('.Format::number((int) $keys[1]).' keys)';
+        foreach ($value_items as $item_key => $item_value) {
+            if (is_array($item_value)) {
+                try {
+                    $item_value = json_encode($item_value, JSON_THROW_ON_ERROR);
+                } catch (JsonException $e) {
+                    $item_value = $e->getMessage();
+                }
             }
 
-            $databases[$d] = 'Database '.$d.$keys_in_db;
-        }
+            [$value, $encode_fn, $is_formatted] = Value::format($item_value);
 
-        return $databases;
-    }
-
-    /**
-     * Get all keys with data.
-     *
-     * @param Compatibility\Redis|Compatibility\Predis $redis
-     *
-     * @return array<int, array<string, string|int>>
-     * @throws Exception
-     */
-    private function getAllKeys($redis): array {
-        static $keys = [];
-        $filter = Http::get('s', 'string', '*');
-
-        $this->template->addGlobal('search_value', $filter);
-
-        foreach ($redis->keys($filter) as $key) {
-            try {
-                $type = $redis->getType($key);
-            } catch (DashboardException $e) {
-                $type = 'unknown';
-            }
-
-            $ttl = $redis->ttl($key);
-            $total = $this->getCountOfItemsInKey($redis, $type, $key);
-
-            $keys[] = [
-                'key'   => base64_encode($key),
-                'items' => [
-                    'title' => [
-                        'title'      => ($total !== null ? '('.$total.' items) ' : '').$key,
-                        'title_attr' => $key,
-                        'link'       => Http::queryString(['db', 's'], ['view' => 'key', 'key' => $key]),
-                    ],
-                    'type'  => $type,
-                    'ttl'   => $ttl === -1 ? 'Doesn\'t expire' : $ttl,
-                ],
+            $items[] = [
+                'key'       => $item_key,
+                'value'     => $value,
+                'encode_fn' => $encode_fn,
+                'formatted' => $is_formatted,
+                'sub_key'   => $type === 'zset' ? (string) $redis->zScore($key, $value) : $item_key,
             ];
         }
 
-        return $keys;
-    }
-
-    /**
-     * Main dashboard content.
-     *
-     * @param Compatibility\Redis|Compatibility\Predis $redis
-     *
-     * @return string
-     * @throws Exception
-     */
-    private function mainDashboard($redis): string {
-        $keys = $this->getAllKeys($redis);
-
-        if (isset($_POST['submit_import_key'])) {
-            $this->import($redis);
-        }
-
-        $paginator = new Paginator($this->template, $keys, [['db', 's', 'pp'], ['p' => '']]);
-
-        $servers = Config::get('redis');
-
-        return $this->template->render('dashboards/redis/redis', [
-            'databases'   => $this->getDatabases($redis),
-            'current_db'  => Http::get('db', 'int', $servers[$this->current_server]['database'] ?? 0),
-            'keys'        => $paginator->getPaginated(),
-            'all_keys'    => $redis->dbSize(),
-            'new_key_url' => Http::queryString(['db'], ['form' => 'new']),
-            'paginator'   => $paginator->render(),
-        ]);
+        return $items;
     }
 
     /**
@@ -240,7 +160,6 @@ trait RedisTrait {
      *
      * @param Compatibility\Redis|Compatibility\Predis $redis
      *
-     * @return string
      * @throws Exception
      */
     private function viewKey($redis): string {
@@ -311,73 +230,10 @@ trait RedisTrait {
     }
 
     /**
-     * Format view array items.
-     *
-     * @param Compatibility\Redis|Compatibility\Predis $redis
-     * @param string                                   $key
-     * @param array<int, mixed>                        $value_items
-     * @param string                                   $type
-     *
-     * @return array<int, mixed>
-     * @throws Exception
-     */
-    private function formatViewItems($redis, string $key, array $value_items, string $type): array {
-        $items = [];
-
-        foreach ($value_items as $item_key => $item_value) {
-            if (is_array($item_value)) {
-                try {
-                    $item_value = json_encode($item_value, JSON_THROW_ON_ERROR);
-                } catch (JsonException $e) {
-                    $item_value = $e->getMessage();
-                }
-            }
-
-            [$value, $encode_fn, $is_formatted] = Value::format($item_value);
-
-            $items[] = [
-                'key'       => $item_key,
-                'value'     => $value,
-                'encode_fn' => $encode_fn,
-                'formatted' => $is_formatted,
-                'sub_key'   => $type === 'zset' ? (string) $redis->zScore($key, $value) : $item_key,
-            ];
-        }
-
-        return $items;
-    }
-
-    /**
-     * Import key.
-     *
-     * @param Compatibility\Redis|Compatibility\Predis $redis
-     *
-     * @return void
-     * @throws Exception
-     */
-    private function import($redis): void {
-        if ($_FILES['import']['type'] === 'application/octet-stream') {
-            $key_name = Http::post('key_name');
-
-            if (!$redis->exists($key_name)) {
-                $value = file_get_contents($_FILES['import']['tmp_name']);
-
-                $expire = Http::post('expire', 'int');
-                $expire = $expire === -1 ? 0 : $expire;
-
-                $redis->restore($key_name, $expire, $value);
-
-                Http::redirect(['db']);
-            }
-        }
-    }
-
-    /**
      * Add/edit a form.
      *
      * @param Compatibility\Redis|Compatibility\Predis $redis
      *
-     * @return string
      * @throws Exception
      */
     private function form($redis): string {
@@ -422,6 +278,134 @@ trait RedisTrait {
             'expire'   => $expire,
             'encoders' => Config::getEncoders(),
             'encoder'  => $encoder,
+        ]);
+    }
+
+    /**
+     * Get all keys with data.
+     *
+     * @param Compatibility\Redis|Compatibility\Predis $redis
+     *
+     * @return array<int, array<string, string|int>>
+     * @throws Exception
+     */
+    private function getAllKeys($redis): array {
+        static $keys = [];
+        $filter = Http::get('s', 'string', '*');
+
+        $this->template->addGlobal('search_value', $filter);
+
+        foreach ($redis->keys($filter) as $key) {
+            try {
+                $type = $redis->getType($key);
+            } catch (DashboardException $e) {
+                $type = 'unknown';
+            }
+
+            $ttl = $redis->ttl($key);
+            $total = $this->getCountOfItemsInKey($redis, $type, $key);
+
+            $keys[] = [
+                'key'   => base64_encode($key),
+                'items' => [
+                    'title' => [
+                        'title'      => ($total !== null ? '('.$total.' items) ' : '').$key,
+                        'title_attr' => $key,
+                        'link'       => Http::queryString(['db', 's'], ['view' => 'key', 'key' => $key]),
+                    ],
+                    'type'  => $type,
+                    'ttl'   => $ttl === -1 ? 'Doesn\'t expire' : $ttl,
+                ],
+            ];
+        }
+
+        return $keys;
+    }
+
+    /**
+     * Import key.
+     *
+     * @param Compatibility\Redis|Compatibility\Predis $redis
+     *
+     * @throws Exception
+     */
+    private function import($redis): void {
+        if ($_FILES['import']['type'] === 'application/octet-stream') {
+            $key_name = Http::post('key_name');
+
+            if (!$redis->exists($key_name)) {
+                $value = file_get_contents($_FILES['import']['tmp_name']);
+
+                $expire = Http::post('expire', 'int');
+                $expire = $expire === -1 ? 0 : $expire;
+
+                $redis->restore($key_name, $expire, $value);
+
+                Http::redirect(['db']);
+            }
+        }
+    }
+
+    /**
+     * Get server databases.
+     *
+     * @param Compatibility\Redis|Compatibility\Predis $redis
+     *
+     * @return array<int, string>
+     * @throws Exception
+     */
+    private function getDatabases($redis): array {
+        $databases = [];
+        $servers = Config::get('redis');
+
+        if (isset($servers[$this->current_server]['databases'])) {
+            $db_count = (int) $servers[$this->current_server]['databases'];
+        } else {
+            $dbs = (array) $redis->config('GET', 'databases');
+            $db_count = $dbs['databases'];
+        }
+
+        for ($d = 0; $d < $db_count; ++$d) {
+            $keyspace = $redis->getInfo('keyspace');
+            $keys_in_db = '';
+
+            if (array_key_exists('db'.$d, $keyspace)) {
+                $db = explode(',', $keyspace['db'.$d]);
+                $keys = explode('=', $db[0]);
+                $keys_in_db = ' ('.Format::number((int) $keys[1]).' keys)';
+            }
+
+            $databases[$d] = 'Database '.$d.$keys_in_db;
+        }
+
+        return $databases;
+    }
+
+    /**
+     * Main dashboard content.
+     *
+     * @param Compatibility\Redis|Compatibility\Predis $redis
+     *
+     * @throws Exception
+     */
+    private function mainDashboard($redis): string {
+        $keys = $this->getAllKeys($redis);
+
+        if (isset($_POST['submit_import_key'])) {
+            $this->import($redis);
+        }
+
+        $paginator = new Paginator($this->template, $keys, [['db', 's', 'pp'], ['p' => '']]);
+
+        $servers = Config::get('redis');
+
+        return $this->template->render('dashboards/redis/redis', [
+            'databases'   => $this->getDatabases($redis),
+            'current_db'  => Http::get('db', 'int', $servers[$this->current_server]['database'] ?? 0),
+            'keys'        => $paginator->getPaginated(),
+            'all_keys'    => $redis->dbSize(),
+            'new_key_url' => Http::queryString(['db'], ['form' => 'new']),
+            'paginator'   => $paginator->render(),
         ]);
     }
 }

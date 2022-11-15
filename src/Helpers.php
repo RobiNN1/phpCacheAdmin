@@ -16,11 +16,7 @@ use JsonException;
 
 class Helpers {
     /**
-     * Return JSON data for ajax.
-     *
      * @param array<string, mixed> $data
-     *
-     * @return string
      */
     public static function returnJson(array $data): string {
         header('Content-Type: application/json');
@@ -35,11 +31,7 @@ class Helpers {
     /**
      * Get svg icon from file.
      *
-     * @param string  $icon Icon name from `assets/icons/` or custom path.
-     * @param ?int    $size
-     * @param ?string $class
-     *
-     * @return string
+     * @param string $icon Icon name from `assets/icons/` or custom path.
      */
     public static function svg(string $icon, ?int $size = 16, ?string $class = null): string {
         $file = is_file($icon) ? $icon : __DIR__.'/../assets/icons/'.$icon.'.svg';
@@ -58,15 +50,6 @@ class Helpers {
         return preg_replace('~<svg([^<>]*)>~', '<svg'.$attributes[1].$size_attr.$class_attr.'>', $content);
     }
 
-    /**
-     * Show alert.
-     *
-     * @param Template $template
-     * @param string   $message
-     * @param ?string  $color
-     *
-     * @return void
-     */
     public static function alert(Template $template, string $message, ?string $color = null): void {
         $template->addGlobal('alerts', $template->render('components/alert', [
             'message'     => $message,
@@ -95,14 +78,6 @@ class Helpers {
         return $array;
     }
 
-    /**
-     * Checks if a string starts with a given substring.
-     *
-     * @param string $haystack
-     * @param string $needle
-     *
-     * @return bool
-     */
     public static function str_starts_with(string $haystack, string $needle): bool {
         if (!function_exists('str_starts_with')) {
             return strncmp($haystack, $needle, strlen($needle)) === 0;
@@ -111,14 +86,6 @@ class Helpers {
         return str_starts_with($haystack, $needle);
     }
 
-    /**
-     * Checks if a string ends with a given substring.
-     *
-     * @param string $haystack
-     * @param string $needle
-     *
-     * @return bool
-     */
     public static function str_ends_with(string $haystack, string $needle): bool {
         if (!function_exists('str_ends_with')) {
             $needleLength = strlen($needle);
@@ -131,8 +98,6 @@ class Helpers {
 
     /**
      * Get configuration info for a given extension.
-     *
-     * @param string $extension
      *
      * @return array<string, array<string, int|string|bool>>
      */
@@ -148,12 +113,6 @@ class Helpers {
 
     /**
      * Delete key or selected keys.
-     *
-     * @param Template $template
-     * @param callable $function
-     * @param bool     $base64
-     *
-     * @return string
      */
     public static function deleteKey(Template $template, callable $function, bool $base64 = false): string {
         try {
@@ -174,5 +133,18 @@ class Helpers {
         }
 
         return $template->render('components/alert', ['message' => $message]);
+    }
+
+    /**
+     * Convert mixed data to string.
+     *
+     * @param mixed $data
+     */
+    public static function mixedToString($data): string {
+        if (is_array($data) || is_object($data)) {
+            $data = serialize($data);
+        }
+
+        return (string) $data;
     }
 }

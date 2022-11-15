@@ -27,21 +27,12 @@ interface CompatibilityInterface {
     /**
      * Get a key type.
      *
-     * @param string $key
-     *
-     * @return string
      * @throws DashboardException
      */
     public function getType(string $key): string;
 
     /**
      * Alias to a lRem() but with the same order of parameters.
-     *
-     * @param string $key
-     * @param string $value
-     * @param int    $count
-     *
-     * @return int
      */
     public function listRem(string $key, string $value, int $count): int;
 

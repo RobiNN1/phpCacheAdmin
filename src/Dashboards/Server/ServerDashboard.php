@@ -32,7 +32,7 @@ class ServerDashboard implements DashboardInterface {
     /**
      * @return array<string, string>
      */
-    public function getDashboardInfo(): array {
+    public function dashboardInfo(): array {
         return [
             'key'   => 'server',
             'title' => 'Server',
@@ -44,6 +44,7 @@ class ServerDashboard implements DashboardInterface {
     }
 
     public function infoPanels(): string {
+        // Hide panels on more info page.
         if (isset($_GET['moreinfo'])) {
             return '';
         }

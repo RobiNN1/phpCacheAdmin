@@ -32,7 +32,7 @@ class OPCacheDashboard implements DashboardInterface {
     /**
      * @return array<string, string|array<int, string>>
      */
-    public function getDashboardInfo(): array {
+    public function dashboardInfo(): array {
         return [
             'key'    => 'opcache',
             'title'  => 'OPCache',
@@ -64,11 +64,10 @@ class OPCacheDashboard implements DashboardInterface {
         return $return;
     }
 
-    public function infoPanels(): string {
-        if (isset($_GET['moreinfo'])) {
-            return '';
-        }
-
+    /**
+     * @return array<int, mixed>
+     */
+    private function panels(): array {
         $status = opcache_get_status();
         $configuration = opcache_get_configuration();
 
@@ -78,55 +77,60 @@ class OPCacheDashboard implements DashboardInterface {
         $memory = $status['memory_usage'];
         $memory_usage = ($memory['used_memory'] + $memory['wasted_memory']) / $total_memory;
 
+        return [
+            [
+                'title'    => 'Status',
+                'moreinfo' => true,
+                'data'     => [
+                    'JIT'          => isset($status['jit']) && $status['jit']['enabled'] ? 'Enabled' : 'Disabled',
+                    'Start time'   => Format::time($stats['start_time']),
+                    'Last restart' => Format::time($stats['last_restart_time']),
+                    'Cache full'   => $status['cache_full'] ? 'Yes' : 'No',
+                ],
+            ],
+            [
+                'title' => 'Memory',
+                'data'  => [
+                    'Total'          => Format::bytes($total_memory),
+                    'Usage'          => round(100 * $memory_usage).'%',
+                    'Used'           => Format::bytes($memory['used_memory']),
+                    'Free'           => Format::bytes($memory['free_memory']),
+                    'Wasted'         => Format::bytes($memory['wasted_memory']),
+                    'Current wasted' => round($memory['current_wasted_percentage'], 3).'%',
+                ],
+            ],
+            [
+                'title' => 'Stats',
+                'data'  => [
+                    'Cached scripts'  => $stats['num_cached_scripts'],
+                    'Cached keys'     => Format::number($stats['num_cached_keys']),
+                    'Max cached keys' => Format::number($stats['max_cached_keys']),
+                    'Hits'            => Format::number($stats['hits']),
+                    'Misses'          => Format::number($stats['misses']),
+                    'Hit rate'        => round($stats['opcache_hit_rate']).'%',
+                ],
+            ],
+        ];
+    }
+
+    public function infoPanels(): string {
+        // Hide panels on more info page.
+        if (isset($_GET['moreinfo'])) {
+            return '';
+        }
+
         return $this->template->render('partials/info', [
             'title'             => 'PHP <span class="font-semibold">OPCache</span> extension',
             'extension_version' => phpversion('Zend OPcache'),
-            'info'              => [
-                'panels' => [
-                    [
-                        'title'    => 'Status',
-                        'moreinfo' => true,
-                        'data'     => [
-                            'JIT'          => isset($status['jit']) && $status['jit']['enabled'] ? 'Enabled' : 'Disabled',
-                            'Start time'   => Format::time($stats['start_time']),
-                            'Last restart' => Format::time($stats['last_restart_time']),
-                            'Cache full'   => $status['cache_full'] ? 'Yes' : 'No',
-                        ],
-                    ],
-                    [
-                        'title' => 'Memory',
-                        'data'  => [
-                            'Total'          => Format::bytes($total_memory),
-                            'Usage'          => round(100 * $memory_usage).'%',
-                            'Used'           => Format::bytes($memory['used_memory']),
-                            'Free'           => Format::bytes($memory['free_memory']),
-                            'Wasted'         => Format::bytes($memory['wasted_memory']),
-                            'Current wasted' => round($memory['current_wasted_percentage'], 3).'%',
-                        ],
-                    ],
-                    [
-                        'title' => 'Stats',
-                        'data'  => [
-                            'Cached scripts'  => $stats['num_cached_scripts'],
-                            'Cached keys'     => Format::number($stats['num_cached_keys']),
-                            'Max cached keys' => Format::number($stats['max_cached_keys']),
-                            'Hits'            => Format::number($stats['hits']),
-                            'Misses'          => Format::number($stats['misses']),
-                            'Hit rate'        => round($stats['opcache_hit_rate']).'%',
-                        ],
-                    ],
-                ],
-            ],
+            'info'              => ['panels' => $this->panels()],
         ]);
     }
 
     public function dashboard(): string {
-        $status = opcache_get_status();
-
         if (isset($_GET['moreinfo'])) {
-            $return = $this->moreInfo($status);
+            $return = $this->moreInfo();
         } else {
-            $return = $this->mainDashboard($status);
+            $return = $this->mainDashboard();
         }
 
         return $return;

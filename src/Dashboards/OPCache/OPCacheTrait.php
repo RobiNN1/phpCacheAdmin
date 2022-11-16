@@ -22,10 +22,9 @@ trait OPCacheTrait {
         return Helpers::deleteKey($this->template, static fn (string $key): bool => opcache_invalidate($key, true));
     }
 
-    /**
-     * @param array<string, mixed> $status
-     */
-    private function moreInfo(array $status): string {
+    private function moreInfo(): string {
+        $status = opcache_get_status();
+
         unset($status['scripts']);
 
         $configuration = opcache_get_configuration();
@@ -38,8 +37,6 @@ trait OPCacheTrait {
     }
 
     /**
-     * Get cached scripts.
-     *
      * @param array<string, mixed> $status
      *
      * @return array<int, array<string, string|int>>
@@ -81,16 +78,10 @@ trait OPCacheTrait {
         return $cached_scripts;
     }
 
-    /**
-     * Main dashboard content.
-     *
-     * @param array<string, mixed> $status
-     */
-    private function mainDashboard(array $status): string {
+    private function mainDashboard(): string {
+        $status = opcache_get_status();
         $cached_scripts = $this->getCachedScripts($status);
-
         $paginator = new Paginator($this->template, $cached_scripts, [['ignore', 'pp'], ['p' => '']]);
-
         $is_ignored = isset($_GET['ignore']) && $_GET['ignore'] === 'yes';
 
         return $this->template->render('dashboards/opcache', [

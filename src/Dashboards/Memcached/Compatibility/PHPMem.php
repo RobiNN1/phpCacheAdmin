@@ -171,7 +171,7 @@ class PHPMem implements CompatibilityInterface {
 
         while ($lines[$line_n] !== 'END') {
             $line = explode(' ', $lines[$line_n]);
-            array_shift($line); // remove 'STAT' key
+            array_shift($line); // remove 'STAT'
             [$name, $value] = $line;
 
             $stats[$name] = $value;

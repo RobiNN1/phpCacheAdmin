@@ -24,10 +24,9 @@ trait APCuTrait {
         return Helpers::deleteKey($this->template, static fn (string $key): bool => apcu_delete($key), true);
     }
 
-    /**
-     * @param array<string, mixed> $info
-     */
-    private function moreInfo(array $info): string {
+    private function moreInfo(): string {
+        $info = apcu_cache_info();
+
         unset($info['cache_list']);
 
         foreach (apcu_sma_info() as $mem_name => $mem_value) {
@@ -134,14 +133,12 @@ trait APCuTrait {
     }
 
     /**
-     * Get all keys with data.
-     *
-     * @param array<string, mixed> $info
-     *
      * @return array<int, array<string, string|int>>
      */
-    private function getAllKeys(array $info): array {
+    private function getAllKeys(): array {
         static $keys = [];
+
+        $info = apcu_cache_info();
 
         foreach ($info['cache_list'] as $key_data) {
             $key = $key_data['info'];
@@ -178,11 +175,8 @@ trait APCuTrait {
         }
     }
 
-    /**
-     * @param array<string, mixed> $info
-     */
-    private function mainDashboard(array $info): string {
-        $keys = $this->getAllKeys($info);
+    private function mainDashboard(): string {
+        $keys = $this->getAllKeys();
 
         if (isset($_POST['submit_import_key'])) {
             $this->import();

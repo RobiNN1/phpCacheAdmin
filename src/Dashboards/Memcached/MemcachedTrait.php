@@ -23,17 +23,15 @@ use RobiNN\Pca\Value;
 trait MemcachedTrait {
     /**
      * Get server info for ajax.
-     * This allows loading data of each server separately.
-     *
-     * @param array<int, array<string, int|string>> $servers
      *
      * @return array<string, mixed>
      */
-    private function serverInfo(array $servers): array {
+    private function serverInfo(): array {
         try {
-            $memcached = $this->connect($servers[Http::get('panel', 'int')]);
+            $memcached = $this->connect($this->servers[Http::get('panel', 'int')]);
             $server_info = $memcached->getServerStats();
 
+            // Keys are loaded via sockets and not extension itself.
             try {
                 $keys = Format::number(count($memcached->getKeys()));
             } catch (MemcachedException $e) {
@@ -56,8 +54,6 @@ trait MemcachedTrait {
     }
 
     /**
-     * Delete all keys.
-     *
      * @param Compatibility\Memcached|Compatibility\Memcache|Compatibility\PHPMem $memcached
      *
      * @throws MemcachedException
@@ -83,15 +79,10 @@ trait MemcachedTrait {
         return Helpers::deleteKey($this->template, static fn (string $key): bool => $memcached->delete($key));
     }
 
-    /**
-     * Show more info.
-     *
-     * @param array<int, array<string, int|string>> $servers
-     */
-    private function moreInfo(array $servers): string {
+    private function moreInfo(): string {
         try {
             $id = Http::get('moreinfo', 'int');
-            $server_data = $servers[$id];
+            $server_data = $this->servers[$id];
 
             $info = $this->connect($server_data)->getServerStats();
 
@@ -110,8 +101,6 @@ trait MemcachedTrait {
     }
 
     /**
-     * View key value.
-     *
      * @param Compatibility\Memcached|Compatibility\Memcache|Compatibility\PHPMem $memcached
      *
      * @throws MemcachedException
@@ -157,8 +146,6 @@ trait MemcachedTrait {
     }
 
     /**
-     * Save key.
-     *
      * @param Compatibility\Memcached|Compatibility\Memcache|Compatibility\PHPMem $memcached
      *
      * @throws MemcachedException
@@ -214,8 +201,6 @@ trait MemcachedTrait {
     }
 
     /**
-     * Get all keys with data.
-     *
      * @param Compatibility\Memcached|Compatibility\Memcache|Compatibility\PHPMem $memcached
      *
      * @return array<int, array<string, string|int>>
@@ -245,8 +230,6 @@ trait MemcachedTrait {
     }
 
     /**
-     * Import key.
-     *
      * @param Compatibility\Memcached|Compatibility\Memcache|Compatibility\PHPMem $memcached
      *
      * @throws MemcachedException
@@ -266,8 +249,6 @@ trait MemcachedTrait {
     }
 
     /**
-     * Main dashboard content.
-     *
      * @param Compatibility\Memcached|Compatibility\Memcache|Compatibility\PHPMem $memcached
      *
      * @throws MemcachedException

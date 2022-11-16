@@ -32,22 +32,22 @@ class Template {
     private array $paths = [];
 
     /**
+     * Add global Twig variable.
+     *
      * @param mixed $value
      */
     public function addGlobal(string $name, $value): void {
         $this->globals[$name] = $value;
     }
 
+    /**
+     * Add a path with templates.
+     */
     public function addPath(string $namespace, string $path): void {
         $this->paths[$namespace] = $path;
     }
 
-    /**
-     * Render template.
-     *
-     * @param array<string, mixed> $data
-     */
-    public function render(string $tpl, array $data = [], bool $string = false): string {
+    private function initTwig(): Environment {
         $loader = new FilesystemLoader(__DIR__.'/../templates');
         $twig = new Environment($loader, [
             'cache' => __DIR__.'/../cache',
@@ -77,6 +77,15 @@ class Template {
         foreach ($this->globals as $name => $value) {
             $twig->addGlobal($name, $value);
         }
+
+        return $twig;
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     */
+    public function render(string $tpl, array $data = [], bool $string = false): string {
+        $twig = $this->initTwig();
 
         try {
             if ($string) {

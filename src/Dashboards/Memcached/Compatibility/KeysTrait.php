@@ -64,7 +64,7 @@ trait KeysTrait {
     }
 
     /**
-     * Format key output.
+     * Convert raw key line to an array.
      *
      * @return array<string, string|int>
      */
@@ -94,7 +94,8 @@ trait KeysTrait {
      * Get all keys.
      *
      * This command requires Memcached server >= 1.4.18
-     * https://github.com/memcached/memcached/wiki/ReleaseNotes1418#lru-crawler
+     *
+     * @link https://github.com/memcached/memcached/wiki/ReleaseNotes1418#lru-crawler
      *
      * @return array<int, mixed>
      * @throws MemcachedException
@@ -112,7 +113,7 @@ trait KeysTrait {
     }
 
     /**
-     * Get original key.
+     * Get raw key.
      *
      * @return string|false
      * @throws MemcachedException

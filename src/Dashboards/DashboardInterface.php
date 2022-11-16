@@ -19,16 +19,24 @@ interface DashboardInterface {
     public static function check(): bool;
 
     /**
+     * Array that contains key, name, and optionally an icon or colors.
+     *
      * @return array<string, string|array<int, string>>
      */
-    public function getDashboardInfo(): array;
+    public function dashboardInfo(): array;
 
     /**
      * Data for ajax.
      */
     public function ajax(): string;
 
+    /**
+     * Panels with info about cache.
+     */
     public function infoPanels(): string;
 
+    /**
+     * Main dashboard content.
+     */
     public function dashboard(): string;
 }

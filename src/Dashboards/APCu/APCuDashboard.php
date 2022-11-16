@@ -32,7 +32,7 @@ class APCuDashboard implements DashboardInterface {
     /**
      * @return array<string, string|array<int, string>>
      */
-    public function getDashboardInfo(): array {
+    public function dashboardInfo(): array {
         return [
             'key'    => 'apcu',
             'title'  => 'APCu',
@@ -64,11 +64,10 @@ class APCuDashboard implements DashboardInterface {
         return $return;
     }
 
-    public function infoPanels(): string {
-        if (isset($_GET['moreinfo']) || isset($_GET['form']) || isset($_GET['view'], $_GET['key'])) {
-            return '';
-        }
-
+    /**
+     * @return array<int, mixed>
+     */
+    private function panels(): array {
         $info = apcu_cache_info();
         $memory_info = apcu_sma_info();
 
@@ -77,52 +76,57 @@ class APCuDashboard implements DashboardInterface {
 
         $hit_rate = (int) $info['num_hits'] !== 0 ? $info['num_hits'] / ($info['num_hits'] + $info['num_misses']) : 0;
 
+        return [
+            [
+                'title'    => 'Status',
+                'moreinfo' => true,
+                'data'     => [
+                    'Start time'       => Format::time($info['start_time']),
+                    'Cache full count' => $info['expunges'],
+                ],
+            ],
+            [
+                'title' => 'Memory',
+                'data'  => [
+                    'Total' => Format::bytes((int) $total_memory),
+                    'Used'  => Format::bytes((int) $memory_used),
+                    'Free'  => Format::bytes((int) $memory_info['avail_mem']),
+                ],
+            ],
+            [
+                'title' => 'Stats',
+                'data'  => [
+                    'Cached scripts' => $info['num_entries'],
+                    'Hits'           => Format::number((int) $info['num_hits']),
+                    'Misses'         => Format::number((int) $info['num_misses']),
+                    'Hit rate'       => round($hit_rate * 100).'%',
+                ],
+            ],
+        ];
+    }
+
+    public function infoPanels(): string {
+        // Hide panels on these pages.
+        if (isset($_GET['moreinfo']) || isset($_GET['form']) || isset($_GET['view'], $_GET['key'])) {
+            return '';
+        }
+
         return $this->template->render('partials/info', [
             'title'             => 'PHP <span class="font-semibold">APCu</span> extension',
             'extension_version' => phpversion('apcu'),
-            'info'              => [
-                'panels' => [
-                    [
-                        'title'    => 'Status',
-                        'moreinfo' => true,
-                        'data'     => [
-                            'Start time'       => Format::time($info['start_time']),
-                            'Cache full count' => $info['expunges'],
-                        ],
-                    ],
-                    [
-                        'title' => 'Memory',
-                        'data'  => [
-                            'Total' => Format::bytes((int) $total_memory),
-                            'Used'  => Format::bytes((int) $memory_used),
-                            'Free'  => Format::bytes((int) $memory_info['avail_mem']),
-                        ],
-                    ],
-                    [
-                        'title' => 'Stats',
-                        'data'  => [
-                            'Cached scripts' => $info['num_entries'],
-                            'Hits'           => Format::number((int) $info['num_hits']),
-                            'Misses'         => Format::number((int) $info['num_misses']),
-                            'Hit rate'       => round($hit_rate * 100).'%',
-                        ],
-                    ],
-                ],
-            ],
+            'info'              => ['panels' => $this->panels()],
         ]);
     }
 
     public function dashboard(): string {
-        $info = apcu_cache_info();
-
         if (isset($_GET['moreinfo'])) {
-            $return = $this->moreInfo($info);
+            $return = $this->moreInfo();
         } elseif (isset($_GET['view'], $_GET['key'])) {
             $return = $this->viewKey();
         } elseif (isset($_GET['form'])) {
             $return = $this->form();
         } else {
-            $return = $this->mainDashboard($info);
+            $return = $this->mainDashboard();
         }
 
         return $return;

@@ -29,11 +29,11 @@ class Helpers {
     }
 
     /**
-     * Get svg icon from file.
+     * Get svg icon.
      *
-     * @param string $icon Icon name from `assets/icons/` or custom path.
+     * @param string $icon Icon name from `assets/icons/`, custom path or svg code.
      */
-    public static function svg(string $icon, ?int $size = 16, ?string $class = null): string {
+    public static function svg(string $icon, ?int $size = 16, string $class = null): string {
         $file = is_file($icon) ? $icon : __DIR__.'/../assets/icons/'.$icon.'.svg';
 
         if (is_file($file)) {
@@ -44,13 +44,13 @@ class Helpers {
 
         preg_match('~<svg([^<>]*)>~', $content, $attributes);
 
-        $size_attr = $size ? ' width="'.$size.'" height="'.$size.'"' : '';
-        $class_attr = $class ? ' class="'.$class.'"' : '';
+        $size_attr = $size !== null ? ' width="'.$size.'" height="'.$size.'"' : '';
+        $class_attr = $class !== null ? ' class="'.$class.'"' : '';
 
         return preg_replace('~<svg([^<>]*)>~', '<svg'.$attributes[1].$size_attr.$class_attr.'>', $content);
     }
 
-    public static function alert(Template $template, string $message, ?string $color = null): void {
+    public static function alert(Template $template, string $message, string $color = null): void {
         $template->addGlobal('alerts', $template->render('components/alert', [
             'message'     => $message,
             'alert_color' => $color,

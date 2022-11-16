@@ -26,15 +26,21 @@ class RedisDashboard implements DashboardInterface {
 
     private Template $template;
 
+    /**
+     * @var array<int, array<string, int|string>>
+     */
+    private array $servers;
+
     private int $current_server;
 
     public function __construct(Template $template) {
         $this->template = $template;
 
-        $servers = Config::get('redis');
+        $this->servers = Config::get('redis', []);
+
         $server = Http::get('server', 'int');
 
-        $this->current_server = array_key_exists($server, $servers) ? $server : 0;
+        $this->current_server = array_key_exists($server, $this->servers) ? $server : 0;
     }
 
     public static function check(): bool {
@@ -44,7 +50,7 @@ class RedisDashboard implements DashboardInterface {
     /**
      * @return array<string, string|array<int, string>>
      */
-    public function getDashboardInfo(): array {
+    public function dashboardInfo(): array {
         return [
             'key'    => 'redis',
             'title'  => 'Redis',
@@ -126,13 +132,12 @@ class RedisDashboard implements DashboardInterface {
 
     public function ajax(): string {
         $return = '';
-        $servers = Config::get('redis');
 
         if (isset($_GET['panel'])) {
-            $return = Helpers::returnJson($this->serverInfo($servers));
+            $return = Helpers::returnJson($this->serverInfo());
         } else {
             try {
-                $redis = $this->connect($servers[$this->current_server]);
+                $redis = $this->connect($this->servers[$this->current_server]);
 
                 if (isset($_GET['deleteall'])) {
                     $return = $this->deleteAllKeys($redis);
@@ -150,6 +155,7 @@ class RedisDashboard implements DashboardInterface {
     }
 
     public function infoPanels(): string {
+        // Hide panels on these pages.
         if (isset($_GET['moreinfo']) || isset($_GET['form']) || isset($_GET['view'], $_GET['key'])) {
             return '';
         }
@@ -165,7 +171,7 @@ class RedisDashboard implements DashboardInterface {
         $info = [];
         $info['ajax'] = true;
 
-        foreach (Config::get('redis') as $server) {
+        foreach ($this->servers as $server) {
             $info['panels'][] = [
                 'title'            => $server['name'] ?? $server['host'].':'.$server['port'],
                 'server_selection' => true,
@@ -182,17 +188,15 @@ class RedisDashboard implements DashboardInterface {
     }
 
     public function dashboard(): string {
-        $servers = Config::get('redis');
-
-        if (($servers === null ? 0 : count($servers)) === 0) {
+        if (count($this->servers) === 0) {
             return 'No servers';
         }
 
         if (isset($_GET['moreinfo'])) {
-            $return = $this->moreInfo($servers);
+            $return = $this->moreInfo();
         } else {
             try {
-                $redis = $this->connect($servers[$this->current_server]);
+                $redis = $this->connect($this->servers[$this->current_server]);
 
                 if (isset($_GET['view'], $_GET['key'])) {
                     $return = $this->viewKey($redis);

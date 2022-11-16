@@ -53,7 +53,7 @@ $admin = new Admin($tpl);
 $nav = [];
 
 foreach ($admin->getDashboards() as $d_key => $d_dashboard) {
-    $d_info = $d_dashboard->getDashboardInfo();
+    $d_info = $d_dashboard->dashboardInfo();
     $nav[$d_key] = [
         'title' => $d_info['title'],
         'icon'  => $d_info['icon'] ?? $d_key,
@@ -62,7 +62,7 @@ foreach ($admin->getDashboards() as $d_key => $d_dashboard) {
 
 $current = $admin->currentDashboard();
 $dashboard = $admin->getDashboard($current);
-$info = $dashboard->getDashboardInfo();
+$info = $dashboard->dashboardInfo();
 
 $tpl->addGlobal('current', $current);
 

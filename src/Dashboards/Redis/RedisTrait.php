@@ -44,15 +44,12 @@ trait RedisTrait {
 
     /**
      * Get server info for ajax.
-     * This allows loading data of each server separately.
-     *
-     * @param array<int, array<string, int|string>> $servers
      *
      * @return array<string, mixed>
      */
-    private function serverInfo(array $servers): array {
+    private function serverInfo(): array {
         try {
-            $redis = $this->connect($servers[Http::get('panel', 'int')]);
+            $redis = $this->connect($this->servers[Http::get('panel', 'int')]);
             $server_info = $redis->getInfo();
 
             return [
@@ -70,8 +67,6 @@ trait RedisTrait {
     }
 
     /**
-     * Delete all keys from the current database.
-     *
      * @param Compatibility\Redis|Compatibility\Predis $redis
      *
      * @throws Exception
@@ -97,13 +92,10 @@ trait RedisTrait {
         return Helpers::deleteKey($this->template, static fn (string $key): bool => $redis->del($key) > 0, true);
     }
 
-    /**
-     * @param array<int, array<string, int|string>> $servers
-     */
-    private function moreInfo(array $servers): string {
+    private function moreInfo(): string {
         try {
             $id = Http::get('moreinfo', 'int');
-            $server_data = $servers[$id];
+            $server_data = $this->servers[$id];
             $redis = $this->connect($server_data);
             $info = $redis->getInfo();
 
@@ -156,8 +148,6 @@ trait RedisTrait {
     }
 
     /**
-     * View key values.
-     *
      * @param Compatibility\Redis|Compatibility\Predis $redis
      *
      * @throws Exception
@@ -282,8 +272,6 @@ trait RedisTrait {
     }
 
     /**
-     * Get all keys with data.
-     *
      * @param Compatibility\Redis|Compatibility\Predis $redis
      *
      * @return array<int, array<string, string|int>>
@@ -323,8 +311,6 @@ trait RedisTrait {
     }
 
     /**
-     * Import key.
-     *
      * @param Compatibility\Redis|Compatibility\Predis $redis
      *
      * @throws Exception
@@ -347,8 +333,6 @@ trait RedisTrait {
     }
 
     /**
-     * Get server databases.
-     *
      * @param Compatibility\Redis|Compatibility\Predis $redis
      *
      * @return array<int, string>
@@ -382,8 +366,6 @@ trait RedisTrait {
     }
 
     /**
-     * Main dashboard content.
-     *
      * @param Compatibility\Redis|Compatibility\Predis $redis
      *
      * @throws Exception

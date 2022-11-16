@@ -28,7 +28,8 @@ class Memcache extends \Memcache implements CompatibilityInterface {
     }
 
     public function isConnected(): bool {
-        $stats = @$this->getStats(); // Need to be silenced since Memcache doesn't throw exceptions...
+        // Need to be silenced since Memcache doesn't throw exceptions...
+        $stats = @$this->getStats();
 
         return isset($stats['pid']) && $stats['pid'] > 0;
     }

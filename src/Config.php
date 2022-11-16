@@ -14,9 +14,11 @@ namespace RobiNN\Pca;
 
 class Config {
     /**
+     * @param mixed $default
+     *
      * @return array<int|string, mixed>|bool|int|string|null
      */
-    public static function get(string $key) {
+    public static function get(string $key, $default = null) {
         if (is_file(__DIR__.'/../config.php')) {
             $config = (array) require __DIR__.'/../config.php';
         } elseif (is_file(__DIR__.'/../config.dist.php')) {
@@ -27,22 +29,25 @@ class Config {
 
         $config = self::getEnvConfig($config);
 
-        return $config[$key] ?? null;
+        return $config[$key] ?? $default;
     }
 
     /**
      * Get config from ENV.
      *
-     * @param array<string, mixed> $config
+     * All keys from the config file are supported ENV variables, they just must start with PCA_ prefix.
+     * Since keys with underscores are converted to an array, use a dash to create a space (-).
+     *
+     * E.g.
+     * PCA_TIME-FORMAT
+     * PCA_REDIS_1_HOST = 1 is server id
+     * PCA_MEMCACHED_0_HOST ...
+     *
+     * @param array<string, mixed> $config The default config that will be merged with ENV.
      *
      * @return array<string, mixed>
      */
     private static function getEnvConfig(array $config): array {
-        // All keys must start with PCA_ prefix.
-        // E.g.
-        // PCA_TIMEFORMAT
-        // PCA_REDIS_1_HOST = 1 is server id
-        // PCA_MEMCACHED_0_HOST ...
         $vars = preg_grep('/^PCA_/', array_keys(getenv()));
 
         if (count($vars)) {
@@ -60,12 +65,10 @@ class Config {
      * It allows app to use ENV variables and config.php together.
      *
      * @param array<string, mixed> $array
-     * @param string               $array_key
-     * @param string               $value
      */
-    private static function envVarToArray(array &$array, string $array_key, string $value): void {
-        $array_key = str_replace('PCA_', '', $array_key);
-        $keys = explode('_', $array_key);
+    private static function envVarToArray(array &$array, string $var, string $value): void {
+        $var = str_replace('PCA_', '', $var);
+        $keys = explode('_', $var);
         $keys = array_map('strtolower', $keys);
 
         foreach ($keys as $i => $key) {
@@ -87,6 +90,8 @@ class Config {
 
     /**
      * Get encoders.
+     *
+     * Used in forms.
      *
      * @return array<string, string>
      */

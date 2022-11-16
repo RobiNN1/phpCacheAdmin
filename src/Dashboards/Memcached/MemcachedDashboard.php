@@ -24,13 +24,20 @@ class MemcachedDashboard implements DashboardInterface {
 
     private Template $template;
 
+    /**
+     * @var array<int, array<string, int|string>>
+     */
+    private array $servers;
+
     private int $current_server;
 
     public function __construct(Template $template) {
         $this->template = $template;
 
+        $this->servers = Config::get('memcached', []);
+
         $server = Http::get('server', 'int');
-        $this->current_server = array_key_exists($server, Config::get('memcached')) ? $server : 0;
+        $this->current_server = array_key_exists($server, $this->servers) ? $server : 0;
     }
 
     public static function check(): bool {
@@ -43,7 +50,7 @@ class MemcachedDashboard implements DashboardInterface {
     /**
      * @return array<string, string|array<int, string>>
      */
-    public function getDashboardInfo(): array {
+    public function dashboardInfo(): array {
         return [
             'key'    => 'memcached',
             'title'  => 'Memcached',
@@ -99,13 +106,12 @@ class MemcachedDashboard implements DashboardInterface {
 
     public function ajax(): string {
         $return = '';
-        $servers = Config::get('memcached');
 
         if (isset($_GET['panel'])) {
-            $return = Helpers::returnJson($this->serverInfo($servers));
+            $return = Helpers::returnJson($this->serverInfo());
         } else {
             try {
-                $memcached = $this->connect($servers[$this->current_server]);
+                $memcached = $this->connect($this->servers[$this->current_server]);
 
                 if (isset($_GET['deleteall'])) {
                     $return = $this->deleteAllKeys($memcached);
@@ -122,7 +128,26 @@ class MemcachedDashboard implements DashboardInterface {
         return $return;
     }
 
+    /**
+     * @return array<int, mixed>
+     */
+    private function panels(): array {
+        $panels = [];
+
+        foreach ($this->servers as $server) {
+            $panels[] = [
+                'title'            => $server['name'] ?? $server['host'].':'.$server['port'],
+                'server_selection' => true,
+                'current_server'   => $this->current_server,
+                'moreinfo'         => true,
+            ];
+        }
+
+        return $panels;
+    }
+
     public function infoPanels(): string {
+        // Hide panels on these pages.
         if (isset($_GET['moreinfo']) || isset($_GET['form']) || isset($_GET['view'], $_GET['key'])) {
             return '';
         }
@@ -136,37 +161,26 @@ class MemcachedDashboard implements DashboardInterface {
             $version = Compatibility\PHPMem::VERSION;
         }
 
-        $info = [];
-        $info['ajax'] = true;
-
-        foreach (Config::get('memcached') as $server) {
-            $info['panels'][] = [
-                'title'            => $server['name'] ?? $server['host'].':'.$server['port'],
-                'server_selection' => true,
-                'current_server'   => $this->current_server,
-                'moreinfo'         => true,
-            ];
-        }
-
         return $this->template->render('partials/info', [
             'title'             => $title ?? null,
             'extension_version' => $version ?? null,
-            'info'              => $info,
+            'info'              => [
+                'ajax'   => true,
+                'panels' => $this->panels(),
+            ],
         ]);
     }
 
     public function dashboard(): string {
-        $servers = Config::get('memcached');
-
-        if (($servers === null ? 0 : count($servers)) === 0) {
+        if (count($this->servers) === 0) {
             return 'No servers';
         }
 
         if (isset($_GET['moreinfo'])) {
-            $return = $this->moreInfo($servers);
+            $return = $this->moreInfo();
         } else {
             try {
-                $memcached = $this->connect($servers[$this->current_server]);
+                $memcached = $this->connect($this->servers[$this->current_server]);
 
                 if (isset($_GET['view'], $_GET['key'])) {
                     $return = $this->viewKey($memcached);

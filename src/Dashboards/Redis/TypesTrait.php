@@ -44,8 +44,6 @@ trait TypesTrait {
      * Used in edit form.
      *
      * @param Compatibility\Redis|Compatibility\Predis $redis
-     * @param string                                   $type
-     * @param string                                   $key
      *
      * @return array<int, mixed>
      * @throws Exception
@@ -101,8 +99,6 @@ trait TypesTrait {
      * Used in view page.
      *
      * @param Compatibility\Redis|Compatibility\Predis $redis
-     * @param string                                   $type
-     * @param string                                   $key
      *
      * @return array<int, mixed>|string
      * @throws Exception
@@ -135,8 +131,6 @@ trait TypesTrait {
     }
 
     /**
-     * Save key.
-     *
      * @param Compatibility\Redis|Compatibility\Predis $redis
      *
      * @throws Exception
@@ -206,8 +200,6 @@ trait TypesTrait {
     }
 
     /**
-     * Delete sub key.
-     *
      * @param Compatibility\Redis|Compatibility\Predis $redis
      *
      * @throws Exception
@@ -238,8 +230,6 @@ trait TypesTrait {
     }
 
     /**
-     * Get a number of items in a key.
-     *
      * @param Compatibility\Redis|Compatibility\Predis $redis
      *
      * @throws Exception

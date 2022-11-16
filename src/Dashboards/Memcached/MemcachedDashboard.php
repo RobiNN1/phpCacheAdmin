@@ -118,7 +118,7 @@ class MemcachedDashboard implements DashboardInterface {
                 }
 
                 if (isset($_GET['delete'])) {
-                    $return = $this->deleteKey($memcached);
+                    $return = Helpers::deleteKey($this->template, static fn (string $key): bool => $memcached->delete($key));
                 }
             } catch (DashboardException|MemcachedException $e) {
                 $return = $e->getMessage();
@@ -126,24 +126,6 @@ class MemcachedDashboard implements DashboardInterface {
         }
 
         return $return;
-    }
-
-    /**
-     * @return array<int, mixed>
-     */
-    private function panels(): array {
-        $panels = [];
-
-        foreach ($this->servers as $server) {
-            $panels[] = [
-                'title'            => $server['name'] ?? $server['host'].':'.$server['port'],
-                'server_selection' => true,
-                'current_server'   => $this->current_server,
-                'moreinfo'         => true,
-            ];
-        }
-
-        return $panels;
     }
 
     public function infoPanels(): string {
@@ -154,7 +136,7 @@ class MemcachedDashboard implements DashboardInterface {
 
         if (extension_loaded('memcached') || extension_loaded('memcache')) {
             $memcached = extension_loaded('memcached') ? 'd' : '';
-            $title = 'PHP <span class="font-semibold">Memcache'.$memcached.'</span> extension';
+            $title = 'PHP Memcache'.$memcached.' extension';
             $version = phpversion('memcache'.$memcached);
         } elseif (class_exists(Compatibility\PHPMem::class)) {
             $title = 'PHPMem';

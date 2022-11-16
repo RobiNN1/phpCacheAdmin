@@ -13,7 +13,7 @@ declare(strict_types=1);
 namespace RobiNN\Pca\Dashboards\OPCache;
 
 use RobiNN\Pca\Dashboards\DashboardInterface;
-use RobiNN\Pca\Format;
+use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Template;
 
 class OPCacheDashboard implements DashboardInterface {
@@ -58,59 +58,10 @@ class OPCacheDashboard implements DashboardInterface {
         }
 
         if (isset($_GET['delete'])) {
-            $return = $this->deleteScript();
+            $return = Helpers::deleteKey($this->template, static fn (string $key): bool => opcache_invalidate($key, true));
         }
 
         return $return;
-    }
-
-    /**
-     * @return array<int, mixed>
-     */
-    private function panels(): array {
-        $status = opcache_get_status();
-        $configuration = opcache_get_configuration();
-
-        $stats = $status['opcache_statistics'];
-
-        $total_memory = $configuration['directives']['opcache.memory_consumption'];
-        $memory = $status['memory_usage'];
-        $memory_usage = ($memory['used_memory'] + $memory['wasted_memory']) / $total_memory;
-
-        return [
-            [
-                'title'    => 'Status',
-                'moreinfo' => true,
-                'data'     => [
-                    'JIT'          => isset($status['jit']) && $status['jit']['enabled'] ? 'Enabled' : 'Disabled',
-                    'Start time'   => Format::time($stats['start_time']),
-                    'Last restart' => Format::time($stats['last_restart_time']),
-                    'Cache full'   => $status['cache_full'] ? 'Yes' : 'No',
-                ],
-            ],
-            [
-                'title' => 'Memory',
-                'data'  => [
-                    'Total'          => Format::bytes($total_memory),
-                    'Usage'          => round(100 * $memory_usage).'%',
-                    'Used'           => Format::bytes($memory['used_memory']),
-                    'Free'           => Format::bytes($memory['free_memory']),
-                    'Wasted'         => Format::bytes($memory['wasted_memory']),
-                    'Current wasted' => round($memory['current_wasted_percentage'], 3).'%',
-                ],
-            ],
-            [
-                'title' => 'Stats',
-                'data'  => [
-                    'Cached scripts'  => $stats['num_cached_scripts'],
-                    'Cached keys'     => Format::number($stats['num_cached_keys']),
-                    'Max cached keys' => Format::number($stats['max_cached_keys']),
-                    'Hits'            => Format::number($stats['hits']),
-                    'Misses'          => Format::number($stats['misses']),
-                    'Hit rate'        => round($stats['opcache_hit_rate']).'%',
-                ],
-            ],
-        ];
     }
 
     public function infoPanels(): string {
@@ -120,7 +71,7 @@ class OPCacheDashboard implements DashboardInterface {
         }
 
         return $this->template->render('partials/info', [
-            'title'             => 'PHP <span class="font-semibold">OPCache</span> extension',
+            'title'             => 'PHP OPCache extension',
             'extension_version' => phpversion('Zend OPcache'),
             'info'              => ['panels' => $this->panels()],
         ]);

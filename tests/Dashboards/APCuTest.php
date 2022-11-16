@@ -31,7 +31,7 @@ final class APCuTest extends TestCase {
     }
 
     /**
-     * @throws ReflectionException|JsonException
+     * @throws JsonException
      */
     public function testDeleteKey(): void {
         $key = 'pu-test-delete-key';
@@ -42,13 +42,13 @@ final class APCuTest extends TestCase {
 
         $this->assertSame(
             $this->template->render('components/alert', ['message' => 'Key "'.$key.'" has been deleted.']),
-            self::callMethod($this->apcu, 'deleteKey')
+            Helpers::deleteKey($this->template, static fn (string $key): bool => apcu_delete($key), true)
         );
         $this->assertFalse(apcu_exists($key));
     }
 
     /**
-     * @throws ReflectionException|JsonException
+     * @throws JsonException
      */
     public function testDeleteKeys(): void {
         $key1 = 'pu-test-delete-key1';
@@ -63,16 +63,13 @@ final class APCuTest extends TestCase {
 
         $this->assertSame(
             $this->template->render('components/alert', ['message' => 'Keys has been deleted.']),
-            self::callMethod($this->apcu, 'deleteKey')
+            Helpers::deleteKey($this->template, static fn (string $key): bool => apcu_delete($key), true)
         );
         $this->assertFalse(apcu_exists($key1));
         $this->assertFalse(apcu_exists($key2));
         $this->assertFalse(apcu_exists($key3));
     }
 
-    /**
-     * @throws ReflectionException
-     */
     public function testSetGetKey(): void {
         $keys = [
             'string' => ['original' => 'phpCacheAdmin', 'expected' => 'phpCacheAdmin'],

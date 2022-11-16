@@ -135,6 +135,29 @@ class Helpers {
         return $template->render('components/alert', ['message' => $message]);
     }
 
+    public static function import(callable $exists, callable $store, string $type = 'text/plain'): void {
+        if ($_FILES['import']['type'] === $type) {
+            $key_name = Http::post('key_name');
+
+            if (!$exists($key_name)) {
+                $value = file_get_contents($_FILES['import']['tmp_name']);
+
+                $store($key_name, $value, Http::post('expire', 'int'));
+
+                Http::redirect();
+            }
+        }
+    }
+
+    public static function export(string $key, string $value, string $ext = 'txt', string $type = 'text/plain'): void {
+        header('Content-disposition: attachment; filename='.$key.'.'.$ext);
+        header('Content-Type: '.$type);
+
+        echo $value;
+
+        exit;
+    }
+
     /**
      * Convert mixed data to string.
      *

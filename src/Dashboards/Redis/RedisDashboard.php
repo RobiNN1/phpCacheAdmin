@@ -144,7 +144,7 @@ class RedisDashboard implements DashboardInterface {
                 }
 
                 if (isset($_GET['delete'])) {
-                    $return = $this->deleteKey($redis);
+                    $return = Helpers::deleteKey($this->template, static fn (string $key): bool => $redis->del($key) > 0, true);
                 }
             } catch (DashboardException|Exception $e) {
                 $return = $e->getMessage();
@@ -161,29 +161,20 @@ class RedisDashboard implements DashboardInterface {
         }
 
         if (extension_loaded('redis')) {
-            $title = 'PHP <span class="font-semibold">Redis</span> extension';
+            $title = 'PHP Redis extension';
             $version = phpversion('redis');
         } elseif (class_exists(Predis::class)) {
             $title = 'Predis';
             $version = Predis::VERSION;
         }
 
-        $info = [];
-        $info['ajax'] = true;
-
-        foreach ($this->servers as $server) {
-            $info['panels'][] = [
-                'title'            => $server['name'] ?? $server['host'].':'.$server['port'],
-                'server_selection' => true,
-                'current_server'   => $this->current_server,
-                'moreinfo'         => true,
-            ];
-        }
-
         return $this->template->render('partials/info', [
             'title'             => $title ?? null,
             'extension_version' => $version ?? null,
-            'info'              => $info,
+            'info'              => [
+                'ajax'   => true,
+                'panels' => $this->panels(),
+            ],
         ]);
     }
 

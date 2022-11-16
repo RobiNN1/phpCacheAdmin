@@ -51,29 +51,7 @@ class ServerDashboard implements DashboardInterface {
 
         return $this->template->render('partials/info', [
             'panels_toggler' => false,
-            'info'           => [
-                'panels' => [
-                    [
-                        'title'    => 'PHP Info',
-                        'moreinfo' => true,
-                        'data'     => [
-                            'PHP Version'          => PHP_VERSION,
-                            'PHP Interface'        => PHP_SAPI,
-                            'Max Upload File Size' => ini_get('file_uploads') ? ini_get('upload_max_filesize').'B' : 'n/a',
-                            'Disabled functions'   => $this->getDisabledFunctions(),
-                            'Xdebug'               => extension_loaded('xdebug') ? 'Enabled - v'.phpversion('xdebug') : 'Disabled',
-                        ],
-                    ],
-                    [
-                        'title' => 'Server Info',
-                        'data'  => [
-                            'Server'     => php_uname(),
-                            'Web Server' => $_SERVER['SERVER_SOFTWARE'],
-                            'User Agent' => $_SERVER['HTTP_USER_AGENT'],
-                        ],
-                    ],
-                ],
-            ],
+            'info'           => ['panels' => $this->panels()],
         ]);
     }
 

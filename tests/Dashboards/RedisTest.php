@@ -12,13 +12,14 @@ declare(strict_types=1);
 
 namespace Tests\Dashboards;
 
+use Exception;
 use JsonException;
-use RedisException;
 use ReflectionException;
 use RobiNN\Pca\Dashboards\DashboardException;
 use RobiNN\Pca\Dashboards\Redis\Compatibility\Predis;
 use RobiNN\Pca\Dashboards\Redis\Compatibility\Redis;
 use RobiNN\Pca\Dashboards\Redis\RedisDashboard;
+use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
 use RobiNN\Pca\Template;
 use Tests\TestCase;
@@ -43,7 +44,7 @@ final class RedisTest extends TestCase {
     }
 
     /**
-     * @throws RedisException|ReflectionException|JsonException
+     * @throws Exception|JsonException
      */
     public function testDeleteKey(): void {
         $key = 'pu-test-delete-key';
@@ -54,13 +55,13 @@ final class RedisTest extends TestCase {
 
         $this->assertSame(
             $this->template->render('components/alert', ['message' => 'Key "'.$key.'" has been deleted.']),
-            self::callMethod($this->dashboard, 'deleteKey', $this->redis)
+            Helpers::deleteKey($this->template, fn (string $key): bool => $this->redis->del($key) > 0, true)
         );
         $this->assertSame(0, $this->redis->exists($key));
     }
 
     /**
-     * @throws RedisException|ReflectionException|JsonException
+     * @throws Exception|JsonException
      */
     public function testDeleteKeys(): void {
         $key1 = 'pu-test-delete-key1';
@@ -75,7 +76,7 @@ final class RedisTest extends TestCase {
 
         $this->assertSame(
             $this->template->render('components/alert', ['message' => 'Keys has been deleted.']),
-            self::callMethod($this->dashboard, 'deleteKey', $this->redis)
+            Helpers::deleteKey($this->template, fn (string $key): bool => $this->redis->del($key) > 0, true)
         );
         $this->assertSame(0, $this->redis->exists($key1));
         $this->assertSame(0, $this->redis->exists($key2));
@@ -83,7 +84,7 @@ final class RedisTest extends TestCase {
     }
 
     /**
-     * @throws RedisException
+     * @throws Exception
      */
     public function testSetGetKey(): void {
         $keys = [
@@ -120,7 +121,7 @@ final class RedisTest extends TestCase {
     }
 
     /**
-     * @throws RedisException|ReflectionException
+     * @throws Exception|ReflectionException
      */
     public function testSaveKey(): void {
         $key = 'pu-test-save';
@@ -140,7 +141,7 @@ final class RedisTest extends TestCase {
     }
 
     /**
-     * @throws RedisException
+     * @throws Exception
      */
     public function testGetInfo(): void {
         $this->assertArrayHasKey('redis_version', $this->redis->getInfo('server'));

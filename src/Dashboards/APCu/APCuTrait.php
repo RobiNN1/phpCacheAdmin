@@ -20,8 +20,45 @@ use RobiNN\Pca\Paginator;
 use RobiNN\Pca\Value;
 
 trait APCuTrait {
-    private function deleteKey(): string {
-        return Helpers::deleteKey($this->template, static fn (string $key): bool => apcu_delete($key), true);
+    /**
+     * @return array<int, mixed>
+     */
+    private function panels(): array {
+        $info = apcu_cache_info();
+        $memory_info = apcu_sma_info();
+
+        $total_memory = $memory_info['num_seg'] * $memory_info['seg_size'];
+        $memory_used = ($memory_info['num_seg'] * $memory_info['seg_size']) - $memory_info['avail_mem'];
+
+        $hit_rate = (int) $info['num_hits'] !== 0 ? $info['num_hits'] / ($info['num_hits'] + $info['num_misses']) : 0;
+
+        return [
+            [
+                'title'    => 'Status',
+                'moreinfo' => true,
+                'data'     => [
+                    'Start time'       => Format::time($info['start_time']),
+                    'Cache full count' => $info['expunges'],
+                ],
+            ],
+            [
+                'title' => 'Memory',
+                'data'  => [
+                    'Total' => Format::bytes((int) $total_memory),
+                    'Used'  => Format::bytes((int) $memory_used),
+                    'Free'  => Format::bytes((int) $memory_info['avail_mem']),
+                ],
+            ],
+            [
+                'title' => 'Stats',
+                'data'  => [
+                    'Cached scripts' => $info['num_entries'],
+                    'Hits'           => Format::number((int) $info['num_hits']),
+                    'Misses'         => Format::number((int) $info['num_misses']),
+                    'Hit rate'       => round($hit_rate * 100).'%',
+                ],
+            ],
+        ];
     }
 
     private function moreInfo(): string {
@@ -53,10 +90,7 @@ trait APCuTrait {
         $value = Helpers::mixedToString(apcu_fetch($key));
 
         if (isset($_GET['export'])) {
-            header('Content-disposition: attachment; filename='.$key.'.txt');
-            header('Content-Type: text/plain');
-            echo $value;
-            exit;
+            Helpers::export($key, $value);
         }
 
         if (isset($_GET['delete'])) {
@@ -112,7 +146,6 @@ trait APCuTrait {
         if (isset($_GET['key']) && apcu_exists($key)) {
             $value = Helpers::mixedToString(apcu_fetch($key));
             $info = apcu_key_info($key);
-
             $expire = $info['ttl'];
         }
 
@@ -161,25 +194,14 @@ trait APCuTrait {
         return $keys;
     }
 
-    private function import(): void {
-        if ($_FILES['import']['type'] === 'text/plain') {
-            $key_name = Http::post('key_name');
-
-            if (!apcu_exists($key_name)) {
-                $value = file_get_contents($_FILES['import']['tmp_name']);
-
-                apcu_store($key_name, $value, Http::post('expire', 'int'));
-
-                Http::redirect();
-            }
-        }
-    }
-
     private function mainDashboard(): string {
         $keys = $this->getAllKeys();
 
         if (isset($_POST['submit_import_key'])) {
-            $this->import();
+            Helpers::import(
+                static fn (string $key): bool => apcu_exists($key),
+                static fn (string $key, string $value, int $expire): bool => apcu_store($key, $value, $expire)
+            );
         }
 
         $paginator = new Paginator($this->template, $keys);

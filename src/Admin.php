@@ -52,33 +52,4 @@ class Admin {
 
         return array_key_exists($current, $dashboards) ? $current : array_key_first($dashboards);
     }
-
-    /**
-     * @param string $git_path Path to the .git folder.
-     *
-     * @return ?array<string, string>
-     */
-    public function getGitInfo(string $git_path): ?array {
-        $head_file = $git_path.'/HEAD';
-
-        if (!is_file($head_file)) {
-            return null;
-        }
-
-        $head_file_parts = explode('/', file_get_contents($head_file));
-        $branch = isset($head_file_parts[2]) ? trim($head_file_parts[2]) : '';
-        $branch_file = $git_path.'/refs/heads/'.$branch;
-
-        if (!is_file($branch_file)) {
-            return null;
-        }
-
-        $commit = trim(file_get_contents($branch_file));
-
-        return [
-            'commit'    => $commit,
-            'short_sha' => substr($commit, 0, 7),
-            'branch'    => $branch,
-        ];
-    }
 }

@@ -20,6 +20,7 @@ use RobiNN\Pca\Dashboards\Memcached\Compatibility\Memcached;
 use RobiNN\Pca\Dashboards\Memcached\Compatibility\PHPMem;
 use RobiNN\Pca\Dashboards\Memcached\MemcachedDashboard;
 use RobiNN\Pca\Dashboards\Memcached\MemcachedException;
+use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
 use RobiNN\Pca\Template;
 use Tests\TestCase;
@@ -44,7 +45,7 @@ final class MemcachedTest extends TestCase {
     }
 
     /**
-     * @throws MemcachedException|ReflectionException|JsonException
+     * @throws MemcachedException|JsonException
      */
     public function testDeleteKey(): void {
         $key = 'pu-test-delete-key';
@@ -55,13 +56,13 @@ final class MemcachedTest extends TestCase {
 
         $this->assertSame(
             $this->template->render('components/alert', ['message' => 'Key "'.$key.'" has been deleted.']),
-            self::callMethod($this->dashboard, 'deleteKey', $this->memcached)
+            Helpers::deleteKey($this->template, fn (string $key): bool => $this->memcached->delete($key))
         );
         $this->assertFalse($this->memcached->exists($key));
     }
 
     /**
-     * @throws MemcachedException|ReflectionException|JsonException
+     * @throws MemcachedException|JsonException
      */
     public function testDeleteKeys(): void {
         $key1 = 'pu-test-delete-key1';
@@ -76,7 +77,7 @@ final class MemcachedTest extends TestCase {
 
         $this->assertSame(
             $this->template->render('components/alert', ['message' => 'Keys has been deleted.']),
-            self::callMethod($this->dashboard, 'deleteKey', $this->memcached)
+            Helpers::deleteKey($this->template, fn (string $key): bool => $this->memcached->delete($key))
         );
         $this->assertFalse($this->memcached->exists($key1));
         $this->assertFalse($this->memcached->exists($key2));

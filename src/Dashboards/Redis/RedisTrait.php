@@ -82,14 +82,21 @@ trait RedisTrait {
     }
 
     /**
-     * Delete key or selected keys.
-     *
-     * @param Compatibility\Redis|Compatibility\Predis $redis
-     *
-     * @throws Exception
+     * @return array<int, mixed>
      */
-    private function deleteKey($redis): string {
-        return Helpers::deleteKey($this->template, static fn (string $key): bool => $redis->del($key) > 0, true);
+    private function panels(): array {
+        $panels = [];
+
+        foreach ($this->servers as $server) {
+            $panels[] = [
+                'title'            => $server['name'] ?? $server['host'].':'.$server['port'],
+                'server_selection' => true,
+                'current_server'   => $this->current_server,
+                'moreinfo'         => true,
+            ];
+        }
+
+        return $panels;
     }
 
     private function moreInfo(): string {
@@ -175,10 +182,7 @@ trait RedisTrait {
         }
 
         if (isset($_GET['export'])) {
-            header('Content-disposition: attachment; filename='.$key.'.bin');
-            header('Content-Type: application/octet-stream');
-            echo $redis->dump($key);
-            exit;
+            Helpers::export($key, $redis->dump($key), 'bin', 'application/octet-stream');
         }
 
         $value = $this->getAllKeyValues($redis, $type, $key);
@@ -313,28 +317,6 @@ trait RedisTrait {
     /**
      * @param Compatibility\Redis|Compatibility\Predis $redis
      *
-     * @throws Exception
-     */
-    private function import($redis): void {
-        if ($_FILES['import']['type'] === 'application/octet-stream') {
-            $key_name = Http::post('key_name');
-
-            if (!$redis->exists($key_name)) {
-                $value = file_get_contents($_FILES['import']['tmp_name']);
-
-                $expire = Http::post('expire', 'int');
-                $expire = $expire === -1 ? 0 : $expire;
-
-                $redis->restore($key_name, $expire, $value);
-
-                Http::redirect(['db']);
-            }
-        }
-    }
-
-    /**
-     * @param Compatibility\Redis|Compatibility\Predis $redis
-     *
      * @return array<int, string>
      * @throws Exception
      */
@@ -374,7 +356,13 @@ trait RedisTrait {
         $keys = $this->getAllKeys($redis);
 
         if (isset($_POST['submit_import_key'])) {
-            $this->import($redis);
+            Helpers::import(
+                static fn (string $key): bool => $redis->exists($key) > 0,
+                static function (string $key, string $value, int $expire) use ($redis): bool {
+                    return $redis->restore($key, ($expire === -1 ? 0 : $expire), $value);
+                },
+                'application/octet-stream'
+            );
         }
 
         $paginator = new Paginator($this->template, $keys, [['db', 's', 'pp'], ['p' => '']]);

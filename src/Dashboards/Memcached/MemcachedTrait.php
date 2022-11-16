@@ -69,14 +69,21 @@ trait MemcachedTrait {
     }
 
     /**
-     * Delete key or selected keys.
-     *
-     * @param Compatibility\Memcached|Compatibility\Memcache|Compatibility\PHPMem $memcached
-     *
-     * @throws MemcachedException
+     * @return array<int, mixed>
      */
-    private function deleteKey($memcached): string {
-        return Helpers::deleteKey($this->template, static fn (string $key): bool => $memcached->delete($key));
+    private function panels(): array {
+        $panels = [];
+
+        foreach ($this->servers as $server) {
+            $panels[] = [
+                'title'            => $server['name'] ?? $server['host'].':'.$server['port'],
+                'server_selection' => true,
+                'current_server'   => $this->current_server,
+                'moreinfo'         => true,
+            ];
+        }
+
+        return $panels;
     }
 
     private function moreInfo(): string {
@@ -113,10 +120,7 @@ trait MemcachedTrait {
         }
 
         if (isset($_GET['export'])) {
-            header('Content-disposition: attachment; filename='.$key.'.txt');
-            header('Content-Type: text/plain');
-            echo $memcached->getKey($key);
-            exit;
+            Helpers::export($key, $memcached->getKey($key));
         }
 
         if (isset($_GET['delete'])) {
@@ -234,30 +238,14 @@ trait MemcachedTrait {
      *
      * @throws MemcachedException
      */
-    private function import($memcached): void {
-        if ($_FILES['import']['type'] === 'text/plain') {
-            $key_name = Http::post('key_name');
-
-            if (!$memcached->exists($key_name)) {
-                $value = file_get_contents($_FILES['import']['tmp_name']);
-
-                $memcached->store($key_name, $value, Http::post('expire', 'int'));
-
-                Http::redirect();
-            }
-        }
-    }
-
-    /**
-     * @param Compatibility\Memcached|Compatibility\Memcache|Compatibility\PHPMem $memcached
-     *
-     * @throws MemcachedException
-     */
     private function mainDashboard($memcached): string {
         $keys = $this->getAllKeys($memcached);
 
         if (isset($_POST['submit_import_key'])) {
-            $this->import($memcached);
+            Helpers::import(
+                static fn (string $key): bool => $memcached->exists($key),
+                static fn (string $key, string $value, int $expire): bool => $memcached->store($key, $value, $expire)
+            );
         }
 
         $paginator = new Paginator($this->template, $keys);

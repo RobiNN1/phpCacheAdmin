@@ -46,8 +46,10 @@ class Helpers {
 
         $size_attr = $size !== null ? ' width="'.$size.'" height="'.$size.'"' : '';
         $class_attr = $class !== null ? ' class="'.$class.'"' : '';
+        $svg = preg_replace('~<svg([^<>]*)>~', '<svg'.$attributes[1].$size_attr.$class_attr.'>', $content);
+        $svg = preg_replace('/\s+/', ' ', $svg);
 
-        return preg_replace('~<svg([^<>]*)>~', '<svg'.$attributes[1].$size_attr.$class_attr.'>', $content);
+        return str_replace("\n", '', $svg);
     }
 
     public static function alert(Template $template, string $message, string $color = null): void {

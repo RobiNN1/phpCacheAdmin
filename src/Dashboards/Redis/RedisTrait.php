@@ -67,12 +67,10 @@ trait RedisTrait {
     }
 
     /**
-     * @param Compatibility\Redis|Compatibility\Predis $redis
-     *
      * @throws Exception
      */
-    private function deleteAllKeys($redis): string {
-        if ($redis->flushDB()) {
+    private function deleteAllKeys(): string {
+        if ($this->redis->flushDB()) {
             $message = 'All keys from the current database have been removed.';
         } else {
             $message = 'An error occurred while deleting all keys.';
@@ -122,13 +120,12 @@ trait RedisTrait {
     /**
      * Format view array items.
      *
-     * @param Compatibility\Redis|Compatibility\Predis $redis
-     * @param array<int, mixed>                        $value_items
+     * @param array<int, mixed> $value_items
      *
      * @return array<int, mixed>
      * @throws Exception
      */
-    private function formatViewItems($redis, string $key, array $value_items, string $type): array {
+    private function formatViewItems(string $key, array $value_items, string $type): array {
         $items = [];
 
         foreach ($value_items as $item_key => $item_value) {
@@ -147,7 +144,7 @@ trait RedisTrait {
                 'value'     => $value,
                 'encode_fn' => $encode_fn,
                 'formatted' => $is_formatted,
-                'sub_key'   => $type === 'zset' ? (string) $redis->zScore($key, $value) : $item_key,
+                'sub_key'   => $type === 'zset' ? (string) $this->redis->zScore($key, $value) : $item_key,
             ];
         }
 
@@ -155,44 +152,42 @@ trait RedisTrait {
     }
 
     /**
-     * @param Compatibility\Redis|Compatibility\Predis $redis
-     *
      * @throws Exception
      */
-    private function viewKey($redis): string {
+    private function viewKey(): string {
         $key = Http::get('key');
 
-        if (!$redis->exists($key)) {
+        if (!$this->redis->exists($key)) {
             Http::redirect(['db']);
         }
 
         try {
-            $type = $redis->getType($key);
+            $type = $this->redis->getType($key);
         } catch (DashboardException $e) {
             return $e->getMessage();
         }
 
         if (isset($_GET['deletesub'])) {
-            $this->deleteSubKey($redis, $type, $key);
+            $this->deleteSubKey($type, $key);
         }
 
         if (isset($_GET['delete'])) {
-            $redis->del($key);
+            $this->redis->del($key);
             Http::redirect(['db']);
         }
 
         if (isset($_GET['export'])) {
-            Helpers::export($key, $redis->dump($key), 'bin', 'application/octet-stream');
+            Helpers::export($key, $this->redis->dump($key), 'bin', 'application/octet-stream');
         }
 
-        $value = $this->getAllKeyValues($redis, $type, $key);
+        $value = $this->getAllKeyValues($type, $key);
 
         $paginator = '';
         $encode_fn = null;
         $is_formatted = null;
 
         if (is_array($value)) {
-            $items = $this->formatViewItems($redis, $key, $value, $type);
+            $items = $this->formatViewItems($key, $value, $type);
 
             $paginator = new Paginator($this->template, $items, [['db', 'view', 'key', 'pp'], ['p' => '']]);
             $value = $paginator->getPaginated();
@@ -201,9 +196,9 @@ trait RedisTrait {
             [$value, $encode_fn, $is_formatted] = Value::format($value);
         }
 
-        $ttl = $redis->ttl($key);
+        $ttl = $this->redis->ttl($key);
 
-        $size = $redis->rawCommand('MEMORY', 'usage', $key); // requires Redis >= 4.0.0
+        $size = $this->redis->rawCommand('MEMORY', 'usage', $key); // requires Redis >= 4.0.0
 
         return $this->template->render('partials/view_key', [
             'key'            => $key,
@@ -226,11 +221,9 @@ trait RedisTrait {
     /**
      * Add/edit a form.
      *
-     * @param Compatibility\Redis|Compatibility\Predis $redis
-     *
      * @throws Exception
      */
-    private function form($redis): string {
+    private function form(): string {
         $key = Http::get('key', 'string', Http::post('key'));
         $type = Http::post('redis_type');
         $index = $_POST['index'] ?? '';
@@ -241,22 +234,22 @@ trait RedisTrait {
         $value = Http::post('value');
 
         if (isset($_POST['submit'])) {
-            $this->saveKey($redis);
+            $this->saveKey();
         }
 
         // edit|subkeys
-        if (isset($_GET['key']) && $redis->exists($key)) {
+        if (isset($_GET['key']) && $this->redis->exists($key)) {
             try {
-                $type = $redis->getType($key);
+                $type = $this->redis->getType($key);
             } catch (DashboardException $e) {
                 Helpers::alert($this->template, $e->getMessage());
                 $type = 'unknown';
             }
-            $expire = $redis->ttl($key);
+            $expire = $this->redis->ttl($key);
         }
 
-        if (isset($_GET['key']) && $_GET['form'] === 'edit' && $redis->exists($key)) {
-            [$value, $index, $score, $hash_key] = $this->getKeyValue($redis, $type, $key);
+        if (isset($_GET['key']) && $_GET['form'] === 'edit' && $this->redis->exists($key)) {
+            [$value, $index, $score, $hash_key] = $this->getKeyValue($type, $key);
         }
 
         $value = Value::decode($value, $encoder);
@@ -264,7 +257,7 @@ trait RedisTrait {
         return $this->template->render('dashboards/redis/form', [
             'key'      => $key,
             'value'    => $value,
-            'types'    => $redis->getAllTypes(),
+            'types'    => $this->redis->getAllTypes(),
             'type'     => $type,
             'index'    => $index,
             'score'    => $score,
@@ -276,26 +269,24 @@ trait RedisTrait {
     }
 
     /**
-     * @param Compatibility\Redis|Compatibility\Predis $redis
-     *
      * @return array<int, array<string, string|int>>
      * @throws Exception
      */
-    private function getAllKeys($redis): array {
+    private function getAllKeys(): array {
         static $keys = [];
         $filter = Http::get('s', 'string', '*');
 
         $this->template->addGlobal('search_value', $filter);
 
-        foreach ($redis->keys($filter) as $key) {
+        foreach ($this->redis->keys($filter) as $key) {
             try {
-                $type = $redis->getType($key);
+                $type = $this->redis->getType($key);
             } catch (DashboardException $e) {
                 $type = 'unknown';
             }
 
-            $ttl = $redis->ttl($key);
-            $total = $this->getCountOfItemsInKey($redis, $type, $key);
+            $ttl = $this->redis->ttl($key);
+            $total = $this->getCountOfItemsInKey($type, $key);
 
             $keys[] = [
                 'key'   => base64_encode($key),
@@ -315,23 +306,21 @@ trait RedisTrait {
     }
 
     /**
-     * @param Compatibility\Redis|Compatibility\Predis $redis
-     *
      * @return array<int, string>
      * @throws Exception
      */
-    private function getDatabases($redis): array {
+    private function getDatabases(): array {
         $databases = [];
 
         if (isset($this->servers[$this->current_server]['databases'])) {
             $db_count = (int) $this->servers[$this->current_server]['databases'];
         } else {
-            $dbs = (array) $redis->config('GET', 'databases');
+            $dbs = (array) $this->redis->config('GET', 'databases');
             $db_count = $dbs['databases'];
         }
 
         for ($d = 0; $d < $db_count; ++$d) {
-            $keyspace = $redis->getInfo('keyspace');
+            $keyspace = $this->redis->getInfo('keyspace');
             $keys_in_db = '';
 
             if (array_key_exists('db'.$d, $keyspace)) {
@@ -347,18 +336,16 @@ trait RedisTrait {
     }
 
     /**
-     * @param Compatibility\Redis|Compatibility\Predis $redis
-     *
      * @throws Exception
      */
-    private function mainDashboard($redis): string {
-        $keys = $this->getAllKeys($redis);
+    private function mainDashboard(): string {
+        $keys = $this->getAllKeys();
 
         if (isset($_POST['submit_import_key'])) {
             Helpers::import(
-                static fn (string $key): bool => $redis->exists($key) > 0,
-                static function (string $key, string $value, int $expire) use ($redis): bool {
-                    return $redis->restore($key, ($expire === -1 ? 0 : $expire), $value);
+                fn (string $key): bool => $this->redis->exists($key) > 0,
+                function (string $key, string $value, int $expire): bool {
+                    return $this->redis->restore($key, ($expire === -1 ? 0 : $expire), $value);
                 },
                 'application/octet-stream'
             );
@@ -367,10 +354,10 @@ trait RedisTrait {
         $paginator = new Paginator($this->template, $keys, [['db', 's', 'pp'], ['p' => '']]);
 
         return $this->template->render('dashboards/redis/redis', [
-            'databases'   => $this->getDatabases($redis),
+            'databases'   => $this->getDatabases(),
             'current_db'  => Http::get('db', 'int', $this->servers[$this->current_server]['database'] ?? 0),
             'keys'        => $paginator->getPaginated(),
-            'all_keys'    => $redis->dbSize(),
+            'all_keys'    => $this->redis->dbSize(),
             'new_key_url' => Http::queryString(['db'], ['form' => 'new']),
             'paginator'   => $paginator->render(),
         ]);

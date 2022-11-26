@@ -33,6 +33,11 @@ class RedisDashboard implements DashboardInterface {
 
     private int $current_server;
 
+    /**
+     * @var Compatibility\Redis|Compatibility\Predis
+     */
+    private $redis;
+
     public function __construct(Template $template) {
         $this->template = $template;
 
@@ -137,14 +142,14 @@ class RedisDashboard implements DashboardInterface {
             $return = Helpers::returnJson($this->serverInfo());
         } else {
             try {
-                $redis = $this->connect($this->servers[$this->current_server]);
+                $this->redis = $this->connect($this->servers[$this->current_server]);
 
                 if (isset($_GET['deleteall'])) {
-                    $return = $this->deleteAllKeys($redis);
+                    $return = $this->deleteAllKeys();
                 }
 
                 if (isset($_GET['delete'])) {
-                    $return = Helpers::deleteKey($this->template, static fn (string $key): bool => $redis->del($key) > 0, true);
+                    $return = Helpers::deleteKey($this->template, fn (string $key): bool => $this->redis->del($key) > 0, true);
                 }
             } catch (DashboardException|Exception $e) {
                 $return = $e->getMessage();
@@ -187,14 +192,14 @@ class RedisDashboard implements DashboardInterface {
             $return = $this->moreInfo();
         } else {
             try {
-                $redis = $this->connect($this->servers[$this->current_server]);
+                $this->redis = $this->connect($this->servers[$this->current_server]);
 
                 if (isset($_GET['view'], $_GET['key'])) {
-                    $return = $this->viewKey($redis);
+                    $return = $this->viewKey();
                 } elseif (isset($_GET['form'])) {
-                    $return = $this->form($redis);
+                    $return = $this->form();
                 } else {
-                    $return = $this->mainDashboard($redis);
+                    $return = $this->mainDashboard();
                 }
             } catch (DashboardException|Exception $e) {
                 return $e->getMessage();

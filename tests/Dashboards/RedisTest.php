@@ -35,12 +35,14 @@ final class RedisTest extends TestCase {
     private $redis;
 
     /**
-     * @throws DashboardException
+     * @throws DashboardException|ReflectionException
      */
     protected function setUp(): void {
         $this->template = new Template();
         $this->dashboard = new RedisDashboard($this->template);
         $this->redis = $this->dashboard->connect(['host' => '127.0.0.1', 'database' => 10]);
+
+        self::setValue($this->dashboard, 'redis', $this->redis);
     }
 
     /**
@@ -133,7 +135,7 @@ final class RedisTest extends TestCase {
         $_POST['encoder'] = 'none';
 
         Http::stopRedirect();
-        self::callMethod($this->dashboard, 'saveKey', $this->redis);
+        self::callMethod($this->dashboard, 'saveKey');
 
         $this->assertSame('test-value', $this->redis->get($key));
 

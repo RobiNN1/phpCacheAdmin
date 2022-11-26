@@ -54,12 +54,10 @@ trait MemcachedTrait {
     }
 
     /**
-     * @param Compatibility\Memcached|Compatibility\Memcache|Compatibility\PHPMem $memcached
-     *
      * @throws MemcachedException
      */
-    private function deleteAllKeys($memcached): string {
-        if ($memcached->flush()) {
+    private function deleteAllKeys(): string {
+        if ($this->memcached->flush()) {
             $message = 'All keys have been removed.';
         } else {
             $message = 'An error occurred while deleting all keys.';
@@ -108,27 +106,25 @@ trait MemcachedTrait {
     }
 
     /**
-     * @param Compatibility\Memcached|Compatibility\Memcache|Compatibility\PHPMem $memcached
-     *
      * @throws MemcachedException
      */
-    private function viewKey($memcached): string {
+    private function viewKey(): string {
         $key = Http::get('key');
 
-        if (!$memcached->exists($key)) {
+        if (!$this->memcached->exists($key)) {
             Http::redirect();
         }
 
         if (isset($_GET['export'])) {
-            Helpers::export($key, $memcached->getKey($key));
+            Helpers::export($key, $this->memcached->getKey($key));
         }
 
         if (isset($_GET['delete'])) {
-            $memcached->delete($key);
+            $this->memcached->delete($key);
             Http::redirect();
         }
 
-        $value = $memcached->getKey($key);
+        $value = $this->memcached->getKey($key);
 
         [$value, $encode_fn, $is_formatted] = Value::format($value);
 
@@ -150,21 +146,19 @@ trait MemcachedTrait {
     }
 
     /**
-     * @param Compatibility\Memcached|Compatibility\Memcache|Compatibility\PHPMem $memcached
-     *
      * @throws MemcachedException
      */
-    private function saveKey($memcached): void {
+    private function saveKey(): void {
         $key = Http::post('key');
         $expire = Http::post('expire', 'int');
         $old_key = Http::post('old_key');
         $value = Value::encode(Http::post('value'), Http::post('encoder'));
 
         if ($old_key !== '' && $old_key !== $key) {
-            $memcached->delete($old_key);
+            $this->memcached->delete($old_key);
         }
 
-        $memcached->store($key, $value, $expire);
+        $this->memcached->store($key, $value, $expire);
 
         Http::redirect([], ['view' => 'key', 'ttl' => $expire, 'key' => $key]);
     }
@@ -172,11 +166,9 @@ trait MemcachedTrait {
     /**
      * Add/edit form.
      *
-     * @param Compatibility\Memcached|Compatibility\Memcache|Compatibility\PHPMem $memcached
-     *
      * @throws MemcachedException
      */
-    private function form($memcached): string {
+    private function form(): string {
         $key = Http::get('key');
         $expire = Http::get('ttl', 'int');
         $expire = $expire === -1 ? 0 : $expire;
@@ -184,12 +176,12 @@ trait MemcachedTrait {
         $encoder = Http::get('encoder', 'string', 'none');
         $value = Http::post('value');
 
-        if (isset($_GET['key']) && $memcached->exists($key)) {
-            $value = $memcached->getKey($key);
+        if (isset($_GET['key']) && $this->memcached->exists($key)) {
+            $value = $this->memcached->getKey($key);
         }
 
         if (isset($_POST['submit'])) {
-            $this->saveKey($memcached);
+            $this->saveKey();
         }
 
         $value = Value::decode($value, $encoder);
@@ -205,15 +197,13 @@ trait MemcachedTrait {
     }
 
     /**
-     * @param Compatibility\Memcached|Compatibility\Memcache|Compatibility\PHPMem $memcached
-     *
      * @return array<int, array<string, string|int>>
      * @throws MemcachedException
      */
-    private function getAllKeys($memcached): array {
+    private function getAllKeys(): array {
         static $keys = [];
 
-        foreach ($memcached->getKeys() as $key_data) {
+        foreach ($this->memcached->getKeys() as $key_data) {
             $key = $key_data['key'] ?? $key_data;
             $ttl = $key_data['exp'] ?? null;
 
@@ -234,17 +224,15 @@ trait MemcachedTrait {
     }
 
     /**
-     * @param Compatibility\Memcached|Compatibility\Memcache|Compatibility\PHPMem $memcached
-     *
      * @throws MemcachedException
      */
-    private function mainDashboard($memcached): string {
-        $keys = $this->getAllKeys($memcached);
+    private function mainDashboard(): string {
+        $keys = $this->getAllKeys();
 
         if (isset($_POST['submit_import_key'])) {
             Helpers::import(
-                static fn (string $key): bool => $memcached->exists($key),
-                static fn (string $key, string $value, int $expire): bool => $memcached->store($key, $value, $expire)
+                fn (string $key): bool => $this->memcached->exists($key),
+                fn (string $key, string $value, int $expire): bool => $this->memcached->store($key, $value, $expire)
             );
         }
 

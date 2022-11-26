@@ -14,22 +14,29 @@ namespace Tests;
 
 use ReflectionException;
 use ReflectionMethod;
+use ReflectionProperty;
 
 abstract class TestCase extends \PHPUnit\Framework\TestCase {
     /**
      * Call private method.
      *
-     * @param object $object
-     * @param string $name
-     * @param mixed  ...$args
+     * @param mixed ...$args
      *
-     * @return mixed|string
+     * @return mixed
      * @throws ReflectionException
      */
     protected static function callMethod(object $object, string $name, ...$args) {
-        $method = new ReflectionMethod($object, $name);
-        $method->setAccessible(true);
+        return (new ReflectionMethod($object, $name))->invokeArgs($object, $args);
+    }
 
-        return $method->invokeArgs($object, $args);
+    /**
+     * Set the value of private property.
+     *
+     * @param mixed $value
+     *
+     * @throws ReflectionException
+     */
+    protected static function setValue(object $object, string $name, $value): void {
+        (new ReflectionProperty($object, $name))->setValue($object, $value);
     }
 }

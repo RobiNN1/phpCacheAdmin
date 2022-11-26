@@ -36,12 +36,14 @@ final class MemcachedTest extends TestCase {
     private $memcached;
 
     /**
-     * @throws DashboardException
+     * @throws DashboardException|ReflectionException
      */
     protected function setUp(): void {
         $this->template = new Template();
         $this->dashboard = new MemcachedDashboard($this->template);
         $this->memcached = $this->dashboard->connect(['host' => '127.0.0.1']);
+
+        self::setValue($this->dashboard, 'memcached', $this->memcached);
     }
 
     /**
@@ -132,7 +134,7 @@ final class MemcachedTest extends TestCase {
         $_POST['encoder'] = 'none';
 
         Http::stopRedirect();
-        self::callMethod($this->dashboard, 'saveKey', $this->memcached);
+        self::callMethod($this->dashboard, 'saveKey');
 
         $this->assertSame('test-value', $this->memcached->getKey($key));
 

@@ -31,6 +31,11 @@ class MemcachedDashboard implements DashboardInterface {
 
     private int $current_server;
 
+    /**
+     * @var Compatibility\Memcached|Compatibility\Memcache|Compatibility\PHPMem
+     */
+    private $memcached;
+
     public function __construct(Template $template) {
         $this->template = $template;
 
@@ -111,14 +116,14 @@ class MemcachedDashboard implements DashboardInterface {
             $return = Helpers::returnJson($this->serverInfo());
         } else {
             try {
-                $memcached = $this->connect($this->servers[$this->current_server]);
+                $this->memcached = $this->connect($this->servers[$this->current_server]);
 
                 if (isset($_GET['deleteall'])) {
-                    $return = $this->deleteAllKeys($memcached);
+                    $return = $this->deleteAllKeys();
                 }
 
                 if (isset($_GET['delete'])) {
-                    $return = Helpers::deleteKey($this->template, static fn (string $key): bool => $memcached->delete($key));
+                    $return = Helpers::deleteKey($this->template, fn (string $key): bool => $this->memcached->delete($key));
                 }
             } catch (DashboardException|MemcachedException $e) {
                 $return = $e->getMessage();
@@ -162,14 +167,14 @@ class MemcachedDashboard implements DashboardInterface {
             $return = $this->moreInfo();
         } else {
             try {
-                $memcached = $this->connect($this->servers[$this->current_server]);
+                $this->memcached = $this->connect($this->servers[$this->current_server]);
 
                 if (isset($_GET['view'], $_GET['key'])) {
-                    $return = $this->viewKey($memcached);
+                    $return = $this->viewKey();
                 } elseif (isset($_GET['form'])) {
-                    $return = $this->form($memcached);
+                    $return = $this->form();
                 } else {
-                    $return = $this->mainDashboard($memcached);
+                    $return = $this->mainDashboard();
                 }
             } catch (DashboardException|MemcachedException $e) {
                 return $e->getMessage();

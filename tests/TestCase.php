@@ -40,6 +40,9 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase {
      * @throws ReflectionException
      */
     protected static function setValue(object $object, string $name, $value): void {
-        (new ReflectionProperty($object, $name))->setValue($object, $value);
+        $property = new ReflectionProperty($object, $name);
+        $property->setAccessible(true);
+
+        $property->setValue($object, $value);
     }
 }

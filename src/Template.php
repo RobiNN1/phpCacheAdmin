@@ -51,18 +51,20 @@ class Template {
         $loader = new FilesystemLoader(__DIR__.'/../templates');
         $twig = new Environment($loader, [
             'cache' => __DIR__.'/../cache',
-            'debug' => Config::get('twigdebug'),
+            'debug' => Config::get('twigdebug', false),
         ]);
 
         foreach ($this->paths as $namespace => $path) {
             try {
-                $loader->addPath(realpath($path), $namespace);
+                if ($path = realpath($path)) {
+                    $loader->addPath($path, $namespace);
+                }
             } catch (LoaderError $e) {
                 echo $e->getMessage();
             }
         }
 
-        if (Config::get('twigdebug')) {
+        if (Config::get('twigdebug', false)) {
             $twig->addExtension(new DebugExtension());
         }
 

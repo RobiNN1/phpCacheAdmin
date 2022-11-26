@@ -31,12 +31,6 @@ do not edit `config.dist.php` directly, but copy it to `config.php`.
 
 Replace all files and delete the `cache` folder.
 
-> **Note**
->
-> `Cache` folder contains optimized Twig templates for faster page loading.
-> However, when changes are made to the Twig files, the cache will not change
-> (unless you have `twigdebug` enabled or delete folder).
-
 ## Docker
 
 https://hub.docker.com/r/robinn/phpcacheadmin
@@ -96,6 +90,8 @@ Memcached:
 - `PCA_MEMCACHED_0_PATH` Memcached unix domain socket. Optional.
 
 To add another server, add the same environment variables, but change 0 to 1 (2 for third server and so on).
+
+> All keys from the config file are supported ENV variables, they just must start with PCA_ prefix.
 
 ## Requirements
 

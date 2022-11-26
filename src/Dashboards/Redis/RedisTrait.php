@@ -322,10 +322,9 @@ trait RedisTrait {
      */
     private function getDatabases($redis): array {
         $databases = [];
-        $servers = Config::get('redis');
 
-        if (isset($servers[$this->current_server]['databases'])) {
-            $db_count = (int) $servers[$this->current_server]['databases'];
+        if (isset($this->servers[$this->current_server]['databases'])) {
+            $db_count = (int) $this->servers[$this->current_server]['databases'];
         } else {
             $dbs = (array) $redis->config('GET', 'databases');
             $db_count = $dbs['databases'];
@@ -367,11 +366,9 @@ trait RedisTrait {
 
         $paginator = new Paginator($this->template, $keys, [['db', 's', 'pp'], ['p' => '']]);
 
-        $servers = Config::get('redis');
-
         return $this->template->render('dashboards/redis/redis', [
             'databases'   => $this->getDatabases($redis),
-            'current_db'  => Http::get('db', 'int', $servers[$this->current_server]['database'] ?? 0),
+            'current_db'  => Http::get('db', 'int', $this->servers[$this->current_server]['database'] ?? 0),
             'keys'        => $paginator->getPaginated(),
             'all_keys'    => $redis->dbSize(),
             'new_key_url' => Http::queryString(['db'], ['form' => 'new']),

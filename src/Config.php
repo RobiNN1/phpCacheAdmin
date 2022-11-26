@@ -14,9 +14,11 @@ namespace RobiNN\Pca;
 
 class Config {
     /**
-     * @param mixed $default
+     * @template Default
      *
-     * @return array<int|string, mixed>|bool|int|string|null
+     * @param Default $default
+     *
+     * @return mixed|Default
      */
     public static function get(string $key, $default = null) {
         if (is_file(__DIR__.'/../config.php')) {
@@ -50,9 +52,9 @@ class Config {
     private static function getEnvConfig(array $config): array {
         $vars = preg_grep('/^PCA_/', array_keys(getenv()));
 
-        if (count($vars)) {
+        if ($vars !== false && count($vars)) {
             foreach ($vars as $var) {
-                self::envVarToArray($config, $var, getenv($var));
+                self::envVarToArray($config, $var, (string) getenv($var));
             }
         }
 
@@ -96,9 +98,9 @@ class Config {
      * @return array<string, string>
      */
     public static function getEncoders(): array {
-        $encoders = self::get('encoding');
+        $encoders = self::get('encoding', []);
 
-        if (($encoders === null ? 0 : count($encoders)) === 0) {
+        if (count($encoders) === 0) {
             return [];
         }
 

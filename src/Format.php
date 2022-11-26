@@ -71,12 +71,14 @@ class Format {
             return 'Never';
         }
 
+        $format = Config::get('timeformat', 'd. m. Y H:i:s');
+
         try {
             return (new DateTimeImmutable('@'.$time))
                 ->setTimezone(new DateTimeZone(date_default_timezone_get()))
-                ->format(Config::get('timeformat'));
+                ->format($format);
         } catch (Exception $e) {
-            return date(Config::get('timeformat'), $time);
+            return date($format, $time);
         }
     }
 

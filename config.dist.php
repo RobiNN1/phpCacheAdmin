@@ -41,7 +41,6 @@ return [
         ],
     ],
     'timeformat' => 'd. m. Y H:i:s',
-    'twigdebug'  => false,
     /*'auth'       => static function (): void {
         // Example of authentication with http auth.
 

@@ -26,7 +26,7 @@ class Admin {
     private array $dashboards = [];
 
     public function __construct(Template $template) {
-        foreach (Config::get('dashboards') as $class) {
+        foreach (Config::get('dashboards', []) as $class) {
             if (is_subclass_of($class, DashboardInterface::class) && $class::check()) {
                 $dashboard = new $class($template);
                 $info = $dashboard->dashboardInfo();

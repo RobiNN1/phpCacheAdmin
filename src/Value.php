@@ -45,7 +45,7 @@ class Value {
     }
 
     private static function decoded(string $value, ?string &$encode_fn = null): ?string {
-        foreach (Config::get('encoding') as $name => $decoder) {
+        foreach (Config::get('encoding', []) as $name => $decoder) {
             if (is_callable($decoder['view']) && $decoder['view']($value) !== null) {
                 $encode_fn = (string) $name;
 
@@ -57,7 +57,7 @@ class Value {
     }
 
     private static function formatted(string $value, bool &$is_formatted = false): ?string {
-        foreach (Config::get('formatters') as $formatter) {
+        foreach (Config::get('formatters', []) as $formatter) {
             if (is_callable($formatter) && $formatter($value) !== null) {
                 $is_formatted = true;
 
@@ -103,7 +103,7 @@ class Value {
             return $value;
         }
 
-        $encoder = Config::get('encoding')[$encoder];
+        $encoder = Config::get('encoding', [])[$encoder];
 
         if (is_callable($encoder['save'])) {
             return $encoder['save']($value);
@@ -117,7 +117,7 @@ class Value {
             return $value;
         }
 
-        $decoder = Config::get('encoding')[$decoder];
+        $decoder = Config::get('encoding', [])[$decoder];
 
         if (is_callable($decoder['view']) && $decoder['view']($value) !== null) {
             $value = $decoder['view']($value);

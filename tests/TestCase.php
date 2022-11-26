@@ -26,6 +26,9 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase {
      * @throws ReflectionException
      */
     protected static function callMethod(object $object, string $name, ...$args) {
+        $method = new ReflectionMethod($object, $name);
+        $method->setAccessible(true);
+
         return (new ReflectionMethod($object, $name))->invokeArgs($object, $args);
     }
 

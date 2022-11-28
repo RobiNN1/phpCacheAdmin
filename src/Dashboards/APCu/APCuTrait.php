@@ -24,8 +24,8 @@ trait APCuTrait {
      * @return array<int, mixed>
      */
     private function panels(): array {
-        $info = apcu_cache_info();
-        $memory_info = apcu_sma_info();
+        $info = apcu_cache_info(true);
+        $memory_info = apcu_sma_info(true);
 
         $total_memory = $memory_info['num_seg'] * $memory_info['seg_size'];
         $memory_used = ($memory_info['num_seg'] * $memory_info['seg_size']) - $memory_info['avail_mem'];
@@ -62,11 +62,9 @@ trait APCuTrait {
     }
 
     private function moreInfo(): string {
-        $info = apcu_cache_info();
+        $info = apcu_cache_info(true);
 
-        unset($info['cache_list']);
-
-        foreach (apcu_sma_info() as $mem_name => $mem_value) {
+        foreach (apcu_sma_info(true) as $mem_name => $mem_value) {
             if (!is_array($mem_value)) {
                 $info['memory'][$mem_name] = $mem_value;
             }

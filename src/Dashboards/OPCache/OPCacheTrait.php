@@ -22,7 +22,7 @@ trait OPCacheTrait {
      * @return array<int, mixed>
      */
     private function panels(): array {
-        $status = opcache_get_status();
+        $status = opcache_get_status(false);
         $configuration = opcache_get_configuration();
 
         $stats = $status['opcache_statistics'];
@@ -68,9 +68,7 @@ trait OPCacheTrait {
     }
 
     private function moreInfo(): string {
-        $status = opcache_get_status();
-
-        unset($status['scripts']);
+        $status = opcache_get_status(false);
 
         $configuration = opcache_get_configuration();
         $status['ini_config'] = $configuration['directives'];

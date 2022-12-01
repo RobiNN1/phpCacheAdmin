@@ -106,8 +106,10 @@ class Helpers {
     public static function getExtIniInfo(string $extension): array {
         static $info = [];
 
-        foreach (ini_get_all($extension) as $ini_name => $ini_value) {
-            $info['ini_config'][$ini_name] = $ini_value['local_value'];
+        if (extension_loaded($extension)) {
+            foreach (ini_get_all($extension) as $ini_name => $ini_value) {
+                $info['ini_config'][$ini_name] = $ini_value['local_value'];
+            }
         }
 
         return $info;
@@ -118,7 +120,7 @@ class Helpers {
      */
     public static function deleteKey(Template $template, callable $function, bool $base64 = false): string {
         try {
-            $keys = json_decode(Http::post('delete'), false, 512, JSON_THROW_ON_ERROR);
+            $keys = json_decode(Http::post('delete', ''), false, 512, JSON_THROW_ON_ERROR);
         } catch (JsonException $e) {
             $keys = [];
         }
@@ -139,12 +141,12 @@ class Helpers {
 
     public static function import(callable $exists, callable $store, string $type = 'text/plain'): void {
         if ($_FILES['import']['type'] === $type) {
-            $key_name = Http::post('key_name');
+            $key_name = Http::post('key_name', '');
 
             if (!$exists($key_name)) {
                 $value = file_get_contents($_FILES['import']['tmp_name']);
 
-                $store($key_name, $value, Http::post('expire', 'int'));
+                $store($key_name, $value, Http::post('expire', 0));
 
                 Http::redirect();
             }

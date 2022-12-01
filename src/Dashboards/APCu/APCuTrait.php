@@ -79,7 +79,7 @@ trait APCuTrait {
     }
 
     private function viewKey(): string {
-        $key = Http::get('key');
+        $key = Http::get('key', '');
 
         if (!apcu_exists($key)) {
             Http::redirect();
@@ -117,10 +117,10 @@ trait APCuTrait {
     }
 
     private function saveKey(): void {
-        $key = Http::post('key');
-        $expire = Http::post('expire', 'int');
-        $old_key = Http::post('old_key');
-        $value = Value::encode(Http::post('value'), Http::post('encoder'));
+        $key = Http::post('key', '');
+        $expire = Http::post('expire', 0);
+        $old_key = Http::post('old_key', '');
+        $value = Value::encode(Http::post('value', ''), Http::post('encoder', ''));
 
         if ($old_key !== '' && $old_key !== $key) {
             apcu_delete($old_key);
@@ -135,11 +135,11 @@ trait APCuTrait {
      * Add/edit form.
      */
     private function form(): string {
-        $key = Http::get('key');
+        $key = Http::get('key', '');
         $expire = 0;
 
-        $encoder = Http::get('encoder', 'string', 'none');
-        $value = Http::post('value');
+        $encoder = Http::get('encoder', 'none');
+        $value = Http::post('value', '');
 
         if (isset($_GET['key']) && apcu_exists($key)) {
             $value = Helpers::mixedToString(apcu_fetch($key));

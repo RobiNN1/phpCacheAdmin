@@ -104,9 +104,15 @@ class Config {
             return [];
         }
 
-        $array = array_keys($encoders);
-        $array[] = 'none';
+        $encoders_array = array_keys($encoders);
+        $encoders_array[] = 'none';
 
-        return array_combine($array, $array);
+        static $array = [];
+
+        foreach ($encoders_array as $encoder) {
+            $array[$encoder] = $encoder;
+        }
+
+        return $array;
     }
 }

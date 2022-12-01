@@ -57,15 +57,15 @@ trait TypesTrait {
                 break;
             case 'set':
                 $members = $this->redis->sMembers($key);
-                $value = $members[Http::get('member', 'int')];
+                $value = $members[Http::get('member', 0)];
                 break;
             case 'list':
-                $index = Http::get('index', 'int');
+                $index = Http::get('index', 0);
                 $value = $this->redis->lIndex($key, $index);
                 break;
             case 'zset':
                 $ranges = $this->redis->zRange($key, 0, -1);
-                $range = Http::get('range', 'int');
+                $range = Http::get('range', 0);
 
                 $value = $ranges[$range];
                 $score = $this->redis->zScore($key, $value);
@@ -77,12 +77,12 @@ trait TypesTrait {
                     $keys[] = $k;
                 }
 
-                $hash_key = Http::get('hash_key', 'string', $keys[0]);
+                $hash_key = Http::get('hash_key', $keys[0]);
                 $value = $this->redis->hGet($key, $hash_key);
                 break;
             case 'stream':
                 $ranges = $this->redis->xRange($key, '-', '+');
-                $value = $ranges[Http::get('stream_id')];
+                $value = $ranges[Http::get('stream_id', '')];
                 break;
             default:
                 $value = '';
@@ -130,16 +130,16 @@ trait TypesTrait {
      * @throws Exception
      */
     private function saveKey(): void {
-        $key = Http::post('key');
-        $value = Value::encode(Http::post('value'), Http::post('encoder'));
-        $old_value = Http::post('old_value');
+        $key = Http::post('key', '');
+        $value = Value::encode(Http::post('value', ''), Http::post('encoder', ''));
+        $old_value = Http::post('old_value', '');
 
-        switch (Http::post('redis_type')) {
+        switch (Http::post('redis_type', '')) {
             case 'string':
                 $this->redis->set($key, $value);
                 break;
             case 'set':
-                if (Http::post('value') !== $old_value) {
+                if (Http::post('value', '') !== $old_value) {
                     $this->redis->sRem($key, $old_value);
                     $this->redis->sAdd($key, $value);
                 }
@@ -161,22 +161,22 @@ trait TypesTrait {
                 break;
             case 'zset':
                 $this->redis->zRem($key, $old_value);
-                $this->redis->zAdd($key, Http::post('score', 'int'), $value);
+                $this->redis->zAdd($key, Http::post('score', 0), $value);
                 break;
             case 'hash':
-                if ($this->redis->hExists($key, Http::get('hash_key'))) {
-                    $this->redis->hDel($key, Http::get('hash_key'));
+                if ($this->redis->hExists($key, Http::get('hash_key', ''))) {
+                    $this->redis->hDel($key, Http::get('hash_key', ''));
                 }
 
-                $this->redis->hSet($key, Http::post('hash_key'), $value);
+                $this->redis->hSet($key, Http::post('hash_key', ''), $value);
                 break;
             case 'stream':
-                $this->redis->xAdd($key, Http::post('stream_id', 'string', '*'), [Http::post('field') => $value]);
+                $this->redis->xAdd($key, Http::post('stream_id', '*'), [Http::post('field') => $value]);
                 break;
             default:
         }
 
-        $expire = Http::post('expire', 'int');
+        $expire = Http::post('expire', 0);
 
         if ($expire === -1) {
             $this->redis->persist($key);
@@ -184,7 +184,7 @@ trait TypesTrait {
             $this->redis->expire($key, $expire);
         }
 
-        $old_key = Http::post('old_key');
+        $old_key = Http::post('old_key', '');
 
         if ($old_key !== '' && $old_key !== $key) {
             $this->redis->rename($old_key, $key);
@@ -200,20 +200,21 @@ trait TypesTrait {
         switch ($type) {
             case 'set':
                 $members = $this->redis->sMembers($key);
-                $this->redis->sRem($key, $members[Http::get('member', 'int')]);
+                $this->redis->sRem($key, $members[Http::get('member', 0)]);
                 break;
             case 'list':
-                $this->redis->listRem($key, $this->redis->lIndex($key, Http::get('index', 'int')), -1);
+                $value = $this->redis->lIndex($key, Http::get('index', 0));
+                $this->redis->listRem($key, ($value !== false ? $value : ''), -1);
                 break;
             case 'zset':
                 $ranges = $this->redis->zRange($key, 0, -1);
-                $this->redis->zRem($key, $ranges[Http::get('range', 'int')]);
+                $this->redis->zRem($key, $ranges[Http::get('range', 0)]);
                 break;
             case 'hash':
-                $this->redis->hDel($key, Http::get('hash_key'));
+                $this->redis->hDel($key, Http::get('hash_key', ''));
                 break;
             case 'stream':
-                $this->redis->xDel($key, [Http::get('stream_id')]);
+                $this->redis->xDel($key, [Http::get('stream_id', '')]);
                 break;
             default:
         }

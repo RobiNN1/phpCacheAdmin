@@ -29,45 +29,45 @@ final class HttpTest extends TestCase {
 
     public function testGetString(): void {
         $_GET['test-string'] = 'data';
-        $this->assertSame('data', Http::get('test-string'));
+        $this->assertSame('data', Http::get('test-string', ''));
 
         $_GET['test-string-default'] = null;
-        $this->assertSame('default', Http::get('test-string-default', 'string', 'default'));
+        $this->assertSame('default', Http::get('test-string-default', 'default'));
 
         $_GET['test-string-empty'] = '';
-        $this->assertSame('', Http::get('test-string-empty'));
+        $this->assertSame('', Http::get('test-string-empty', ''));
     }
 
     public function testGetInt(): void {
         $_GET['test-int'] = 4646;
-        $this->assertSame(4646, Http::get('test-int', 'int'));
+        $this->assertSame(4646, Http::get('test-int', 0));
 
         $_GET['test-int-default'] = null;
-        $this->assertSame(8888, Http::get('test-int-default', 'int', 8888));
+        $this->assertSame(8888, Http::get('test-int-default', 8888));
 
         $_GET['test-int-empty'] = '';
-        $this->assertSame(0, Http::get('test-int-empty', 'int'));
+        $this->assertSame(0, Http::get('test-int-empty', 0));
     }
 
     public function testPostString(): void {
         $_POST['test-string'] = 'data';
-        $this->assertSame('data', Http::post('test-string'));
+        $this->assertSame('data', Http::post('test-string', ''));
 
         $_POST['test-string-default'] = null;
-        $this->assertSame('default', Http::post('test-string-default', 'string', 'default'));
+        $this->assertSame('default', Http::post('test-string-default', 'default'));
 
         $_POST['test-string-empty'] = '';
-        $this->assertSame('', Http::post('test-string-empty'));
+        $this->assertSame('', Http::post('test-string-empty', ''));
     }
 
     public function testPostInt(): void {
         $_POST['test-int'] = 4646;
-        $this->assertSame(4646, Http::post('test-int', 'int'));
+        $this->assertSame(4646, Http::post('test-int', 0));
 
         $_POST['test-int-default'] = null;
-        $this->assertSame(8888, Http::post('test-int-default', 'int', 8888));
+        $this->assertSame(8888, Http::post('test-int-default', 8888));
 
         $_POST['test-int-empty'] = '';
-        $this->assertSame(0, Http::post('test-int-empty', 'int'));
+        $this->assertSame(0, Http::post('test-int-empty', 0));
     }
 }

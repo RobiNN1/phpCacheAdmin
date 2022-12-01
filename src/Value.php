@@ -103,7 +103,8 @@ class Value {
             return $value;
         }
 
-        $encoder = Config::get('encoding', [])[$encoder];
+        $encoders = (array) Config::get('encoding', []);
+        $encoder = $encoders[$encoder];
 
         if (is_callable($encoder['save'])) {
             return $encoder['save']($value);
@@ -117,7 +118,8 @@ class Value {
             return $value;
         }
 
-        $decoder = Config::get('encoding', [])[$decoder];
+        $decoders = (array) Config::get('encoding', []);
+        $decoder = $decoders[$decoder];
 
         if (is_callable($decoder['view']) && $decoder['view']($value) !== null) {
             $value = $decoder['view']($value);

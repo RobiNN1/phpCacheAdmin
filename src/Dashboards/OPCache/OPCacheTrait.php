@@ -97,7 +97,7 @@ trait OPCacheTrait {
 
                 if (
                     (isset($_GET['ignore']) && $_GET['ignore'] === 'yes') &&
-                    Helpers::str_starts_with(str_replace('phar://', '', $full_path), $pca_root)
+                    Helpers::str_starts_with(strtr($full_path, ['phar://' => '']), $pca_root)
                 ) {
                     continue;
                 }

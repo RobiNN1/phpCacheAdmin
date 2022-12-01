@@ -49,7 +49,7 @@ trait RedisTrait {
      */
     private function serverInfo(): array {
         try {
-            $redis = $this->connect($this->servers[Http::get('panel', 'int')]);
+            $redis = $this->connect($this->servers[Http::get('panel', 0)]);
             $server_info = $redis->getInfo();
 
             return [
@@ -99,7 +99,7 @@ trait RedisTrait {
 
     private function moreInfo(): string {
         try {
-            $id = Http::get('moreinfo', 'int');
+            $id = Http::get('moreinfo', 0);
             $server_data = $this->servers[$id];
             $redis = $this->connect($server_data);
             $info = $redis->getInfo();
@@ -155,7 +155,7 @@ trait RedisTrait {
      * @throws Exception
      */
     private function viewKey(): string {
-        $key = Http::get('key');
+        $key = Http::get('key', '');
 
         if (!$this->redis->exists($key)) {
             Http::redirect(['db']);
@@ -176,8 +176,8 @@ trait RedisTrait {
             Http::redirect(['db']);
         }
 
-        if (isset($_GET['export'])) {
-            Helpers::export($key, $this->redis->dump($key), 'bin', 'application/octet-stream');
+        if (isset($_GET['export']) && $dump = $this->redis->dump($key)) {
+            Helpers::export($key, $dump, 'bin', 'application/octet-stream');
         }
 
         $value = $this->getAllKeyValues($type, $key);
@@ -224,14 +224,14 @@ trait RedisTrait {
      * @throws Exception
      */
     private function form(): string {
-        $key = Http::get('key', 'string', Http::post('key'));
-        $type = Http::post('redis_type');
+        $key = Http::get('key', Http::post('key', ''));
+        $type = Http::post('redis_type', 'string');
         $index = $_POST['index'] ?? '';
-        $score = Http::post('score', 'int');
-        $hash_key = Http::post('hash_key');
-        $expire = Http::post('expire', 'int', -1);
-        $encoder = Http::get('encoder', 'string', 'none');
-        $value = Http::post('value');
+        $score = Http::post('score', 0);
+        $hash_key = Http::post('hash_key', '');
+        $expire = Http::post('expire', -1);
+        $encoder = Http::get('encoder', 'none');
+        $value = Http::post('value', '');
 
         if (isset($_POST['submit'])) {
             $this->saveKey();
@@ -274,7 +274,7 @@ trait RedisTrait {
      */
     private function getAllKeys(): array {
         static $keys = [];
-        $filter = Http::get('s', 'string', '*');
+        $filter = Http::get('s', '*');
 
         $this->template->addGlobal('search_value', $filter);
 
@@ -355,7 +355,7 @@ trait RedisTrait {
 
         return $this->template->render('dashboards/redis/redis', [
             'databases'   => $this->getDatabases(),
-            'current_db'  => Http::get('db', 'int', $this->servers[$this->current_server]['database'] ?? 0),
+            'current_db'  => Http::get('db', $this->servers[$this->current_server]['database'] ?? 0),
             'keys'        => $paginator->getPaginated(),
             'all_keys'    => $this->redis->dbSize(),
             'new_key_url' => Http::queryString(['db'], ['form' => 'new']),

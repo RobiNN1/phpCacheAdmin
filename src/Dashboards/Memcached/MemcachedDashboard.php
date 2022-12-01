@@ -41,7 +41,7 @@ class MemcachedDashboard implements DashboardInterface {
 
         $this->servers = Config::get('memcached', []);
 
-        $server = Http::get('server', 'int');
+        $server = Http::get('server', 0);
         $this->current_server = array_key_exists($server, $this->servers) ? $server : 0;
     }
 

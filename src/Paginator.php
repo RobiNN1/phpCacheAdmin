@@ -39,8 +39,8 @@ class Paginator {
         $this->template = $template;
         $this->url = $queries;
         $this->total = count($items);
-        $this->page = Http::get('p', 'int', 1);
-        $this->per_page = Http::get('pp', 'int', 25);
+        $this->page = Http::get('p', 1);
+        $this->per_page = Http::get('pp', 25);
         $this->paginated = array_slice($items, $this->per_page * ($this->page - 1), $this->per_page, true);
     }
 

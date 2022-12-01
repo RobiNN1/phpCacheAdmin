@@ -15,9 +15,10 @@ namespace RobiNN\Pca\Dashboards\Server;
 trait ServerTrait {
     private function getDisabledFunctions(): string {
         $disabled_functions = 'None';
+        $ini_value = ini_get('disable_functions');
 
-        if (ini_get('disable_functions') !== '') {
-            $disable_functions = explode(',', ini_get('disable_functions'));
+        if ($ini_value !== false && $ini_value !== '') {
+            $disable_functions = explode(',', $ini_value);
 
             $disabled_functions = '('.count($disable_functions).') ';
             $disabled_functions .= implode(', ', $disable_functions);

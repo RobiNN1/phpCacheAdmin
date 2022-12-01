@@ -28,7 +28,7 @@ trait MemcachedTrait {
      */
     private function serverInfo(): array {
         try {
-            $memcached = $this->connect($this->servers[Http::get('panel', 'int')]);
+            $memcached = $this->connect($this->servers[Http::get('panel', 0)]);
             $server_info = $memcached->getServerStats();
 
             // Keys are loaded via sockets and not extension itself.
@@ -86,7 +86,7 @@ trait MemcachedTrait {
 
     private function moreInfo(): string {
         try {
-            $id = Http::get('moreinfo', 'int');
+            $id = Http::get('moreinfo', 0);
             $server_data = $this->servers[$id];
 
             $info = $this->connect($server_data)->getServerStats();
@@ -109,7 +109,7 @@ trait MemcachedTrait {
      * @throws MemcachedException
      */
     private function viewKey(): string {
-        $key = Http::get('key');
+        $key = Http::get('key', '');
 
         if (!$this->memcached->exists($key)) {
             Http::redirect();
@@ -128,7 +128,7 @@ trait MemcachedTrait {
 
         [$value, $encode_fn, $is_formatted] = Value::format($value);
 
-        $ttl = Http::get('ttl', 'int');
+        $ttl = Http::get('ttl', 0);
         $ttl = $ttl === 0 ? -1 : $ttl;
 
         return $this->template->render('partials/view_key', [
@@ -149,10 +149,10 @@ trait MemcachedTrait {
      * @throws MemcachedException
      */
     private function saveKey(): void {
-        $key = Http::post('key');
-        $expire = Http::post('expire', 'int');
-        $old_key = Http::post('old_key');
-        $value = Value::encode(Http::post('value'), Http::post('encoder'));
+        $key = Http::post('key', '');
+        $expire = Http::post('expire', 0);
+        $old_key = Http::post('old_key', '');
+        $value = Value::encode(Http::post('value', ''), Http::post('encoder', ''));
 
         if ($old_key !== '' && $old_key !== $key) {
             $this->memcached->delete($old_key);
@@ -169,12 +169,12 @@ trait MemcachedTrait {
      * @throws MemcachedException
      */
     private function form(): string {
-        $key = Http::get('key');
-        $expire = Http::get('ttl', 'int');
+        $key = Http::get('key', '');
+        $expire = Http::get('ttl', 0);
         $expire = $expire === -1 ? 0 : $expire;
 
-        $encoder = Http::get('encoder', 'string', 'none');
-        $value = Http::post('value');
+        $encoder = Http::get('encoder', 'none');
+        $value = Http::post('value', '');
 
         if (isset($_GET['key']) && $this->memcached->exists($key)) {
             $value = $this->memcached->getKey($key);

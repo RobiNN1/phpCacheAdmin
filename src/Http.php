@@ -44,39 +44,43 @@ class Http {
     /**
      * Get query parameter.
      *
-     * @param string|int|null $default
+     * @template Type
      *
-     * @return string|int
+     * @param Type $default
+     *
+     * @return Type
      */
-    public static function get(string $key, string $type = 'string', $default = null) {
+    public static function get(string $key, $default = null) {
         $filter = FILTER_SANITIZE_FULL_SPECIAL_CHARS;
 
-        if ($type === 'int') {
+        if (is_int($default)) {
             $filter = FILTER_SANITIZE_NUMBER_INT;
         }
 
         $value = isset($_GET[$key]) ? filter_var($_GET[$key], $filter) : $default;
 
-        return $type === 'int' ? (int) $value : (string) $value;
+        return is_int($default) ? (int) $value : $value;
     }
 
     /**
      * Get post value.
      *
-     * @param string|int|null $default
+     * @template Type
      *
-     * @return string|int
+     * @param Type $default
+     *
+     * @return Type
      */
-    public static function post(string $key, string $type = 'string', $default = null) {
+    public static function post(string $key, $default = null) {
         $filter = FILTER_UNSAFE_RAW;
 
-        if ($type === 'int') {
+        if (is_int($default)) {
             $filter = FILTER_SANITIZE_NUMBER_INT;
         }
 
         $value = isset($_POST[$key]) ? filter_var($_POST[$key], $filter) : $default;
 
-        return $type === 'int' ? (int) $value : (string) $value;
+        return is_int($default) ? (int) $value : $value;
     }
 
     /**

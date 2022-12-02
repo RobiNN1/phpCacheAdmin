@@ -21,7 +21,6 @@ final class PredisTest extends TestCase {
 
     protected function setUp(): void {
         $this->predis = new Predis(['host' => '127.0.0.1']);
-        $this->predis->connect();
     }
 
     /**

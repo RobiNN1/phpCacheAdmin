@@ -80,56 +80,15 @@ class RedisDashboard implements DashboardInterface {
      * @throws DashboardException
      */
     public function connect(array $server) {
+        $server['database'] = Http::get('db', $server['database'] ?? 0);
+
         if (extension_loaded('redis')) {
             $redis = new Compatibility\Redis();
+            $redis->connection($server);
         } elseif (class_exists(Predis::class)) {
-            $redis = new Compatibility\Predis();
+            $redis = new Compatibility\Predis($server);
         } else {
             throw new DashboardException('Redis extension or Predis is not installed.');
-        }
-
-        if (isset($server['path'])) {
-            $redis_server = $server['path'];
-        } else {
-            $server['port'] ??= 6379;
-
-            $redis_server = $server['host'].':'.$server['port'];
-        }
-
-        try {
-            if (isset($server['path'])) {
-                $redis->connect($server['path']);
-            } else {
-                $redis->connect($server['host'], (int) $server['port'], 3);
-            }
-        } catch (Exception $e) {
-            throw new DashboardException(
-                sprintf('Failed to connect to Redis server %s. Error: %s', $redis_server, $e->getMessage())
-            );
-        }
-
-        try {
-            if (isset($server['password'])) {
-                if (isset($server['username'])) {
-                    $credentials = [$server['username'], $server['password']];
-                } else {
-                    $credentials = $server['password'];
-                }
-
-                $redis->auth($credentials);
-            }
-        } catch (Exception $e) {
-            throw new DashboardException(
-                sprintf('Could not authenticate with Redis server %s. Error: %s', $redis_server, $e->getMessage())
-            );
-        }
-
-        try {
-            $redis->select(Http::get('db', $server['database'] ?? 0));
-        } catch (Exception $e) {
-            throw new DashboardException(
-                sprintf('Could not select Redis database %s. Error: %s', $redis_server, $e->getMessage())
-            );
         }
 
         return $redis;

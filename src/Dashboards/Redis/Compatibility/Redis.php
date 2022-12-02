@@ -17,6 +17,40 @@ use RobiNN\Pca\Dashboards\DashboardException;
 
 class Redis extends \Redis implements CompatibilityInterface {
     /**
+     * @param array<string, int|string> $server
+     *
+     * @throws DashboardException
+     */
+    public function connection(array $server): self {
+        $server['port'] ??= 6379;
+
+        try {
+            if (isset($server['path'])) {
+                $this->connect($server['path']);
+            } else {
+                $this->connect($server['host'], (int) $server['port'], 3);
+            }
+
+            if (isset($server['password'])) {
+                if (isset($server['username'])) {
+                    $credentials = [$server['username'], $server['password']];
+                } else {
+                    $credentials = $server['password'];
+                }
+
+                $this->auth($credentials);
+            }
+
+            $this->select($server['database'] ?? 0);
+        } catch (RedisException $e) {
+            $connection = $server['path'] ?? $server['host'].':'.$server['port'];
+            throw new DashboardException($e->getMessage().' ['.$connection.']');
+        }
+
+        return $this;
+    }
+
+    /**
      * @var array<int, string>
      */
     private array $data_types = [

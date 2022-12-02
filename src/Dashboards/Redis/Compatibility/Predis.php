@@ -17,6 +17,29 @@ use RobiNN\Pca\Dashboards\DashboardException;
 
 class Predis extends Client implements CompatibilityInterface {
     /**
+     * @param array<string, int|string> $server
+     */
+    public function __construct(array $server) {
+        if (isset($server['path'])) {
+            $connect = [
+                'scheme' => 'unix',
+                'path'   => $server['path'],
+            ];
+        } else {
+            $connect = [
+                'host' => $server['host'],
+                'port' => $server['port'] ??= 6379,
+            ];
+        }
+
+        parent::__construct($connect + [
+                'database' => $server['database'] ?? 0,
+                'username' => $server['username'] ?? null,
+                'password' => $server['password'] ?? null,
+            ]);
+    }
+
+    /**
      * @var array<string, string>
      */
     private array $data_types = [

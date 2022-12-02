@@ -219,6 +219,31 @@ trait RedisTrait {
     }
 
     /**
+     * @throws Exception
+     */
+    private function saveKey(): void {
+        $key = Http::post('key', '');
+
+        $this->store($key);
+
+        $expire = Http::post('expire', 0);
+
+        if ($expire === -1) {
+            $this->redis->persist($key);
+        } else {
+            $this->redis->expire($key, $expire);
+        }
+
+        $old_key = Http::post('old_key', '');
+
+        if ($old_key !== '' && $old_key !== $key) {
+            $this->redis->rename($old_key, $key);
+        }
+
+        Http::redirect(['db'], ['view' => 'key', 'key' => $key]);
+    }
+
+    /**
      * Add/edit a form.
      *
      * @throws Exception

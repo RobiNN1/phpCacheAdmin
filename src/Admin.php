@@ -15,9 +15,6 @@ namespace RobiNN\Pca;
 use RobiNN\Pca\Dashboards\DashboardInterface;
 
 class Admin {
-    /**
-     * @const string phpCacheAdmin version.
-     */
     public const VERSION = '1.4.0';
 
     /**

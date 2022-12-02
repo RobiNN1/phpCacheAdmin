@@ -21,10 +21,11 @@ trait TypesTrait {
     /**
      * Extra data for templates.
      *
+     * Used in 'view_key_array' template.
+     *
      * @return array<string, array<string, array<int, string>|string>>
      */
     private function getTypesData(): array {
-        // param is for getKeyValue() and deleteSubKey()
         return [
             'extra'  => [
                 'hide_title' => ['set'],
@@ -120,17 +121,20 @@ trait TypesTrait {
                 $value = $this->redis->xRange($key, '-', '+');
                 break;
             default:
-                $value = $this->redis->get($key);
+                $value = '';
         }
 
         return $value;
     }
 
     /**
+     * Save key by with correct function.
+     *
+     * Used in saveKey().
+     *
      * @throws Exception
      */
-    private function saveKey(): void {
-        $key = Http::post('key', '');
+    private function store(string $key): void {
         $value = Value::encode(Http::post('value', ''), Http::post('encoder', ''));
         $old_value = Http::post('old_value', '');
 
@@ -175,22 +179,6 @@ trait TypesTrait {
                 break;
             default:
         }
-
-        $expire = Http::post('expire', 0);
-
-        if ($expire === -1) {
-            $this->redis->persist($key);
-        } else {
-            $this->redis->expire($key, $expire);
-        }
-
-        $old_key = Http::post('old_key', '');
-
-        if ($old_key !== '' && $old_key !== $key) {
-            $this->redis->rename($old_key, $key);
-        }
-
-        Http::redirect(['db'], ['view' => 'key', 'key' => $key]);
     }
 
     /**

@@ -167,7 +167,7 @@ class Predis extends Client implements CompatibilityInterface {
     }
 
     /**
-     *  Execute any generic command.
+     * Execute Redis command.
      *
      * @param mixed ...$arguments
      *

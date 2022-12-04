@@ -90,20 +90,9 @@ class MemcachedDashboard implements DashboardInterface {
             throw new DashboardException('Memcache(d) extension or PHPMem client is not installed.');
         }
 
-        if (isset($server['path'])) {
-            $memcached_server = $server['path'];
-
-            $memcached->addServer($server['path'], 0);
-        } else {
-            $server['port'] ??= 11211;
-
-            $memcached_server = $server['host'].':'.$server['port'];
-
-            $memcached->addServer($server['host'], (int) $server['port']);
-        }
-
         if (!$memcached->isConnected()) {
-            throw new DashboardException(sprintf('Failed to connect to Memcached server %s.', $memcached_server));
+            $connection = $server['path'] ?? $server['host'].':'.$server['port'];
+            throw new DashboardException(sprintf('Failed to connect to Memcached server %s.', $connection));
         }
 
         return $memcached;

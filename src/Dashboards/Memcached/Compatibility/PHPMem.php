@@ -18,14 +18,7 @@ use RobiNN\Pca\Helpers;
 class PHPMem implements CompatibilityInterface {
     use KeysTrait;
 
-    /**
-     * @const string PHPMem version.
-     */
-    public const VERSION = '1.0.1';
-
-    private string $host;
-
-    private int $port;
+    public const VERSION = '1.1.0';
 
     /**
      * @var array<string, int|string>
@@ -37,53 +30,6 @@ class PHPMem implements CompatibilityInterface {
      */
     public function __construct(array $server = []) {
         $this->server = $server;
-    }
-
-    /**
-     * Add a server to the server pool.
-     */
-    public function addServer(string $host, int $port = 11211): bool {
-        $this->host = $host;
-        $this->port = $port;
-
-        return true;
-    }
-
-    /**
-     * Semd data to the server.
-     *
-     * @throws MemcachedException
-     */
-    private function send(string $command): string {
-        if (isset($this->server['path'])) {
-            $fp = @stream_socket_client('unix://'.$this->host, $error_code, $error_message);
-        } else {
-            $fp = @fsockopen($this->host, $this->port, $error_code, $error_message, 3);
-        }
-
-        if ($error_message !== '' || $fp === false) {
-            throw new MemcachedException('Command: "'.$command.'": '.$error_message);
-        }
-
-        fwrite($fp, $command."\r\n");
-
-        $buffer = '';
-
-        while (!feof($fp)) {
-            $buffer .= fgets($fp, 256);
-
-            $ends = ['END', 'DELETED', 'NOT_FOUND', 'OK', 'EXISTS', 'ERROR', 'RESET', 'STORED', 'NOT_STORED', 'VERSION'];
-
-            foreach ($ends as $end) {
-                if (preg_match('/^'.$end.'/imu', $buffer)) {
-                    break 2;
-                }
-            }
-        }
-
-        fclose($fp);
-
-        return rtrim($buffer, "\r\n");
     }
 
     /**
@@ -100,8 +46,7 @@ class PHPMem implements CompatibilityInterface {
             $value = serialize($value);
         }
 
-        // set <key> <flags> <exptime> <bytes> [noreply]\r\n<value>\r\n
-        $raw = $this->send('set '.$key.' 0 '.$expiration.' '.strlen((string) $value)."\r\n".$value);
+        $raw = $this->runCommand('set '.$key.' 0 '.$expiration.' '.strlen((string) $value)."\r\n".$value);
 
         if (Helpers::str_starts_with($raw, 'STORED')) {
             return true;
@@ -117,7 +62,7 @@ class PHPMem implements CompatibilityInterface {
      * @throws MemcachedException
      */
     public function get(string $key) {
-        $raw = $this->send('get '.$key);
+        $raw = $this->runCommand('get '.$key);
         $lines = explode("\r\n", $raw);
 
         if (Helpers::str_starts_with($raw, 'VALUE') && Helpers::str_ends_with($raw, 'END')) {
@@ -133,7 +78,7 @@ class PHPMem implements CompatibilityInterface {
      * @throws MemcachedException
      */
     public function delete(string $key): bool {
-        $raw = $this->send('delete '.$key);
+        $raw = $this->runCommand('delete '.$key);
 
         return $raw === 'DELETED';
     }
@@ -144,7 +89,7 @@ class PHPMem implements CompatibilityInterface {
      * @throws MemcachedException
      */
     public function flush(): bool {
-        $raw = $this->send('flush_all');
+        $raw = $this->runCommand('flush_all');
 
         return $raw === 'OK';
     }
@@ -164,7 +109,7 @@ class PHPMem implements CompatibilityInterface {
      * @throws MemcachedException
      */
     public function getServerStats(): array {
-        $raw = $this->send('stats');
+        $raw = $this->runCommand('stats');
         $lines = explode("\r\n", $raw);
         $line_n = 0;
         $stats = [];

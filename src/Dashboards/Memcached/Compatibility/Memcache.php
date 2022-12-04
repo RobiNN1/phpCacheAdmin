@@ -25,6 +25,13 @@ class Memcache extends \Memcache implements CompatibilityInterface {
      */
     public function __construct(array $server = []) {
         $this->server = $server;
+
+        if (isset($server['path'])) {
+            $this->addServer($server['path']);
+        } else {
+            $server['port'] ??= 11211;
+            $this->addServer($server['host'], (int) $server['port']);
+        }
     }
 
     public function isConnected(): bool {

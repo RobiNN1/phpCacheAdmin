@@ -27,6 +27,13 @@ class Memcached extends \Memcached implements CompatibilityInterface {
         parent::__construct();
 
         $this->server = $server;
+
+        if (isset($server['path'])) {
+            $this->addServer($server['path'], 0);
+        } else {
+            $server['port'] ??= 11211;
+            $this->addServer($server['host'], (int) $server['port']);
+        }
     }
 
     public function isConnected(): bool {

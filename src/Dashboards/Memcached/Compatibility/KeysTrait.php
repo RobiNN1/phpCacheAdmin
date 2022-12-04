@@ -13,55 +13,10 @@ declare(strict_types=1);
 namespace RobiNN\Pca\Dashboards\Memcached\Compatibility;
 
 use RobiNN\Pca\Dashboards\Memcached\MemcachedException;
+use RobiNN\Pca\Helpers;
 
 trait KeysTrait {
-    /**
-     * @return array<int, mixed>
-     * @throws MemcachedException
-     */
-    public function command(string $command): array {
-        if (isset($this->server['path'])) {
-            $fp = @stream_socket_client('unix://'.$this->server['path'], $error_code, $error_message);
-        } else {
-            $this->server['port'] ??= 11211;
-
-            $fp = @fsockopen($this->server['host'], (int) $this->server['port'], $error_code, $error_message, 3);
-        }
-
-        if ($error_message !== '' || $fp === false) {
-            throw new MemcachedException('Command: "'.$command.'": '.$error_message);
-        }
-
-        fwrite($fp, $command."\r\n");
-
-        $buffer = '';
-        $data = [];
-
-        while (!feof($fp)) {
-            $buffer .= fgets($fp, 1024);
-
-            $ends = ['END', 'DELETED', 'NOT_FOUND', 'OK', 'EXISTS', 'ERROR', 'RESET', 'STORED', 'NOT_STORED', 'VERSION'];
-
-            foreach ($ends as $end) {
-                if (preg_match('/^'.$end.'/imu', $buffer)) {
-                    break 2;
-                }
-            }
-
-            $lines = explode("\n", $buffer);
-            $buffer = array_pop($lines);
-
-            foreach ($lines as $line) {
-                $line = trim($line);
-
-                $data[] = $line;
-            }
-        }
-
-        fclose($fp);
-
-        return $data;
-    }
+    use CommandTrait;
 
     /**
      * Convert raw key line to an array.
@@ -103,9 +58,11 @@ trait KeysTrait {
     public function getKeys(): array {
         static $keys = [];
 
-        $all_keys = $this->command('lru_crawler metadump all');
+        $raw = $this->runCommand('lru_crawler metadump all');
+        $lines = explode("\n", $raw);
+        array_pop($lines);
 
-        foreach ($all_keys as $line) {
+        foreach ($lines as $line) {
             $keys[] = $this->keyData($line);
         }
 
@@ -119,13 +76,14 @@ trait KeysTrait {
      * @throws MemcachedException
      */
     public function getKey(string $key) {
-        $data = $this->command('get '.$key);
+        $raw = $this->runCommand('get '.$key);
+        $lines = explode("\r\n", $raw);
 
-        if (!isset($data[0])) {
-            return false;
+        if (Helpers::str_starts_with($raw, 'VALUE') && Helpers::str_ends_with($raw, 'END')) {
+            return !isset($lines[1]) || $lines[1] === 'N;' ? '' : $lines[1];
         }
 
-        return !isset($data[1]) || $data[1] === 'N;' ? '' : $data[1];
+        return false;
     }
 
     /**

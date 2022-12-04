@@ -45,12 +45,13 @@ Or simply use it in **docker-compose.yml**
 
 ```yaml
 version: '3'
-
 services:
   phpcacheadmin:
     image: robinn/phpcacheadmin
     ports:
       - "8080:80"
+    #volumes: # If you want to use config.php instead of ENV variables
+    #  - "./config.php:/var/www/html/config.php"
     environment:
       - PCA_REDIS_0_HOST=redis
       - PCA_REDIS_0_PORT=6379
@@ -89,8 +90,8 @@ Memcached:
 - `PCA_MEMCACHED_0_PORT` Memcached port. Optional, when the default port is used.
 - `PCA_MEMCACHED_0_PATH` Memcached unix domain socket. Optional.
 
-To add another server, add the same environment variables, but change 0 to 1 (2 for third server and so on).
-
+> To add another server, add the same environment variables, but change 0 to 1 (2 for third server and so on).
+>
 > All keys from the config file are supported ENV variables, they just must start with PCA_ prefix.
 
 ## Requirements

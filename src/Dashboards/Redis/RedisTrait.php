@@ -249,7 +249,7 @@ trait RedisTrait {
      * @throws Exception
      */
     private function form(): string {
-        $key = Http::get('key', Http::post('key', ''));
+        $key = (string) Http::get('key', Http::post('key', ''));
         $type = Http::post('redis_type', 'string');
         $index = $_POST['index'] ?? '';
         $score = Http::post('score', 0);

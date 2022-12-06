@@ -1,8 +1,8 @@
 const ajax = (endpoint, callback, data = null) => {
     let url = window.location.href;
     url += url.includes('?') ? '&' : '?';
-    url += !url.includes('type=') ? 'type=' + document.body.dataset.dashboard : '';
-    url = url + '&ajax&' + endpoint;
+    url += !url.includes('type=') ? 'type=' + document.body.dataset.dashboard + '&' : '';
+    url = url + 'ajax&' + endpoint;
 
     let request = new XMLHttpRequest();
     request.open((data === null ? 'GET' : 'POST'), url, true);

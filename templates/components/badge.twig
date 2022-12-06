@@ -5,5 +5,5 @@
     {% set tag = 'span' %}
 {% endif %}
 <{{ tag }}{{ link|raw }} class="inline-block py-1 px-3 {{ pill ? 'rounded-full' : 'rounded' }} {{ bg }} text-xs {{ txt ? txt : 'text-white' }}{{ class|space }}">
-    {{- text|raw -}}
+{{- text|raw -}}
 </{{ tag }}>

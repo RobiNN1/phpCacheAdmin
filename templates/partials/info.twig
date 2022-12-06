@@ -1,32 +1,26 @@
-<div class="flex flex-col md:flex-row md:items-center md:justify-between">
-    {% if title or extension_version %}
-        <div class="mb-5 text-lg">
-            {{ title|raw }}
-            {% if extension_version %}
-                {{ include('components/badge.twig', {
-                    text: 'v' ~ extension_version,
-                    bg: 'bg-primary-500',
-                    class: 'font-semibold',
-                }) }}
-            {% endif %}
-        </div>
-    {% endif %}
+{% set is_top_bar = title or extension_version or panels_toggler is not defined %}
+{{ (is_top_bar ? '<div class="flex flex-col md:flex-row md:items-center md:justify-between mb-5">' : '')|raw }}
+{% if title or extension_version %}
+    <div class="text-lg">
+        {{ title|raw }}
+        {% if extension_version %}
+            {{ include('components/badge.twig', {
+                text: 'v' ~ extension_version,
+                bg: 'bg-primary-500',
+                class: 'font-semibold',
+            }) }}
+        {% endif %}
+    </div>
+{% endif %}
 
-    {% if panels_toggler is not defined %}
-        <label for="toggle-panels" class="mb-5 flex items-center cursor-pointer">
-            <span class="relative block h-6 w-10 rounded-full bg-gray-400 shadow">
-                <input type="checkbox" id="toggle-panels"
-                       class="sr-only [&:checked~.dot]:translate-x-full [&:checked~.dot]:bg-gray-900 [&:checked~.dot]:text-white
-                       [&:checked~.dot>.open]:block [&:checked~.dot>.close]:hidden">
-                <span class="dot absolute left-1 top-1 inline-flex h-4 w-4 items-center justify-center rounded-full bg-gray-50 transition-transform">
-                    {{ svg('open', 11, 'open hidden') }}
-                    {{ svg('close', 11, 'close') }}
-                </span>
-            </span>
-            <span class="ml-1 text-sm leading-normal">Show/Hide panels</span>
-        </label>
-    {% endif %}
-</div>
+{% if panels_toggler is not defined %}
+    {{ include('components/switch.twig', {
+        sw_id: 'toggle-panels',
+        sw_label: 'Show/Hide panels',
+        sw_icon_class: {'on': 'open hidden', 'off': 'close'},
+    }) }}
+{% endif %}
+{{ (is_top_bar ? '</div>' : '')|raw }}
 
 {% if info.panels %}
     <div id="infopanels" style="display: block;">

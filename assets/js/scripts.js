@@ -26,6 +26,15 @@ const replace_query_param = (param, value) => {
     }
 }
 
+const select_and_redirect = (id, param) => {
+    let select = document.getElementById(id);
+    if (select) {
+        select.addEventListener('change', e => {
+            replace_query_param(param, e.target.value);
+        });
+    }
+}
+
 /**
  * Sidebar toggle
  */
@@ -86,16 +95,6 @@ if (toggle_panels) {
             document.getElementById('infopanels').style.display = 'block';
             localStorage.setItem(panels_state, 'open');
         }
-    });
-}
-
-/**
- * DB Select
- */
-let db_select = document.getElementById('db_select');
-if (db_select) {
-    db_select.addEventListener('change', e => {
-        replace_query_param('db', e.target.value);
     });
 }
 
@@ -171,6 +170,20 @@ if (delete_all) {
     });
 }
 
+select_and_redirect('per_page', 'pp');
+
+/**
+ * Import form
+ */
+let import_btn = document.getElementById('import_btn');
+if (import_btn) {
+    import_btn.addEventListener('click', () => {
+        document.getElementById('import_form').classList.toggle('hidden');
+    });
+}
+
+select_and_redirect('db_select', 'db');
+
 /**
  * Search key
  */
@@ -191,16 +204,6 @@ if (search_key) {
 }
 
 /**
- * Per page select
- */
-let per_page = document.getElementById('per_page');
-if (per_page) {
-    per_page.addEventListener('change', e => {
-        replace_query_param('pp', e.target.value);
-    });
-}
-
-/**
  * Redis form
  */
 let redis_type = document.getElementById('redis_type');
@@ -210,15 +213,5 @@ if (redis_type) {
         document.getElementById('redis_score').style.display = e.target.value === 'zset' ? 'block' : 'none';
         document.getElementById('redis_hash_key').style.display = e.target.value === 'hash' ? 'block' : 'none';
         document.getElementById('hash_key').required = e.target.value === 'hash';
-    });
-}
-
-/**
- * Import form
- */
-let import_btn = document.getElementById('import_btn');
-if (import_btn) {
-    import_btn.addEventListener('click', () => {
-        document.getElementById('import_form').classList.toggle('hidden');
     });
 }

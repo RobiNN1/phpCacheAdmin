@@ -148,7 +148,7 @@ class Helpers {
 
                 $store($key_name, $value, Http::post('expire', 0));
 
-                Http::redirect();
+                Http::redirect(['db']);
             }
         }
     }

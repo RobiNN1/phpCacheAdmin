@@ -64,7 +64,7 @@ trait TypesTrait {
                 $value = $this->redis->lIndex($key, $index);
                 break;
             case 'zset':
-                $ranges = $this->redis->zSetRange($key, 0, -1);
+                $ranges = $this->redis->zRange($key, 0, -1);
                 $range = Http::get('range', 0);
 
                 $value = $ranges[$range];
@@ -111,7 +111,7 @@ trait TypesTrait {
                 $value = $this->redis->lRange($key, 0, -1);
                 break;
             case 'zset':
-                $value = $this->redis->zSetRange($key, 0, -1);
+                $value = $this->redis->zRange($key, 0, -1);
                 break;
             case 'hash':
                 $value = $this->redis->hGetAll($key);
@@ -193,7 +193,7 @@ trait TypesTrait {
                 $this->redis->listRem($key, ($value !== false ? $value : ''), -1);
                 break;
             case 'zset':
-                $ranges = $this->redis->zSetRange($key, 0, -1);
+                $ranges = $this->redis->zRange($key, 0, -1);
                 $this->redis->zRem($key, $ranges[Http::get('range', 0)]);
                 break;
             case 'hash':

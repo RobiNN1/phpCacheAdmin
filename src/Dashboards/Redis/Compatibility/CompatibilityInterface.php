@@ -44,11 +44,4 @@ interface CompatibilityInterface {
      * @return array<int|string, mixed>
      */
     public function getInfo(string $option = null): array;
-
-    /**
-     * Fix for PHPRedis 6 and newer.
-     *
-     * @return array<int, mixed>
-     */
-    public function zSetRange(string $key, int $start, int $stop): array;
 }

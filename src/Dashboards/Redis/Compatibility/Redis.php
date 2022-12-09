@@ -125,4 +125,20 @@ class Redis extends \Redis implements CompatibilityInterface {
 
         return $info[$option] ?? $info;
     }
+
+    /**
+     * Fix for PHPRedis 6 and newer.
+     *
+     * @return array<int, mixed>
+     *
+     * @throws RedisException
+     */
+    public function zSetRange(string $key, int $start, int $stop): array {
+        if (version_compare(phpversion('redis'), '6.0', '>=')) {
+            $start = (string) $start;
+            $stop = (string) $stop;
+        }
+
+        return $this->zRange($key, $start, $stop);
+    }
 }

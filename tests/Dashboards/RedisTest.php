@@ -152,7 +152,7 @@ final class RedisTest extends TestCase {
     /**
      * @throws Exception
      */
-    private function storeKeys(): void {
+    public function testTypes(): void {
         self::callMethod($this->dashboard, 'store', 'string', 'pu-test-type-string', 'svalue');
         self::callMethod($this->dashboard, 'store', 'set', 'pu-test-type-set', 'svalue1');
         self::callMethod($this->dashboard, 'store', 'set', 'pu-test-type-set', 'svalue2');
@@ -179,24 +179,6 @@ final class RedisTest extends TestCase {
         $this->redis->xAdd('pu-test-type-stream', '1670541476219-0', ['field1' => 'svalue1', 'field2' => 'svalue2']);
         $this->redis->xAdd('pu-test-type-stream', '1670541476219-1', ['field3' => 'svalue3']);
 
-        // it's a bit buggy and overall, the whole way of stroing values needs to be refactored...
-        /*$_POST['stream_id'] = '1670541476219-0';
-        $_POST['field'] = 'field1';
-        self::callMethod($this->dashboard, 'store', 'stream', 'pu-test-type-stream', 'svalue1');
-        $_POST['field'] = 'field2';
-        self::callMethod($this->dashboard, 'store', 'stream', 'pu-test-type-stream', 'svalue2');
-
-        $_POST['stream_id'] = '1670541476219-1';
-        $_POST['field'] = 'field3';
-        self::callMethod($this->dashboard, 'store', 'stream', 'pu-test-type-stream', 'svalue3');*/
-    }
-
-    /**
-     * @throws Exception
-     */
-    public function testTypes(): void {
-        $this->storeKeys();
-
         $expected_original = [
             'string' => 'svalue',
             'set'    => ['svalue1', 'svalue2', 'svalue3'],
@@ -217,11 +199,7 @@ final class RedisTest extends TestCase {
             }
         }
 
-        // test delete sub keys
-
         $delete = [
-            'set'    => 0,
-            'list'   => 0,
             'zset'   => 1,
             'hash'   => 'hashkey2',
             'stream' => '1670541476219-0',
@@ -229,12 +207,6 @@ final class RedisTest extends TestCase {
 
         foreach ($delete as $type_d => $id) {
             switch ($type_d) {
-                case 'set':
-                    $_GET['member'] = $id;
-                    break;
-                case 'list':
-                    $_GET['index'] = $id;
-                    break;
                 case 'zset':
                     $_GET['range'] = $id;
                     break;
@@ -250,8 +222,6 @@ final class RedisTest extends TestCase {
         }
 
         $expected_new = [
-            'set'    => ['svalue1', 'svalue3'],
-            'list'   => ['lvalue2', 'lvalue3'],
             'zset'   => [0 => 'zvalue1', 77 => 'zvalue3'],
             'hash'   => ['hashkey1' => 'hvalue1', 'hashkey3' => 'hvalue3'],
             'stream' => ['1670541476219-1' => ['field3' => 'svalue3'],],
@@ -259,6 +229,10 @@ final class RedisTest extends TestCase {
 
         foreach ($expected_new as $type_n => $value_n) {
             $this->assertEqualsCanonicalizing($value_n, self::callMethod($this->dashboard, 'getAllKeyValues', $type_n, 'pu-test-type-'.$type_n));
+        }
+
+        foreach (['string', 'set', 'list', 'zset', 'hash', 'stream'] as $key) {
+            $this->redis->del('pu-test-type-'.$key);
         }
     }
 }

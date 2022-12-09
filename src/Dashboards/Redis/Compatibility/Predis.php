@@ -176,4 +176,13 @@ class Predis extends Client implements CompatibilityInterface {
     public function rawCommand(string $command, ...$arguments) {
         return $this->executeRaw(func_get_args());
     }
+
+    /**
+     * Fix for PHPRedis 6 and newer.
+     *
+     * @return array<int, mixed>
+     */
+    public function zSetRange(string $key, int $start, int $stop): array {
+        return $this->zrange($key, $start, $stop);
+    }
 }

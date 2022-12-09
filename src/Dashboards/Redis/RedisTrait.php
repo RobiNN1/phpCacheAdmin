@@ -169,6 +169,8 @@ trait RedisTrait {
 
         if (isset($_GET['deletesub'])) {
             $this->deleteSubKey($type, $key);
+
+            Http::redirect(['db', 'key', 'view', 'p']);
         }
 
         if (isset($_GET['delete'])) {
@@ -223,8 +225,11 @@ trait RedisTrait {
      */
     private function saveKey(): void {
         $key = Http::post('key', '');
+        $value = Value::encode(Http::post('value', ''), Http::post('encoder', ''));
+        $old_value = Http::post('old_value', '');
+        $type = Http::post('redis_type', '');
 
-        $this->store($key);
+        $this->store($type, $key, $value, $old_value);
 
         $expire = Http::post('expire', 0);
 

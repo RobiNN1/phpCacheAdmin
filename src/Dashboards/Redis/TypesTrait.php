@@ -15,7 +15,6 @@ namespace RobiNN\Pca\Dashboards\Redis;
 use Exception;
 use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
-use RobiNN\Pca\Value;
 
 trait TypesTrait {
     /**
@@ -65,7 +64,7 @@ trait TypesTrait {
                 $value = $this->redis->lIndex($key, $index);
                 break;
             case 'zset':
-                $ranges = $this->redis->zRange($key, 0, -1);
+                $ranges = $this->redis->zRange($key, '0', '-1'); // @phpstan-ignore-line
                 $range = Http::get('range', 0);
 
                 $value = $ranges[$range];
@@ -78,7 +77,7 @@ trait TypesTrait {
                     $keys[] = $k;
                 }
 
-                $hash_key = Http::get('hash_key', $keys[0]);
+                $hash_key = (string) Http::get('hash_key', $keys[0]);
                 $value = $this->redis->hGet($key, $hash_key);
                 break;
             case 'stream':
@@ -112,7 +111,7 @@ trait TypesTrait {
                 $value = $this->redis->lRange($key, 0, -1);
                 break;
             case 'zset':
-                $value = $this->redis->zRange($key, 0, -1);
+                $value = $this->redis->zRange($key, '0', '-1'); // @phpstan-ignore-line
                 break;
             case 'hash':
                 $value = $this->redis->hGetAll($key);
@@ -134,16 +133,13 @@ trait TypesTrait {
      *
      * @throws Exception
      */
-    private function store(string $key): void {
-        $value = Value::encode(Http::post('value', ''), Http::post('encoder', ''));
-        $old_value = Http::post('old_value', '');
-
-        switch (Http::post('redis_type', '')) {
+    private function store(string $type, string $key, string $value, string $old_value = ''): void {
+        switch ($type) {
             case 'string':
                 $this->redis->set($key, $value);
                 break;
             case 'set':
-                if (Http::post('value', '') !== $old_value) {
+                if ($value !== $old_value) {
                     $this->redis->sRem($key, $old_value);
                     $this->redis->sAdd($key, $value);
                 }
@@ -168,11 +164,13 @@ trait TypesTrait {
                 $this->redis->zAdd($key, Http::post('score', 0), $value);
                 break;
             case 'hash':
-                if ($this->redis->hExists($key, Http::get('hash_key', ''))) {
-                    $this->redis->hDel($key, Http::get('hash_key', ''));
+                $hash_key = Http::get('hash_key', '');
+
+                if ($this->redis->hExists($key, $hash_key)) {
+                    $this->redis->hDel($key, $hash_key);
                 }
 
-                $this->redis->hSet($key, Http::post('hash_key', ''), $value);
+                $this->redis->hSet($key, $hash_key, $value);
                 break;
             case 'stream':
                 $this->redis->xAdd($key, Http::post('stream_id', '*'), [Http::post('field') => $value]);
@@ -195,7 +193,7 @@ trait TypesTrait {
                 $this->redis->listRem($key, ($value !== false ? $value : ''), -1);
                 break;
             case 'zset':
-                $ranges = $this->redis->zRange($key, 0, -1);
+                $ranges = $this->redis->zRange($key, '0', '-1'); // @phpstan-ignore-line
                 $this->redis->zRem($key, $ranges[Http::get('range', 0)]);
                 break;
             case 'hash':
@@ -206,8 +204,6 @@ trait TypesTrait {
                 break;
             default:
         }
-
-        Http::redirect(['db', 'key', 'view', 'p']);
     }
 
     /**

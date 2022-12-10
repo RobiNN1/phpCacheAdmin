@@ -26,7 +26,7 @@ class ServerDashboard implements DashboardInterface {
     }
 
     public static function check(): bool {
-        return true; // No extension required, just return true.
+        return true; // No extension required.
     }
 
     /**

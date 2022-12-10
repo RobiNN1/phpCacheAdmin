@@ -29,8 +29,6 @@ class Helpers {
     }
 
     /**
-     * Get svg icon.
-     *
      * @param string $icon Icon name from `assets/icons/`, custom path or svg code.
      */
     public static function svg(string $icon, ?int $size = 16, string $class = null): string {
@@ -60,8 +58,6 @@ class Helpers {
     }
 
     /**
-     * Convert bool to string in an array.
-     *
      * @param array<int|string, mixed> $array
      *
      * @return array<int|string, mixed>

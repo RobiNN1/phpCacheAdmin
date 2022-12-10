@@ -42,6 +42,8 @@ class Template {
 
     /**
      * Add a path with templates.
+     *
+     * @link https://twig.symfony.com/doc/3.x/api.html#built-in-loaders
      */
     public function addPath(string $namespace, string $path): void {
         $this->paths[$namespace] = $path;
@@ -51,7 +53,7 @@ class Template {
         $loader = new FilesystemLoader(__DIR__.'/../templates');
         $twig = new Environment($loader, [
             'cache' => __DIR__.'/../cache',
-            'debug' => Config::get('twigdebug', false),
+            'debug' => Config::get('twig-debug', false),
         ]);
 
         foreach ($this->paths as $namespace => $path) {
@@ -64,7 +66,7 @@ class Template {
             }
         }
 
-        if (Config::get('twigdebug', false)) {
+        if (Config::get('twig-debug', false)) {
             $twig->addExtension(new DebugExtension());
         }
 

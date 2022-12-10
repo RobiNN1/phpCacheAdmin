@@ -48,9 +48,12 @@ trait KeysTrait {
     /**
      * Get all keys.
      *
-     * This command requires Memcached server >= 1.4.18
+     * Note: `getAllKeys()` or `stats cachedump` based functions do not work
+     * properly, and this is currently the best way to retrieve all keys.
      *
-     * @link https://github.com/memcached/memcached/wiki/ReleaseNotes1418#lru-crawler
+     * This command requires Memcached server >= 1.4.31
+     *
+     * @link https://github.com/memcached/memcached/wiki/ReleaseNotes1431
      *
      * @return array<int, mixed>
      * @throws MemcachedException

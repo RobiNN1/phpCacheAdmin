@@ -19,14 +19,14 @@ use Exception;
 class Format {
     public static function bytes(int $bytes): string {
         if ($bytes > 1_048_576) {
-            return sprintf('%.2fMB', $bytes / 1_048_576);
+            return sprintf('%sMB', self::number($bytes / 1_048_576, 2));
         }
 
         if ($bytes > 1024) {
-            return sprintf('%.2fkB', $bytes / 1024);
+            return sprintf('%sKB', self::number($bytes / 1024, 2));
         }
 
-        return sprintf('%dbytes', $bytes);
+        return sprintf('%sB', self::number($bytes, 2));
     }
 
     public static function seconds(int $time): string {
@@ -71,18 +71,23 @@ class Format {
             return 'Never';
         }
 
-        $format = Config::get('timeformat', 'd. m. Y H:i:s');
+        $format = Config::get('time-format', 'd. m. Y H:i:s');
 
         try {
             return (new DateTimeImmutable('@'.$time))
-                ->setTimezone(new DateTimeZone(date_default_timezone_get()))
+                ->setTimezone(new DateTimeZone(Config::get('timezone', date_default_timezone_get())))
                 ->format($format);
         } catch (Exception $e) {
             return date($format, $time);
         }
     }
 
-    public static function number(int $number): string {
-        return number_format($number, 0, ',', ' ');
+    public static function number(float $number, int $decimals = 0): string {
+        return number_format(
+            $number,
+            $decimals,
+            Config::get('decimal-sep', ','),
+            Config::get('thousands-sep', ' ')
+        );
     }
 }

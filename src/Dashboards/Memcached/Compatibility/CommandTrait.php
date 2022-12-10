@@ -15,14 +15,11 @@ namespace RobiNN\Pca\Dashboards\Memcached\Compatibility;
 use RobiNN\Pca\Dashboards\Memcached\MemcachedException;
 
 trait CommandTrait {
-    /**
-     * Check if command is allowed.
-     */
     private function checkCommand(string $command): bool {
         // Unknown or incorrect commands can cause an infinite loop.
         $allowed = [
-            'set', 'add', 'replace', 'append', 'prepend', 'cas', 'touch', 'get', 'gets',
-            'delete', 'incr', 'decr', 'stats', 'flush_all', 'version', 'lru_crawler',
+            'set', 'add', 'replace', 'append', 'prepend', 'cas', 'get', 'gets', 'gat', 'gats',
+            'touch', 'delete', 'incr', 'decr', 'stats', 'flush_all', 'version', 'lru_crawler',
         ];
 
         $parts = explode(' ', $command);
@@ -33,18 +30,13 @@ trait CommandTrait {
     /**
      * Run Memcached command.
      *
-     * set <key> <flags> <ttl> <bytes>\r\n<value>
-     * add <key> <flags> <ttl> <bytes>\r\n<value>
-     * replace <key> <flags> <ttl> <bytes>\r\n<value>
-     * append <key> <flags> <ttl> <bytes>\r\n<value>
-     * prepend <key> <flags> <ttl> <bytes>\r\n<value>
-     * cas <key> <flags> <ttl> <bytes>\r\n<value>
+     * set|add|replace|append|prepend <key> <flags> <ttl> <bytes>\r\n<value>
+     * cas <key> <flags> <ttl> <bytes> <cas unique>\r\n<value>
+     * get|gets <key|keys>
+     * gat|gats <exptime> <key|keys>
      * touch <key> <ttl>
-     * get <key>
-     * gets <key>
      * delete <key>
-     * incr <key> <value>
-     * decr <key> <value>
+     * incr|decr <key> <value>
      * stats [items|slabs|sizes|cachedump <slab_id> <limit>|reset]
      * flush_all
      * version
@@ -55,6 +47,8 @@ trait CommandTrait {
      * lru_crawler metadump <...classid|all|hash>
      *
      * Note: \r\n is added automatically to the end.
+     *
+     * @link https://github.com/memcached/memcached/blob/master/doc/protocol.txt
      *
      * @throws MemcachedException
      */
@@ -86,8 +80,8 @@ trait CommandTrait {
             $buffer .= fgets($fp, 256);
 
             $ends = [
-                'BADCLASS', 'BUSY', 'CLIENT_ERROR', 'DELETED', 'EN', 'END', 'ERROR', 'EXISTS', 'MN', 'NOSPARE', 'NOTFULL',
-                'NOT_FOUND', 'NOT_STORED', 'OK', 'RESET', 'SAME', 'SERVER_ERROR', 'STORED', 'TOUCHED', 'UNSAFE', 'VERSION',
+                'ERROR', 'CLIENT_ERROR', 'SERVER_ERROR', 'STORED', 'NOT_STORED', 'EXISTS', 'NOT_FOUND', 'TOUCHED', 'DELETED',
+                'OK', 'END', 'VERSION', 'BUSY', 'BADCLASS', 'NOSPARE', 'NOTFULL', 'UNSAFE', 'SAME', 'EN', 'MN', 'RESET',
             ];
 
             foreach ($ends as $end) {

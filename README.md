@@ -22,14 +22,16 @@
 
 ## Installation
 
-Simply extract the content. Optional but highly recommended, run `composer install` before use.
+Simply extract the content.
+Optional but highly recommended, run `composer install` before use.
 
 If you need to customize or add servers to the configuration file,
 do not edit `config.dist.php` directly, but copy it to `config.php`.
 
 ## Updating
 
-Replace all files and delete the `cache` folder.
+Replace all files and delete the `cache` folder
+(this folder contains only compiled Twig templates).
 
 ## Docker
 
@@ -37,7 +39,7 @@ https://hub.docker.com/r/robinn/phpcacheadmin
 
 Run with single command:
 
-```
+```bash
 docker run -p 8080:80 -d --name phpcacheadmin -e "PCA_REDIS_0_HOST=redis_host" -e "PCA_REDIS_0_PORT=6379" -e "PCA_MEMCACHED_0_HOST=memcached_host" -e "PCA_MEMCACHED_0_PORT=11211" robinn/phpcacheadmin
 ```
 
@@ -50,7 +52,8 @@ services:
     image: robinn/phpcacheadmin
     ports:
       - "8080:80"
-    #volumes: # If you want to use config.php instead of ENV variables
+    #volumes:
+    # If you want to use config.php instead of ENV variables
     #  - "./config.php:/var/www/html/config.php"
     environment:
       - PCA_REDIS_0_HOST=redis
@@ -74,35 +77,36 @@ services:
 
 Redis:
 
-- `PCA_REDIS_0_NAME` The server name for an info panel. Optional.
-- `PCA_REDIS_0_HOST` Redis host. Optional, when a `path` is specified.
-- `PCA_REDIS_0_PORT` Redis port. Optional, when the default port is used.
-- `PCA_REDIS_0_DATABASE` Redis database. Optional, default database.
-- `PCA_REDIS_0_USERNAME` Redis username. Optional, requires Redis >= 6.0.
-- `PCA_REDIS_0_PASSWORD` Redis password. Optional.
-- `PCA_REDIS_0_PATH` Redis unix domain socket. Optional.
-- `PCA_REDIS_0_DATABASES` Optional, number of databases (use this if the `CONFIG` command is disabled).
+- `PCA_REDIS_0_NAME` The server name (optional).
+- `PCA_REDIS_0_HOST` Optional when a path is specified.
+- `PCA_REDIS_0_PORT` Optional when the default port is used.
+- `PCA_REDIS_0_DATABASE` Default database (optional).
+- `PCA_REDIS_0_USERNAME` ACL - requires Redis >= 6.0 (optional).
+- `PCA_REDIS_0_PASSWORD` Optional.
+- `PCA_REDIS_0_PATH` Unix domain socket (optional).
+- `PCA_REDIS_0_DATABASES` Number of databases, use this if the CONFIG command is disabled (optional).
 
 Memcached:
 
-- `PCA_MEMCACHED_0_NAME` The server name for an info panel. Optional.
-- `PCA_MEMCACHED_0_HOST` Memcached host. Optional, when a `path` is specified.
-- `PCA_MEMCACHED_0_PORT` Memcached port. Optional, when the default port is used.
-- `PCA_MEMCACHED_0_PATH` Memcached unix domain socket. Optional.
+- `PCA_MEMCACHED_0_NAME` The server name (optional).
+- `PCA_MEMCACHED_0_HOST` Optional when a path is specified.
+- `PCA_MEMCACHED_0_PORT` Optional when the default port is used.
+- `PCA_MEMCACHED_0_PATH` Unix domain socket (optional).
 
 > To add another server, add the same environment variables, but change 0 to 1 (2 for third server and so on).
->
+
 > All keys from the config file are supported ENV variables, they just must start with PCA_ prefix.
 
 ## Requirements
 
 - PHP >= 7.4
-- redis, memcache(d), opcache or apcu php extensions (if none of them is installed, only the Server tab will be available)
+- redis, memcache(d), opcache or apcu php extensions
 - Redis server >= 3.0.0
-- Memcached server >= 1.4.18
+- Memcached server >= 1.4.31 If you don't see the keys, you need to enable `lru_crawler`.
+  SASL is not supported because there is no way to get the keys.
 
 > **Note**
-> 
+>
 > For better performance, always use extensions, however:
 > - If the Redis extension is not installed, the system will use a Predis client (if you are using composer, install Predis manually via `composer require predis/predis`).
 > - If the Memcache(d) extension is not installed, the system will use a custom PHPMem client.

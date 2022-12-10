@@ -17,11 +17,11 @@ use RobiNN\Pca\Format;
 
 final class FormatTest extends TestCase {
     public function testBytes(): void {
-        $this->assertSame('127.38MB', Format::bytes(133567600));
+        $this->assertSame('127,38MB', Format::bytes(133_567_600));
     }
 
     public function testSeconds(): void {
         $this->assertSame('1 hour', Format::seconds(3600));
-        $this->assertSame('6 days 13 hours 41 minutes 14 seconds', Format::seconds(567674));
+        $this->assertSame('6 days 13 hours 41 minutes 14 seconds', Format::seconds(567_674));
     }
 }

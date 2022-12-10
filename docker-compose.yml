@@ -4,7 +4,8 @@ services:
     build: .
     ports:
       - "8080:80"
-    #volumes: # If you want to use config.php instead of ENV variables
+    #volumes:
+    # If you want to use config.php instead of ENV variables
     #  - "./config.php:/var/www/html/config.php"
     environment:
       - PCA_REDIS_0_HOST=redis

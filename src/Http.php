@@ -84,8 +84,6 @@ class Http {
     }
 
     /**
-     * Redirect.
-     *
      * @param array<int|string, string>     $filter     Parameters to be preserved.
      * @param array<int|string, int|string> $additional Additional parameters with their new value.
      */

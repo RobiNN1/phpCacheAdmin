@@ -11,37 +11,37 @@
 declare(strict_types=1);
 
 return [
-    // The order of the items also changes the position of the sidebar links, first item is also the default dashboard.
-    // You can comment out (delete) any dashboard.
-    'dashboards' => [
+    // The order of the items also changes the position of the
+    // sidebar links, first item is also the default dashboard.
+    // You can comment out (or delete) any dashboard.
+    'dashboards'    => [
         RobiNN\Pca\Dashboards\Server\ServerDashboard::class,
         RobiNN\Pca\Dashboards\Redis\RedisDashboard::class,
         RobiNN\Pca\Dashboards\Memcached\MemcachedDashboard::class,
         RobiNN\Pca\Dashboards\OPCache\OPCacheDashboard::class,
         RobiNN\Pca\Dashboards\APCu\APCuDashboard::class,
     ],
-    'redis'      => [
+    'redis'         => [
         [
-            'name' => 'Localhost', // Optional
-            'host' => '127.0.0.1', // Optional, when a path is specified
-            'port' => 6379, // Optional, when the default port is used
-            //'database' => 0, // Optional, default database
-            //'username' => '', // Optional, requires Redis >= 6.0
-            //'password' => '', // Optional
-            //'path'     => '/var/run/redis/redis-server.sock', // Optional
-            //'databases' => 15, // Optional, number of databases (use this if the CONFIG command is disabled)
+            'name' => 'Localhost', // The server name (optional).
+            'host' => '127.0.0.1', // Optional when a path is specified.
+            'port' => 6379, // Optional when the default port is used.
+            //'database'  => 0, // Default database (optional).
+            //'username'  => '', // ACL - requires Redis >= 6.0 (optional).
+            //'password'  => '', // Optional.
+            //'path'      => '/var/run/redis/redis-server.sock', // Unix domain socket (optional).
+            //'databases' => 16, // Number of databases, use this if the CONFIG command is disabled (optional).
         ],
     ],
-    'memcached'  => [
+    'memcached'     => [
         [
-            'name' => 'Localhost', // Optional
-            'host' => '127.0.0.1', // Optional, when a path is specified
-            'port' => 11211, // Optional, when the default port is used
-            //'path' => '/var/run/memcached/memcached.sock', // Optional
+            'name' => 'Localhost', // The server name, optional.
+            'host' => '127.0.0.1', // Optional when a path is specified.
+            'port' => 11211, // Optional when the default port is used.
+            //'path' => '/var/run/memcached/memcached.sock', // Unix domain socket (optional).
         ],
     ],
-    'timeformat' => 'd. m. Y H:i:s',
-    /*'auth'       => static function (): void {
+    /*'auth'        => static function (): void {
         // Example of authentication with http auth.
 
         $username = 'admin';
@@ -70,7 +70,7 @@ return [
         }
     },*/
     // Decoding/Encoding functions
-    'encoding'   => [
+    'encoding'      => [
         'gzcompress' => [
             'view' => static fn (string $value): ?string => extension_loaded('zlib') && @gzuncompress($value) !== false ? gzuncompress($value) : null,
             'save' => static fn (string $value): string => extension_loaded('zlib') ? gzcompress($value) : $value,
@@ -83,9 +83,20 @@ return [
             'view' => static fn (string $value): ?string => extension_loaded('zlib') && @gzinflate($value) !== false ? gzinflate($value) : null,
             'save' => static fn (string $value): string => extension_loaded('zlib') ? gzdeflate($value) : $value,
         ],
+        /*'gz_magento' => [
+            'view' => static function (string $value): ?string {
+                // https://github.com/colinmollenhour/Cm_Cache_Backend_Redis/blob/master/Cm/Cache/Backend/Redis.php#L1307-L1328
+                if (strpos($value, "gz:\x1f\x8b") === 0) {
+                    $value = substr($value, 5);
+                }
+
+                return extension_loaded('zlib') && @gzuncompress($value) !== false ? gzuncompress($value) : null;
+            },
+            'save' => static fn (string $value): string => extension_loaded('zlib') ? "gz:\x1f\x8b".gzcompress($value) : $value,
+        ],*/
     ],
     // Formatting functions, it runs after decoding
-    'formatters' => [
+    'formatters'    => [
         static function (string $value): ?string {
             if (@unserialize($value, ['allowed_classes' => false]) !== false) {
                 $unserialized_value = unserialize($value, ['allowed_classes' => false]);
@@ -102,4 +113,9 @@ return [
             return null;
         },
     ],
+    // Customizations
+    //'timezone'      => 'Europe/Bratislava', // Leave empty (or commented out) to get it automatically obtained.
+    'time-format'   => 'd. m. Y H:i:s',
+    'decimal-sep'   => ',',
+    'thousands-sep' => ' ',
 ];

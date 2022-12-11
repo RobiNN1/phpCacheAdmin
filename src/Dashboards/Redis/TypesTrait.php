@@ -44,6 +44,7 @@ trait TypesTrait {
      * Used in edit form.
      *
      * @return array<int, mixed>
+     *
      * @throws Exception
      */
     private function getKeyValue(string $type, string $key): array {
@@ -97,6 +98,7 @@ trait TypesTrait {
      * Used in view page.
      *
      * @return array<int, mixed>|string
+     *
      * @throws Exception
      */
     private function getAllKeyValues(string $type, string $key) {

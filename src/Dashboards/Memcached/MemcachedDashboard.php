@@ -46,8 +46,7 @@ class MemcachedDashboard implements DashboardInterface {
     }
 
     public static function check(): bool {
-        return
-            extension_loaded('memcached') ||
+        return extension_loaded('memcached') ||
             extension_loaded('memcache') ||
             class_exists(Compatibility\PHPMem::class);
     }
@@ -77,6 +76,7 @@ class MemcachedDashboard implements DashboardInterface {
      * @param array<string, int|string> $server
      *
      * @return Compatibility\Memcached|Compatibility\Memcache|Compatibility\PHPMem
+     *
      * @throws DashboardException
      */
     public function connect(array $server) {

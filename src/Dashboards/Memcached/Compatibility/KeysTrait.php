@@ -19,6 +19,61 @@ trait KeysTrait {
     use CommandTrait;
 
     /**
+     * Get all keys.
+     *
+     * Note: `getAllKeys()` or `stats cachedump` based functions do not work
+     * properly, and this is currently the best way to retrieve all keys.
+     *
+     * This command requires Memcached server >= 1.4.31
+     *
+     * @link https://github.com/memcached/memcached/wiki/ReleaseNotes1431
+     *
+     * @return array<int, mixed>
+     *
+     * @throws MemcachedException
+     */
+    public function getKeys(): array {
+        static $keys = [];
+
+        $raw = $this->runCommand('lru_crawler metadump all');
+        $lines = explode("\n", $raw);
+        array_pop($lines);
+
+        foreach ($lines as $line) {
+            $keys[] = $this->keyData($line);
+        }
+
+        return $keys;
+    }
+
+    /**
+     * Get raw key.
+     *
+     * @return string|false
+     *
+     * @throws MemcachedException
+     */
+    public function getKey(string $key) {
+        $raw = $this->runCommand('get '.$key);
+        $lines = explode("\r\n", $raw);
+
+        if (Helpers::str_starts_with($raw, 'VALUE') && Helpers::str_ends_with($raw, 'END')) {
+            return !isset($lines[1]) || $lines[1] === 'N;' ? '' : $lines[1];
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if key exists.
+     *
+     * @throws MemcachedException
+     */
+    public function exists(string $key): bool {
+        return $this->getKey($key) !== false;
+    }
+
+    /**
      * Convert raw key line to an array.
      *
      * @return array<string, string|int>
@@ -43,58 +98,5 @@ trait KeysTrait {
         }
 
         return $data;
-    }
-
-    /**
-     * Get all keys.
-     *
-     * Note: `getAllKeys()` or `stats cachedump` based functions do not work
-     * properly, and this is currently the best way to retrieve all keys.
-     *
-     * This command requires Memcached server >= 1.4.31
-     *
-     * @link https://github.com/memcached/memcached/wiki/ReleaseNotes1431
-     *
-     * @return array<int, mixed>
-     * @throws MemcachedException
-     */
-    public function getKeys(): array {
-        static $keys = [];
-
-        $raw = $this->runCommand('lru_crawler metadump all');
-        $lines = explode("\n", $raw);
-        array_pop($lines);
-
-        foreach ($lines as $line) {
-            $keys[] = $this->keyData($line);
-        }
-
-        return $keys;
-    }
-
-    /**
-     * Get raw key.
-     *
-     * @return string|false
-     * @throws MemcachedException
-     */
-    public function getKey(string $key) {
-        $raw = $this->runCommand('get '.$key);
-        $lines = explode("\r\n", $raw);
-
-        if (Helpers::str_starts_with($raw, 'VALUE') && Helpers::str_ends_with($raw, 'END')) {
-            return !isset($lines[1]) || $lines[1] === 'N;' ? '' : $lines[1];
-        }
-
-        return false;
-    }
-
-    /**
-     * Check if key exists.
-     *
-     * @throws MemcachedException
-     */
-    public function exists(string $key): bool {
-        return $this->getKey($key) !== false;
     }
 }

@@ -17,6 +17,19 @@ use RobiNN\Pca\Dashboards\DashboardException;
 
 class Redis extends \Redis implements CompatibilityInterface {
     /**
+     * @var array<int, string>
+     */
+    private array $data_types = [
+        self::REDIS_NOT_FOUND => 'other',
+        self::REDIS_STRING    => 'string',
+        self::REDIS_SET       => 'set',
+        self::REDIS_LIST      => 'list',
+        self::REDIS_ZSET      => 'zset',
+        self::REDIS_HASH      => 'hash',
+        self::REDIS_STREAM    => 'stream',
+    ];
+
+    /**
      * @param array<string, int|string> $server
      *
      * @throws DashboardException
@@ -51,19 +64,6 @@ class Redis extends \Redis implements CompatibilityInterface {
     }
 
     /**
-     * @var array<int, string>
-     */
-    private array $data_types = [
-        \Redis::REDIS_NOT_FOUND => 'other',
-        \Redis::REDIS_STRING    => 'string',
-        \Redis::REDIS_SET       => 'set',
-        \Redis::REDIS_LIST      => 'list',
-        \Redis::REDIS_ZSET      => 'zset',
-        \Redis::REDIS_HASH      => 'hash',
-        \Redis::REDIS_STREAM    => 'stream',
-    ];
-
-    /**
      * Get all data types.
      *
      * Used in form.
@@ -73,7 +73,7 @@ class Redis extends \Redis implements CompatibilityInterface {
     public function getAllTypes(): array {
         static $types = [];
 
-        unset($this->data_types[\Redis::REDIS_NOT_FOUND], $this->data_types[\Redis::REDIS_STREAM]);
+        unset($this->data_types[self::REDIS_NOT_FOUND], $this->data_types[self::REDIS_STREAM]);
 
         foreach ($this->data_types as $type) {
             $types[$type] = ucfirst($type);
@@ -109,12 +109,11 @@ class Redis extends \Redis implements CompatibilityInterface {
     /**
      * Get server info.
      *
-     * @param string|null $option
-     *
      * @return array<int|string, mixed>
+     *
      * @throws RedisException
      */
-    public function getInfo(string $option = null): array {
+    public function getInfo(?string $option = null): array {
         static $info = [];
 
         $options = ['SERVER', 'CLIENTS', 'MEMORY', 'PERSISTENCE', 'STATS', 'REPLICATION', 'CPU', 'CLUSTER', 'KEYSPACE'];

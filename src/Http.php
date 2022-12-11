@@ -97,7 +97,7 @@ class Http {
 
             echo '<script data-cfasync="false">window.location.replace("'.$location.'");</script>';
 
-            exit();
+            exit;
         }
     }
 }

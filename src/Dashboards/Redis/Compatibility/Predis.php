@@ -17,6 +17,20 @@ use RobiNN\Pca\Dashboards\DashboardException;
 
 class Predis extends Client implements CompatibilityInterface {
     /**
+     * @var array<string, string>
+     */
+    private array $data_types = [
+        'none'   => 'none',
+        'other'  => 'other',
+        'string' => 'string',
+        'set'    => 'set',
+        'list'   => 'list',
+        'zset'   => 'zset',
+        'hash'   => 'hash',
+        'stream' => 'stream',
+    ];
+
+    /**
      * @param array<string, int|string> $server
      */
     public function __construct(array $server) {
@@ -38,20 +52,6 @@ class Predis extends Client implements CompatibilityInterface {
                 'password' => $server['password'] ?? null,
             ]);
     }
-
-    /**
-     * @var array<string, string>
-     */
-    private array $data_types = [
-        'none'   => 'none',
-        'other'  => 'other',
-        'string' => 'string',
-        'set'    => 'set',
-        'list'   => 'list',
-        'zset'   => 'zset',
-        'hash'   => 'hash',
-        'stream' => 'stream',
-    ];
 
     /**
      * Get all data types.
@@ -97,11 +97,9 @@ class Predis extends Client implements CompatibilityInterface {
     /**
      * Get server info.
      *
-     * @param string|null $option
-     *
      * @return array<int|string, mixed>
      */
-    public function getInfo(string $option = null): array {
+    public function getInfo(?string $option = null): array {
         static $array = [];
 
         $options = ['Server', 'Clients', 'Memory', 'Persistence', 'Stats', 'Replication', 'CPU', 'Cluster', 'Keyspace'];

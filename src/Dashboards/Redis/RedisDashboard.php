@@ -77,6 +77,7 @@ class RedisDashboard implements DashboardInterface {
      * @param array<string, int|string> $server
      *
      * @return Compatibility\Redis|Compatibility\Predis
+     *
      * @throws DashboardException
      */
     public function connect(array $server) {

@@ -100,7 +100,7 @@ trait APCuTrait {
 
         $key_data = apcu_key_info($key);
 
-        $ttl = $key_data['ttl'] === 0 ? -1 : (($key_data['creation_time'] + $key_data['ttl']) - time());
+        $ttl = $key_data['ttl'] === 0 ? -1 : $key_data['creation_time'] + $key_data['ttl'] - time();
 
         return $this->template->render('partials/view_key', [
             'key'        => $key,
@@ -184,7 +184,7 @@ trait APCuTrait {
                     'hits'      => Format::number((int) $key_data['num_hits']),
                     'last_used' => Format::time($key_data['access_time']),
                     'created'   => Format::time($key_data['creation_time']),
-                    'ttl'       => $key_data['ttl'] === 0 ? 'Doesn\'t expire' : (($key_data['creation_time'] + $key_data['ttl']) - time()),
+                    'ttl'       => $key_data['ttl'] === 0 ? 'Doesn\'t expire' : $key_data['creation_time'] + $key_data['ttl'] - time(),
                 ],
             ];
         }

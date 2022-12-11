@@ -15,18 +15,6 @@ namespace RobiNN\Pca\Dashboards\Memcached\Compatibility;
 use RobiNN\Pca\Dashboards\Memcached\MemcachedException;
 
 trait CommandTrait {
-    private function checkCommand(string $command): bool {
-        // Unknown or incorrect commands can cause an infinite loop.
-        $allowed = [
-            'set', 'add', 'replace', 'append', 'prepend', 'cas', 'get', 'gets', 'gat', 'gats',
-            'touch', 'delete', 'incr', 'decr', 'stats', 'flush_all', 'version', 'lru_crawler',
-        ];
-
-        $parts = explode(' ', $command);
-
-        return in_array(strtolower($parts[0]), $allowed, true);
-    }
-
     /**
      * Run Memcached command.
      *
@@ -94,5 +82,17 @@ trait CommandTrait {
         fclose($fp);
 
         return rtrim($buffer, "\r\n");
+    }
+
+    private function checkCommand(string $command): bool {
+        // Unknown or incorrect commands can cause an infinite loop.
+        $allowed = [
+            'set', 'add', 'replace', 'append', 'prepend', 'cas', 'get', 'gets', 'gat', 'gats',
+            'touch', 'delete', 'incr', 'decr', 'stats', 'flush_all', 'version', 'lru_crawler',
+        ];
+
+        $parts = explode(' ', $command);
+
+        return in_array(strtolower($parts[0]), $allowed, true);
     }
 }

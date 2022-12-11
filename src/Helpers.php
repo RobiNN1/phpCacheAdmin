@@ -31,7 +31,7 @@ class Helpers {
     /**
      * @param string $icon Icon name from `assets/icons/`, custom path or svg code.
      */
-    public static function svg(string $icon, ?int $size = 16, string $class = null): string {
+    public static function svg(string $icon, ?int $size = 16, ?string $class = null): string {
         $file = is_file($icon) ? $icon : __DIR__.'/../assets/icons/'.$icon.'.svg';
 
         if (is_file($file)) {
@@ -50,7 +50,7 @@ class Helpers {
         return str_replace("\n", '', $svg);
     }
 
-    public static function alert(Template $template, string $message, string $color = null): void {
+    public static function alert(Template $template, string $message, ?string $color = null): void {
         $template->addGlobal('alerts', $template->render('components/alert', [
             'message'     => $message,
             'alert_color' => $color,
@@ -88,7 +88,7 @@ class Helpers {
         if (!function_exists('str_ends_with')) {
             $needleLength = strlen($needle);
 
-            return $needleLength <= strlen($haystack) && 0 === substr_compare($haystack, $needle, -$needleLength);
+            return $needleLength <= strlen($haystack) && substr_compare($haystack, $needle, -$needleLength) === 0;
         }
 
         return str_ends_with($haystack, $needle);

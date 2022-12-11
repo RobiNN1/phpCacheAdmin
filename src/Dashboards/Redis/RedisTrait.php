@@ -123,6 +123,7 @@ trait RedisTrait {
      * @param array<int, mixed> $value_items
      *
      * @return array<int, mixed>
+     *
      * @throws Exception
      */
     private function formatViewItems(string $key, array $value_items, string $type): array {
@@ -300,6 +301,7 @@ trait RedisTrait {
 
     /**
      * @return array<int, array<string, string|int>>
+     *
      * @throws Exception
      */
     private function getAllKeys(): array {
@@ -337,6 +339,7 @@ trait RedisTrait {
 
     /**
      * @return array<int, string>
+     *
      * @throws Exception
      */
     private function getDatabases(): array {

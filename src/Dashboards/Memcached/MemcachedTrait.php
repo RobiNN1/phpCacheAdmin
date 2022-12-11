@@ -198,6 +198,7 @@ trait MemcachedTrait {
 
     /**
      * @return array<int, array<string, string|int>>
+     *
      * @throws MemcachedException
      */
     private function getAllKeys(): array {

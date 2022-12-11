@@ -59,6 +59,7 @@ class PHPMem implements CompatibilityInterface {
      * Retrieve an item.
      *
      * @return string|false
+     *
      * @throws MemcachedException
      */
     public function get(string $key) {
@@ -106,6 +107,7 @@ class PHPMem implements CompatibilityInterface {
 
     /**
      * @return array<string, mixed>
+     *
      * @throws MemcachedException
      */
     public function getServerStats(): array {

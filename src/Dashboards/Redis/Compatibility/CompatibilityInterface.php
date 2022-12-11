@@ -39,9 +39,7 @@ interface CompatibilityInterface {
     /**
      * Get server info.
      *
-     * @param string|null $option
-     *
      * @return array<int|string, mixed>
      */
-    public function getInfo(string $option = null): array;
+    public function getInfo(?string $option = null): array;
 }

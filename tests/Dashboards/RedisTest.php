@@ -224,7 +224,7 @@ final class RedisTest extends TestCase {
         $expected_new = [
             'zset'   => [0 => 'zvalue1', 77 => 'zvalue3'],
             'hash'   => ['hashkey1' => 'hvalue1', 'hashkey3' => 'hvalue3'],
-            'stream' => ['1670541476219-1' => ['field3' => 'svalue3'],],
+            'stream' => ['1670541476219-1' => ['field3' => 'svalue3']],
         ];
 
         foreach ($expected_new as $type_n => $value_n) {

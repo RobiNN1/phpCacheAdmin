@@ -23,6 +23,7 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase {
      * @param mixed ...$args
      *
      * @return mixed
+     *
      * @throws ReflectionException
      */
     protected static function callMethod(object $object, string $name, ...$args) {

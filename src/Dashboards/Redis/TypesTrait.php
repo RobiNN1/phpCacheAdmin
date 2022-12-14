@@ -72,12 +72,7 @@ trait TypesTrait {
                 $score = $this->redis->zScore($key, $value);
                 break;
             case 'hash':
-                $keys = [];
-
-                foreach ($this->redis->hGetAll($key) as $k => $hash_Key_value) {
-                    $keys[] = $k;
-                }
-
+                $keys = array_keys($this->redis->hGetAll($key));
                 $hash_key = (string) Http::get('hash_key', $keys[0]);
                 $value = $this->redis->hGet($key, $hash_key);
                 break;
@@ -129,7 +124,7 @@ trait TypesTrait {
     }
 
     /**
-     * Save key by with correct function.
+     * Save key with correct function.
      *
      * Used in saveKey().
      *

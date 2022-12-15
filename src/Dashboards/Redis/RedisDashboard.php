@@ -83,6 +83,10 @@ class RedisDashboard implements DashboardInterface {
     public function connect(array $server) {
         $server['database'] = Http::get('db', $server['database'] ?? 0);
 
+        if (isset($server['authfile'])) {
+            $server['password'] = trim(file_get_contents($server['authfile']));
+        }
+
         if (extension_loaded('redis')) {
             $redis = new Compatibility\Redis();
             $redis->connection($server);

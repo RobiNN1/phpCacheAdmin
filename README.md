@@ -83,6 +83,7 @@ Redis:
 - `PCA_REDIS_0_DATABASE` Default database (optional).
 - `PCA_REDIS_0_USERNAME` ACL - requires Redis >= 6.0 (optional).
 - `PCA_REDIS_0_PASSWORD` Optional.
+- `PCA_REDIS_0_AUTHFILE` File with a password, e.g. Docker secrets (optional).
 - `PCA_REDIS_0_PATH` Unix domain socket (optional).
 - `PCA_REDIS_0_DATABASES` Number of databases, use this if the CONFIG command is disabled (optional).
 
@@ -103,7 +104,7 @@ Memcached:
 - redis, memcache(d), opcache or apcu php extensions
 - Redis server >= 3.0.0
 - Memcached server >= 1.4.31 If you don't see the keys, you need to enable `lru_crawler`.
-  SASL is not supported because there is no way to get the keys.
+  (SASL is not supported because there is no way to get the keys.)
 
 > **Note**
 >

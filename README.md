@@ -14,24 +14,17 @@
   </tr>
 </table>
 
-<div align="center">
-  <img width="450" alt="Server tab (default)" src=".github/img/server.png">
-
-  Server tab (default)
-</div>
-
 ## Installation
 
-Simply extract the content.
-Optional but highly recommended, run `composer install` before use.
+Simply extract the content. If you use the defaults, everything should work out of the box.
 
-If you need to customize or add servers to the configuration file,
-do not edit `config.dist.php` directly, but copy it to `config.php`.
+To customize the configuration file, do not edit `config.dist.php` directly, but copy it into `config.php`.
+
+Optional but highly recommended, run `composer install` before use.
 
 ## Updating
 
-Replace all files and delete the `cache` folder
-(this folder contains only compiled Twig templates).
+Replace all files and delete the `cache` folder (this folder contains only compiled Twig templates).
 
 ## Docker
 
@@ -103,8 +96,7 @@ Memcached:
 - PHP >= 7.4
 - redis, memcache(d), opcache or apcu php extensions
 - Redis server >= 3.0.0
-- Memcached server >= 1.4.31 If you don't see the keys, you need to enable `lru_crawler`.
-  (SASL is not supported because there is no way to get the keys.)
+- Memcached server >= 1.4.31 If you don't see the keys, you need to enable `lru_crawler`. (SASL is not supported because there is no way to get the keys.)
 
 > **Note**
 >

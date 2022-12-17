@@ -18,7 +18,7 @@ WORKDIR /var/www/html
 RUN chmod 777 /var/www/html
 
 RUN git clone --depth=1 https://github.com/RobiNN1/phpCacheAdmin.git .
-RUN apt remove git
+RUN apt remove git -y && apt autoremove -y
 
 RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf # fix for apache
 

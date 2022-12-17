@@ -80,12 +80,12 @@ trait OPCacheTrait {
     }
 
     /**
-     * @param array<string, mixed> $status
-     *
      * @return array<int, array<string, string|int>>
      */
-    private function getCachedScripts(array $status): array {
+    private function getCachedScripts(): array {
         static $cached_scripts = [];
+
+        $status = opcache_get_status();
 
         if (isset($status['scripts'])) {
             foreach ($status['scripts'] as $script) {
@@ -122,8 +122,7 @@ trait OPCacheTrait {
     }
 
     private function mainDashboard(): string {
-        $status = opcache_get_status();
-        $cached_scripts = $this->getCachedScripts($status);
+        $cached_scripts = $this->getCachedScripts();
         $paginator = new Paginator($this->template, $cached_scripts, [['ignore', 'pp'], ['p' => '']]);
         $is_ignored = isset($_GET['ignore']) && $_GET['ignore'] === 'yes';
 

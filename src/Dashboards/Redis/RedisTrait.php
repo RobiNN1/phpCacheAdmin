@@ -230,6 +230,12 @@ trait RedisTrait {
         $old_value = Http::post('old_value', '');
         $type = Http::post('redis_type', '');
 
+        $old_key = Http::post('old_key', '');
+
+        if ($old_key !== '' && $old_key !== $key) {
+            $this->redis->rename($old_key, $key);
+        }
+
         $this->store($type, $key, $value, $old_value);
 
         $expire = Http::post('expire', 0);
@@ -238,12 +244,6 @@ trait RedisTrait {
             $this->redis->persist($key);
         } else {
             $this->redis->expire($key, $expire);
-        }
-
-        $old_key = Http::post('old_key', '');
-
-        if ($old_key !== '' && $old_key !== $key) {
-            $this->redis->rename($old_key, $key);
         }
 
         Http::redirect(['db'], ['view' => 'key', 'key' => $key]);
@@ -279,11 +279,8 @@ trait RedisTrait {
             $expire = $this->redis->ttl($key);
         }
 
-        $is_edit = false;
-
         if (isset($_GET['key']) && $_GET['form'] === 'edit' && $this->redis->exists($key)) {
             [$value, $index, $score, $hash_key] = $this->getKeyValue($type, $key);
-            $is_edit = true;
         }
 
         $value = Value::decode($value, $encoder);
@@ -299,7 +296,6 @@ trait RedisTrait {
             'expire'   => $expire,
             'encoders' => Config::getEncoders(),
             'encoder'  => $encoder,
-            'is_edit'  => $is_edit,
         ]);
     }
 

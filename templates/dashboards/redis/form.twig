@@ -18,6 +18,7 @@
             label: 'Key',
             value: key,
             required: true,
+            help: is_edit ? 'Note: Currently, it is not possible to rename and update a value at the same time.' : '',
         }) }}
 
         {{ include('components/input.twig', {

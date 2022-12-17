@@ -279,8 +279,11 @@ trait RedisTrait {
             $expire = $this->redis->ttl($key);
         }
 
+        $is_edit = false;
+
         if (isset($_GET['key']) && $_GET['form'] === 'edit' && $this->redis->exists($key)) {
             [$value, $index, $score, $hash_key] = $this->getKeyValue($type, $key);
+            $is_edit = true;
         }
 
         $value = Value::decode($value, $encoder);
@@ -296,6 +299,7 @@ trait RedisTrait {
             'expire'   => $expire,
             'encoders' => Config::getEncoders(),
             'encoder'  => $encoder,
+            'is_edit'  => $is_edit,
         ]);
     }
 

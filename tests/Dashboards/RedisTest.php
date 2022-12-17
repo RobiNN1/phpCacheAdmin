@@ -169,11 +169,11 @@ final class RedisTest extends TestCase {
         $_POST['score'] = 77;
         self::callMethod($this->dashboard, 'store', 'zset', 'pu-test-type-zset', 'zvalue3');
 
-        $_GET['hash_key'] = 'hashkey1';
+        $_POST['hash_key'] = 'hashkey1';
         self::callMethod($this->dashboard, 'store', 'hash', 'pu-test-type-hash', 'hvalue1');
-        $_GET['hash_key'] = 'hashkey2';
+        $_POST['hash_key'] = 'hashkey2';
         self::callMethod($this->dashboard, 'store', 'hash', 'pu-test-type-hash', 'hvalue2');
-        $_GET['hash_key'] = 'hashkey3';
+        $_POST['hash_key'] = 'hashkey3';
         self::callMethod($this->dashboard, 'store', 'hash', 'pu-test-type-hash', 'hvalue3');
 
         $this->redis->xAdd('pu-test-type-stream', '1670541476219-0', ['field1' => 'svalue1', 'field2' => 'svalue2']);

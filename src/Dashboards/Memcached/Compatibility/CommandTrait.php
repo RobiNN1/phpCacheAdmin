@@ -38,9 +38,56 @@ trait CommandTrait {
      *
      * @link https://github.com/memcached/memcached/blob/master/doc/protocol.txt
      *
+     * @return array<int, mixed>|string
+     *
      * @throws MemcachedException
      */
-    public function runCommand(string $command): string {
+    public function runCommand(string $command, bool $array = false) {
+        $fp = $this->resource($command);
+        $buffer = '';
+        $data = [];
+
+        while (!feof($fp)) {
+            $buffer .= fgets($fp, 256);
+
+            $ends = [
+                'ERROR', 'CLIENT_ERROR', 'SERVER_ERROR', 'STORED', 'NOT_STORED', 'EXISTS', 'NOT_FOUND', 'TOUCHED', 'DELETED',
+                'OK', 'END', 'VERSION', 'BUSY', 'BADCLASS', 'NOSPARE', 'NOTFULL', 'UNSAFE', 'SAME', 'EN', 'MN', 'RESET',
+            ];
+
+            foreach ($ends as $end) {
+                if (preg_match('/^'.$end.'/imu', $buffer)) {
+                    break 2;
+                }
+            }
+
+            // bug fix for gzip, need a better solution
+            if ($array === true) {
+                $lines = explode("\n", $buffer);
+                $buffer = array_pop($lines);
+
+                foreach ($lines as $line) {
+                    $line = trim($line);
+                    $data[] = $line;
+                }
+            }
+        }
+
+        fclose($fp);
+
+        if ($array === true) {
+            return $data;
+        }
+
+        return rtrim($buffer, "\r\n");
+    }
+
+    /**
+     * @return resource
+     *
+     * @throws MemcachedException
+     */
+    private function resource(string $command) {
         if ($this->checkCommand($command) === false) {
             throw new MemcachedException('Unknown or incorrect command "'.$command.'".');
         }
@@ -58,30 +105,11 @@ trait CommandTrait {
 
         $write = fwrite($fp, $command."\r\n");
 
-        $buffer = '';
-
         if ($write === false) {
             throw new MemcachedException('Command: "'.$command.'": Not valid resource.');
         }
 
-        while (!feof($fp)) {
-            $buffer .= fgets($fp, 256);
-
-            $ends = [
-                'ERROR', 'CLIENT_ERROR', 'SERVER_ERROR', 'STORED', 'NOT_STORED', 'EXISTS', 'NOT_FOUND', 'TOUCHED', 'DELETED',
-                'OK', 'END', 'VERSION', 'BUSY', 'BADCLASS', 'NOSPARE', 'NOTFULL', 'UNSAFE', 'SAME', 'EN', 'MN', 'RESET',
-            ];
-
-            foreach ($ends as $end) {
-                if (preg_match('/^'.$end.'/imu', $buffer)) {
-                    break 2;
-                }
-            }
-        }
-
-        fclose($fp);
-
-        return rtrim($buffer, "\r\n");
+        return $fp;
     }
 
     private function checkCommand(string $command): bool {

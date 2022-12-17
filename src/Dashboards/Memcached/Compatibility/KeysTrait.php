@@ -54,14 +54,13 @@ trait KeysTrait {
      * @throws MemcachedException
      */
     public function getKey(string $key) {
-        $raw = $this->runCommand('get '.$key);
-        $lines = explode("\r\n", $raw);
+        $data = $this->runCommand('get '.$key, true);
 
-        if (Helpers::str_starts_with($raw, 'VALUE') && Helpers::str_ends_with($raw, 'END')) {
-            return !isset($lines[1]) || $lines[1] === 'N;' ? '' : $lines[1];
+        if (!isset($data[0])) {
+            return false;
         }
 
-        return false;
+        return !isset($data[1]) || $data[1] === 'N;' ? '' : $data[1];
     }
 
     /**

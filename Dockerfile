@@ -18,6 +18,7 @@ WORKDIR /var/www/html
 RUN chmod 777 /var/www/html
 
 RUN git clone --depth=1 https://github.com/RobiNN1/phpCacheAdmin.git .
+RUN rm -r .git tests composer.json package.json phpstan.neon phpunit.xml README.md tailwind.config.js docker-compose.yml Dockerfile
 RUN apt remove git -y && apt autoremove -y
 
 RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf # fix for apache

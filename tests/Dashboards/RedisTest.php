@@ -95,6 +95,7 @@ final class RedisTest extends TestCase {
             'float'  => ['original' => 23.99, 'expected' => '23.99'],
             'bool'   => ['original' => true, 'expected' => '1'],
             'null'   => ['original' => null, 'expected' => ''],
+            'gzip'   => ['original' => gzcompress('test'), 'expected' => gzcompress('test')],
             'array'  => [
                 'original' => serialize(['key1', 'key2']),
                 'expected' => 'a:2:{i:0;s:4:"key1";i:1;s:4:"key2";}',
@@ -114,6 +115,7 @@ final class RedisTest extends TestCase {
         $this->assertSame($keys['float']['expected'], $this->redis->get('pu-test-float'));
         $this->assertSame($keys['bool']['expected'], $this->redis->get('pu-test-bool'));
         $this->assertSame($keys['null']['expected'], $this->redis->get('pu-test-null'));
+        $this->assertSame($keys['gzip']['expected'], $this->redis->get('pu-test-gzip'));
         $this->assertSame($keys['array']['expected'], $this->redis->get('pu-test-array'));
         $this->assertSame($keys['object']['expected'], $this->redis->get('pu-test-object'));
 

@@ -161,13 +161,11 @@ trait TypesTrait {
                 $this->redis->zAdd($key, Http::post('score', 0), $value);
                 break;
             case 'hash':
-                $hash_key = Http::get('hash_key', '');
-
-                if ($this->redis->hExists($key, $hash_key)) {
-                    $this->redis->hDel($key, $hash_key);
+                if ($this->redis->hExists($key, Http::get('hash_key', ''))) {
+                    $this->redis->hDel($key, Http::get('hash_key', ''));
                 }
 
-                $this->redis->hSet($key, $hash_key, $value);
+                $this->redis->hSet($key, Http::post('hash_key', ''), $value);
                 break;
             case 'stream':
                 $this->redis->xAdd($key, Http::post('stream_id', '*'), [Http::post('field') => $value]);

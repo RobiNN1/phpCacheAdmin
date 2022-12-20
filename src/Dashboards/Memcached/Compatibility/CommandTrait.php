@@ -50,10 +50,22 @@ trait CommandTrait {
         while (!feof($fp)) {
             $buffer .= fgets($fp, 256);
 
+            // These do not have a specific end string
+            $no_end = [
+                'incr', 'decr',
+            ];
+
+            // Loop only once
+            if (in_array($this->commandName($command), $no_end)) {
+                break;
+            }
+
             $ends = [
                 'ERROR', 'CLIENT_ERROR', 'SERVER_ERROR', 'STORED', 'NOT_STORED', 'EXISTS', 'NOT_FOUND', 'TOUCHED', 'DELETED',
-                'OK', 'END', 'VERSION', 'BUSY', 'BADCLASS', 'NOSPARE', 'NOTFULL', 'UNSAFE', 'SAME', 'EN', 'MN', 'RESET',
+                'OK', 'END', 'VERSION', 'BUSY', 'BADCLASS', 'NOSPARE', 'NOTFULL', 'UNSAFE', 'SAME', 'RESET',
             ];
+
+            // 'EN', 'MN', 'HG', 'VA', - for meta commands, will be added later
 
             foreach ($ends as $end) {
                 if (preg_match('/^'.$end.'/imu', $buffer)) {
@@ -61,7 +73,7 @@ trait CommandTrait {
                 }
             }
 
-            // bug fix for gzip, need a better solution
+            // Bug fix for gzip, need a better solution
             if ($array === true) {
                 $lines = explode("\n", $buffer);
                 $buffer = array_pop($lines);
@@ -112,15 +124,20 @@ trait CommandTrait {
         return $fp;
     }
 
+    private function commandName(string $command): string {
+        $parts = explode(' ', $command);
+
+        return strtolower($parts[0]);
+    }
+
     private function checkCommand(string $command): bool {
-        // Unknown or incorrect commands can cause an infinite loop.
+        // Unknown or incorrect commands can cause an infinite loop,
+        // so only tested commands are allowed
         $allowed = [
             'set', 'add', 'replace', 'append', 'prepend', 'cas', 'get', 'gets', 'gat', 'gats',
             'touch', 'delete', 'incr', 'decr', 'stats', 'flush_all', 'version', 'lru_crawler',
         ];
 
-        $parts = explode(' ', $command);
-
-        return in_array(strtolower($parts[0]), $allowed, true);
+        return in_array($this->commandName($command), $allowed, true);
     }
 }

@@ -65,8 +65,6 @@ trait CommandTrait {
                 'OK', 'END', 'VERSION', 'BUSY', 'BADCLASS', 'NOSPARE', 'NOTFULL', 'UNSAFE', 'SAME', 'RESET',
             ];
 
-            // 'EN', 'MN', 'HG', 'VA', - for meta commands, will be added later
-
             foreach ($ends as $end) {
                 if (preg_match('/^'.$end.'/imu', $buffer)) {
                     break 2;
@@ -115,6 +113,7 @@ trait CommandTrait {
             throw new MemcachedException('Command: "'.$command.'": '.$error_message);
         }
 
+        $command = strtr($command, ['\r\n' => "\r\n"]);
         $write = fwrite($fp, $command."\r\n");
 
         if ($write === false) {

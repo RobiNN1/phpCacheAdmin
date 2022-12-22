@@ -80,6 +80,8 @@ class MemcachedDashboard implements DashboardInterface {
      * @throws DashboardException
      */
     public function connect(array $server) {
+        $server['port'] ??= 11211;
+
         if (extension_loaded('memcached')) {
             $memcached = new Compatibility\Memcached($server);
         } elseif (extension_loaded('memcache')) {

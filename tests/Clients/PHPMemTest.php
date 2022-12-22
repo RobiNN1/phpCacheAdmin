@@ -20,7 +20,7 @@ final class PHPMemTest extends TestCase {
     private PHPMem $phpmem;
 
     protected function setUp(): void {
-        $this->phpmem = new PHPMem(['host' => '127.0.0.1']);
+        $this->phpmem = new PHPMem(['host' => '127.0.0.1', 'port' => 11211]);
     }
 
     public function testIsConnected(): void {

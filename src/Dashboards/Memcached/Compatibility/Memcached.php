@@ -28,11 +28,10 @@ class Memcached extends \Memcached implements CompatibilityInterface {
 
         $this->server = $server;
 
-        if (isset($server['path'])) {
-            $this->addServer($server['path'], 0);
+        if (isset($this->server['path'])) {
+            $this->addServer($this->server['path'], 0);
         } else {
-            $server['port'] ??= 11211;
-            $this->addServer($server['host'], (int) $server['port']);
+            $this->addServer($this->server['host'], (int) $this->server['port']);
         }
     }
 

@@ -126,7 +126,6 @@ trait CommandTrait {
         if (isset($this->server['path'])) {
             $fp = @stream_socket_client('unix://'.$this->server['path'], $error_code, $error_message);
         } else {
-            $this->server['port'] ??= 11211;
             $fp = @fsockopen($this->server['host'], (int) $this->server['port'], $error_code, $error_message, 3);
         }
 

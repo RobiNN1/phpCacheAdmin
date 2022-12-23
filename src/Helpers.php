@@ -68,6 +68,10 @@ class Helpers {
                 $array[$name] = self::convertBoolToString($value);
             } elseif (is_bool($value)) {
                 $array[$name] = $value ? 'true' : 'false';
+            } elseif (is_null($value)) {
+                $array[$name] = 'null';
+            } elseif ($value === '') {
+                $array[$name] = 'empty';
             } else {
                 $array[$name] = $value;
             }

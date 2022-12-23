@@ -102,12 +102,11 @@ trait CommandTrait {
 
             // Bug fix for gzipped keys
             if ($array === true) {
-                $lines = explode("\n", $buffer);
+                $lines = explode("\r\n", $buffer);
                 $buffer = array_pop($lines);
 
                 foreach ($lines as $line) {
-                    $line = trim($line);
-                    $data[] = $line;
+                    $data[] = trim($line);
                 }
             }
         }

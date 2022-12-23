@@ -24,6 +24,7 @@ trait CommandTrait {
     private array $allowed_commands = [
         'set', 'add', 'replace', 'append', 'prepend', 'cas', 'get', 'gets', 'gat', 'gats',
         'touch', 'delete', 'incr', 'decr', 'stats', 'flush_all', 'version', 'lru_crawler',
+        'lru', 'slabs', 'me', 'mg', 'ms', 'md', 'ma', 'cache_memlimit', 'verbosity',
     ];
 
     /**
@@ -32,7 +33,7 @@ trait CommandTrait {
      * @var array<int, string>
      */
     private array $no_end = [
-        'incr', 'decr',
+        'incr', 'decr', 'version', 'me', 'mg', 'ms', 'md', 'ma', 'cache_memlimit',
     ];
 
     /**
@@ -41,28 +42,35 @@ trait CommandTrait {
      * @var array<int, string>
      */
     private array $with_end = [
-        'ERROR', 'CLIENT_ERROR', 'SERVER_ERROR', 'STORED', 'NOT_STORED', 'EXISTS', 'NOT_FOUND', 'TOUCHED', 'DELETED',
-        'OK', 'END', 'VERSION', 'BUSY', 'BADCLASS', 'NOSPARE', 'NOTFULL', 'UNSAFE', 'SAME', 'RESET',
+        'ERROR', 'CLIENT_ERROR', 'SERVER_ERROR', 'STORED', 'NOT_STORED', 'EXISTS', 'NOT_FOUND', 'TOUCHED',
+        'DELETED', 'OK', 'END', 'BUSY', 'BADCLASS', 'NOSPARE', 'NOTFULL', 'UNSAFE', 'SAME', 'RESET',
     ];
 
     /**
      * Run command.
      *
+     * These commands should work, but not guaranteed to work on any server:
+     *
      * set|add|replace|append|prepend <key> <flags> <ttl> <bytes>\r\n<value>
      * cas <key> <flags> <ttl> <bytes> <cas unique>\r\n<value>
      * get|gets <key|keys>
-     * gat|gats <exptime> <key|keys>
+     * gat|gats <ttl> <key|keys>
      * touch <key> <ttl>
      * delete <key>
      * incr|decr <key> <value>
-     * stats [items|slabs|sizes|cachedump <slab_id> <limit>|reset]
+     * stats [items|slabs|sizes|cachedump <slab_id> <limit>|reset|conns]
      * flush_all
      * version
-     * lru_crawler <enable|disable>
-     * lru_crawler sleep <microseconds>
-     * lru_crawler tocrawl <limit>
-     * lru_crawler crawl <...classid|all>
-     * lru_crawler metadump <...classid|all|hash>
+     * lru <tune|mode|temp_ttl> <option list>
+     * lru_crawler <<enable|disable>|sleep <microseconds>|tocrawl <limit>|crawl <...classid|all>|metadump <...classid|all|hash>>
+     * slabs <reassign <source class> <dest class>|automove <0|1|2>>
+     * me <key> <flag>
+     * mg <key> <flags>*
+     * ms <key> <datalen> <flags>*\r\n<value>
+     * md <key> <flags>*
+     * ma <key> <flags>*
+     * cache_memlimit <megabytes>
+     * verbosity <level>
      *
      * Note: \r\n is added automatically to the end
      * and \r\n (as a plain string) is converted to a real end of line.
@@ -92,7 +100,7 @@ trait CommandTrait {
                 }
             }
 
-            // Bug fix for gzip, need a better solution
+            // Bug fix for gzipped keys
             if ($array === true) {
                 $lines = explode("\n", $buffer);
                 $buffer = array_pop($lines);

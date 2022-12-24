@@ -56,7 +56,7 @@ trait OPCacheTrait {
             [
                 'title' => 'Stats',
                 'data'  => [
-                    'Cached scripts'  => $stats['num_cached_scripts'],
+                    'Cached scripts'  => Format::number($stats['num_cached_scripts']),
                     'Cached keys'     => Format::number($stats['num_cached_keys']),
                     'Max cached keys' => Format::number($stats['max_cached_keys']),
                     'Hits'            => Format::number($stats['hits']),

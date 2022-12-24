@@ -52,7 +52,7 @@ trait APCuTrait {
             [
                 'title' => 'Stats',
                 'data'  => [
-                    'Cached scripts' => $info['num_entries'],
+                    'Cached scripts' => Format::number((int) $info['num_entries']),
                     'Hits'           => Format::number((int) $info['num_hits']),
                     'Misses'         => Format::number((int) $info['num_misses']),
                     'Hit rate'       => round($hit_rate * 100).'%',

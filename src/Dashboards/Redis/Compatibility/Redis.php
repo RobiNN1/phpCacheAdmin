@@ -124,4 +124,28 @@ class Redis extends \Redis implements CompatibilityInterface {
 
         return $info[$option] ?? $info;
     }
+
+    /**
+     * Alias to a scan() but with the same parameters.
+     *
+     * @return array<int, string>
+     * @throws RedisException
+     */
+    public function scanKeys(string $pattern, int $count): array {
+        $keys = [];
+
+        $iterator = null;
+
+        while (false !== ($scan = $this->scan($iterator, $pattern, $count))) {
+            foreach ($scan as $key) {
+                $keys[] = $key;
+            }
+
+            if (count($keys) === $count) {
+                break;
+            }
+        }
+
+        return $keys;
+    }
 }

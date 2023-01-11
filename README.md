@@ -79,6 +79,7 @@ Redis:
 - `PCA_REDIS_0_AUTHFILE` File with a password, e.g. Docker secrets (optional).
 - `PCA_REDIS_0_PATH` Unix domain socket (optional).
 - `PCA_REDIS_0_DATABASES` Number of databases, use this if the CONFIG command is disabled (optional).
+- `PCA_REDIS_0_SCANSIZE` Number of keys, the server will use the SCAN command instead of KEYS (optional).
 
 Memcached:
 

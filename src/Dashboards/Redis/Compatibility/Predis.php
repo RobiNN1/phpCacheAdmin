@@ -13,6 +13,7 @@ declare(strict_types=1);
 namespace RobiNN\Pca\Dashboards\Redis\Compatibility;
 
 use Predis\Client;
+use Predis\Collection\Iterator\Keyspace;
 use RobiNN\Pca\Dashboards\DashboardException;
 
 class Predis extends Client implements CompatibilityInterface {
@@ -173,5 +174,24 @@ class Predis extends Client implements CompatibilityInterface {
      */
     public function rawCommand(string $command, ...$arguments) {
         return $this->executeRaw(func_get_args());
+    }
+
+    /**
+     * Alias to a scan() but with the same parameters.
+     *
+     * @return array<int, string>
+     */
+    public function scanKeys(string $pattern, int $count): array {
+        $keys = [];
+
+        foreach (new Keyspace($this, $pattern) as $item) {
+            $keys[] = $item;
+
+            if (count($keys) === $count) {
+                break;
+            }
+        }
+
+        return $keys;
     }
 }

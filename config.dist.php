@@ -32,6 +32,7 @@ return [
             //'authfile'  => '/run/secrets/file_name', // File with a password, e.g. Docker secrets (optional).
             //'path'      => '/var/run/redis/redis-server.sock', // Unix domain socket (optional).
             //'databases' => 16, // Number of databases, use this if the CONFIG command is disabled (optional).
+            //'scansize'  => 1000, // Number of keys, the server will use the SCAN command instead of KEYS (optional).
         ],
     ],
     'memcached'     => [

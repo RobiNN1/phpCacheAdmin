@@ -42,4 +42,11 @@ interface CompatibilityInterface {
      * @return array<int|string, mixed>
      */
     public function getInfo(?string $option = null): array;
+
+    /**
+     * Alias to a scan() but with the same parameters.
+     *
+     * @return array<int, string>
+     */
+    public function scanKeys(string $pattern, int $count): array;
 }

@@ -310,7 +310,13 @@ trait RedisTrait {
 
         $this->template->addGlobal('search_value', $filter);
 
-        foreach ($this->redis->keys($filter) as $key) {
+        if (isset($this->servers[$this->current_server]['scansize'])) {
+            $keys_array = $this->redis->scanKeys($filter, (int) $this->servers[$this->current_server]['scansize']);
+        } else {
+            $keys_array = $this->redis->keys($filter);
+        }
+
+        foreach ($keys_array as $key) {
             try {
                 $type = $this->redis->getType($key);
             } catch (DashboardException $e) {

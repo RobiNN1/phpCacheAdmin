@@ -13,7 +13,6 @@ declare(strict_types=1);
 namespace RobiNN\Pca\Dashboards\Memcached\Compatibility;
 
 use RobiNN\Pca\Dashboards\Memcached\MemcachedException;
-use RobiNN\Pca\Helpers;
 
 trait KeysTrait {
     use CommandTrait;
@@ -90,6 +89,10 @@ trait KeysTrait {
                     } else {
                         $val = (int) $val;
                     }
+                }
+
+                if ($key === 'key') {
+                    $val = urldecode($val); // bug fix for weird key names
                 }
 
                 $data[$key] = $val;

@@ -46,7 +46,7 @@ trait OPCacheTrait {
                 'title' => 'Memory',
                 'data'  => [
                     'Total'          => Format::bytes($total_memory),
-                    'Usage'          => round(100 * $memory_usage).'%',
+                    'Usage'          => round(100 * $memory_usage, 3).'%',
                     'Used'           => Format::bytes($memory['used_memory']),
                     'Free'           => Format::bytes($memory['free_memory']),
                     'Wasted'         => Format::bytes($memory['wasted_memory']),
@@ -61,7 +61,7 @@ trait OPCacheTrait {
                     'Max cached keys' => Format::number($stats['max_cached_keys']),
                     'Hits'            => Format::number($stats['hits']),
                     'Misses'          => Format::number($stats['misses']),
-                    'Hit rate'        => round($stats['opcache_hit_rate']).'%',
+                    'Hit rate'        => round($stats['opcache_hit_rate'], 3).'%',
                 ],
             ],
         ];

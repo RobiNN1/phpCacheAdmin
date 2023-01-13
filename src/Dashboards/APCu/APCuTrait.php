@@ -29,6 +29,7 @@ trait APCuTrait {
 
         $total_memory = $memory_info['num_seg'] * $memory_info['seg_size'];
         $memory_used = ($memory_info['num_seg'] * $memory_info['seg_size']) - $memory_info['avail_mem'];
+        $memory_usage_percentage = round(($memory_used / $total_memory) * 100, 2);
 
         $hit_rate = (int) $info['num_hits'] !== 0 ? $info['num_hits'] / ($info['num_hits'] + $info['num_misses']) : 0;
 
@@ -45,7 +46,7 @@ trait APCuTrait {
                 'title' => 'Memory',
                 'data'  => [
                     'Total' => Format::bytes((int) $total_memory),
-                    'Used'  => Format::bytes((int) $memory_used),
+                    'Used'  => Format::bytes((int) $memory_used).' ('.$memory_usage_percentage.'%)',
                     'Free'  => Format::bytes((int) $memory_info['avail_mem']),
                 ],
             ],
@@ -53,9 +54,8 @@ trait APCuTrait {
                 'title' => 'Stats',
                 'data'  => [
                     'Cached scripts' => Format::number((int) $info['num_entries']),
-                    'Hits'           => Format::number((int) $info['num_hits']),
-                    'Misses'         => Format::number((int) $info['num_misses']),
-                    'Hit rate'       => round($hit_rate * 100, 3).'%',
+                    'Hits / Misses'  => Format::number((int) $info['num_hits']).' / '.Format::number((int) $info['num_misses']).
+                        ' (Rate '.round($hit_rate * 100, 2).'%)',
                 ],
             ],
         ];

@@ -30,6 +30,9 @@ trait OPCacheTrait {
         $total_memory = $configuration['directives']['opcache.memory_consumption'];
         $memory = $status['memory_usage'];
         $memory_usage = ($memory['used_memory'] + $memory['wasted_memory']) / $total_memory;
+        $memory_usage_percentage = round($memory_usage * 100, 2);
+
+        $used_keys_percentage = round(($stats['num_cached_keys'] / $stats['max_cached_keys']) * 100);
 
         return [
             [
@@ -45,23 +48,20 @@ trait OPCacheTrait {
             [
                 'title' => 'Memory',
                 'data'  => [
-                    'Total'          => Format::bytes($total_memory),
-                    'Usage'          => round(100 * $memory_usage, 3).'%',
-                    'Used'           => Format::bytes($memory['used_memory']),
-                    'Free'           => Format::bytes($memory['free_memory']),
-                    'Wasted'         => Format::bytes($memory['wasted_memory']),
-                    'Current wasted' => round($memory['current_wasted_percentage'], 3).'%',
+                    'Total'  => Format::bytes($total_memory),
+                    'Used'   => Format::bytes($memory['used_memory']).' ('.$memory_usage_percentage.'%)',
+                    'Free'   => Format::bytes($memory['free_memory']),
+                    'Wasted' => Format::bytes($memory['wasted_memory']).' ('.round($memory['current_wasted_percentage'], 2).'%)',
                 ],
             ],
             [
                 'title' => 'Stats',
                 'data'  => [
                     'Cached scripts'  => Format::number($stats['num_cached_scripts']),
-                    'Cached keys'     => Format::number($stats['num_cached_keys']),
+                    'Cached keys'     => Format::number($stats['num_cached_keys']).' ('.$used_keys_percentage.'%)',
                     'Max cached keys' => Format::number($stats['max_cached_keys']),
-                    'Hits'            => Format::number($stats['hits']),
-                    'Misses'          => Format::number($stats['misses']),
-                    'Hit rate'        => round($stats['opcache_hit_rate'], 3).'%',
+                    'Hits / Misses'   => Format::number($stats['hits']).' / '.Format::number($stats['misses']).
+                        ' (Rate '.round($stats['opcache_hit_rate'], 2).'%)',
                 ],
             ],
         ];

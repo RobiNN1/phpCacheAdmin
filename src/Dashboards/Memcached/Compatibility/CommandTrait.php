@@ -49,7 +49,7 @@ trait CommandTrait {
     /**
      * Run command.
      *
-     * These commands should work, but not guaranteed to work on any server:
+     * These commands should work but not guaranteed to work on any server:
      *
      * set|add|replace|append|prepend <key> <flags> <ttl> <bytes>\r\n<value>
      * cas <key> <flags> <ttl> <bytes> <cas unique>\r\n<value>

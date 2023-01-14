@@ -105,14 +105,14 @@ trait OPCacheTrait {
                 $cached_scripts[] = [
                     'key'   => $script['full_path'],
                     'items' => [
-                        'title'     => [
+                        'title'          => [
                             'title'      => $script_name,
                             'title_attr' => $full_path,
                         ],
-                        'hits'      => Format::number($script['hits']),
-                        'memory'    => Format::bytes($script['memory_consumption']),
-                        'last_used' => Format::time($script['last_used_timestamp']),
-                        'created'   => Format::time($script['timestamp']),
+                        'number_hits'    => $script['hits'],
+                        'bytes_memory'   => $script['memory_consumption'],
+                        'time_last_used' => $script['last_used_timestamp'],
+                        'time_created'   => $script['timestamp'],
                     ],
                 ];
             }

@@ -177,14 +177,14 @@ trait APCuTrait {
             $keys[] = [
                 'key'   => base64_encode($key),
                 'items' => [
-                    'title'     => [
+                    'title'          => [
                         'title' => $key,
                         'link'  => Http::queryString([], ['view' => 'key', 'key' => $key]),
                     ],
-                    'hits'      => Format::number((int) $key_data['num_hits']),
-                    'last_used' => Format::time($key_data['access_time']),
-                    'created'   => Format::time($key_data['creation_time']),
-                    'ttl'       => $key_data['ttl'] === 0 ? 'Doesn\'t expire' : $key_data['creation_time'] + $key_data['ttl'] - time(),
+                    'number_hits'    => $key_data['num_hits'],
+                    'time_last_used' => $key_data['access_time'],
+                    'time_created'   => $key_data['creation_time'],
+                    'ttl'            => $key_data['ttl'] === 0 ? 'Doesn\'t expire' : $key_data['creation_time'] + $key_data['ttl'] - time(),
                 ],
             ];
         }

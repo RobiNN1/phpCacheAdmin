@@ -78,6 +78,10 @@ class Template {
             return $value !== null && $value !== '' ? $right_side : '';
         }, ['is_safe' => ['html']]));
 
+        $twig->addFilter(new TwigFilter('number', [Format::class, 'number']));
+        $twig->addFilter(new TwigFilter('bytes', [Format::class, 'bytes']));
+        $twig->addFilter(new TwigFilter('time', [Format::class, 'time']));
+
         foreach ($this->globals as $name => $value) {
             $twig->addGlobal($name, $value);
         }

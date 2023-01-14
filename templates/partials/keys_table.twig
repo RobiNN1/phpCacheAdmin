@@ -29,6 +29,12 @@
                                 {% elseif item_key == 'type' %}
                                     {% import 'partials/key_type_badge.twig' as key_badge %}
                                     {{- key_badge.key_type(item) -}}
+                                {% elseif item_key starts with 'number_' %}
+                                    {{- item|number -}}
+                                {% elseif item_key starts with 'time_' %}
+                                    {{- item|time -}}
+                                {% elseif item_key starts with 'bytes_' %}
+                                    {{- item|bytes -}}
                                 {% else %}
                                     {{- item -}}
                                 {% endif %}

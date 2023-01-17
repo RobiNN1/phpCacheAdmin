@@ -81,6 +81,7 @@ class Template {
         $twig->addFilter(new TwigFilter('number', [Format::class, 'number']));
         $twig->addFilter(new TwigFilter('bytes', [Format::class, 'bytes']));
         $twig->addFilter(new TwigFilter('time', [Format::class, 'time']));
+        $twig->addFilter(new TwigFilter('base64', fn (string $string): string => base64_encode($string)));
 
         foreach ($this->globals as $name => $value) {
             $twig->addGlobal($name, $value);

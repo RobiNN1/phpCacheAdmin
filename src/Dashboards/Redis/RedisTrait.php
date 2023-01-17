@@ -327,8 +327,9 @@ trait RedisTrait {
             $total = $this->getCountOfItemsInKey($type, $key);
 
             $keys[] = [
-                'key'   => base64_encode($key),
-                'items' => [
+                'key'    => $key,
+                'base64' => true,
+                'items'  => [
                     'title' => [
                         'title'      => ($total !== null ? '('.$total.' items) ' : '').$key,
                         'title_attr' => $key,

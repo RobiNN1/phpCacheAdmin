@@ -13,7 +13,7 @@
             <tbody>
             {% if keys %}
                 {% for key in keys %}
-                    <tr class="[&:last-child>*]:border-b-0" data-key="{{ key.key }}">
+                    <tr class="[&:last-child>*]:border-b-0" data-key="{{ key.base64 ? key.key|base64 : key.key }}">
                         <td class="pl-6 px-3 py-2 border-b border-gray-100">{{ include('components/checkbox.twig', {class: 'checkbox-key'}) }}</td>
                         {% for item_key, item in key.items %}
                             {% set title_attr = item.title_attr ? ' title="' ~ item.title_attr|escape ~ '"' : '' %}

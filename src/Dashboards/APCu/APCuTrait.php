@@ -175,8 +175,9 @@ trait APCuTrait {
             $key = $key_data['info'];
 
             $keys[] = [
-                'key'   => base64_encode($key),
-                'items' => [
+                'key'    => $key,
+                'base64' => true,
+                'items'  => [
                     'title'          => [
                         'title' => $key,
                         'link'  => Http::queryString([], ['view' => 'key', 'key' => $key]),

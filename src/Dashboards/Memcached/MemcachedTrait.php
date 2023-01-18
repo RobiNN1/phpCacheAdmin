@@ -210,13 +210,11 @@ trait MemcachedTrait {
 
             $keys[] = [
                 'key'   => $key,
+                'ttl'   => $ttl,
                 'items' => [
-                    'title' => [
-                        'title' => $key,
-                        'link'  => Http::queryString([], ['view' => 'key', 'ttl' => $ttl, 'key' => $key]),
-                    ],
-                    'type'  => 'string', // In Memcached everything is stored as a string. Calling gettype() will slow down page loading.
-                    'ttl'   => $ttl === -1 ? 'Doesn\'t expire' : $ttl,
+                    'link_title' => $key,
+                    'type'       => 'string', // In Memcached everything is stored as a string. Calling gettype() will slow down page loading.
+                    'ttl'        => $ttl === -1 ? 'Doesn\'t expire' : $ttl,
                 ],
             ];
         }
@@ -244,6 +242,7 @@ trait MemcachedTrait {
             'all_keys'    => count($keys),
             'new_key_url' => Http::queryString([], ['form' => 'new']),
             'paginator'   => $paginator->render(),
+            'view_key'    => Http::queryString([], ['view' => 'key', 'ttl' => '__ttl__', 'key' => '__key__']),
         ]);
     }
 }

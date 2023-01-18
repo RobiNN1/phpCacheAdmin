@@ -90,9 +90,6 @@ trait OPCacheTrait {
         if (isset($status['scripts'])) {
             foreach ($status['scripts'] as $script) {
                 $full_path = str_replace('\\', '/', $script['full_path']);
-                $name = explode('/', $full_path);
-                $script_name = $name[array_key_last($name)];
-
                 $pca_root = $_SERVER['DOCUMENT_ROOT'].str_replace('/index.php', '', $_SERVER['SCRIPT_NAME']);
 
                 if (
@@ -105,10 +102,7 @@ trait OPCacheTrait {
                 $cached_scripts[] = [
                     'key'   => $script['full_path'],
                     'items' => [
-                        'title'          => [
-                            'title'      => $script_name,
-                            'title_attr' => $full_path,
-                        ],
+                        'title'          => $full_path,
                         'number_hits'    => $script['hits'],
                         'bytes_memory'   => $script['memory_consumption'],
                         'time_last_used' => $script['last_used_timestamp'],

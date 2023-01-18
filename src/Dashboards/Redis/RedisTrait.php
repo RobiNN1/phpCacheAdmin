@@ -330,13 +330,9 @@ trait RedisTrait {
                 'key'    => $key,
                 'base64' => true,
                 'items'  => [
-                    'title' => [
-                        'title'      => ($total !== null ? '('.$total.' items) ' : '').$key,
-                        'title_attr' => $key,
-                        'link'       => Http::queryString(['db', 's'], ['view' => 'key', 'key' => $key]),
-                    ],
-                    'type'  => $type,
-                    'ttl'   => $ttl === -1 ? 'Doesn\'t expire' : $ttl,
+                    'link_title' => ($total !== null ? '('.$total.' items) ' : '').$key,
+                    'type'       => $type,
+                    'ttl'        => $ttl === -1 ? 'Doesn\'t expire' : $ttl,
                 ],
             ];
         }
@@ -400,6 +396,7 @@ trait RedisTrait {
             'all_keys'    => $this->redis->dbSize(),
             'new_key_url' => Http::queryString(['db'], ['form' => 'new']),
             'paginator'   => $paginator->render(),
+            'view_key'    => Http::queryString(['db', 's'], ['view' => 'key', 'key' => '__key__']),
         ]);
     }
 }

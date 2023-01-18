@@ -661,6 +661,10 @@ video {
   width: 2.5rem;
 }
 
+.w-36 {
+  width: 9rem;
+}
+
 .w-32 {
   width: 8rem;
 }
@@ -1209,6 +1213,18 @@ video {
 
 .file\:text-white::file-selector-button {
   color: #fff;
+}
+
+.hover\:text-clip:hover {
+  text-overflow: clip;
+}
+
+.hover\:whitespace-normal:hover {
+  white-space: normal;
+}
+
+.hover\:break-all:hover {
+  word-break: break-all;
 }
 
 .hover\:bg-green-600:hover {

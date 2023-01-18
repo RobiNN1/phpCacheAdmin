@@ -14,9 +14,9 @@
 {{ include('partials/keys_table.twig', {
     head_items: [
         {'title': 'Key'},
-        {'title': 'Hits'},
-        {'title': 'Last used'},
-        {'title': 'Created', 'class': 'hidden md:table-cell'},
+        {'title': 'Hits', 'class': 'w-16'},
+        {'title': 'Last used', 'class': 'w-36'},
+        {'title': 'Created', 'class': 'w-36 hidden md:table-cell'},
         {'title': 'TTL', 'class': 'w-32'},
     ],
     classes: {

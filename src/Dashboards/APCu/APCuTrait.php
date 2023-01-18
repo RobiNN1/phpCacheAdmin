@@ -178,10 +178,7 @@ trait APCuTrait {
                 'key'    => $key,
                 'base64' => true,
                 'items'  => [
-                    'title'          => [
-                        'title' => $key,
-                        'link'  => Http::queryString([], ['view' => 'key', 'key' => $key]),
-                    ],
+                    'link_title'     => $key,
                     'number_hits'    => $key_data['num_hits'],
                     'time_last_used' => $key_data['access_time'],
                     'time_created'   => $key_data['creation_time'],
@@ -210,6 +207,7 @@ trait APCuTrait {
             'all_keys'    => count($keys),
             'new_key_url' => Http::queryString([], ['form' => 'new']),
             'paginator'   => $paginator->render(),
+            'view_key'    => Http::queryString([], ['view' => 'key', 'key' => '__key__']),
         ]);
     }
 }

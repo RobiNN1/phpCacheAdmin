@@ -91,10 +91,6 @@ trait KeysTrait {
                     }
                 }
 
-                if ($key === 'key') {
-                    $val = urldecode($val); // bug fix for weird key names
-                }
-
                 $data[$key] = $val;
             }
         }

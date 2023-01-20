@@ -62,10 +62,10 @@ class Helpers {
      *
      * @return array<int|string, mixed>
      */
-    public static function convertBoolToString(array $array): array {
+    public static function convertTypesToString(array $array): array {
         foreach ($array as $name => $value) {
             if (is_array($value)) {
-                $array[$name] = self::convertBoolToString($value);
+                $array[$name] = self::convertTypesToString($value);
             } elseif (is_bool($value)) {
                 $array[$name] = $value ? 'true' : 'false';
             } elseif (is_null($value)) {
@@ -80,22 +80,15 @@ class Helpers {
         return $array;
     }
 
-    public static function str_starts_with(string $haystack, string $needle): bool {
-        if (!function_exists('str_starts_with')) {
-            return strncmp($haystack, $needle, strlen($needle)) === 0;
+    /**
+     * @param mixed $data
+     */
+    public static function mixedToString($data): string {
+        if (is_array($data) || is_object($data)) {
+            $data = serialize($data);
         }
 
-        return str_starts_with($haystack, $needle);
-    }
-
-    public static function str_ends_with(string $haystack, string $needle): bool {
-        if (!function_exists('str_ends_with')) {
-            $needleLength = strlen($needle);
-
-            return $needleLength <= strlen($haystack) && substr_compare($haystack, $needle, -$needleLength) === 0;
-        }
-
-        return str_ends_with($haystack, $needle);
+        return (string) $data;
     }
 
     /**
@@ -162,16 +155,21 @@ class Helpers {
         exit;
     }
 
-    /**
-     * Convert mixed data to string.
-     *
-     * @param mixed $data
-     */
-    public static function mixedToString($data): string {
-        if (is_array($data) || is_object($data)) {
-            $data = serialize($data);
+    public static function str_starts_with(string $haystack, string $needle): bool {
+        if (!function_exists('str_starts_with')) {
+            return strncmp($haystack, $needle, strlen($needle)) === 0;
         }
 
-        return (string) $data;
+        return str_starts_with($haystack, $needle);
+    }
+
+    public static function str_ends_with(string $haystack, string $needle): bool {
+        if (!function_exists('str_ends_with')) {
+            $needleLength = strlen($needle);
+
+            return $needleLength <= strlen($haystack) && substr_compare($haystack, $needle, -$needleLength) === 0;
+        }
+
+        return str_ends_with($haystack, $needle);
     }
 }

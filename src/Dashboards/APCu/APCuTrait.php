@@ -74,7 +74,7 @@ trait APCuTrait {
 
         return $this->template->render('partials/info_table', [
             'panel_title' => 'APCu Info',
-            'array'       => Helpers::convertBoolToString($info),
+            'array'       => Helpers::convertTypesToString($info),
         ]);
     }
 

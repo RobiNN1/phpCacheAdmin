@@ -98,7 +98,7 @@ trait MemcachedTrait {
 
             return $this->template->render('partials/info_table', [
                 'panel_title' => $server_data['name'] ?? $server_data['host'].':'.$server_data['port'],
-                'array'       => Helpers::convertBoolToString($info),
+                'array'       => Helpers::convertTypesToString($info),
             ]);
         } catch (DashboardException|MemcachedException $e) {
             return $e->getMessage();

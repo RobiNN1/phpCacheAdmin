@@ -75,7 +75,7 @@ trait OPCacheTrait {
 
         return $this->template->render('partials/info_table', [
             'panel_title' => 'OPCache Info',
-            'array'       => Helpers::convertBoolToString($status),
+            'array'       => Helpers::convertTypesToString($status),
         ]);
     }
 

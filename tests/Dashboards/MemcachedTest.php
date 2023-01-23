@@ -151,7 +151,7 @@ final class MemcachedTest extends TestCase {
     }
 
     /**
-     * @return array
+     * @return array<string, array<int,string>>
      */
     public function provideCommandData(): array {
         return [

@@ -137,16 +137,16 @@ class Predis extends Client implements CompatibilityInterface {
     /**
      * Add a message to a stream.
      *
-     * @param array<int, string> $messages
+     * @param array<string, string> $messages
      */
-    public function xAdd(string $key, string $id, array $messages, int $maxLen = 0): string {
+    public function xAdd(string $key, string $id, array $messages, int $max_len = 0): string {
         $messages_arr = [];
 
         foreach ($messages as $field => $value) {
             $messages_arr[] = $field.' '.$value;
         }
 
-        return $this->executeRaw(['XADD', $key, $id, $maxLen, implode(' ', $messages_arr)]);
+        return $this->executeRaw(['XADD', $key, $id, $max_len, implode(' ', $messages_arr)]);
     }
 
     /**

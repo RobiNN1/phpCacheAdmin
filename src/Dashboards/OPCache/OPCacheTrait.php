@@ -68,7 +68,7 @@ trait OPCacheTrait {
     }
 
     private function moreInfo(): string {
-        $status = opcache_get_status(false);
+        $status = (array) opcache_get_status(false);
 
         $configuration = opcache_get_configuration();
         $status['ini_config'] = $configuration['directives'];

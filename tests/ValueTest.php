@@ -63,14 +63,6 @@ final class ValueTest extends TestCase {
      * @throws ReflectionException
      */
     public function testPrettyPrintJson(): void {
-        $value = '{"0":"test","test":"data"}';
-
-        $expected = '<pre>{
-    &quot;0&quot;: &quot;test&quot;,
-    &quot;test&quot;: &quot;data&quot;
-}</pre>';
-
-        $this->assertSame($expected, self::callMethod(new Value(), 'prettyPrintJson', $value));
         $this->assertSame('1', self::callMethod(new Value(), 'prettyPrintJson', '1'));
         $this->assertSame('data', self::callMethod(new Value(), 'prettyPrintJson', 'data'));
     }

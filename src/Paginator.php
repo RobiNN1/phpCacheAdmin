@@ -33,11 +33,11 @@ class Paginator {
 
     /**
      * @param array<int, array<string, int|string>> $items
-     * @param array<int, array<int|string, string>> $queries
+     * @param array<int, array<int|string, string>> $url
      */
-    public function __construct(Template $template, array $items, array $queries = [['pp'], ['p' => '']]) {
+    public function __construct(Template $template, array $items, array $url = [['pp'], ['p' => '']]) {
         $this->template = $template;
-        $this->url = $queries;
+        $this->url = $url;
         $this->total = count($items);
         $this->page = Http::get('p', 1);
         $this->per_page = Http::get('pp', 25);

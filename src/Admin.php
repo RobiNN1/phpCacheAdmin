@@ -15,7 +15,7 @@ namespace RobiNN\Pca;
 use RobiNN\Pca\Dashboards\DashboardInterface;
 
 class Admin {
-    public const VERSION = '1.4.1';
+    public const VERSION = '1.4.2';
 
     /**
      * @var array<string, DashboardInterface>

@@ -380,9 +380,7 @@ trait RedisTrait {
         if (isset($_POST['submit_import_key'])) {
             Helpers::import(
                 fn (string $key): bool => $this->redis->exists($key) > 0,
-                function (string $key, string $value, int $expire): bool {
-                    return $this->redis->restore($key, ($expire === -1 ? 0 : $expire), $value);
-                },
+                fn (string $key, string $value, int $expire): bool => $this->redis->restore($key, ($expire === -1 ? 0 : $expire), $value),
                 'application/octet-stream'
             );
         }

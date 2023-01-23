@@ -28,9 +28,9 @@ final class PredisTest extends TestCase {
      */
     public function testGetType(): void {
         $this->predis->set('pu-pred-test-string', 'value');
-        $this->predis->sadd('pu-pred-test-set', 'value1', 'value2', 'value3');
-        $this->predis->rpush('pu-pred-test-list', 'value1', 'value2', 'value3');
-        $this->predis->zadd('pu-pred-test-zset', 0, 'value1', 1, 'value2', 2, 'value3');
+        $this->predis->sadd('pu-pred-test-set', ['value1', 'value2', 'value3']);
+        $this->predis->rpush('pu-pred-test-list', ['value1', 'value2', 'value3']);
+        $this->predis->zadd('pu-pred-test-zset', ['value1' => 0, 'value2' => 1, 'value3' => 2]);
         $this->predis->hset('pu-pred-test-hash', 'hashkey1', 'value1');
         $this->predis->hset('pu-pred-test-hash', 'hashkey2', 'value2');
         $this->predis->xAdd('pu-pred-test-stream', '*', ['field1' => 'value1', 'field2' => 'value2']);

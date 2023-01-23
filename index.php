@@ -28,7 +28,7 @@ if (is_file(ROOT_PATH.'vendor/autoload.php')) {
         require_once 'phar://'.ROOT_PATH.'predis.phar/vendor/autoload.php';
     }
 
-    spl_autoload_register(static function ($class_name) {
+    spl_autoload_register(static function (string $class_name): void {
         $class_name = str_replace("RobiNN\\Pca\\", '', $class_name);
         $filename = str_replace("\\", DIRECTORY_SEPARATOR, $class_name);
 

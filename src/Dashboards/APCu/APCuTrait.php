@@ -62,7 +62,7 @@ trait APCuTrait {
     }
 
     private function moreInfo(): string {
-        $info = apcu_cache_info(true);
+        $info = (array) apcu_cache_info(true);
 
         foreach (apcu_sma_info(true) as $mem_name => $mem_value) {
             if (!is_array($mem_value)) {

@@ -55,10 +55,6 @@ class Predis extends Client implements CompatibilityInterface {
     }
 
     /**
-     * Get all data types.
-     *
-     * Used in form.
-     *
      * @return array<string, string>
      */
     public function getAllTypes(): array {
@@ -74,8 +70,6 @@ class Predis extends Client implements CompatibilityInterface {
     }
 
     /**
-     * Get a key type.
-     *
      * @throws DashboardException
      */
     public function getType(string $key): string {
@@ -89,15 +83,6 @@ class Predis extends Client implements CompatibilityInterface {
     }
 
     /**
-     * Alias to a lRem() but with the same order of parameters.
-     */
-    public function listRem(string $key, string $value, int $count): int {
-        return $this->lrem($key, $count, $value);
-    }
-
-    /**
-     * Get server info.
-     *
      * @return array<int|string, mixed>
      */
     public function getInfo(?string $option = null): array {
@@ -126,59 +111,6 @@ class Predis extends Client implements CompatibilityInterface {
     }
 
     /**
-     * Get a range of messages from a given stream.
-     *
-     * @return array<int|string, mixed>
-     */
-    public function xRange(string $stream, string $start, string $end): array {
-        return $this->executeRaw(['XRANGE', $stream, $start, $end]);
-    }
-
-    /**
-     * Add a message to a stream.
-     *
-     * @param array<string, string> $messages
-     */
-    public function xAdd(string $key, string $id, array $messages, int $max_len = 0): string {
-        $messages_arr = [];
-
-        foreach ($messages as $field => $value) {
-            $messages_arr[] = $field.' '.$value;
-        }
-
-        return $this->executeRaw(['XADD', $key, $id, $max_len, implode(' ', $messages_arr)]);
-    }
-
-    /**
-     * Delete one or more messages from a stream.
-     *
-     * @param array<int, string> $ids
-     */
-    public function xDel(string $key, array $ids): int {
-        return $this->executeRaw(['XDEL', $key, implode(' ', $ids)]);
-    }
-
-    /**
-     * Get the length of a given stream.
-     */
-    public function xLen(string $stream): int {
-        return (int) $this->executeRaw(['XLEN', $stream]);
-    }
-
-    /**
-     * Execute Redis command.
-     *
-     * @param mixed ...$arguments
-     *
-     * @return mixed
-     */
-    public function rawCommand(string $command, ...$arguments) {
-        return $this->executeRaw(func_get_args());
-    }
-
-    /**
-     * Alias to a scan() but with the same parameters.
-     *
      * @return array<int, string>
      */
     public function scanKeys(string $pattern, int $count): array {
@@ -193,5 +125,25 @@ class Predis extends Client implements CompatibilityInterface {
         }
 
         return $keys;
+    }
+
+    public function listRem(string $key, string $value, int $count): int {
+        return $this->lrem($key, $count, $value);
+    }
+
+    /**
+     * @param array<string, string> $messages
+     */
+    public function streamAdd(string $key, string $id, array $messages): string {
+        return $this->xadd($key, $messages, $id);
+    }
+
+    /**
+     * @param mixed ...$arguments
+     *
+     * @return mixed
+     */
+    public function rawCommand(string $command, ...$arguments) {
+        return $this->executeRaw(func_get_args());
     }
 }

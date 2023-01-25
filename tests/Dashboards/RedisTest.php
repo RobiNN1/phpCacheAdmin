@@ -156,6 +156,7 @@ final class RedisTest extends TestCase {
      */
     public function testTypes(): void {
         self::callMethod($this->dashboard, 'store', 'string', 'pu-test-type-string', 'svalue');
+
         self::callMethod($this->dashboard, 'store', 'set', 'pu-test-type-set', 'svalue1');
         self::callMethod($this->dashboard, 'store', 'set', 'pu-test-type-set', 'svalue2');
         self::callMethod($this->dashboard, 'store', 'set', 'pu-test-type-set', 'svalue3');
@@ -178,8 +179,8 @@ final class RedisTest extends TestCase {
         $_POST['hash_key'] = 'hashkey3';
         self::callMethod($this->dashboard, 'store', 'hash', 'pu-test-type-hash', 'hvalue3');
 
-        $this->redis->xAdd('pu-test-type-stream', '1670541476219-0', ['field1' => 'svalue1', 'field2' => 'svalue2']);
-        $this->redis->xAdd('pu-test-type-stream', '1670541476219-1', ['field3' => 'svalue3']);
+        $this->redis->streamAdd('pu-test-type-stream', '1670541476219-0', ['field1' => 'stvalue1', 'field2' => 'stvalue2']);
+        $this->redis->streamAdd('pu-test-type-stream', '1670541476219-1', ['field3' => 'stvalue3']);
 
         $expected_original = [
             'string' => 'svalue',
@@ -188,8 +189,8 @@ final class RedisTest extends TestCase {
             'zset'   => [0 => 'zvalue1', 1 => 'zvalue2', 77 => 'zvalue3'],
             'hash'   => ['hashkey1' => 'hvalue1', 'hashkey2' => 'hvalue2', 'hashkey3' => 'hvalue3'],
             'stream' => [
-                '1670541476219-0' => ['field1' => 'svalue1', 'field2' => 'svalue2'],
-                '1670541476219-1' => ['field3' => 'svalue3'],
+                '1670541476219-0' => ['field1' => 'stvalue1', 'field2' => 'stvalue2'],
+                '1670541476219-1' => ['field3' => 'stvalue3'],
             ],
         ];
 
@@ -226,7 +227,7 @@ final class RedisTest extends TestCase {
         $expected_new = [
             'zset'   => [0 => 'zvalue1', 77 => 'zvalue3'],
             'hash'   => ['hashkey1' => 'hvalue1', 'hashkey3' => 'hvalue3'],
-            'stream' => ['1670541476219-1' => ['field3' => 'svalue3']],
+            'stream' => ['1670541476219-1' => ['field3' => 'stvalue3']],
         ];
 
         foreach ($expected_new as $type_n => $value_n) {

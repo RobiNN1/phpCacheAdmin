@@ -168,7 +168,7 @@ trait TypesTrait {
                 $this->redis->hSet($key, Http::post('hash_key', ''), $value);
                 break;
             case 'stream':
-                $this->redis->xAdd($key, Http::post('stream_id', '*'), [Http::post('field') => $value]);
+                $this->redis->streamAdd($key, Http::post('stream_id', '*'), [Http::post('field') => $value]);
                 break;
             default:
         }

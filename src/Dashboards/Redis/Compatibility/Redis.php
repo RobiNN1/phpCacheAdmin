@@ -64,10 +64,6 @@ class Redis extends \Redis implements CompatibilityInterface {
     }
 
     /**
-     * Get all data types.
-     *
-     * Used in form.
-     *
      * @return array<string, string>
      */
     public function getAllTypes(): array {
@@ -83,8 +79,6 @@ class Redis extends \Redis implements CompatibilityInterface {
     }
 
     /**
-     * Get a key type.
-     *
      * @throws RedisException|DashboardException
      */
     public function getType(string $key): string {
@@ -98,17 +92,6 @@ class Redis extends \Redis implements CompatibilityInterface {
     }
 
     /**
-     * Alias to a lRem() but with the same order of parameters.
-     *
-     * @throws RedisException
-     */
-    public function listRem(string $key, string $value, int $count): int {
-        return $this->lRem($key, $value, $count);
-    }
-
-    /**
-     * Get server info.
-     *
      * @return array<int|string, mixed>
      *
      * @throws RedisException
@@ -126,8 +109,6 @@ class Redis extends \Redis implements CompatibilityInterface {
     }
 
     /**
-     * Alias to a scan() but with the same parameters.
-     *
      * @return array<int, string>
      * @throws RedisException
      */
@@ -147,5 +128,21 @@ class Redis extends \Redis implements CompatibilityInterface {
         }
 
         return $keys;
+    }
+
+    /**
+     * @throws RedisException
+     */
+    public function listRem(string $key, string $value, int $count): int {
+        return $this->lRem($key, $value, $count);
+    }
+
+    /**
+     * @param array<string, string> $messages
+     *
+     * @throws RedisException
+     */
+    public function streamAdd(string $key, string $id, array $messages): string {
+        return $this->xAdd($key, $id, $messages);
     }
 }

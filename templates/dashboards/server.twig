@@ -1,4 +1,5 @@
-<div class="mb-5 text-lg font-semibold">Loaded PHP extensions ({{ extensions|length }})</div>
+{{ panels|raw }}
+<div class="mb-3 text-lg font-semibold">Loaded PHP extensions ({{ extensions|length }})</div>
 
 <div>
     {% for extension in extensions %}

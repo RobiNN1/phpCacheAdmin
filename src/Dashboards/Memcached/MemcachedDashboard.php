@@ -103,50 +103,21 @@ class MemcachedDashboard implements DashboardInterface {
     public function ajax(): string {
         $return = '';
 
-        if (isset($_GET['panel'])) {
-            $return = Helpers::returnJson($this->serverInfo());
-        } else {
-            try {
-                $this->memcached = $this->connect($this->servers[$this->current_server]);
+        try {
+            $this->memcached = $this->connect($this->servers[$this->current_server]);
 
-                if (isset($_GET['deleteall'])) {
-                    $return = $this->deleteAllKeys();
-                }
-
-                if (isset($_GET['delete'])) {
-                    $return = Helpers::deleteKey($this->template, fn (string $key): bool => $this->memcached->delete($key));
-                }
-            } catch (DashboardException|MemcachedException $e) {
-                $return = $e->getMessage();
+            if (isset($_GET['deleteall'])) {
+                $return = $this->deleteAllKeys();
             }
+
+            if (isset($_GET['delete'])) {
+                $return = Helpers::deleteKey($this->template, fn (string $key): bool => $this->memcached->delete($key));
+            }
+        } catch (DashboardException|MemcachedException $e) {
+            $return = $e->getMessage();
         }
 
         return $return;
-    }
-
-    public function infoPanels(): string {
-        // Hide panels on these pages.
-        if (isset($_GET['moreinfo']) || isset($_GET['form']) || isset($_GET['view'], $_GET['key'])) {
-            return '';
-        }
-
-        if (extension_loaded('memcached') || extension_loaded('memcache')) {
-            $memcached = extension_loaded('memcached') ? 'd' : '';
-            $title = 'PHP Memcache'.$memcached.' extension';
-            $version = phpversion('memcache'.$memcached);
-        } elseif (class_exists(Compatibility\PHPMem::class)) {
-            $title = 'PHPMem';
-            $version = Compatibility\PHPMem::VERSION;
-        }
-
-        return $this->template->render('partials/info', [
-            'title'             => $title ?? null,
-            'extension_version' => $version ?? null,
-            'info'              => [
-                'ajax'   => true,
-                'panels' => $this->panels(),
-            ],
-        ]);
     }
 
     public function dashboard(): string {
@@ -154,22 +125,20 @@ class MemcachedDashboard implements DashboardInterface {
             return 'No servers';
         }
 
-        if (isset($_GET['moreinfo'])) {
-            $return = $this->moreInfo();
-        } else {
-            try {
-                $this->memcached = $this->connect($this->servers[$this->current_server]);
+        try {
+            $this->memcached = $this->connect($this->servers[$this->current_server]);
 
-                if (isset($_GET['view'], $_GET['key'])) {
-                    $return = $this->viewKey();
-                } elseif (isset($_GET['form'])) {
-                    $return = $this->form();
-                } else {
-                    $return = $this->mainDashboard();
-                }
-            } catch (DashboardException|MemcachedException $e) {
-                return $e->getMessage();
+            if (isset($_GET['moreinfo'])) {
+                $return = $this->moreInfo();
+            } elseif (isset($_GET['view'], $_GET['key'])) {
+                $return = $this->viewKey();
+            } elseif (isset($_GET['form'])) {
+                $return = $this->form();
+            } else {
+                $return = $this->mainDashboard();
             }
+        } catch (DashboardException|MemcachedException $e) {
+            return $e->getMessage();
         }
 
         return $return;

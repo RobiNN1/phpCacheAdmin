@@ -64,26 +64,11 @@ class OPCacheDashboard implements DashboardInterface {
         return $return;
     }
 
-    public function infoPanels(): string {
-        // Hide panels on more info page.
-        if (isset($_GET['moreinfo'])) {
-            return '';
-        }
-
-        return $this->template->render('partials/info', [
-            'title'             => 'PHP OPCache extension',
-            'extension_version' => phpversion('Zend OPcache'),
-            'info'              => ['panels' => $this->panels()],
-        ]);
-    }
-
     public function dashboard(): string {
         if (isset($_GET['moreinfo'])) {
-            $return = $this->moreInfo();
-        } else {
-            $return = $this->mainDashboard();
+            return $this->moreInfo();
         }
 
-        return $return;
+        return $this->mainDashboard();
     }
 }

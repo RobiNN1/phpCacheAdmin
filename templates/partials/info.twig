@@ -1,43 +1,17 @@
-{% set is_top_bar = title or extension_version or panels_toggler is not defined %}
-{{ (is_top_bar ? '<div class="flex flex-col md:flex-row md:items-center md:justify-between mb-5">' : '')|raw }}
-{% if title or extension_version %}
-    <div class="text-lg">
-        {{ title|raw }}
-        {% if extension_version %}
-            {{ include('components/badge.twig', {
-                text: 'v' ~ extension_version,
-                bg: 'bg-primary-500',
-                class: 'font-semibold',
-            }) }}
-        {% endif %}
-    </div>
-{% endif %}
-
-{% if panels_toggler is not defined %}
-    {{ include('components/switch.twig', {
-        sw_id: 'toggle-panels',
-        sw_label: 'Show/Hide panels',
-        sw_icon_class: {'on': 'open hidden', 'off': 'close'},
-    }) }}
-{% endif %}
-{{ (is_top_bar ? '</div>' : '')|raw }}
-
-{% if info.panels %}
-    <div id="infopanels" style="display: block;">
-        <div class="md:grid {{ info.panels|length >= 3 ? 'md:grid-cols-3' : 'md:grid-cols-2' }} md:gap-4">
-            {% for key, panel in info.panels %}
-                <div>
-                    {{ include('partials/info_table.twig', {
+{% if panels %}
+    <div class="md:grid {{ panels|length >= 3 ? 'md:grid-cols-3' : 'md:grid-cols-2' }} md:gap-4">
+        {% for panel in panels %}
+            {% if not panel.error %}
+                <div>{{ include('partials/info_table.twig', {
+                        server_id: panel.server_id,
                         panel_title: panel.title,
-                        selection: panel.server_selection,
-                        current_server: panel.current_server,
-                        ajax: info.ajax,
+                        extension_version: panel.extension_version,
                         array: panel.data,
-                        key,
                         moreinfo: panel.moreinfo,
-                    }) }}
-                </div>
-            {% endfor %}
-        </div>
+                    }) }}</div>
+            {% else %}
+                {{ panel.error }}
+            {% endif %}
+        {% endfor %}
     </div>
 {% endif %}

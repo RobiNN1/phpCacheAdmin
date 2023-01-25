@@ -16,19 +16,6 @@ use JsonException;
 
 class Helpers {
     /**
-     * @param array<string, mixed> $data
-     */
-    public static function returnJson(array $data): string {
-        header('Content-Type: application/json');
-
-        try {
-            return json_encode($data, JSON_THROW_ON_ERROR);
-        } catch (JsonException $e) {
-            return '{"error": "'.$e->getMessage().'"}';
-        }
-    }
-
-    /**
      * @param string $icon Icon name from `assets/icons/`, custom path or svg code.
      */
     public static function svg(string $icon, ?int $size = 16, ?string $class = null): string {
@@ -153,6 +140,35 @@ class Helpers {
         echo $value;
 
         exit;
+    }
+
+    /**
+     * @param array<string, int|string> $server
+     */
+    public static function getServerTitle(array $server): string {
+        $name = $server['name'] ?? '';
+        $host = isset($server['host']) ? ' - '.$server['host'] : '';
+        $port = isset($server['port']) ? ':'.$server['port'] : '';
+
+        return $name.$host.$port;
+    }
+
+    /**
+     * @param array<int, array<string, int|string>> $servers
+     */
+    public static function serverSelector(Template $template, array $servers, int $selected): string {
+        $options = [];
+
+        foreach ($servers as $id => $server) {
+            $options[$id] = self::getServerTitle($server);
+        }
+
+        return $template->render('components/select', [
+            'id'       => 'server_select',
+            'options'  => $options,
+            'selected' => $selected,
+            'class'    => 'mb-3',
+        ]);
     }
 
     public static function str_starts_with(string $haystack, string $needle): bool {

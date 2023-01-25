@@ -20,10 +20,7 @@ use RobiNN\Pca\Paginator;
 use RobiNN\Pca\Value;
 
 trait APCuTrait {
-    /**
-     * @return array<int, mixed>
-     */
-    private function panels(): array {
+    private function panels(): string {
         $info = apcu_cache_info(true);
         $memory_info = apcu_sma_info(true);
 
@@ -33,11 +30,12 @@ trait APCuTrait {
 
         $hit_rate = (int) $info['num_hits'] !== 0 ? $info['num_hits'] / ($info['num_hits'] + $info['num_misses']) : 0;
 
-        return [
+        $panels = [
             [
-                'title'    => 'Status',
-                'moreinfo' => true,
-                'data'     => [
+                'title'             => 'PHP APCu extension',
+                'extension_version' => phpversion('apcu'),
+                'moreinfo'          => true,
+                'data'              => [
                     'Start time'       => Format::time($info['start_time']),
                     'Cache full count' => $info['expunges'],
                 ],
@@ -59,6 +57,8 @@ trait APCuTrait {
                 ],
             ],
         ];
+
+        return $this->template->render('partials/info', ['panels' => $panels]);
     }
 
     private function moreInfo(): string {
@@ -203,6 +203,7 @@ trait APCuTrait {
         $paginator = new Paginator($this->template, $keys);
 
         return $this->template->render('dashboards/apcu', [
+            'panels'      => $this->panels(),
             'keys'        => $paginator->getPaginated(),
             'all_keys'    => count($keys),
             'new_key_url' => Http::queryString([], ['form' => 'new']),

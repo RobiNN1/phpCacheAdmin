@@ -44,61 +44,6 @@ document.getElementById('togglebtn').addEventListener('click', () => {
 });
 
 /**
- * Ajax panels
- */
-document.querySelectorAll('[data-panel]').forEach(panel => {
-    ajax('panel=' + panel.dataset.panel, request => {
-        let json = JSON.parse(request.currentTarget.response);
-        let result = '';
-
-        Object.entries(json).forEach(entry => {
-            const [name, value] = entry;
-
-            if (name === 'error') {
-                result += `<tr><td colspan="2" class="text-center p-4">${value}</td></tr>`;
-            } else {
-                result += `<tr class="[&:last-child>*]:border-b-0">
-                               <td class="border-b border-gray-100 px-4 py-1 text-sm font-semibold whitespace-nowrap">${name}</td>
-                               <td class="border-b border-gray-100 px-4 py-1 text-sm">${value}</td>
-                           </tr>`;
-
-                panel.querySelector('.panel-selection').style.display = 'block';
-                panel.querySelector('.panel-moreinfo').style.display = 'block';
-            }
-        });
-
-        panel.querySelector('.panel-content').innerHTML = result;
-    });
-});
-
-let toggle_panels = document.getElementById('toggle-panels');
-if (toggle_panels) {
-    let current_dashboard = document.querySelector('[data-dashboard]');
-    let panels_state = 'panels_state_' + current_dashboard.dataset.dashboard;
-
-    if (!(panels_state in localStorage)) {
-        localStorage.setItem(panels_state, 'open');
-    }
-
-    if (localStorage.getItem(panels_state) === 'close') {
-        toggle_panels.checked = true;
-        document.getElementById('infopanels').style.display = 'none';
-    }
-
-    toggle_panels.addEventListener('click', () => {
-        if (localStorage.getItem(panels_state) === 'open') {
-            toggle_panels.checked = true;
-            document.getElementById('infopanels').style.display = 'none';
-            localStorage.setItem(panels_state, 'close');
-        } else {
-            toggle_panels.checked = false;
-            document.getElementById('infopanels').style.display = 'block';
-            localStorage.setItem(panels_state, 'open');
-        }
-    });
-}
-
-/**
  * Keys
  */
 const keys = document.querySelectorAll('[data-key]');
@@ -171,6 +116,8 @@ if (delete_all) {
 }
 
 select_and_redirect('per_page', 'pp');
+select_and_redirect('server_select', 'server');
+select_and_redirect('db_select', 'db');
 
 /**
  * Import form
@@ -181,8 +128,6 @@ if (import_btn) {
         document.getElementById('import_form').classList.toggle('hidden');
     });
 }
-
-select_and_redirect('db_select', 'db');
 
 /**
  * Search key

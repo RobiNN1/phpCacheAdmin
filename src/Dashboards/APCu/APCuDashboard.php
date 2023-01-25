@@ -64,19 +64,6 @@ class APCuDashboard implements DashboardInterface {
         return $return;
     }
 
-    public function infoPanels(): string {
-        // Hide panels on these pages.
-        if (isset($_GET['moreinfo']) || isset($_GET['form']) || isset($_GET['view'], $_GET['key'])) {
-            return '';
-        }
-
-        return $this->template->render('partials/info', [
-            'title'             => 'PHP APCu extension',
-            'extension_version' => phpversion('apcu'),
-            'info'              => ['panels' => $this->panels()],
-        ]);
-    }
-
     public function dashboard(): string {
         if (isset($_GET['moreinfo'])) {
             $return = $this->moreInfo();

@@ -1,8 +1,6 @@
 {% import 'partials/key_type_badge.twig' as key_badge %}
-
-<div class="mb-2 text-lg font-semibold break-words">{{ key }}</div>
-
-<div class="mb-5 lg:flex lg:items-center lg:gap-2">
+<div class="mb-2 text-lg font-semibold break-all">{{ key }}</div>
+<div class="mb-3 lg:flex lg:items-center lg:gap-2">
     {% if type %}
         <span>Type {{ key_badge.key_type(type) }}</span>
     {% endif %}

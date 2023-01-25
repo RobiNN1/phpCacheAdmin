@@ -14,6 +14,7 @@ namespace RobiNN\Pca\Dashboards\Redis;
 
 use Exception;
 use JsonException;
+use Predis\Client as Predis;
 use RobiNN\Pca\Config;
 use RobiNN\Pca\Dashboards\DashboardException;
 use RobiNN\Pca\Format;
@@ -42,28 +43,43 @@ trait RedisTrait {
         return $all_keys;
     }
 
-    /**
-     * Get server info for ajax.
-     *
-     * @return array<string, mixed>
-     */
-    private function serverInfo(): array {
-        try {
-            $redis = $this->connect($this->servers[Http::get('panel', 0)]);
-            $server_info = $redis->getInfo();
-
-            return [
-                'Version'           => $server_info['server']['redis_version'],
-                'Connected clients' => $server_info['clients']['connected_clients'],
-                'Uptime'            => Format::seconds((int) $server_info['server']['uptime_in_seconds']),
-                'Memory used'       => Format::bytes((int) $server_info['memory']['used_memory']),
-                'Keys'              => Format::number($this->getCountOfAllKeys($server_info['keyspace'])).' (all databases)',
-            ];
-        } catch (DashboardException|Exception $e) {
-            return [
-                'error' => $e->getMessage(),
-            ];
+    private function panels(): string {
+        if (extension_loaded('redis')) {
+            $title = 'PHP Redis extension';
+            $version = phpversion('redis');
+        } elseif (class_exists(Predis::class)) {
+            $title = 'Predis';
+            $version = Predis::VERSION;
         }
+
+        try {
+            $server_info = $this->redis->getInfo();
+
+            $panels = [
+                [
+                    'title'             => $title ?? null,
+                    'extension_version' => $version ?? null,
+                    'moreinfo'          => true,
+                    'server_id'         => $this->current_server,
+                    'data'              => [
+                        'Version' => $server_info['server']['redis_version'],
+                        'Uptime'  => Format::seconds((int) $server_info['server']['uptime_in_seconds']),
+                    ],
+                ],
+                [
+                    'title' => 'Stats',
+                    'data'  => [
+                        'Connected clients' => $server_info['clients']['connected_clients'],
+                        'Memory used'       => Format::bytes((int) $server_info['memory']['used_memory']),
+                        'Keys'              => Format::number($this->getCountOfAllKeys($server_info['keyspace'])).' (all databases)',
+                    ],
+                ],
+            ];
+        } catch (Exception $e) {
+            $panels = ['error' => $e->getMessage()];
+        }
+
+        return $this->template->render('partials/info', ['panels' => $panels]);
     }
 
     /**
@@ -79,40 +95,19 @@ trait RedisTrait {
         return $this->template->render('components/alert', ['message' => $message]);
     }
 
-    /**
-     * @return array<int, mixed>
-     */
-    private function panels(): array {
-        $panels = [];
-
-        foreach ($this->servers as $server) {
-            $panels[] = [
-                'title'            => $server['name'] ?? $server['host'].':'.$server['port'],
-                'server_selection' => true,
-                'current_server'   => $this->current_server,
-                'moreinfo'         => true,
-            ];
-        }
-
-        return $panels;
-    }
-
     private function moreInfo(): string {
         try {
-            $id = Http::get('moreinfo', 0);
-            $server_data = $this->servers[$id];
-            $redis = $this->connect($server_data);
-            $info = $redis->getInfo();
+            $info = $this->redis->getInfo();
 
             if (extension_loaded('redis')) {
                 $info += Helpers::getExtIniInfo('redis');
             }
 
             return $this->template->render('partials/info_table', [
-                'panel_title' => $server_data['name'] ?? $server_data['host'].':'.$server_data['port'],
+                'panel_title' => Helpers::getServerTitle($this->servers[$this->current_server]),
                 'array'       => Helpers::convertTypesToString($info),
             ]);
-        } catch (DashboardException|Exception $e) {
+        } catch (Exception $e) {
             return $e->getMessage();
         }
     }
@@ -371,6 +366,23 @@ trait RedisTrait {
         return $databases;
     }
 
+    private function select(): string {
+        $servers = Helpers::serverSelector($this->template, $this->servers, $this->current_server);
+
+        try {
+            $databases = $this->template->render('components/select', [
+                'id'       => 'db_select',
+                'options'  => $this->getDatabases(),
+                'selected' => Http::get('db', $this->servers[$this->current_server]['database'] ?? 0),
+                'class'    => 'mb-3',
+            ]);
+        } catch (DashboardException|Exception $e) {
+            $databases = '';
+        }
+
+        return $servers.$databases;
+    }
+
     /**
      * @throws Exception
      */
@@ -388,8 +400,8 @@ trait RedisTrait {
         $paginator = new Paginator($this->template, $keys, [['db', 's', 'pp'], ['p' => '']]);
 
         return $this->template->render('dashboards/redis/redis', [
-            'databases'   => $this->getDatabases(),
-            'current_db'  => Http::get('db', $this->servers[$this->current_server]['database'] ?? 0),
+            'select'      => $this->select(),
+            'panels'      => $this->panels(),
             'keys'        => $paginator->getPaginated(),
             'all_keys'    => $this->redis->dbSize(),
             'new_key_url' => Http::queryString(['db'], ['form' => 'new']),

@@ -1,4 +1,6 @@
-<div class="mb-5 lg:flex lg:justify-end">
+<div class="md:grid md:grid-cols-2 md:gap-4">{{ select|raw }}</div>
+{{ panels|raw }}
+<div class="mb-3 lg:flex lg:justify-end">
     {{ include('partials/keys_buttons.twig', {
         import_btn: true,
         add_new_btn: true,

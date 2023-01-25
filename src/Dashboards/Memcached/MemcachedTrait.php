@@ -13,7 +13,6 @@ declare(strict_types=1);
 namespace RobiNN\Pca\Dashboards\Memcached;
 
 use RobiNN\Pca\Config;
-use RobiNN\Pca\Dashboards\DashboardException;
 use RobiNN\Pca\Format;
 use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
@@ -21,36 +20,45 @@ use RobiNN\Pca\Paginator;
 use RobiNN\Pca\Value;
 
 trait MemcachedTrait {
-    /**
-     * Get server info for ajax.
-     *
-     * @return array<string, mixed>
-     */
-    private function serverInfo(): array {
-        try {
-            $memcached = $this->connect($this->servers[Http::get('panel', 0)]);
-            $server_info = $memcached->getServerStats();
-
-            // Keys are loaded via sockets and not extension itself.
-            try {
-                $keys = Format::number(count($memcached->getKeys()));
-            } catch (MemcachedException $e) {
-                $keys = 'An error occurred while retrieving keys.';
-            }
-
-            return [
-                'Version'          => $server_info['version'],
-                'Open connections' => $server_info['curr_connections'],
-                'Uptime'           => Format::seconds((int) $server_info['uptime']),
-                'Cache limit'      => Format::bytes((int) $server_info['limit_maxbytes']),
-                'Used'             => Format::bytes((int) $server_info['bytes']),
-                'Keys'             => $keys,
-            ];
-        } catch (DashboardException|MemcachedException $e) {
-            return [
-                'error' => $e->getMessage(),
-            ];
+    private function panels(): string {
+        if (extension_loaded('memcached') || extension_loaded('memcache')) {
+            $memcached = extension_loaded('memcached') ? 'd' : '';
+            $title = 'PHP Memcache'.$memcached.' extension';
+            $version = phpversion('memcache'.$memcached);
+        } elseif (class_exists(Compatibility\PHPMem::class)) {
+            $title = 'PHPMem';
+            $version = Compatibility\PHPMem::VERSION;
         }
+
+        try {
+            $server_info = $this->memcached->getServerStats();
+
+            $panels = [
+                [
+                    'title'             => $title ?? null,
+                    'extension_version' => $version ?? null,
+                    'moreinfo'          => true,
+                    'server_id'         => $this->current_server,
+                    'data'              => [
+                        'Version'          => $server_info['version'],
+                        'Open connections' => $server_info['curr_connections'],
+                        'Uptime'           => Format::seconds((int) $server_info['uptime']),
+                    ],
+                ],
+                [
+                    'title' => 'Stats',
+                    'data'  => [
+                        'Cache limit' => Format::bytes((int) $server_info['limit_maxbytes']),
+                        'Used'        => Format::bytes((int) $server_info['bytes']),
+                        'Keys'        => Format::number(count($this->memcached->getKeys())), // Keys are loaded via sockets and not extension itself
+                    ],
+                ],
+            ];
+        } catch (MemcachedException $e) {
+            $panels = ['error' => $e->getMessage()];
+        }
+
+        return $this->template->render('partials/info', ['panels' => $panels]);
     }
 
     /**
@@ -66,30 +74,9 @@ trait MemcachedTrait {
         return $this->template->render('components/alert', ['message' => $message]);
     }
 
-    /**
-     * @return array<int, mixed>
-     */
-    private function panels(): array {
-        $panels = [];
-
-        foreach ($this->servers as $server) {
-            $panels[] = [
-                'title'            => $server['name'] ?? $server['host'].':'.$server['port'],
-                'server_selection' => true,
-                'current_server'   => $this->current_server,
-                'moreinfo'         => true,
-            ];
-        }
-
-        return $panels;
-    }
-
     private function moreInfo(): string {
         try {
-            $id = Http::get('moreinfo', 0);
-            $server_data = $this->servers[$id];
-
-            $info = $this->connect($server_data)->getServerStats();
+            $info = $this->memcached->getServerStats();
 
             if (extension_loaded('memcached') || extension_loaded('memcache')) {
                 $memcached = extension_loaded('memcached') ? 'd' : '';
@@ -97,10 +84,10 @@ trait MemcachedTrait {
             }
 
             return $this->template->render('partials/info_table', [
-                'panel_title' => $server_data['name'] ?? $server_data['host'].':'.$server_data['port'],
+                'panel_title' => Helpers::getServerTitle($this->servers[$this->current_server]),
                 'array'       => Helpers::convertTypesToString($info),
             ]);
-        } catch (DashboardException|MemcachedException $e) {
+        } catch (MemcachedException $e) {
             return $e->getMessage();
         }
     }
@@ -238,6 +225,8 @@ trait MemcachedTrait {
         $paginator = new Paginator($this->template, $keys);
 
         return $this->template->render('dashboards/memcached', [
+            'select'      => Helpers::serverSelector($this->template, $this->servers, $this->current_server),
+            'panels'      => $this->panels(),
             'keys'        => $paginator->getPaginated(),
             'all_keys'    => count($keys),
             'new_key_url' => Http::queryString([], ['form' => 'new']),

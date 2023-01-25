@@ -32,7 +32,7 @@ trait KeysTrait {
      * @throws MemcachedException
      */
     public function getKeys(): array {
-        static $keys = [];
+        $keys = [];
 
         $raw = $this->runCommand('lru_crawler metadump all');
         $lines = explode("\n", $raw);

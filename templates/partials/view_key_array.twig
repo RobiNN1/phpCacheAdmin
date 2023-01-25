@@ -1,15 +1,15 @@
 {% if type not in types.extra.hide_edit %}
     {{ include('components/button.twig', {
         text: 'Add another value',
-        icon: 'open',
+        icon: 'plus',
         link: add_subkey_url,
         btn_green: true,
-        class: 'mb-5',
+        class: 'mb-3',
     }) }}
 {% endif %}
 
 {% for item in value %}
-    <div class="mb-5 rounded bg-white shadow-sm shadow-gray-300">
+    <div class="mb-3 rounded bg-white shadow-sm shadow-gray-300">
         <div class="flex justify-between overflow-y-auto border-b px-4 py-1.5">
             <span>
                 {% if type not in types.extra.hide_title %}

@@ -1,4 +1,5 @@
-<div class="mb-5 lg:flex lg:justify-end">
+{{ panels|raw }}
+<div class="mb-3 lg:flex lg:justify-end">
     <div>
         {{ include('components/button.twig', {
             text: (is_ignored ? 'Show' : 'Ignore') ~ ' scripts from this tool',
@@ -14,8 +15,8 @@
         {'title': 'Filename'},
         {'title': 'Hits', 'class': 'w-16'},
         {'title': 'Memory', 'class': 'w-24'},
-        {'title': 'Last used', 'class': 'w-36'},
-        {'title': 'Created', 'class': 'w-36 hidden md:table-cell'},
+        {'title': 'Last used', 'class': 'w-40'},
+        {'title': 'Created', 'class': 'w-40 hidden md:table-cell'},
     ],
     classes: {
         5: 'hidden md:table-cell',

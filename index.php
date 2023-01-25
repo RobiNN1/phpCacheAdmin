@@ -66,7 +66,7 @@ $info = $dashboard->dashboardInfo();
 
 $tpl->addGlobal('current', $current);
 
-if (isset($_GET['ajax'])) {
+if (isset($_GET['ajax']) && method_exists($dashboard, 'ajax')) {
     echo $dashboard->ajax();
 } else {
     if (isset($_GET['moreinfo']) || isset($_GET['form']) || isset($_GET['view'], $_GET['key'])) {
@@ -89,7 +89,6 @@ if (isset($_GET['ajax'])) {
         'version'    => Admin::VERSION,
         'repo'       => 'https://github.com/RobiNN1/phpCacheAdmin',
         'back_url'   => $back_url ?? null,
-        'panels'     => $dashboard->infoPanels(),
         'dashboard'  => $dashboard->dashboard(),
     ]);
 }

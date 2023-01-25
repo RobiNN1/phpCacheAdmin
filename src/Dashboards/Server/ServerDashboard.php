@@ -39,28 +39,13 @@ class ServerDashboard implements DashboardInterface {
         ];
     }
 
-    public function ajax(): string {
-        return '';
-    }
-
-    public function infoPanels(): string {
-        // Hide panels on more info page.
-        if (isset($_GET['moreinfo'])) {
-            return '';
-        }
-
-        return $this->template->render('partials/info', [
-            'panels_toggler' => false,
-            'info'           => ['panels' => $this->panels()],
-        ]);
-    }
-
     public function dashboard(): string {
         if (isset($_GET['moreinfo'])) {
             return $this->phpInfo();
         }
 
         return $this->template->render('dashboards/server', [
+            'panels'     => $this->template->render('partials/info', ['panels' => $this->panels()]),
             'extensions' => get_loaded_extensions(),
             'ext_link'   => Http::queryString([], ['moreinfo' => 0]),
         ]);

@@ -102,49 +102,21 @@ class RedisDashboard implements DashboardInterface {
     public function ajax(): string {
         $return = '';
 
-        if (isset($_GET['panel'])) {
-            $return = Helpers::returnJson($this->serverInfo());
-        } else {
-            try {
-                $this->redis = $this->connect($this->servers[$this->current_server]);
+        try {
+            $this->redis = $this->connect($this->servers[$this->current_server]);
 
-                if (isset($_GET['deleteall'])) {
-                    $return = $this->deleteAllKeys();
-                }
-
-                if (isset($_GET['delete'])) {
-                    $return = Helpers::deleteKey($this->template, fn (string $key): bool => $this->redis->del($key) > 0, true);
-                }
-            } catch (DashboardException|Exception $e) {
-                $return = $e->getMessage();
+            if (isset($_GET['deleteall'])) {
+                $return = $this->deleteAllKeys();
             }
+
+            if (isset($_GET['delete'])) {
+                $return = Helpers::deleteKey($this->template, fn (string $key): bool => $this->redis->del($key) > 0, true);
+            }
+        } catch (DashboardException|Exception $e) {
+            $return = $e->getMessage();
         }
 
         return $return;
-    }
-
-    public function infoPanels(): string {
-        // Hide panels on these pages.
-        if (isset($_GET['moreinfo']) || isset($_GET['form']) || isset($_GET['view'], $_GET['key'])) {
-            return '';
-        }
-
-        if (extension_loaded('redis')) {
-            $title = 'PHP Redis extension';
-            $version = phpversion('redis');
-        } elseif (class_exists(Predis::class)) {
-            $title = 'Predis';
-            $version = Predis::VERSION;
-        }
-
-        return $this->template->render('partials/info', [
-            'title'             => $title ?? null,
-            'extension_version' => $version ?? null,
-            'info'              => [
-                'ajax'   => true,
-                'panels' => $this->panels(),
-            ],
-        ]);
     }
 
     public function dashboard(): string {
@@ -152,22 +124,20 @@ class RedisDashboard implements DashboardInterface {
             return 'No servers';
         }
 
-        if (isset($_GET['moreinfo'])) {
-            $return = $this->moreInfo();
-        } else {
-            try {
-                $this->redis = $this->connect($this->servers[$this->current_server]);
+        try {
+            $this->redis = $this->connect($this->servers[$this->current_server]);
 
-                if (isset($_GET['view'], $_GET['key'])) {
-                    $return = $this->viewKey();
-                } elseif (isset($_GET['form'])) {
-                    $return = $this->form();
-                } else {
-                    $return = $this->mainDashboard();
-                }
-            } catch (DashboardException|Exception $e) {
-                return $e->getMessage();
+            if (isset($_GET['moreinfo'])) {
+                $return = $this->moreInfo();
+            } elseif (isset($_GET['view'], $_GET['key'])) {
+                $return = $this->viewKey();
+            } elseif (isset($_GET['form'])) {
+                $return = $this->form();
+            } else {
+                $return = $this->mainDashboard();
             }
+        } catch (DashboardException|Exception $e) {
+            return $e->getMessage();
         }
 
         return $return;

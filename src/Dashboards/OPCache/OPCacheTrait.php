@@ -18,10 +18,7 @@ use RobiNN\Pca\Http;
 use RobiNN\Pca\Paginator;
 
 trait OPCacheTrait {
-    /**
-     * @return array<int, mixed>
-     */
-    private function panels(): array {
+    private function panels(): string {
         $status = opcache_get_status(false);
         $configuration = opcache_get_configuration();
 
@@ -34,11 +31,12 @@ trait OPCacheTrait {
 
         $used_keys_percentage = round(($stats['num_cached_keys'] / $stats['max_cached_keys']) * 100);
 
-        return [
+        $panels = [
             [
-                'title'    => 'Status',
-                'moreinfo' => true,
-                'data'     => [
+                'title'             => 'PHP OPCache extension',
+                'extension_version' => phpversion('Zend OPcache'),
+                'moreinfo'          => true,
+                'data'              => [
                     'JIT'          => isset($status['jit']) && $status['jit']['enabled'] ? 'Enabled' : 'Disabled',
                     'Start time'   => Format::time($stats['start_time']),
                     'Last restart' => Format::time($stats['last_restart_time']),
@@ -65,6 +63,8 @@ trait OPCacheTrait {
                 ],
             ],
         ];
+
+        return $this->template->render('partials/info', ['panels' => $panels]);
     }
 
     private function moreInfo(): string {
@@ -121,6 +121,7 @@ trait OPCacheTrait {
         $is_ignored = isset($_GET['ignore']) && $_GET['ignore'] === 'yes';
 
         return $this->template->render('dashboards/opcache', [
+            'panels'         => $this->panels(),
             'cached_scripts' => $paginator->getPaginated(),
             'all_files'      => count($cached_scripts),
             'paginator'      => $paginator->render(),

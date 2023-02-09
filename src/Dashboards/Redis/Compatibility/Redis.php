@@ -16,10 +16,13 @@ use RedisException;
 use RobiNN\Pca\Dashboards\DashboardException;
 
 class Redis extends \Redis implements CompatibilityInterface {
+    use JsonTrait;
+    use ModuleTrait;
+
     /**
-     * @var array<int, string>
+     * @var array<int|string, string>
      */
-    private array $data_types = [
+    public array $data_types = [
         self::REDIS_NOT_FOUND => 'other',
         self::REDIS_STRING    => 'string',
         self::REDIS_SET       => 'set',
@@ -27,6 +30,7 @@ class Redis extends \Redis implements CompatibilityInterface {
         self::REDIS_ZSET      => 'zset',
         self::REDIS_HASH      => 'hash',
         self::REDIS_STREAM    => 'stream',
+        'ReJSON-RL'           => 'rejson',
     ];
 
     /**
@@ -64,25 +68,15 @@ class Redis extends \Redis implements CompatibilityInterface {
     }
 
     /**
-     * @return array<string, string>
-     */
-    public function getAllTypes(): array {
-        static $types = [];
-
-        unset($this->data_types[self::REDIS_NOT_FOUND], $this->data_types[self::REDIS_STREAM]);
-
-        foreach ($this->data_types as $type) {
-            $types[$type] = ucfirst($type);
-        }
-
-        return $types;
-    }
-
-    /**
      * @throws RedisException|DashboardException
      */
     public function getType(string $key): string {
         $type = $this->type($key);
+
+        if ($type === self::REDIS_NOT_FOUND) {
+            $this->setOption(self::OPT_REPLY_LITERAL, true);
+            $type = $this->rawCommand('TYPE', $key);
+        }
 
         if (!isset($this->data_types[$type])) {
             throw new DashboardException(sprintf('Unsupported data type: %s', $type));

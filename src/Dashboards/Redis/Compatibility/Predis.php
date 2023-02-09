@@ -17,18 +17,22 @@ use Predis\Collection\Iterator\Keyspace;
 use RobiNN\Pca\Dashboards\DashboardException;
 
 class Predis extends Client implements CompatibilityInterface {
+    use JsonTrait;
+    use ModuleTrait;
+
     /**
      * @var array<string, string>
      */
-    private array $data_types = [
-        'none'   => 'none',
-        'other'  => 'other',
-        'string' => 'string',
-        'set'    => 'set',
-        'list'   => 'list',
-        'zset'   => 'zset',
-        'hash'   => 'hash',
-        'stream' => 'stream',
+    public array $data_types = [
+        'none'      => 'none',
+        'other'     => 'other',
+        'string'    => 'string',
+        'set'       => 'set',
+        'list'      => 'list',
+        'zset'      => 'zset',
+        'hash'      => 'hash',
+        'stream'    => 'stream',
+        'ReJSON-RL' => 'rejson',
     ];
 
     /**
@@ -52,21 +56,6 @@ class Predis extends Client implements CompatibilityInterface {
                 'username' => $server['username'] ?? null,
                 'password' => $server['password'] ?? null,
             ]);
-    }
-
-    /**
-     * @return array<string, string>
-     */
-    public function getAllTypes(): array {
-        static $types = [];
-
-        unset($this->data_types['none'], $this->data_types['other'], $this->data_types['stream']);
-
-        foreach ($this->data_types as $type) {
-            $types[$type] = ucfirst($type);
-        }
-
-        return $types;
     }
 
     /**

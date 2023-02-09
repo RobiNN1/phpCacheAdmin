@@ -99,6 +99,10 @@ trait RedisTrait {
         try {
             $info = $this->redis->getInfo();
 
+            foreach ($this->redis->getModules() as $module) {
+                $info['modules'][$module['name']] = $module['ver'];
+            }
+
             if (extension_loaded('redis')) {
                 $info += Helpers::getExtIniInfo('redis');
             }
@@ -283,7 +287,7 @@ trait RedisTrait {
         return $this->template->render('dashboards/redis/form', [
             'key'      => $key,
             'value'    => $value,
-            'types'    => $this->redis->getAllTypes(),
+            'types'    => $this->getAllTypes(),
             'type'     => $type,
             'index'    => $index,
             'score'    => $score,
@@ -347,7 +351,7 @@ trait RedisTrait {
             $db_count = (int) $this->servers[$this->current_server]['databases'];
         } else {
             $dbs = (array) $this->redis->config('GET', 'databases');
-            $db_count = $dbs['databases'];
+            $db_count = $dbs['databases'] ?? 1;
         }
 
         for ($d = 0; $d < $db_count; ++$d) {

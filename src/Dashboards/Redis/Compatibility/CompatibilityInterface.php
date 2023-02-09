@@ -16,15 +16,6 @@ use RobiNN\Pca\Dashboards\DashboardException;
 
 interface CompatibilityInterface {
     /**
-     * Get all data types.
-     *
-     * Used in form.
-     *
-     * @return array<string, string>
-     */
-    public function getAllTypes(): array;
-
-    /**
      * Get a key type.
      *
      * @throws DashboardException

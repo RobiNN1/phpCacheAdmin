@@ -18,6 +18,31 @@ use RobiNN\Pca\Http;
 
 trait TypesTrait {
     /**
+     * Get all data types.
+     *
+     * Used in form.
+     *
+     * @return array<string, string>
+     */
+    public function getAllTypes(): array {
+        static $types = [];
+
+        $exclude = ['none', 'other', 'stream'];
+
+        if (!$this->redis->checkModule('ReJSON')) {
+            $exclude[] = 'rejson';
+        }
+
+        foreach ($this->redis->data_types as $type) {
+            if (!in_array($type, $exclude, true)) {
+                $types[$type] = ucfirst($type);
+            }
+        }
+
+        return $types;
+    }
+
+    /**
      * Extra data for templates.
      *
      * Used in 'view_key_array' template.
@@ -80,6 +105,9 @@ trait TypesTrait {
                 $ranges = $this->redis->xRange($key, '-', '+');
                 $value = $ranges[Http::get('stream_id', '')];
                 break;
+            case 'rejson':
+                $value = $this->redis->jsonGet($key);
+                break;
             default:
                 $value = '';
         }
@@ -115,6 +143,9 @@ trait TypesTrait {
                 break;
             case 'stream':
                 $value = $this->redis->xRange($key, '-', '+');
+                break;
+            case 'rejson':
+                $value = $this->redis->jsonGet($key);
                 break;
             default:
                 $value = '';
@@ -169,6 +200,9 @@ trait TypesTrait {
                 break;
             case 'stream':
                 $this->redis->streamAdd($key, Http::post('stream_id', '*'), [Http::post('field') => $value]);
+                break;
+            case 'rejson':
+                $this->redis->jsonSet($key, $value);
                 break;
             default:
         }

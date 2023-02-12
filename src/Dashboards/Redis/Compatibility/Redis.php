@@ -104,6 +104,7 @@ class Redis extends \Redis implements CompatibilityInterface {
 
     /**
      * @return array<int, string>
+     *
      * @throws RedisException
      */
     public function scanKeys(string $pattern, int $count): array {

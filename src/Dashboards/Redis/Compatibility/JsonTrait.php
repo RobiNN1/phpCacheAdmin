@@ -17,6 +17,7 @@ use RedisException;
 trait JsonTrait {
     /**
      * @return mixed
+     *
      * @throws RedisException
      */
     public function jsonGet(string $key) {

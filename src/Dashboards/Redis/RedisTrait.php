@@ -26,23 +26,6 @@ use RobiNN\Pca\Value;
 trait RedisTrait {
     use TypesTrait;
 
-    /**
-     * Get a number of keys form all databases.
-     *
-     * @param array<string, mixed> $keyspace
-     */
-    private function getCountOfAllKeys(array $keyspace): int {
-        $all_keys = 0;
-
-        foreach ($keyspace as $value) {
-            $db = explode(',', $value);
-            $keys = explode('=', $db[0]);
-            $all_keys += (int) $keys[1];
-        }
-
-        return $all_keys;
-    }
-
     private function panels(): string {
         if (extension_loaded('redis')) {
             $title = 'PHP Redis extension';
@@ -54,6 +37,14 @@ trait RedisTrait {
 
         try {
             $server_info = $this->redis->getInfo();
+
+            $count_of_all_keys = 0;
+
+            foreach ($server_info['keyspace'] as $value) {
+                $db = explode(',', $value);
+                $keys = explode('=', $db[0]);
+                $count_of_all_keys += (int) $keys[1];
+            }
 
             $panels = [
                 [
@@ -71,7 +62,7 @@ trait RedisTrait {
                     'data'  => [
                         'Connected clients' => $server_info['clients']['connected_clients'],
                         'Memory used'       => Format::bytes((int) $server_info['memory']['used_memory']),
-                        'Keys'              => Format::number($this->getCountOfAllKeys($server_info['keyspace'])).' (all databases)',
+                        'Keys'              => Format::number($count_of_all_keys).' (all databases)',
                     ],
                 ],
             ];

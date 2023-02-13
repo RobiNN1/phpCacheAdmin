@@ -63,7 +63,7 @@ trait OPCacheTrait {
             ],
         ];
 
-        return $this->template->render('partials/info', ['panels' => $panels]);
+        return $this->template->render('partials/info', ['panels' => $panels, 'thead' => false]);
     }
 
     private function moreInfo(): string {

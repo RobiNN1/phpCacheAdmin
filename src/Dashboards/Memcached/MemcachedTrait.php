@@ -55,7 +55,7 @@ trait MemcachedTrait {
             $panels = ['error' => $e->getMessage()];
         }
 
-        return $this->template->render('partials/info', ['panels' => $panels]);
+        return $this->template->render('partials/info', ['panels' => $panels, 'thead' => false]);
     }
 
     /**

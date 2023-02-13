@@ -28,11 +28,9 @@ trait RedisTrait {
 
     private function panels(): string {
         if (extension_loaded('redis')) {
-            $title = 'PHP Redis extension';
-            $version = phpversion('redis');
+            $title = 'PHP Redis extension <b>v'.phpversion('redis').'</b>';
         } elseif (class_exists(Predis::class)) {
-            $title = 'Predis';
-            $version = Predis::VERSION;
+            $title = 'Predis <b>v'.Predis::VERSION.'</b>';
         }
 
         try {
@@ -48,11 +46,10 @@ trait RedisTrait {
 
             $panels = [
                 [
-                    'title'             => $title ?? null,
-                    'extension_version' => $version ?? null,
-                    'moreinfo'          => true,
-                    'server_id'         => $this->current_server,
-                    'data'              => [
+                    'title'     => $title ?? null,
+                    'moreinfo'  => true,
+                    'server_id' => $this->current_server,
+                    'data'      => [
                         'Version' => $server_info['server']['redis_version'],
                         'Uptime'  => Format::seconds((int) $server_info['server']['uptime_in_seconds']),
                     ],

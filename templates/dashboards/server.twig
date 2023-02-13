@@ -3,14 +3,13 @@
 
 <div>
     {% for extension in extensions %}
+        <a href="{{ ext_link ~ '#module_' ~ extension|replace({' ': '+'})|lower }}">
         {{ include('components/badge.twig', {
             text: extension,
-            pill: true,
             txt: 'font-semibold',
             bg: 'bg-slate-200',
             class: 'm-1',
-            link: ext_link ~ '#module_' ~ extension|replace({' ': '+'})|lower,
-        }) }}
+        }) }}</a>
     {% endfor %}
 </div>
 

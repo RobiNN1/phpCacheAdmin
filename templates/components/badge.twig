@@ -1,9 +1,1 @@
-{% if link %}
-    {% set tag = 'a' %}
-    {% set link = ' href="' ~ link ~ '"' %}
-{% else %}
-    {% set tag = 'span' %}
-{% endif %}
-<{{ tag }}{{ link|raw }} class="inline-block py-1 px-3 {{ pill ? 'rounded-full' : 'rounded' }} {{ bg }} text-xs {{ txt ? txt : 'text-white' }}{{ class|space }}">
-{{- text|raw -}}
-</{{ tag }}>
+<span class="inline-block py-1 px-3 rounded-full {{ bg }} text-xs {{ txt ? txt : 'text-white' }}{{ class|space }}">{{ text|raw }}</span>

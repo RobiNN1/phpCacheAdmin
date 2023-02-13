@@ -10,7 +10,6 @@
             TTL
             {{ include('components/badge.twig', {
                 text: ttl == -1 ? 'Doesn\'t expire' : ttl,
-                pill: true,
                 class: 'uppercase font-bold',
                 bg: 'bg-slate-500',
             }) }}
@@ -22,7 +21,6 @@
             Size
             {{ include('components/badge.twig', {
                 text: size,
-                pill: true,
                 class: 'font-bold',
                 bg: 'bg-sky-500',
             }) }}
@@ -30,12 +28,12 @@
     {% endif %}
 
     {% if encode_fn %}
-        <span>Encoded with {{ include('components/badge.twig', {text: encode_fn, pill: true, class: 'uppercase font-bold', bg: 'bg-blue-500'}) }}</span>
+        <span>Encoded with {{ include('components/badge.twig', {text: encode_fn, class: 'uppercase font-bold', bg: 'bg-blue-500'}) }}</span>
         {% set encode_url = '&encoder=' ~ encode_fn %}
     {% endif %}
 
     {% if formatted == true %}
-        {{ include('components/badge.twig', {text: 'Formatted', pill: true, class: 'uppercase font-bold', bg: 'bg-blue-500'}) }}
+        {{ include('components/badge.twig', {text: 'Formatted', class: 'uppercase font-bold', bg: 'bg-blue-500'}) }}
     {% endif %}
 
     <span>

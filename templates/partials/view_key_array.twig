@@ -13,20 +13,20 @@
         <div class="flex justify-between overflow-y-auto border-b px-4 py-1.5">
             <span>
                 {% if type not in types.extra.hide_title %}
-                    {{ types[type].title }} {{ include('components/badge.twig', {text: item.sub_key, pill: true, class: 'font-bold', bg: 'bg-slate-400'}) }}
+                    {{ types[type].title }} {{ include('components/badge.twig', {text: item.sub_key, class: 'font-bold', bg: 'bg-slate-400'}) }}
                 {% endif %}
 
                 {% if item.encode_fn %}
                     <span>
                         Encoded with
-                        {{ include('components/badge.twig', {text: item.encode_fn, pill: true, class: 'uppercase font-bold', bg: 'bg-blue-500'}) }}
+                        {{ include('components/badge.twig', {text: item.encode_fn, class: 'uppercase font-bold', bg: 'bg-blue-500'}) }}
                     </span>
 
                     {% set item_encode_url = '&encoder=' ~ item.encode_fn %}
                 {% endif %}
 
                 {% if item.formatted == true %}
-                    {{ include('components/badge.twig', {text: 'Formatted', pill: true, class: 'uppercase font-bold', bg: 'bg-blue-500'}) }}
+                    {{ include('components/badge.twig', {text: 'Formatted', class: 'uppercase font-bold', bg: 'bg-blue-500'}) }}
                 {% endif %}
             </span>
 

@@ -2,16 +2,7 @@
     <div class="px-4 py-1.5">
         <div class="flex flex-wrap items-center">
             <div class="relative w-full max-w-full flex-1 flex-grow">
-                <h2 class="text-primary-900 text-lg font-semibold">
-                    {{ panel_title }}
-                    {% if extension_version %}
-                        {{ include('components/badge.twig', {
-                            text: 'v' ~ extension_version,
-                            bg: 'bg-primary-500',
-                            class: 'font-semibold',
-                        }) }}
-                    {% endif %}
-                </h2>
+                <h2 class="text-primary-900 text-lg font-semibold">{{ panel_title|raw }}</h2>
             </div>
         </div>
     </div>

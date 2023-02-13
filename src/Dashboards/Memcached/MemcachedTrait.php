@@ -23,11 +23,9 @@ trait MemcachedTrait {
     private function panels(): string {
         if (extension_loaded('memcached') || extension_loaded('memcache')) {
             $memcached = extension_loaded('memcached') ? 'd' : '';
-            $title = 'PHP Memcache'.$memcached.' extension';
-            $version = phpversion('memcache'.$memcached);
+            $title = 'PHP Memcache'.$memcached.' extension <b>v'.phpversion('memcache'.$memcached).'</b>';
         } elseif (class_exists(Compatibility\PHPMem::class)) {
-            $title = 'PHPMem';
-            $version = Compatibility\PHPMem::VERSION;
+            $title = 'PHPMem <b>v'.Compatibility\PHPMem::VERSION.'</b>';
         }
 
         try {
@@ -35,11 +33,10 @@ trait MemcachedTrait {
 
             $panels = [
                 [
-                    'title'             => $title ?? null,
-                    'extension_version' => $version ?? null,
-                    'moreinfo'          => true,
-                    'server_id'         => $this->current_server,
-                    'data'              => [
+                    'title'     => $title ?? null,
+                    'moreinfo'  => true,
+                    'server_id' => $this->current_server,
+                    'data'      => [
                         'Version'          => $server_info['version'],
                         'Open connections' => $server_info['curr_connections'],
                         'Uptime'           => Format::seconds((int) $server_info['uptime']),

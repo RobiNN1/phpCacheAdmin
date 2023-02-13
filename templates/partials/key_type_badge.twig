@@ -15,5 +15,5 @@
         {% set type_color = 'bg-blue-500' %}
     {% endif %}
 
-    {{ include('components/badge.twig', {text: type, pill: true, class: 'uppercase font-bold', bg: type_color}) }}
+    {{ include('components/badge.twig', {text: type, class: 'uppercase font-bold', bg: type_color}) }}
 {% endmacro %}

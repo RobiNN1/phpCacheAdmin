@@ -32,10 +32,9 @@ trait APCuTrait {
 
         $panels = [
             [
-                'title'             => 'PHP APCu extension',
-                'extension_version' => phpversion('apcu'),
-                'moreinfo'          => true,
-                'data'              => [
+                'title'    => 'PHP APCu extension <b>v'.phpversion('apcu').'</b>',
+                'moreinfo' => true,
+                'data'     => [
                     'Start time'       => Format::time($info['start_time']),
                     'Cache full count' => $info['expunges'],
                 ],

@@ -27,8 +27,11 @@ trait ServerTrait {
         return $disabled_functions;
     }
 
-    private function panels(): string {
-        $panels = [
+    /**
+     * @return array<int, mixed>
+     */
+    private function panels(): array {
+        return [
             [
                 'title'    => 'PHP Info',
                 'moreinfo' => true,
@@ -48,8 +51,6 @@ trait ServerTrait {
                 ],
             ],
         ];
-
-        return $this->template->render('partials/info', ['panels' => $panels, 'thead' => false]);
     }
 
     private function phpInfo(): string {

@@ -45,7 +45,7 @@ class ServerDashboard implements DashboardInterface {
         }
 
         return $this->template->render('dashboards/server', [
-            'panels'     => $this->panels(),
+            'panels'     => $this->template->render('partials/info', ['panels' => $this->panels()]),
             'extensions' => get_loaded_extensions(),
             'ext_link'   => Http::queryString([], ['moreinfo' => 0]),
         ]);

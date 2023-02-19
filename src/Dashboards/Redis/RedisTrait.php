@@ -156,7 +156,27 @@ trait RedisTrait {
         }
 
         if (isset($_GET['deletesub'])) {
-            $this->deleteSubKey($type, $key);
+            switch ($type) {
+                case 'set':
+                    $subkey = Http::get('member', 0);
+                    break;
+                case 'list':
+                    $subkey = Http::get('index', 0);
+                    break;
+                case 'zset':
+                    $subkey = Http::get('range', 0);
+                    break;
+                case 'hash':
+                    $subkey = Http::get('hash_key', '');
+                    break;
+                case 'stream':
+                    $subkey = Http::get('stream_id', '');
+                    break;
+                default:
+                    $subkey = null;
+            }
+
+            $this->deleteSubKey($type, $key, $subkey);
 
             Http::redirect(['db', 'key', 'view', 'p']);
         }
@@ -211,7 +231,7 @@ trait RedisTrait {
     /**
      * @throws Exception
      */
-    private function saveKey(): void {
+    public function saveKey(): void {
         $key = Http::post('key', '');
         $value = Value::encode(Http::post('value', ''), Http::post('encoder', ''));
         $old_value = Http::post('old_value', '');
@@ -223,7 +243,13 @@ trait RedisTrait {
             $this->redis->rename($old_key, $key);
         }
 
-        $this->store($type, $key, $value, $old_value);
+        $this->store($type, $key, $value, $old_value, [
+            'list_index'   => $_POST['index'] ?? '',
+            'zset_score'   => Http::post('score', 0),
+            'hash_key'     => Http::post('hash_key', ''),
+            'stream_id'    => Http::post('stream_id', '*'),
+            'stream_field' => Http::post('field', ''),
+        ]);
 
         $expire = Http::post('expire', 0);
 

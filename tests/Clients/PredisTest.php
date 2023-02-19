@@ -12,9 +12,9 @@ declare(strict_types=1);
 
 namespace Tests\Clients;
 
+use PHPUnit\Framework\TestCase;
 use RobiNN\Pca\Dashboards\DashboardException;
 use RobiNN\Pca\Dashboards\Redis\Compatibility\Predis;
-use Tests\TestCase;
 
 final class PredisTest extends TestCase {
     private Predis $predis;

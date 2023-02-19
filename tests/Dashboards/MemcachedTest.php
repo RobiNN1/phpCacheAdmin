@@ -13,7 +13,7 @@ declare(strict_types=1);
 namespace Tests\Dashboards;
 
 use JsonException;
-use ReflectionException;
+use PHPUnit\Framework\TestCase;
 use RobiNN\Pca\Dashboards\DashboardException;
 use RobiNN\Pca\Dashboards\Memcached\Compatibility\Memcache;
 use RobiNN\Pca\Dashboards\Memcached\Compatibility\Memcached;
@@ -23,7 +23,6 @@ use RobiNN\Pca\Dashboards\Memcached\MemcachedException;
 use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
 use RobiNN\Pca\Template;
-use Tests\TestCase;
 
 final class MemcachedTest extends TestCase {
     private Template $template;
@@ -36,14 +35,13 @@ final class MemcachedTest extends TestCase {
     private $memcached;
 
     /**
-     * @throws DashboardException|ReflectionException
+     * @throws DashboardException
      */
     protected function setUp(): void {
         $this->template = new Template();
         $this->dashboard = new MemcachedDashboard($this->template);
         $this->memcached = $this->dashboard->connect(['host' => '127.0.0.1']);
-
-        self::setValue($this->dashboard, 'memcached', $this->memcached);
+        $this->dashboard->memcached = $this->memcached;
     }
 
     /**
@@ -126,7 +124,7 @@ final class MemcachedTest extends TestCase {
     }
 
     /**
-     * @throws MemcachedException|ReflectionException
+     * @throws MemcachedException
      */
     public function testSaveKey(): void {
         $key = 'pu-test-save';
@@ -136,7 +134,7 @@ final class MemcachedTest extends TestCase {
         $_POST['encoder'] = 'none';
 
         Http::stopRedirect();
-        self::callMethod($this->dashboard, 'saveKey');
+        $this->dashboard->saveKey();
 
         $this->assertSame('test-value', $this->memcached->getKey($key));
 

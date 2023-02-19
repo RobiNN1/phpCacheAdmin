@@ -12,7 +12,7 @@ declare(strict_types=1);
 
 namespace Tests;
 
-use ReflectionException;
+use PHPUnit\Framework\TestCase;
 use RobiNN\Pca\Paginator;
 use RobiNN\Pca\Template;
 
@@ -42,10 +42,7 @@ final class PaginatorTest extends TestCase {
         $this->assertEqualsCanonicalizing($expected, $this->paginator->getPaginated());
     }
 
-    /**
-     * @throws ReflectionException
-     */
     public function testGetPages(): void {
-        $this->assertEqualsCanonicalizing([0 => 1, 1 => 2], self::callMethod($this->paginator, 'getPages'));
+        $this->assertEqualsCanonicalizing([0 => 1, 1 => 2], $this->paginator->getPages());
     }
 }

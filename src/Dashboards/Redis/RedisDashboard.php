@@ -36,7 +36,7 @@ class RedisDashboard implements DashboardInterface {
     /**
      * @var Compatibility\Redis|Compatibility\Predis
      */
-    private $redis;
+    public $redis;
 
     public function __construct(Template $template) {
         $this->template = $template;

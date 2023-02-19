@@ -132,7 +132,7 @@ trait MemcachedTrait {
     /**
      * @throws MemcachedException
      */
-    private function saveKey(): void {
+    public function saveKey(): void {
         $key = Http::post('key', '');
         $expire = Http::post('expire', 0);
         $old_key = Http::post('old_key', '');

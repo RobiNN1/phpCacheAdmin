@@ -14,7 +14,7 @@ namespace Tests\Dashboards;
 
 use Exception;
 use JsonException;
-use ReflectionException;
+use PHPUnit\Framework\TestCase;
 use RobiNN\Pca\Dashboards\DashboardException;
 use RobiNN\Pca\Dashboards\Redis\Compatibility\Predis;
 use RobiNN\Pca\Dashboards\Redis\Compatibility\Redis;
@@ -22,7 +22,6 @@ use RobiNN\Pca\Dashboards\Redis\RedisDashboard;
 use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
 use RobiNN\Pca\Template;
-use Tests\TestCase;
 
 final class RedisTest extends TestCase {
     private Template $template;
@@ -35,14 +34,13 @@ final class RedisTest extends TestCase {
     private $redis;
 
     /**
-     * @throws DashboardException|ReflectionException
+     * @throws DashboardException
      */
     protected function setUp(): void {
         $this->template = new Template();
         $this->dashboard = new RedisDashboard($this->template);
         $this->redis = $this->dashboard->connect(['host' => '127.0.0.1', 'database' => 10]);
-
-        self::setValue($this->dashboard, 'redis', $this->redis);
+        $this->dashboard->redis = $this->redis;
     }
 
     /**
@@ -125,7 +123,7 @@ final class RedisTest extends TestCase {
     }
 
     /**
-     * @throws Exception|ReflectionException
+     * @throws Exception
      */
     public function testSaveKey(): void {
         $key = 'pu-test-save';
@@ -137,7 +135,7 @@ final class RedisTest extends TestCase {
         $_POST['encoder'] = 'none';
 
         Http::stopRedirect();
-        self::callMethod($this->dashboard, 'saveKey');
+        $this->dashboard->saveKey();
 
         $this->assertSame('test-value', $this->redis->get($key));
 
@@ -155,32 +153,32 @@ final class RedisTest extends TestCase {
      * @throws Exception
      */
     public function testTypes(): void {
-        self::callMethod($this->dashboard, 'store', 'string', 'pu-test-type-string', 'svalue');
+        $this->dashboard->store('string', 'pu-test-type-string', 'svalue');
 
-        self::callMethod($this->dashboard, 'store', 'set', 'pu-test-type-set', 'svalue1');
-        self::callMethod($this->dashboard, 'store', 'set', 'pu-test-type-set', 'svalue2');
-        self::callMethod($this->dashboard, 'store', 'set', 'pu-test-type-set', 'svalue3');
+        $this->dashboard->store('set', 'pu-test-type-set', 'svalue1');
+        $this->dashboard->store('set', 'pu-test-type-set', 'svalue2');
+        $this->dashboard->store('set', 'pu-test-type-set', 'svalue3');
 
-        self::callMethod($this->dashboard, 'store', 'list', 'pu-test-type-list', 'lvalue1');
-        self::callMethod($this->dashboard, 'store', 'list', 'pu-test-type-list', 'lvalue2');
-        self::callMethod($this->dashboard, 'store', 'list', 'pu-test-type-list', 'lvalue3');
+        $this->dashboard->store('list', 'pu-test-type-list', 'lvalue1');
+        $this->dashboard->store('list', 'pu-test-type-list', 'lvalue2');
+        $this->dashboard->store('list', 'pu-test-type-list', 'lvalue3');
 
-        $_POST['score'] = 0;
-        self::callMethod($this->dashboard, 'store', 'zset', 'pu-test-type-zset', 'zvalue1');
-        $_POST['score'] = 1;
-        self::callMethod($this->dashboard, 'store', 'zset', 'pu-test-type-zset', 'zvalue2');
-        $_POST['score'] = 77;
-        self::callMethod($this->dashboard, 'store', 'zset', 'pu-test-type-zset', 'zvalue3');
+        $this->dashboard->store('zset', 'pu-test-type-zset', 'zvalue1', '', ['zset_score' => 0]);
+        $this->dashboard->store('zset', 'pu-test-type-zset', 'zvalue2', '', ['zset_score' => 1]);
+        $this->dashboard->store('zset', 'pu-test-type-zset', 'zvalue3', '', ['zset_score' => 77]);
 
-        $_POST['hash_key'] = 'hashkey1';
-        self::callMethod($this->dashboard, 'store', 'hash', 'pu-test-type-hash', 'hvalue1');
-        $_POST['hash_key'] = 'hashkey2';
-        self::callMethod($this->dashboard, 'store', 'hash', 'pu-test-type-hash', 'hvalue2');
-        $_POST['hash_key'] = 'hashkey3';
-        self::callMethod($this->dashboard, 'store', 'hash', 'pu-test-type-hash', 'hvalue3');
+        $this->dashboard->store('hash', 'pu-test-type-hash', 'hvalue1', '', ['hash_key' => 'hashkey1']);
+        $this->dashboard->store('hash', 'pu-test-type-hash', 'hvalue2', '', ['hash_key' => 'hashkey2']);
+        $this->dashboard->store('hash', 'pu-test-type-hash', 'hvalue3', '', ['hash_key' => 'hashkey3']);
 
-        $this->redis->streamAdd('pu-test-type-stream', '1670541476219-0', ['field1' => 'stvalue1', 'field2' => 'stvalue2']);
-        $this->redis->streamAdd('pu-test-type-stream', '1670541476219-1', ['field3' => 'stvalue3']);
+        $this->dashboard->store('stream', 'pu-test-type-stream', '', '', [
+            'stream_id'     => '1670541476219-0',
+            'stream_fields' => ['field1' => 'stvalue1', 'field2' => 'stvalue2'],
+        ]);
+        $this->dashboard->store('stream', 'pu-test-type-stream', 'stvalue3', '', [
+            'stream_id'    => '1670541476219-1',
+            'stream_field' => 'field3',
+        ]);
 
         $expected_original = [
             'string' => 'svalue',
@@ -196,42 +194,34 @@ final class RedisTest extends TestCase {
 
         foreach ($expected_original as $type_o => $value_o) {
             if (is_string($value_o)) {
-                $this->assertSame($value_o, self::callMethod($this->dashboard, 'getAllKeyValues', $type_o, 'pu-test-type-'.$type_o));
+                $this->assertSame($value_o, $this->dashboard->getAllKeyValues($type_o, 'pu-test-type-'.$type_o));
             } else {
-                $this->assertEqualsCanonicalizing($value_o, self::callMethod($this->dashboard, 'getAllKeyValues', $type_o, 'pu-test-type-'.$type_o));
+                $this->assertEqualsCanonicalizing($value_o, $this->dashboard->getAllKeyValues($type_o, 'pu-test-type-'.$type_o));
             }
         }
 
         $delete = [
+            'set'    => 1,
+            'list'   => 1,
             'zset'   => 1,
             'hash'   => 'hashkey2',
             'stream' => '1670541476219-0',
         ];
 
         foreach ($delete as $type_d => $id) {
-            switch ($type_d) {
-                case 'zset':
-                    $_GET['range'] = $id;
-                    break;
-                case 'hash':
-                    $_GET['hash_key'] = $id;
-                    break;
-                case 'stream':
-                    $_GET['stream_id'] = $id;
-                    break;
-            }
-
-            self::callMethod($this->dashboard, 'deleteSubKey', $type_d, 'pu-test-type-'.$type_d);
+            $this->dashboard->deleteSubKey($type_d, 'pu-test-type-'.$type_d, $id);
         }
 
         $expected_new = [
+            'set'    => ['svalue1', 'svalue2'],
+            'list'   => ['lvalue1', 'lvalue3'],
             'zset'   => [0 => 'zvalue1', 77 => 'zvalue3'],
             'hash'   => ['hashkey1' => 'hvalue1', 'hashkey3' => 'hvalue3'],
             'stream' => ['1670541476219-1' => ['field3' => 'stvalue3']],
         ];
 
         foreach ($expected_new as $type_n => $value_n) {
-            $this->assertEqualsCanonicalizing($value_n, self::callMethod($this->dashboard, 'getAllKeyValues', $type_n, 'pu-test-type-'.$type_n));
+            $this->assertEqualsCanonicalizing($value_n, $this->dashboard->getAllKeyValues($type_n, 'pu-test-type-'.$type_n));
         }
 
         foreach (['string', 'set', 'list', 'zset', 'hash', 'stream'] as $key) {

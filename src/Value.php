@@ -44,7 +44,10 @@ class Value {
         return [$value, $encode_fn, $is_formatted];
     }
 
-    private static function decoded(string $value, ?string &$encode_fn = null): ?string {
+    /**
+     * Get decoded value or null if value was not encoded (gziped).
+     */
+    public static function decoded(string $value, ?string &$encode_fn = null): ?string {
         foreach (Config::get('encoding', []) as $name => $decoder) {
             if (is_callable($decoder['view']) && $decoder['view']($value) !== null) {
                 $encode_fn = (string) $name;
@@ -56,7 +59,10 @@ class Value {
         return null;
     }
 
-    private static function formatted(string $value, bool &$is_formatted = false): ?string {
+    /**
+     * Get formatted or as json value or null if value was not formatted (serialized).
+     */
+    public static function formatted(string $value, bool &$is_formatted = false): ?string {
         foreach (Config::get('formatters', []) as $formatter) {
             if (is_callable($formatter) && $formatter($value) !== null) {
                 $is_formatted = true;
@@ -68,7 +74,7 @@ class Value {
         return null;
     }
 
-    private static function prettyPrintJson(string $value): string {
+    public static function prettyPrintJson(string $value): string {
         try {
             $json_array = json_decode($value, false, 512, JSON_THROW_ON_ERROR);
 
@@ -84,7 +90,7 @@ class Value {
         return htmlspecialchars($value);
     }
 
-    private static function isJson(string $value): bool {
+    public static function isJson(string $value): bool {
         if (is_numeric($value)) {
             return false;
         }

@@ -12,7 +12,7 @@ declare(strict_types=1);
 
 namespace Tests;
 
-use ReflectionException;
+use PHPUnit\Framework\TestCase;
 use RobiNN\Pca\Value;
 
 final class ValueTest extends TestCase {
@@ -33,48 +33,39 @@ final class ValueTest extends TestCase {
         $this->assertEqualsCanonicalizing([$expected, null, true], Value::format(serialize($array)));
     }
 
-    /**
-     * @throws ReflectionException
-     */
     public function testDecoded(): void {
         $gzcompress = gzcompress('gzcompress-data');
-        $this->assertSame('gzcompress-data', self::callMethod(new Value(), 'decoded', $gzcompress));
+
+        $this->assertSame('gzcompress-data', Value::decoded($gzcompress));
 
         $gzencode = gzencode('gzencode-data');
-        $this->assertSame('gzencode-data', self::callMethod(new Value(), 'decoded', $gzencode));
+        $this->assertSame('gzencode-data', Value::decoded($gzencode));
 
         $gzdeflate = gzdeflate('gzdeflate-data');
-        $this->assertSame('gzdeflate-data', self::callMethod(new Value(), 'decoded', $gzdeflate));
+        $this->assertSame('gzdeflate-data', Value::decoded($gzdeflate));
 
-        $this->assertNull(self::callMethod(new Value(), 'decoded', 'random string'));
+        $this->assertNull(Value::decoded('random string'));
     }
 
-    /**
-     * @throws ReflectionException
-     */
     public function testFormatted(): void {
-        $value = serialize(['test', 'test' => 'data']);
-        $this->assertSame('{"0":"test","test":"data"}', self::callMethod(new Value(), 'formatted', $value));
+        $this->assertSame('{"0":"test","test":"data"}', Value::formatted(serialize(['test', 'test' => 'data'])));
 
-        $this->assertNull(self::callMethod(new Value(), 'formatted', 'random string'));
+        $this->assertNull(Value::formatted('random string'));
     }
 
-    /**
-     * @throws ReflectionException
-     */
     public function testPrettyPrintJson(): void {
-        $this->assertSame('1', self::callMethod(new Value(), 'prettyPrintJson', '1'));
-        $this->assertSame('data', self::callMethod(new Value(), 'prettyPrintJson', 'data'));
+        $this->assertSame('1', Value::prettyPrintJson('1'));
+        $this->assertSame('data', Value::prettyPrintJson('data'));
+        $this->assertSame('<pre>{
+    &quot;0&quot;: &quot;test&quot;,
+    &quot;test&quot;: &quot;data&quot;
+}</pre>', Value::prettyPrintJson('{"0":"test","test":"data"}'));
     }
 
-    /**
-     * @throws ReflectionException
-     */
     public function testIsJson(): void {
-        $this->assertTrue(self::callMethod(new Value(), 'isJson', '{"0":"test","test":"data"}'));
-        $this->assertFalse(self::callMethod(new Value(), 'isJson', 'test'));
-        $this->assertFalse(self::callMethod(new Value(), 'isJson', '1'));
-        $this->assertFalse(self::callMethod(new Value(), 'isJson', 1));
+        $this->assertTrue(Value::isJson('{"0":"test","test":"data"}'));
+        $this->assertFalse(Value::isJson('test'));
+        $this->assertFalse(Value::isJson('1'));
     }
 
     public function testEncode(): void {

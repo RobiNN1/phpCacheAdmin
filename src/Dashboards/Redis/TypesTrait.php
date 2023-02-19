@@ -124,7 +124,7 @@ trait TypesTrait {
      *
      * @throws Exception
      */
-    private function getAllKeyValues(string $type, string $key) {
+    public function getAllKeyValues(string $type, string $key) {
         switch ($type) {
             case 'string':
                 $value = $this->redis->get($key);
@@ -159,9 +159,11 @@ trait TypesTrait {
      *
      * Used in saveKey().
      *
+     * @param array<string, mixed> $options
+     *
      * @throws Exception
      */
-    private function store(string $type, string $key, string $value, string $old_value = ''): void {
+    public function store(string $type, string $key, string $value, string $old_value = '', array $options = []): void {
         switch ($type) {
             case 'string':
                 $this->redis->set($key, $value);
@@ -174,7 +176,7 @@ trait TypesTrait {
                 break;
             case 'list':
                 $size = $this->redis->lLen($key);
-                $index = $_POST['index'] ?? '';
+                $index = $options['list_index'] ?? '';
 
                 if ($index === '' || $index === (string) $size) { // append
                     $this->redis->rPush($key, $value);
@@ -189,17 +191,17 @@ trait TypesTrait {
                 break;
             case 'zset':
                 $this->redis->zRem($key, $old_value);
-                $this->redis->zAdd($key, Http::post('score', 0), $value);
+                $this->redis->zAdd($key, $options['zset_score'], $value);
                 break;
             case 'hash':
                 if ($this->redis->hExists($key, Http::get('hash_key', ''))) {
                     $this->redis->hDel($key, Http::get('hash_key', ''));
                 }
 
-                $this->redis->hSet($key, Http::post('hash_key', ''), $value);
+                $this->redis->hSet($key, $options['hash_key'], $value);
                 break;
             case 'stream':
-                $this->redis->streamAdd($key, Http::post('stream_id', '*'), [Http::post('field') => $value]);
+                $this->redis->streamAdd($key, $options['stream_id'], $options['stream_fields'] ?? [$options['stream_field'] => $value]);
                 break;
             case 'rejson':
                 $this->redis->jsonSet($key, $value);
@@ -209,27 +211,29 @@ trait TypesTrait {
     }
 
     /**
+     * @param int|string|null $subkey
+     *
      * @throws Exception
      */
-    private function deleteSubKey(string $type, string $key): void {
+    public function deleteSubKey(string $type, string $key, $subkey = null): void {
         switch ($type) {
             case 'set':
                 $members = $this->redis->sMembers($key);
-                $this->redis->sRem($key, $members[Http::get('member', 0)]);
+                $this->redis->sRem($key, $members[$subkey]);
                 break;
             case 'list':
-                $value = $this->redis->lIndex($key, Http::get('index', 0));
+                $value = $this->redis->lIndex($key, $subkey);
                 $this->redis->listRem($key, ($value !== false ? $value : ''), -1);
                 break;
             case 'zset':
                 $ranges = $this->redis->zRange($key, 0, -1);
-                $this->redis->zRem($key, $ranges[Http::get('range', 0)]);
+                $this->redis->zRem($key, $ranges[$subkey]);
                 break;
             case 'hash':
-                $this->redis->hDel($key, Http::get('hash_key', ''));
+                $this->redis->hDel($key, $subkey);
                 break;
             case 'stream':
-                $this->redis->xDel($key, [Http::get('stream_id', '')]);
+                $this->redis->xDel($key, [$subkey]);
                 break;
             default:
         }

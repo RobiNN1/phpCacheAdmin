@@ -13,21 +13,20 @@ declare(strict_types=1);
 namespace Tests\Dashboards;
 
 use JsonException;
-use ReflectionException;
+use PHPUnit\Framework\TestCase;
 use RobiNN\Pca\Dashboards\APCu\APCuDashboard;
 use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
 use RobiNN\Pca\Template;
-use Tests\TestCase;
 
 final class APCuTest extends TestCase {
     private Template $template;
 
-    private APCuDashboard $apcu;
+    private APCuDashboard $dashboard;
 
     protected function setUp(): void {
         $this->template = new Template();
-        $this->apcu = new APCuDashboard($this->template);
+        $this->dashboard = new APCuDashboard($this->template);
     }
 
     /**
@@ -106,9 +105,6 @@ final class APCuTest extends TestCase {
         }
     }
 
-    /**
-     * @throws ReflectionException
-     */
     public function testSaveKey(): void {
         $key = 'pu-test-save';
 
@@ -117,7 +113,7 @@ final class APCuTest extends TestCase {
         $_POST['encoder'] = 'none';
 
         Http::stopRedirect();
-        self::callMethod($this->apcu, 'saveKey');
+        $this->dashboard->saveKey();
 
         $this->assertSame('test-value', Helpers::mixedToString(apcu_fetch($key)));
 

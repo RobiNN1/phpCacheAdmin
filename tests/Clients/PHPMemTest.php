@@ -12,9 +12,9 @@ declare(strict_types=1);
 
 namespace Tests\Clients;
 
+use PHPUnit\Framework\TestCase;
 use RobiNN\Pca\Dashboards\Memcached\Compatibility\PHPMem;
 use RobiNN\Pca\Dashboards\Memcached\MemcachedException;
-use Tests\TestCase;
 
 final class PHPMemTest extends TestCase {
     private PHPMem $phpmem;

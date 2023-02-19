@@ -34,7 +34,7 @@ class MemcachedDashboard implements DashboardInterface {
     /**
      * @var Compatibility\Memcached|Compatibility\Memcache|Compatibility\PHPMem
      */
-    private $memcached;
+    public $memcached;
 
     public function __construct(Template $template) {
         $this->template = $template;

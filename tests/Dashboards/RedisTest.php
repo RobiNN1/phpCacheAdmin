@@ -201,7 +201,7 @@ final class RedisTest extends TestCase {
         }
 
         $delete = [
-            'set'    => 1,
+            'set'    => array_search('svalue2', $this->redis->sMembers('pu-test-type-set'), true),
             'list'   => 1,
             'zset'   => 1,
             'hash'   => 'hashkey2',
@@ -213,7 +213,7 @@ final class RedisTest extends TestCase {
         }
 
         $expected_new = [
-            'set'    => ['svalue1', 'svalue2'],
+            'set'    => ['svalue1', 'svalue3'],
             'list'   => ['lvalue1', 'lvalue3'],
             'zset'   => [0 => 'zvalue1', 77 => 'zvalue3'],
             'hash'   => ['hashkey1' => 'hvalue1', 'hashkey3' => 'hvalue3'],

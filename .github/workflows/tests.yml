@@ -61,7 +61,7 @@ jobs:
         ports:
           - 11211:11211
       redis:
-        image: redis:6.0
+        image: redis:5.0
         ports:
           - 6379:6379
         options: --entrypoint redis-server

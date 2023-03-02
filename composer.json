@@ -28,7 +28,7 @@
   },
   "require-dev": {
     "clue/phar-composer": "^1.4",
-    "phpstan/phpstan": "^1.9",
+    "phpstan/phpstan": "^1.10",
     "phpunit/phpunit": "^9.6"
   },
   "suggest": {

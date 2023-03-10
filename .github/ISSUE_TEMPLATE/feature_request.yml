@@ -1,0 +1,20 @@
+name: Feature request
+description: Suggest new or updated features.
+title: "Suggest a new feature"
+labels: [enhancement]
+assignees: []
+body:
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+      description: Provide detailed information for what we should add.
+    validations:
+      required: true
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Motivation and context
+      description: Tell us why this change is needed or helpful, and what problems it may help solve.
+    validations:
+      required: true

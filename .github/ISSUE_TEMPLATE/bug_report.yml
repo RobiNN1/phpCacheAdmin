@@ -1,6 +1,6 @@
-name: Report a bug
-description: Tell us about a bug or issue you may have identified in phpCacheAdmin.
-title: "Create a report to help us improve"
+name: Bug report
+description: Create a report to help us improve.
+title: ""
 labels: [ ]
 assignees: "-"
 body:
@@ -14,9 +14,15 @@ body:
   - type: input
     id: cache_system
     attributes:
-      label: Cache system and extension
-      description: Leave blank if the issue is not related to a particular cache system.
-      placeholder: "e.g. Redis 7.0.2 + Extension v5.3.7 or Memcahced 1.6.15 + Extension v8.1-dev"
+      label: Cache system and version
+      description: You can find it in every dashboard. Leave blank if the issue is not related to a particular cache system.
+      placeholder: "e.g. Redis 7.0.2"
+  - type: input
+    id: extension
+    attributes:
+      label: Extension or client and version
+      description: You can find it in every dashboard. Leave blank if the issue is not related to a particular cache system.
+      placeholder: "e.g. PHP Redis extension v6.0.0-dev"
   - type: input
     id: php_version
     attributes:

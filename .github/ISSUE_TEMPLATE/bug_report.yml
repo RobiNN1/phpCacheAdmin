@@ -1,0 +1,41 @@
+name: Report a bug
+description: Tell us about a bug or issue you may have identified in phpCacheAdmin.
+title: "Create a report to help us improve"
+labels: [ ]
+assignees: "-"
+body:
+  - type: input
+    id: pca_version
+    attributes:
+      label: What version of phpCacheAdmin are you using?
+      placeholder: "e.g. v1.0.0"
+    validations:
+      required: true
+  - type: input
+    id: cache_system
+    attributes:
+      label: Cache system and extension
+      description: Leave blank if the issue is not related to a particular cache system.
+      placeholder: "e.g. Redis 7.0.2 + Extension v5.3.7 or Memcahced 1.6.15 + Extension v8.1-dev"
+  - type: input
+    id: php_version
+    attributes:
+      label: PHP Version
+      description: You can find it in the Server tab.
+      placeholder: "e.g. 8.2.3"
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: Operating System
+      description: Where the server is running.
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: Describe the issue
+      description: Provide a summary of the issue and what you expected to happen, including specific steps to reproduce. Any additional info may also help.
+    validations:
+      required: true

@@ -13,7 +13,6 @@ declare(strict_types=1);
 namespace RobiNN\Pca\Dashboards\Memcached\Compatibility;
 
 use RobiNN\Pca\Dashboards\Memcached\MemcachedException;
-use RobiNN\Pca\Helpers;
 
 class PHPMem implements CompatibilityInterface {
     use KeysTrait;
@@ -48,7 +47,7 @@ class PHPMem implements CompatibilityInterface {
 
         $raw = $this->runCommand('set '.$key.' 0 '.$expiration.' '.strlen((string) $value)."\r\n".$value);
 
-        if (Helpers::str_starts_with($raw, 'STORED')) {
+        if (str_starts_with($raw, 'STORED')) {
             return true;
         }
 
@@ -66,7 +65,7 @@ class PHPMem implements CompatibilityInterface {
         $raw = $this->runCommand('get '.$key);
         $lines = explode("\r\n", $raw);
 
-        if (Helpers::str_starts_with($raw, 'VALUE') && Helpers::str_ends_with($raw, 'END')) {
+        if (str_starts_with($raw, 'VALUE') && str_ends_with($raw, 'END')) {
             return $lines[1];
         }
 

@@ -170,22 +170,4 @@ class Helpers {
             'class'    => 'mb-3',
         ]);
     }
-
-    public static function str_starts_with(string $haystack, string $needle): bool {
-        if (!function_exists('str_starts_with')) {
-            return strncmp($haystack, $needle, strlen($needle)) === 0;
-        }
-
-        return str_starts_with($haystack, $needle);
-    }
-
-    public static function str_ends_with(string $haystack, string $needle): bool {
-        if (!function_exists('str_ends_with')) {
-            $needleLength = strlen($needle);
-
-            return $needleLength <= strlen($haystack) && substr_compare($haystack, $needle, -$needleLength) === 0;
-        }
-
-        return str_ends_with($haystack, $needle);
-    }
 }

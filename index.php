@@ -15,29 +15,18 @@ use RobiNN\Pca\Config;
 use RobiNN\Pca\Http;
 use RobiNN\Pca\Template;
 
-const ROOT_PATH = __DIR__.'/';
+// always display errors
+ini_set('display_errors', 'On');
+ini_set('display_startup_errors', 'On');
+error_reporting(E_ALL);
 
-if (is_file(ROOT_PATH.'vendor/autoload.php')) {
-    require_once ROOT_PATH.'vendor/autoload.php';
+if (is_file(__DIR__.'/vendor/autoload.php')) {
+    require_once __DIR__.'/vendor/autoload.php';
+    $autoloader = 'Composer';
 } else {
-    if (is_file(ROOT_PATH.'twig.phar')) {
-        require_once 'phar://'.ROOT_PATH.'twig.phar/vendor/autoload.php';
-    }
-
-    if (!extension_loaded('redis') && is_file(ROOT_PATH.'predis.phar')) {
-        require_once 'phar://'.ROOT_PATH.'predis.phar/vendor/autoload.php';
-    }
-
-    spl_autoload_register(static function (string $class_name): void {
-        $class_name = str_replace("RobiNN\\Pca\\", '', $class_name);
-        $filename = str_replace("\\", DIRECTORY_SEPARATOR, $class_name);
-
-        $fullpath = ROOT_PATH.'src/'.$filename.'.php';
-
-        if (is_file($fullpath)) {
-            require_once $fullpath;
-        }
-    });
+    require_once __DIR__.'/src/functions.php';
+    autoload(__DIR__.'/');
+    $autoloader = 'Custom';
 }
 
 $auth = false;
@@ -90,5 +79,6 @@ if (isset($_GET['ajax']) && method_exists($dashboard, 'ajax')) {
         'repo'       => 'https://github.com/RobiNN1/phpCacheAdmin',
         'back_url'   => $back_url ?? null,
         'dashboard'  => $dashboard->dashboard(),
+        'autoloader' => $autoloader,
     ]);
 }

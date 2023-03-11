@@ -22,11 +22,9 @@ error_reporting(E_ALL);
 
 if (is_file(__DIR__.'/vendor/autoload.php')) {
     require_once __DIR__.'/vendor/autoload.php';
-    $autoloader = 'Composer';
 } else {
     require_once __DIR__.'/src/functions.php';
     autoload(__DIR__.'/');
-    $autoloader = 'Custom';
 }
 
 $auth = false;
@@ -79,6 +77,5 @@ if (isset($_GET['ajax']) && method_exists($dashboard, 'ajax')) {
         'repo'       => 'https://github.com/RobiNN1/phpCacheAdmin',
         'back_url'   => $back_url ?? null,
         'dashboard'  => $dashboard->dashboard(),
-        'autoloader' => $autoloader,
     ]);
 }

@@ -51,3 +51,46 @@ jobs:
         run: composer require predis/predis
       - name: Execute tests
         run: vendor/bin/phpunit
+
+  tests_php_clients:
+    runs-on: ubuntu-latest
+
+    services:
+      memcached:
+        image: memcached:1.6-alpine
+        ports:
+          - 11211:11211
+      redis:
+        image: redis:6.0
+        ports:
+          - 6379:6379
+        options: --entrypoint redis-server
+
+    strategy:
+      fail-fast: true
+      matrix:
+        php: [ '7.4', '8.0', '8.1', '8.2' ]
+        stability: [ prefer-stable ]
+
+    name: PHP ${{ matrix.php }} tests
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: apcu
+          ini-values: apc.enable_cli=1
+          coverage: none
+        env:
+          REDIS_CONFIGURE_OPTS: --enable-redis --enable-redis-igbinary --enable-redis-msgpack --enable-redis-lzf --with-liblzf --enable-redis-zstd --with-libzstd --enable-redis-lz4 --with-liblz4
+          REDIS_LIBS: liblz4-dev, liblzf-dev, libzstd-dev
+
+      - name: Install dependencies
+        run: composer update --prefer-dist --no-interaction --no-progress
+      - name: Install Predis
+        run: composer require predis/predis
+      - name: Execute tests
+        run: vendor/bin/phpunit

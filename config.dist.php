@@ -26,6 +26,8 @@ return [
             'name' => 'Localhost', // The server name (optional).
             'host' => '127.0.0.1', // Optional when a path is specified.
             'port' => 6379, // Optional when the default port is used.
+            //'tls'       => true, // Enable TLS - requires Redis >= 6.0 (optional).
+            //'ssl'       => [], // SSL options https://www.php.net/manual/en/context.ssl.php (optional).
             //'database'  => 0, // Default database (optional).
             //'username'  => '', // ACL - requires Redis >= 6.0 (optional).
             //'password'  => '', // Optional.

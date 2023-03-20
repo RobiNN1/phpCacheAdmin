@@ -12,6 +12,8 @@ declare(strict_types=1);
 
 namespace RobiNN\Pca;
 
+use JsonException;
+
 class Config {
     /**
      * @template Default
@@ -85,6 +87,14 @@ class Config {
             }
 
             $array = &$array[$key];
+        }
+
+        if (Value::isJson($value)) {
+            try {
+                $value = json_decode($value, true, 512, JSON_THROW_ON_ERROR);
+            } catch (JsonException $e) {
+                //
+            }
         }
 
         $array[array_shift($keys)] = $value;

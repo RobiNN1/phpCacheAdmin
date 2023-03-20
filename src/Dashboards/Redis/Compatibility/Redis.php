@@ -45,7 +45,12 @@ class Redis extends \Redis implements CompatibilityInterface {
             if (isset($server['path'])) {
                 $this->connect($server['path']);
             } else {
-                $this->connect($server['host'], (int) $server['port'], 3);
+                $scheme = isset($server['tls']) ? 'tls' : 'tcp';
+
+                /* @phpstan-ignore-next-line phpstan doesn't know about the last $context parameter - phpredis >= 5.3 */
+                $this->connect($scheme.'://'.$server['host'], (int) $server['port'], 3, null, 0, 0, [
+                    'stream' => $server['ssl'] ?? null,
+                ]);
             }
 
             if (isset($server['password'])) {

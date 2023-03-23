@@ -83,6 +83,9 @@ trait OPCacheTrait {
      */
     private function getCachedScripts(): array {
         static $cached_scripts = [];
+        $search = Http::get('s', '');
+
+        $this->template->addGlobal('search_value', $search);
 
         $status = opcache_get_status();
 
@@ -98,16 +101,18 @@ trait OPCacheTrait {
                     continue;
                 }
 
-                $cached_scripts[] = [
-                    'key'   => $script['full_path'],
-                    'items' => [
-                        'title'          => $full_path,
-                        'number_hits'    => $script['hits'],
-                        'bytes_memory'   => $script['memory_consumption'],
-                        'time_last_used' => $script['last_used_timestamp'],
-                        'time_created'   => $script['timestamp'],
-                    ],
-                ];
+                if (stripos($script['full_path'], $search) !== false) {
+                    $cached_scripts[] = [
+                        'key'   => $script['full_path'],
+                        'items' => [
+                            'title'          => $full_path,
+                            'number_hits'    => $script['hits'],
+                            'bytes_memory'   => $script['memory_consumption'],
+                            'time_last_used' => $script['last_used_timestamp'],
+                            'time_created'   => $script['timestamp'],
+                        ],
+                    ];
+                }
             }
         }
 

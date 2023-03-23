@@ -167,23 +167,28 @@ trait APCuTrait {
      */
     private function getAllKeys(): array {
         static $keys = [];
+        $search = Http::get('s', '');
+
+        $this->template->addGlobal('search_value', $search);
 
         $info = apcu_cache_info();
 
         foreach ($info['cache_list'] as $key_data) {
             $key = $key_data['info'];
 
-            $keys[] = [
-                'key'    => $key,
-                'base64' => true,
-                'items'  => [
-                    'link_title'     => $key,
-                    'number_hits'    => $key_data['num_hits'],
-                    'time_last_used' => $key_data['access_time'],
-                    'time_created'   => $key_data['creation_time'],
-                    'ttl'            => $key_data['ttl'] === 0 ? 'Doesn\'t expire' : $key_data['creation_time'] + $key_data['ttl'] - time(),
-                ],
-            ];
+            if (stripos($key, $search) !== false) {
+                $keys[] = [
+                    'key'    => $key,
+                    'base64' => true,
+                    'items'  => [
+                        'link_title'     => $key,
+                        'number_hits'    => $key_data['num_hits'],
+                        'time_last_used' => $key_data['access_time'],
+                        'time_created'   => $key_data['creation_time'],
+                        'ttl'            => $key_data['ttl'] === 0 ? 'Doesn\'t expire' : $key_data['creation_time'] + $key_data['ttl'] - time(),
+                    ],
+                ];
+            }
         }
 
         return $keys;

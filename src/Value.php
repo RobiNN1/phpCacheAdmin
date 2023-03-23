@@ -24,7 +24,7 @@ class Value {
         $encode_fn = null;
         $is_formatted = false;
 
-        if (!self::isJson($value)) {
+        if (!json_validate($value)) {
             $decoded = self::decoded($value, $encode_fn);
 
             if ($decoded !== null) {
@@ -88,20 +88,6 @@ class Value {
         }
 
         return htmlspecialchars($value);
-    }
-
-    public static function isJson(string $value): bool {
-        if (is_numeric($value)) {
-            return false;
-        }
-
-        try {
-            json_decode($value, true, 512, JSON_THROW_ON_ERROR);
-        } catch (JsonException $e) {
-            return false;
-        }
-
-        return true;
     }
 
     public static function encode(string $value, string $encoder): string {

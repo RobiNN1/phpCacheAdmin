@@ -62,12 +62,6 @@ final class ValueTest extends TestCase {
 }</pre>', Value::prettyPrintJson('{"0":"test","test":"data"}'));
     }
 
-    public function testIsJson(): void {
-        $this->assertTrue(Value::isJson('{"0":"test","test":"data"}'));
-        $this->assertFalse(Value::isJson('test'));
-        $this->assertFalse(Value::isJson('1'));
-    }
-
     public function testEncode(): void {
         $this->assertSame(gzcompress('gzcompress-data'), Value::encode('gzcompress-data', 'gzcompress'));
         $this->assertSame(gzencode('gzencode-data'), Value::encode('gzencode-data', 'gzencode'));

@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace Tests;
 
+use JsonException;
 use PHPUnit\Framework\TestCase;
 use RobiNN\Pca\Config;
 
@@ -23,8 +24,11 @@ final class ConfigTest extends TestCase {
         $this->assertSame('d. m. Y H:i:s', Config::get('time-format', ''));
     }
 
+    /**
+     * @throws JsonException
+     */
     public function testGetterWithEnv(): void {
-        putenv('PCA_TESTENV-ARRAY='.json_encode(['item1' => 'value1', 'item2' => 'value2']));
+        putenv('PCA_TESTENV-ARRAY='.json_encode(['item1' => 'value1', 'item2' => 'value2'], JSON_THROW_ON_ERROR));
         $this->assertSame('value1', Config::get('testenv-array', [])['item1']);
 
         putenv('PCA_TESTENV-INT=10');

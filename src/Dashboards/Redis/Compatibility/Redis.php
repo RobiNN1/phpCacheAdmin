@@ -115,6 +115,7 @@ class Redis extends \Redis implements CompatibilityInterface {
     public function scanKeys(string $pattern, int $count): array {
         $keys = [];
 
+        /* @var int|null $iterator */
         $iterator = null;
 
         while (false !== ($scan = $this->scan($iterator, $pattern, $count))) {

@@ -27,8 +27,6 @@ if (is_file(__DIR__.'/vendor/autoload.php')) {
     autoload(__DIR__.'/');
 }
 
-$auth = false;
-
 if (is_callable(Config::get('auth'))) {
     Config::get('auth')();
     $auth = true;
@@ -72,7 +70,7 @@ if (isset($_GET['ajax']) && method_exists($dashboard, 'ajax')) {
         'colors'     => $colors ?? null,
         'site_title' => $info['title'],
         'nav'        => $nav,
-        'logout_url' => $auth ? Http::queryString([], ['logout' => 'yes']) : null,
+        'logout_url' => isset($auth) ? Http::queryString([], ['logout' => 'yes']) : null,
         'version'    => Admin::VERSION,
         'repo'       => 'https://github.com/RobiNN1/phpCacheAdmin',
         'back_url'   => $back_url ?? null,

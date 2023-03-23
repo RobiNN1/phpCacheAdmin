@@ -89,7 +89,7 @@ class Config {
             $array = &$array[$key];
         }
 
-        if (Value::isJson($value)) {
+        if (json_validate($value)) {
             try {
                 $value = json_decode($value, true, 512, JSON_THROW_ON_ERROR);
             } catch (JsonException $e) {

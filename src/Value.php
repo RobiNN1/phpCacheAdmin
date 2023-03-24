@@ -81,7 +81,7 @@ class Value {
             if (!is_numeric($value) && $json_array !== null) {
                 $value = json_encode($json_array, JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT);
 
-                return '<pre>'.htmlspecialchars($value).'</pre>';
+                return '<pre class="json-code">'.htmlspecialchars($value).'</pre>';
             }
         } catch (JsonException $e) {
             return htmlspecialchars($value);

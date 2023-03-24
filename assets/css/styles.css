@@ -1,5 +1,5 @@
 /*
-! tailwindcss v3.2.6 | MIT License | https://tailwindcss.com
+! tailwindcss v3.2.7 | MIT License | https://tailwindcss.com
 */
 
 /*
@@ -947,6 +947,18 @@ video {
   text-transform: uppercase;
 }
 
+.text-amber-500 {
+  color: #f59e0b;
+}
+
+.text-blue-500 {
+  color: #3b82f6;
+}
+
+.text-emerald-500 {
+  color: #10b981;
+}
+
 .text-gray-500 {
   color: #6b7280;
 }
@@ -965,6 +977,14 @@ video {
 
 .text-red-500 {
   color: #ef4444;
+}
+
+.text-rose-500 {
+  color: #f43f5e;
+}
+
+.text-violet-500 {
+  color: #8b5cf6;
 }
 
 .text-white {

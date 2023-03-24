@@ -1,6 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-    content: ['./templates/**/*.twig'],
+    content: ['./templates/**/*.twig', './assets/js/scripts.js'],
     darkMode: 'class',
     theme: {
         extend: {
@@ -17,9 +17,7 @@ module.exports = {
             },
         },
     },
-    safelist: [
-        'ml-64',
-    ],
+    safelist: [],
     corePlugins: {
         textOpacity: false,
         backgroundOpacity: false,

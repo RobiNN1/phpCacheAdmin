@@ -20,7 +20,7 @@ final class ValueTest extends TestCase {
         $value = '{"0":"test","test":"data"}';
         $array = ['test', 'test' => 'data'];
 
-        $expected = '<pre>{
+        $expected = '<pre class="json-code">{
     &quot;0&quot;: &quot;test&quot;,
     &quot;test&quot;: &quot;data&quot;
 }</pre>';
@@ -56,7 +56,7 @@ final class ValueTest extends TestCase {
     public function testPrettyPrintJson(): void {
         $this->assertSame('1', Value::prettyPrintJson('1'));
         $this->assertSame('data', Value::prettyPrintJson('data'));
-        $this->assertSame('<pre>{
+        $this->assertSame('<pre class="json-code">{
     &quot;0&quot;: &quot;test&quot;,
     &quot;test&quot;: &quot;data&quot;
 }</pre>', Value::prettyPrintJson('{"0":"test","test":"data"}'));

@@ -46,7 +46,7 @@ class Predis extends Client implements CompatibilityInterface {
             ];
         } else {
             $connect = [
-                'scheme' => isset($server['tls']) ? 'tls' : 'tcp',
+                'scheme' => $server['scheme'] ?? 'tcp',
                 'host'   => $server['host'],
                 'port'   => $server['port'] ??= 6379,
                 'ssl'    => $server['ssl'] ?? null,

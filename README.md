@@ -73,8 +73,8 @@ Redis:
 - `PCA_REDIS_0_NAME` The server name (optional).
 - `PCA_REDIS_0_HOST` Optional when a path is specified.
 - `PCA_REDIS_0_PORT` Optional when the default port is used.
-- `PCA_REDIS_0_TLS` Enable TLS - requires Redis >= 6.0 (optional).
-- `PCA_REDIS_0_SSL` [SSL options](https://www.php.net/manual/en/context.ssl.php) (optional). You can set value as JSON `{"local_cert":"path/to/redis.crt","local_pk":"path/to/redis.key","cafile":"path/to/ca.crt","verify_peer_name":false}`.
+- `PCA_REDIS_0_SCHEME` Connection scheme (optional).
+- `PCA_REDIS_0_SSL` [SSL options](https://www.php.net/manual/en/context.ssl.php) for TLS - requires Redis >= 6.0 (optional). You can set value as JSON `{"local_cert":"path/to/redis.crt","local_pk":"path/to/redis.key","cafile":"path/to/ca.crt","verify_peer_name":false}`.
 - `PCA_REDIS_0_DATABASE` Default database (optional).
 - `PCA_REDIS_0_USERNAME` ACL - requires Redis >= 6.0 (optional).
 - `PCA_REDIS_0_PASSWORD` Optional.

@@ -46,7 +46,7 @@ if (!function_exists('json_validate')) {
     function json_validate(string $json, int $depth = 512, int $flags = 0): bool {
         $JSON_MAX_DEPTH = 0x7FFFFFFF; // see https://www.php.net/manual/en/function.json-decode.php
 
-        if (0 !== $flags && defined('JSON_INVALID_UTF8_IGNORE') && \JSON_INVALID_UTF8_IGNORE !== $flags) {
+        if (0 !== $flags && defined('JSON_INVALID_UTF8_IGNORE') && JSON_INVALID_UTF8_IGNORE !== $flags) {
             throw new ValueError('json_validate(): Argument #3 ($flags) must be a valid flag (allowed flags: JSON_INVALID_UTF8_IGNORE)');
         }
 
@@ -99,7 +99,7 @@ if (!extension_loaded('xdebug')) {
             $constants = get_defined_constants(true);
             if (array_key_exists('Core', $constants)) {
                 foreach ($constants['Core'] as $constant => $value) {
-                    if ($value === $errno && strpos($constant, 'E_') === 0) {
+                    if ($value === $errno && str_starts_with($constant, 'E_')) {
                         return $constant;
                     }
                 }

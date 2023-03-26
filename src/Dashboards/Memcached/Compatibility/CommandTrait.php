@@ -43,7 +43,7 @@ trait CommandTrait {
      */
     private array $with_end = [
         'ERROR', 'CLIENT_ERROR', 'SERVER_ERROR', 'STORED', 'NOT_STORED', 'EXISTS', 'NOT_FOUND', 'TOUCHED',
-        'DELETED', 'OK', 'END', 'BUSY', 'BADCLASS', 'NOSPARE', 'NOTFULL', 'UNSAFE', 'SAME', 'RESET',
+        'DELETED', 'OK', 'END', 'BUSY', 'BADCLASS', 'NOSPARE', 'NOTFULL', 'UNSAFE', 'SAME', 'RESET', 'EN',
     ];
 
     /**
@@ -62,7 +62,7 @@ trait CommandTrait {
      * flush_all
      * version
      * lru <tune|mode|temp_ttl> <option list>
-     * lru_crawler <<enable|disable>|sleep <microseconds>|tocrawl <limit>|crawl <...classid|all>|metadump <...classid|all|hash>>
+     * lru_crawler <<enable|disable>|sleep <microseconds>|tocrawl <limit>|crawl|mgdump <...classid|all>|metadump <...classid|all|hash>>
      * slabs <reassign <source class> <dest class>|automove <0|1|2>>
      * me <key> <flag>
      * mg <key> <flags>*

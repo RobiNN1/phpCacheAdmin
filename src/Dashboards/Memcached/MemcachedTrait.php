@@ -231,7 +231,7 @@ trait MemcachedTrait {
             'select'      => Helpers::serverSelector($this->template, $this->servers, $this->current_server),
             'panels'      => $this->panels(),
             'keys'        => $paginator->getPaginated(),
-            'all_keys'    => count($keys),
+            'all_keys'    => count($this->memcached->getKeys()),
             'new_key_url' => Http::queryString([], ['form' => 'new']),
             'paginator'   => $paginator->render(),
             'view_key'    => Http::queryString([], ['view' => 'key', 'ttl' => '__ttl__', 'key' => '__key__']),

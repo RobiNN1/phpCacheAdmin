@@ -123,11 +123,12 @@ trait OPCacheTrait {
         $cached_scripts = $this->getCachedScripts();
         $paginator = new Paginator($this->template, $cached_scripts, [['ignore', 'pp'], ['p' => '']]);
         $is_ignored = isset($_GET['ignore']) && $_GET['ignore'] === 'yes';
+        $status = opcache_get_status(false);
 
         return $this->template->render('dashboards/opcache', [
             'panels'         => $this->panels(),
             'cached_scripts' => $paginator->getPaginated(),
-            'all_files'      => count($cached_scripts),
+            'all_files'      => $status['opcache_statistics']['num_cached_scripts'],
             'paginator'      => $paginator->render(),
             'ignore_url'     => Http::queryString(['pp', 'p'], ['ignore' => $is_ignored ? 'no' : 'yes']),
             'is_ignored'     => $is_ignored,

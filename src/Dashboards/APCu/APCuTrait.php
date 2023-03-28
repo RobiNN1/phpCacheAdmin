@@ -50,8 +50,8 @@ trait APCuTrait {
             [
                 'title' => 'Stats',
                 'data'  => [
-                    'Cached scripts' => Format::number((int) $info['num_entries']),
-                    'Hits / Misses'  => Format::number((int) $info['num_hits']).' / '.Format::number((int) $info['num_misses']).
+                    'Keys'          => Format::number((int) $info['num_entries']),
+                    'Hits / Misses' => Format::number((int) $info['num_hits']).' / '.Format::number((int) $info['num_misses']).
                         ' (Rate '.round($hit_rate * 100, 2).'%)',
                 ],
             ],
@@ -206,10 +206,12 @@ trait APCuTrait {
 
         $paginator = new Paginator($this->template, $keys);
 
+        $info = apcu_cache_info(true);
+
         return $this->template->render('dashboards/apcu', [
             'panels'      => $this->panels(),
             'keys'        => $paginator->getPaginated(),
-            'all_keys'    => count($keys),
+            'all_keys'    => (int) $info['num_entries'],
             'new_key_url' => Http::queryString([], ['form' => 'new']),
             'paginator'   => $paginator->render(),
             'view_key'    => Http::queryString([], ['view' => 'key', 'key' => '__key__']),

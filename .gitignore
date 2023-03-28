@@ -1,6 +1,6 @@
 .idea
 .DS_Store
-cache
+tmp
 vendor
 composer.lock
 node_modules

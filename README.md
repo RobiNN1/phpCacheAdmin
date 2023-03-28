@@ -24,7 +24,7 @@ Optional but highly recommended, run `composer install` before use.
 
 ## Updating
 
-Replace all files and delete the `cache` folder (this folder contains only compiled Twig templates).
+Replace all files and delete the `tmp` folder (this folder contains only compiled Twig templates).
 
 ## Docker
 

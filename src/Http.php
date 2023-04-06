@@ -63,7 +63,7 @@ class Http {
     }
 
     /**
-     * Get post value.
+     * Get POST value.
      *
      * @template Type
      *

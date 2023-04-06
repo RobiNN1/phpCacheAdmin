@@ -28,7 +28,7 @@ interface CompatibilityInterface {
     public function store(string $key, string $value, int $expiration = 0): bool;
 
     /**
-     * Get all keys.
+     * Get all the keys.
      *
      * @return array<int, mixed>
      */

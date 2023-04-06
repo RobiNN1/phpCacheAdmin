@@ -18,7 +18,7 @@ trait KeysTrait {
     use CommandTrait;
 
     /**
-     * Get all keys.
+     * Get all the keys.
      *
      * Note: `getAllKeys()` or `stats cachedump` based functions do not work
      * properly, and this is currently the best way to retrieve all keys.

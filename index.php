@@ -15,6 +15,10 @@ use RobiNN\Pca\Config;
 use RobiNN\Pca\Http;
 use RobiNN\Pca\Template;
 
+if (PHP_VERSION_ID < 70400) {
+    die('<strong>PHP >= 7.4 is required.</strong><br>Currently installed version is: '.PHP_VERSION);
+}
+
 // always display errors
 ini_set('display_errors', 'On');
 ini_set('display_startup_errors', 'On');

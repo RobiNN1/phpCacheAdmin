@@ -233,7 +233,7 @@ trait RedisTrait {
      */
     public function saveKey(): void {
         $key = Http::post('key', '');
-        $value = Value::encode(Http::post('value', ''), Http::post('encoder', ''));
+        $value = Value::converter(Http::post('value', ''), Http::post('encoder', ''), 'save');
         $old_value = Http::post('old_value', '');
         $type = Http::post('redis_type', '');
 
@@ -296,7 +296,7 @@ trait RedisTrait {
             [$value, $index, $score, $hash_key] = $this->getKeyValue($type, $key);
         }
 
-        $value = Value::decode($value, $encoder);
+        $value = Value::converter($value, $encoder, 'view');
 
         return $this->template->render('dashboards/redis/form', [
             'key'      => $key,

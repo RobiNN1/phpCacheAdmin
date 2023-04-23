@@ -33,6 +33,10 @@ class Config {
 
         $config = self::getEnvConfig($config);
 
+        if ($key === 'converters' && !isset($config['converters'])) {
+            $key = 'encoding';
+        }
+
         return $config[$key] ?? $default;
     }
 
@@ -108,7 +112,7 @@ class Config {
      * @return array<string, string>
      */
     public static function getEncoders(): array {
-        $encoders = self::get('encoding', []);
+        $encoders = self::get('converters', []);
 
         if (count($encoders) === 0) {
             return [];

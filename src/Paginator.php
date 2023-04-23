@@ -55,7 +55,7 @@ class Paginator {
      * @return array<int, int>
      */
     public function getPages(): array {
-        static $pages = [];
+        $pages = [];
 
         $total_pages = (int) ceil($this->total / $this->per_page);
 

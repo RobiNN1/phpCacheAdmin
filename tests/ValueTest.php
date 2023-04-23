@@ -34,23 +34,15 @@ final class ValueTest extends TestCase {
     }
 
     public function testDecoded(): void {
-        $gzcompress = gzcompress('gzcompress-data');
-
-        $this->assertSame('gzcompress-data', Value::decoded($gzcompress));
-
-        $gzencode = gzencode('gzencode-data');
-        $this->assertSame('gzencode-data', Value::decoded($gzencode));
-
-        $gzdeflate = gzdeflate('gzdeflate-data');
-        $this->assertSame('gzdeflate-data', Value::decoded($gzdeflate));
-
-        $this->assertNull(Value::decoded('random string'));
+        $this->assertSame('gzcompress-data', Value::decoded(gzcompress('gzcompress-data')));
+        $this->assertSame('gzencode-data', Value::decoded(gzencode('gzencode-data')));
+        $this->assertSame('gzdeflate-data', Value::decoded(gzdeflate('gzdeflate-data')));
+        $this->assertSame('random string', Value::decoded('random string'));
     }
 
     public function testFormatted(): void {
         $this->assertSame('{"0":"test","test":"data"}', Value::formatted(serialize(['test', 'test' => 'data'])));
-
-        $this->assertNull(Value::formatted('random string'));
+        $this->assertSame('random string', Value::formatted('random string'));
     }
 
     public function testPrettyPrintJson(): void {
@@ -63,15 +55,15 @@ final class ValueTest extends TestCase {
     }
 
     public function testEncode(): void {
-        $this->assertSame(gzcompress('gzcompress-data'), Value::encode('gzcompress-data', 'gzcompress'));
-        $this->assertSame(gzencode('gzencode-data'), Value::encode('gzencode-data', 'gzencode'));
-        $this->assertSame(gzdeflate('gzdeflate-data'), Value::encode('gzdeflate-data', 'gzdeflate'));
+        $this->assertSame(gzcompress('gzcompress-data'), Value::converter('gzcompress-data', 'gzcompress', 'save'));
+        $this->assertSame(gzencode('gzencode-data'), Value::converter('gzencode-data', 'gzencode', 'save'));
+        $this->assertSame(gzdeflate('gzdeflate-data'), Value::converter('gzdeflate-data', 'gzdeflate', 'save'));
     }
 
     public function testDecode(): void {
-        $this->assertSame('gzcompress-data', Value::decode(gzcompress('gzcompress-data'), 'gzcompress'));
-        $this->assertSame('gzencode-data', Value::decode(gzencode('gzencode-data'), 'gzencode'));
-        $this->assertSame('gzdeflate-data', Value::decode(gzdeflate('gzdeflate-data'), 'gzdeflate'));
-        $this->assertSame('random string', Value::decode('random string', 'gzdeflate'));
+        $this->assertSame('gzcompress-data', Value::converter(gzcompress('gzcompress-data'), 'gzcompress', 'view'));
+        $this->assertSame('gzencode-data', Value::converter(gzencode('gzencode-data'), 'gzencode', 'view'));
+        $this->assertSame('gzdeflate-data', Value::converter(gzdeflate('gzdeflate-data'), 'gzdeflate', 'view'));
+        $this->assertSame('random string', Value::converter('random string', 'gzdeflate', 'view'));
     }
 }

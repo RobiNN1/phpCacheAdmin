@@ -16,53 +16,40 @@ use JsonException;
 
 class Value {
     /**
-     * Decode and format key value.
+     * Format and decode value.
      *
      * @return array<int, mixed>
      */
     public static function format(string $value): array {
-        $encode_fn = null;
+        // It's only used to display the name in the UI
+        $encoder = null;
         $is_formatted = false;
 
         if (!json_validate($value)) {
-            $decoded = self::decoded($value, $encode_fn);
-
-            if ($decoded !== null) {
-                $value = $decoded;
-            }
-
-            $formatted = self::formatted($value, $is_formatted);
-
-            if ($formatted !== null) {
-                $value = $formatted;
-            }
+            // Decoding must be done first, in case there is data that can also be formatted
+            $value = self::decoded($value, $encoder);
+            $value = self::formatted($value, $is_formatted);
         }
 
-        // Always pretty print the JSON because some formatter may return the value as JSON
+        // Always pretty print the JSON because some formatters may return the value as JSON
         $value = self::prettyPrintJson($value);
 
-        return [$value, $encode_fn, $is_formatted];
+        return [$value, $encoder, $is_formatted];
     }
 
-    /**
-     * Get decoded value or null if value was not encoded (gziped).
-     */
-    public static function decoded(string $value, ?string &$encode_fn = null): ?string {
-        foreach (Config::get('encoding', []) as $name => $decoder) {
-            if (is_callable($decoder['view']) && $decoder['view']($value) !== null) {
-                $encode_fn = (string) $name;
+    public static function decoded(string $value, ?string &$encoder = null): string {
+        foreach (Config::get('converters', []) as $name => $decoder) {
+            if (is_callable($decoder['view']) && ($decoded = $decoder['view']($value)) !== null) {
+                $encoder = (string) $name;
 
-                return $decoder['view']($value);
+                return $decoded;
             }
         }
 
-        return null;
+        return $value;
     }
 
-    /**
-     * Get formatted or as json value or null if value was not formatted (serialized).
-     */
-    public static function formatted(string $value, bool &$is_formatted = false): ?string {
+    public static function formatted(string $value, bool &$is_formatted = false): string {
         foreach (Config::get('formatters', []) as $formatter) {
             if (is_callable($formatter) && $formatter($value) !== null) {
                 $is_formatted = true;
@@ -71,50 +58,42 @@ class Value {
             }
         }
 
-        return null;
+        return $value;
     }
 
     public static function prettyPrintJson(string $value): string {
-        try {
-            $json_array = json_decode($value, false, 512, JSON_THROW_ON_ERROR);
-
-            if (!is_numeric($value) && $json_array !== null) {
+        if (!is_numeric($value) && json_validate($value)) {
+            try {
+                $json_array = json_decode($value, false, 512, JSON_THROW_ON_ERROR);
                 $value = json_encode($json_array, JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT);
 
                 return '<pre class="json-code">'.htmlspecialchars($value).'</pre>';
+            } catch (JsonException $e) {
+                return htmlspecialchars($value);
             }
-        } catch (JsonException $e) {
-            return htmlspecialchars($value);
         }
 
         return htmlspecialchars($value);
     }
 
-    public static function encode(string $value, string $encoder): string {
-        if ($encoder === 'none') {
+    /**
+     * Decode/Encode value.
+     *
+     * Used in forms.
+     */
+    public static function converter(string $value, string $converter, string $type): string {
+        if ($converter === 'none') {
             return $value;
         }
 
-        $encoders = (array) Config::get('encoding', []);
-        $encoder = $encoders[$encoder];
+        $converters = (array) Config::get('converters', []);
 
-        if (is_callable($encoder['save'])) {
-            return $encoder['save']($value);
-        }
-
-        return $value;
-    }
-
-    public static function decode(string $value, string $decoder): string {
-        if ($decoder === 'none') {
-            return $value;
-        }
-
-        $decoders = (array) Config::get('encoding', []);
-        $decoder = $decoders[$decoder];
-
-        if (is_callable($decoder['view']) && $decoder['view']($value) !== null) {
-            $value = $decoder['view']($value);
+        // type can be view (decode) or save (encode)
+        if (
+            is_callable($converters[$converter][$type]) &&
+            ($converted = $converters[$converter][$type]($value)) !== null
+        ) {
+            return $converted;
         }
 
         return $value;

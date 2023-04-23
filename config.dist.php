@@ -74,7 +74,7 @@ return [
         }
     },*/
     // Decoding/Encoding functions
-    'encoding'      => [
+    'converters'    => [
         'gzcompress' => [
             'view' => static fn (string $value): ?string => extension_loaded('zlib') && @gzuncompress($value) !== false ? gzuncompress($value) : null,
             'save' => static fn (string $value): string => extension_loaded('zlib') ? gzcompress($value) : $value,

@@ -136,7 +136,7 @@ trait MemcachedTrait {
         $key = Http::post('key', '');
         $expire = Http::post('expire', 0);
         $old_key = Http::post('old_key', '');
-        $value = Value::encode(Http::post('value', ''), Http::post('encoder', ''));
+        $value = Value::converter(Http::post('value', ''), Http::post('encoder', ''), 'save');
 
         if ($old_key !== '' && $old_key !== $key) {
             $this->memcached->delete($old_key);
@@ -168,7 +168,7 @@ trait MemcachedTrait {
             $this->saveKey();
         }
 
-        $value = Value::decode($value, $encoder);
+        $value = Value::converter($value, $encoder, 'view');
 
         return $this->template->render('partials/form', [
             'exp_attr' => ' min="0" max="2592000"',

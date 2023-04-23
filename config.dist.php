@@ -101,16 +101,13 @@ return [
     ],
     // Formatting functions, it runs after decoding
     'formatters'    => [
-        static function (string $value): ?string {
-            if (@unserialize($value, ['allowed_classes' => false]) !== false) {
-                $unserialized_value = unserialize($value, ['allowed_classes' => false]);
-
-                if (is_array($unserialized_value)) {
-                    try {
-                        return json_encode($unserialized_value, JSON_THROW_ON_ERROR);
-                    } catch (JsonException $e) {
-                        return $e->getMessage();
-                    }
+        'unserialize' => static function (string $value): ?string {
+            $unserialized_value = @unserialize($value, ['allowed_classes' => false]);
+            if ($unserialized_value !== false && is_array($unserialized_value)) {
+                try {
+                    return json_encode($unserialized_value, JSON_THROW_ON_ERROR);
+                } catch (JsonException $e) {
+                    return null;
                 }
             }
 

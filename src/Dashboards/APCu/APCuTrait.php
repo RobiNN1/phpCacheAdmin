@@ -176,7 +176,7 @@ trait APCuTrait {
         foreach ($info['cache_list'] as $key_data) {
             $key = $key_data['info'];
 
-            if (stripos($key, $search) !== false) {
+            if ($search === '' || stripos($key, $search) !== false) {
                 $keys[] = [
                     'key'    => $key,
                     'base64' => true,

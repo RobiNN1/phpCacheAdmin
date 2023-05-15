@@ -194,7 +194,7 @@ trait MemcachedTrait {
         foreach ($this->memcached->getKeys() as $key_data) {
             $key = $key_data['key'] ?? $key_data;
 
-            if (stripos($key, $search) !== false) {
+            if (empty($search) || stripos($key, $search) !== false) {
                 $ttl = $key_data['exp'] ?? null;
 
                 $keys[] = [

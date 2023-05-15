@@ -101,7 +101,7 @@ trait OPCacheTrait {
                     continue;
                 }
 
-                if (stripos($script['full_path'], $search) !== false) {
+                if (empty($search) || stripos($script['full_path'], $search) !== false) {
                     $cached_scripts[] = [
                         'key'   => $script['full_path'],
                         'items' => [

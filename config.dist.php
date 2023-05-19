@@ -10,6 +10,10 @@
 
 declare(strict_types=1);
 
+// Uncomment this (or change it directly in php.ini) if you have thousands
+// of Memcached keys and constantly exceed php execution time.
+//ini_set('max_execution_time', '300');
+
 return [
     // The order of the items also changes the position of the
     // sidebar links, first item is also the default dashboard.

@@ -89,15 +89,11 @@ trait CommandTrait {
         while (!feof($stream)) {
             $buffer .= fgets($stream, 256);
 
-            // Loop only once
-            if (in_array($this->commandName($command), $this->no_end, true)) {
+            if (
+                in_array($this->commandName($command), $this->no_end, true) ||
+                preg_match('/^('.implode('|', $this->with_end).')/imu', $buffer)
+            ) {
                 break;
-            }
-
-            foreach ($this->with_end as $end) {
-                if (preg_match('/^'.$end.'/imu', $buffer)) {
-                    break 2;
-                }
             }
 
             // Bug fix for gzipped keys

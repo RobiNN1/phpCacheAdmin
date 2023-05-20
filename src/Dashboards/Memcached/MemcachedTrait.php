@@ -20,7 +20,10 @@ use RobiNN\Pca\Paginator;
 use RobiNN\Pca\Value;
 
 trait MemcachedTrait {
-    private function panels(): string {
+    /**
+     * @param array<int, mixed> $all_keys
+     */
+    private function panels(array $all_keys): string {
         if (extension_loaded('memcached') || extension_loaded('memcache')) {
             $memcached = extension_loaded('memcached') ? 'd' : '';
             $title = 'PHP Memcache'.$memcached.' extension <b>v'.phpversion('memcache'.$memcached).'</b>';
@@ -47,7 +50,7 @@ trait MemcachedTrait {
                     'data'  => [
                         'Cache limit' => Format::bytes((int) $server_info['limit_maxbytes']),
                         'Used'        => Format::bytes((int) $server_info['bytes']),
-                        'Keys'        => Format::number(count($this->memcached->getKeys())), // Keys are loaded via sockets and not extension itself
+                        'Keys'        => Format::number(count($all_keys)), // Keys are loaded via sockets and not extension itself
                     ],
                 ],
             ];
@@ -181,17 +184,17 @@ trait MemcachedTrait {
     }
 
     /**
-     * @return array<int, array<string, string|int>>
+     * @param array<int, mixed> $all_keys
      *
-     * @throws MemcachedException
+     * @return array<int, array<string, string|int>>
      */
-    private function getAllKeys(): array {
+    private function getAllKeys(array $all_keys): array {
         static $keys = [];
         $search = Http::get('s', '');
 
         $this->template->addGlobal('search_value', $search);
 
-        foreach ($this->memcached->getKeys() as $key_data) {
+        foreach ($all_keys as $key_data) {
             $key = $key_data['key'] ?? $key_data;
 
             if ($search === '' || stripos($key, $search) !== false) {
@@ -216,7 +219,8 @@ trait MemcachedTrait {
      * @throws MemcachedException
      */
     private function mainDashboard(): string {
-        $keys = $this->getAllKeys();
+        $all_keys = $this->memcached->getKeys();
+        $keys = $this->getAllKeys($all_keys);
 
         if (isset($_POST['submit_import_key'])) {
             Helpers::import(
@@ -229,9 +233,9 @@ trait MemcachedTrait {
 
         return $this->template->render('dashboards/memcached', [
             'select'      => Helpers::serverSelector($this->template, $this->servers, $this->current_server),
-            'panels'      => $this->panels(),
+            'panels'      => $this->panels($all_keys),
             'keys'        => $paginator->getPaginated(),
-            'all_keys'    => count($this->memcached->getKeys()),
+            'all_keys'    => count($all_keys),
             'new_key_url' => Http::queryString([], ['form' => 'new']),
             'paginator'   => $paginator->render(),
             'view_key'    => Http::queryString([], ['view' => 'key', 'ttl' => '__ttl__', 'key' => '__key__']),

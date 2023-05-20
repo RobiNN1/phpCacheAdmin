@@ -37,7 +37,7 @@ trait CommandTrait {
     ];
 
     /**
-     * Loop until the server returns one of these strings.
+     * Loop until the server returns one of these end strings.
      *
      * @var array<int, string>
      */
@@ -82,17 +82,37 @@ trait CommandTrait {
      * @throws MemcachedException
      */
     public function runCommand(string $command, bool $array = false) {
-        $stream = $this->createSocket($command);
+        if (!in_array($this->commandName($command), $this->allowed_commands, true)) {
+            throw new MemcachedException('Unknown or not allowed command "'.$command.'".');
+        }
+
+        $command = strtr($command, ['\r\n' => "\r\n"])."\r\n";
+
+        return $this->streamConnection($command, $array);
+    }
+
+    /**
+     * @return array<int, mixed>|string
+     *
+     * @throws MemcachedException
+     */
+    private function streamConnection(string $command, bool $array = false) {
+        $address = isset($this->server['path']) ? 'unix://'.$this->server['path'] : 'tcp://'.$this->server['host'].':'.$this->server['port'];
+        $stream = @stream_socket_client($address, $error_code, $error_message, 3);
+
+        if ($error_message !== '' || $stream === false) {
+            throw new MemcachedException('Command: "'.$command.'": '.$error_code.' - '.$error_message);
+        }
+
+        fwrite($stream, $command, strlen($command));
+
         $buffer = '';
         $data = [];
 
         while (!feof($stream)) {
             $buffer .= fgets($stream, 256);
 
-            if (
-                in_array($this->commandName($command), $this->no_end, true) ||
-                preg_match('/^('.implode('|', $this->with_end).')/imu', $buffer)
-            ) {
+            if ($this->checkCommandEnd($command, $buffer)) {
                 break;
             }
 
@@ -109,45 +129,17 @@ trait CommandTrait {
 
         fclose($stream);
 
-        if ($array === true) {
-            return $data;
-        }
-
-        return rtrim($buffer, "\r\n");
-    }
-
-    /**
-     * @return resource
-     *
-     * @throws MemcachedException
-     */
-    private function createSocket(string $command) {
-        if (!in_array($this->commandName($command), $this->allowed_commands, true)) {
-            throw new MemcachedException('Unknown or incorrect command "'.$command.'".');
-        }
-
-        if (isset($this->server['path'])) {
-            $stream = @stream_socket_client('unix://'.$this->server['path'], $error_code, $error_message);
-        } else {
-            $stream = @fsockopen($this->server['host'], (int) $this->server['port'], $error_code, $error_message, 3);
-        }
-
-        if ($error_message !== '' || $stream === false) {
-            throw new MemcachedException('Command: "'.$command.'": '.$error_message);
-        }
-
-        $command = strtr($command, ['\r\n' => "\r\n"])."\r\n";
-
-        if (fwrite($stream, $command, strlen($command)) === false) {
-            throw new MemcachedException('Command: "'.$command.'": Not valid resource.');
-        }
-
-        return $stream;
+        return $array === true ? $data : rtrim($buffer, "\r\n");
     }
 
     private function commandName(string $command): string {
         $parts = explode(' ', $command);
 
         return strtolower($parts[0]);
+    }
+
+    private function checkCommandEnd(string $command, string $buffer): bool {
+        return in_array($this->commandName($command), $this->no_end, true) ||
+            preg_match('/^('.implode('|', $this->with_end).')/imu', $buffer);
     }
 }

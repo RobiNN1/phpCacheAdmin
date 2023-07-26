@@ -24,7 +24,7 @@
   ],
   "require": {
     "php": ">=7.4",
-    "twig/twig": "^3.6"
+    "twig/twig": "^3.7"
   },
   "require-dev": {
     "clue/phar-composer": "^1.4",

@@ -40,7 +40,7 @@ const select_and_redirect = (id, param) => {
  */
 document.getElementById('togglebtn').addEventListener('click', () => {
     document.getElementById('sidebar').classList.toggle('hidden');
-    document.getElementById('maincontent').classList.toggle('ml-64');
+    document.getElementById('maincontent').classList.toggle('ml-56');
 });
 
 /**

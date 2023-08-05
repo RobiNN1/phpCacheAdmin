@@ -28,9 +28,9 @@ trait RedisTrait {
 
     private function panels(): string {
         if (extension_loaded('redis')) {
-            $title = 'PHP Redis extension <b>v'.phpversion('redis').'</b>';
+            $title = 'PHP Redis extension <span class="font-semibold">v'.phpversion('redis').'</span>';
         } elseif (class_exists(Predis::class)) {
-            $title = 'Predis <b>v'.Predis::VERSION.'</b>';
+            $title = 'Predis <span class="font-semibold">v'.Predis::VERSION.'</span>';
         }
 
         try {

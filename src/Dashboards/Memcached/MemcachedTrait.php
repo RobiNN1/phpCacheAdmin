@@ -26,7 +26,7 @@ trait MemcachedTrait {
     private function panels(array $all_keys): string {
         if (extension_loaded('memcached') || extension_loaded('memcache')) {
             $memcached = extension_loaded('memcached') ? 'd' : '';
-            $title = 'PHP Memcache'.$memcached.' extension <b>v'.phpversion('memcache'.$memcached).'</b>';
+            $title = 'PHP Memcache'.$memcached.' extension <span class="font-semibold">v'.phpversion('memcache'.$memcached).'</span>';
         } elseif (class_exists(Compatibility\PHPMem::class)) {
             $title = 'PHPMem <b>v'.Compatibility\PHPMem::VERSION.'</b>';
         }

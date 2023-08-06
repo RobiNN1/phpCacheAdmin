@@ -568,8 +568,8 @@ video {
   height: 1rem;
 }
 
-.min-h-full {
-  min-height: 100%;
+.h-full {
+  height: 100%;
 }
 
 .w-16 {

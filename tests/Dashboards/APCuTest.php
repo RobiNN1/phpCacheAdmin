@@ -12,7 +12,6 @@ declare(strict_types=1);
 
 namespace Tests\Dashboards;
 
-use JsonException;
 use PHPUnit\Framework\TestCase;
 use RobiNN\Pca\Dashboards\APCu\APCuDashboard;
 use RobiNN\Pca\Helpers;
@@ -30,25 +29,23 @@ final class APCuTest extends TestCase {
     }
 
     /**
-     * @throws JsonException
+     * @param array<int, string>|string $keys
      */
+    private function deleteKeys($keys): void {
+        $this->assertSame(
+            $this->template->render('components/alert', ['message' => (is_array($keys) ? 'Keys' : 'Key "'.$keys.'"').' has been deleted.']),
+            Helpers::deleteKey($this->template, static fn (string $key): bool => apcu_delete($key), true, $keys)
+        );
+    }
+
     public function testDeleteKey(): void {
         $key = 'pu-test-delete-key';
 
         apcu_store($key, 'data');
-
-        $_POST['delete'] = json_encode(base64_encode($key), JSON_THROW_ON_ERROR);
-
-        $this->assertSame(
-            $this->template->render('components/alert', ['message' => 'Key "'.$key.'" has been deleted.']),
-            Helpers::deleteKey($this->template, static fn (string $key): bool => apcu_delete($key), true)
-        );
+        $this->deleteKeys($key);
         $this->assertFalse(apcu_exists($key));
     }
 
-    /**
-     * @throws JsonException
-     */
     public function testDeleteKeys(): void {
         $key1 = 'pu-test-delete-key1';
         $key2 = 'pu-test-delete-key2';
@@ -58,12 +55,8 @@ final class APCuTest extends TestCase {
         apcu_store($key2, 'data2');
         apcu_store($key3, 'data3');
 
-        $_POST['delete'] = json_encode(array_map(static fn (string $key): string => base64_encode($key), [$key1, $key2, $key3]), JSON_THROW_ON_ERROR);
+        $this->deleteKeys([$key1, $key2, $key3]);
 
-        $this->assertSame(
-            $this->template->render('components/alert', ['message' => 'Keys has been deleted.']),
-            Helpers::deleteKey($this->template, static fn (string $key): bool => apcu_delete($key), true)
-        );
         $this->assertFalse(apcu_exists($key1));
         $this->assertFalse(apcu_exists($key2));
         $this->assertFalse(apcu_exists($key3));
@@ -89,18 +82,7 @@ final class APCuTest extends TestCase {
 
         foreach ($keys as $key => $value) {
             apcu_store('pu-test-'.$key, $value['original']);
-        }
-
-        $this->assertSame($keys['string']['expected'], Helpers::mixedToString(apcu_fetch('pu-test-string')));
-        $this->assertSame($keys['int']['expected'], Helpers::mixedToString(apcu_fetch('pu-test-int')));
-        $this->assertSame($keys['float']['expected'], Helpers::mixedToString(apcu_fetch('pu-test-float')));
-        $this->assertSame($keys['bool']['expected'], Helpers::mixedToString(apcu_fetch('pu-test-bool')));
-        $this->assertSame($keys['null']['expected'], Helpers::mixedToString(apcu_fetch('pu-test-null')));
-        $this->assertSame($keys['gzip']['expected'], Helpers::mixedToString(apcu_fetch('pu-test-gzip')));
-        $this->assertSame($keys['array']['expected'], Helpers::mixedToString(apcu_fetch('pu-test-array')));
-        $this->assertSame($keys['object']['expected'], Helpers::mixedToString(apcu_fetch('pu-test-object')));
-
-        foreach ($keys as $key => $value) {
+            $this->assertSame($value['expected'], Helpers::mixedToString(apcu_fetch('pu-test-'.$key)));
             apcu_delete('pu-test-'.$key);
         }
     }

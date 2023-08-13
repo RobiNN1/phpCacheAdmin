@@ -96,21 +96,44 @@ class Helpers {
     }
 
     /**
-     * Delete key or selected keys.
+     * Return key(s) as JSON.
+     *
+     * This method exists mainly as helper for tests.
+     *
+     * @param array<int, string>|string|null $keys
+     *
+     * @throws JsonException
      */
-    public static function deleteKey(Template $template, callable $function, bool $base64 = false): string {
+    private static function keysJson($keys = null, bool $base64 = false): string {
+        if ($keys === null) {
+            return Http::post('delete', '');
+        }
+
+        if ($base64) {
+            $keys = is_array($keys) ? array_map(static fn (string $key): string => base64_encode($key), $keys) : base64_encode($keys);
+        }
+
+        return json_encode($keys, JSON_THROW_ON_ERROR);
+    }
+
+    /**
+     * Delete key or selected keys.
+     *
+     * @param array<int, string>|string|null $keys_for_json
+     */
+    public static function deleteKey(Template $template, callable $delete_key, bool $base64 = false, $keys_for_json = null): string {
         try {
-            $keys = json_decode(Http::post('delete', ''), false, 512, JSON_THROW_ON_ERROR);
+            $keys = json_decode(self::keysJson($keys_for_json, $base64), false, 512, JSON_THROW_ON_ERROR);
         } catch (JsonException $e) {
             $keys = [];
         }
 
         if (is_array($keys) && count($keys)) {
             foreach ($keys as $key) {
-                $function($base64 ? base64_decode($key) : $key);
+                $delete_key($base64 ? base64_decode($key) : $key);
             }
             $message = 'Keys has been deleted.';
-        } elseif (is_string($keys) && $function($base64 ? base64_decode($keys) : $keys)) {
+        } elseif (is_string($keys) && $delete_key($base64 ? base64_decode($keys) : $keys)) {
             $message = sprintf('Key "%s" has been deleted.', $base64 ? base64_decode($keys) : $keys);
         } else {
             $message = 'No keys are selected.';

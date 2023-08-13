@@ -12,7 +12,6 @@ declare(strict_types=1);
 
 namespace Tests\Dashboards;
 
-use JsonException;
 use PHPUnit\Framework\TestCase;
 use RobiNN\Pca\Dashboards\DashboardException;
 use RobiNN\Pca\Dashboards\Memcached\Compatibility\Memcache;
@@ -45,24 +44,30 @@ final class MemcachedTest extends TestCase {
     }
 
     /**
-     * @throws MemcachedException|JsonException
+     * @param array<int, string>|string $keys
+     *
+     * @throws MemcachedException
+     */
+    private function deleteKeys($keys): void {
+        $this->assertSame(
+            $this->template->render('components/alert', ['message' => (is_array($keys) ? 'Keys' : 'Key "'.$keys.'"').' has been deleted.']),
+            Helpers::deleteKey($this->template, fn (string $key): bool => $this->memcached->delete($key), false, $keys)
+        );
+    }
+
+    /**
+     * @throws MemcachedException
      */
     public function testDeleteKey(): void {
         $key = 'pu-test-delete-key';
 
         $this->memcached->set($key, 'data');
-
-        $_POST['delete'] = json_encode($key, JSON_THROW_ON_ERROR);
-
-        $this->assertSame(
-            $this->template->render('components/alert', ['message' => 'Key "'.$key.'" has been deleted.']),
-            Helpers::deleteKey($this->template, fn (string $key): bool => $this->memcached->delete($key))
-        );
+        $this->deleteKeys($key);
         $this->assertFalse($this->memcached->exists($key));
     }
 
     /**
-     * @throws MemcachedException|JsonException
+     * @throws MemcachedException
      */
     public function testDeleteKeys(): void {
         $key1 = 'pu-test-delete-key1';
@@ -73,12 +78,8 @@ final class MemcachedTest extends TestCase {
         $this->memcached->set($key2, 'data2');
         $this->memcached->set($key3, 'data3');
 
-        $_POST['delete'] = json_encode([$key1, $key2, $key3], JSON_THROW_ON_ERROR);
+        $this->deleteKeys([$key1, $key2, $key3]);
 
-        $this->assertSame(
-            $this->template->render('components/alert', ['message' => 'Keys has been deleted.']),
-            Helpers::deleteKey($this->template, fn (string $key): bool => $this->memcached->delete($key))
-        );
         $this->assertFalse($this->memcached->exists($key1));
         $this->assertFalse($this->memcached->exists($key2));
         $this->assertFalse($this->memcached->exists($key3));
@@ -107,18 +108,7 @@ final class MemcachedTest extends TestCase {
 
         foreach ($keys as $key => $value) {
             $this->memcached->set('pu-test-'.$key, $value['original']);
-        }
-
-        $this->assertSame($keys['string']['expected'], $this->memcached->getKey('pu-test-string'));
-        $this->assertSame($keys['int']['expected'], $this->memcached->getKey('pu-test-int'));
-        $this->assertSame($keys['float']['expected'], $this->memcached->getKey('pu-test-float'));
-        $this->assertSame($keys['bool']['expected'], $this->memcached->getKey('pu-test-bool'));
-        $this->assertSame($keys['null']['expected'], $this->memcached->getKey('pu-test-null'));
-        $this->assertSame($keys['gzip']['expected'], $this->memcached->getKey('pu-test-gzip'));
-        $this->assertSame($keys['array']['expected'], $this->memcached->getKey('pu-test-array'));
-        $this->assertSame($keys['object']['expected'], $this->memcached->getKey('pu-test-object'));
-
-        foreach ($keys as $key => $value) {
+            $this->assertSame($value['expected'], $this->memcached->getKey('pu-test-'.$key));
             $this->memcached->delete('pu-test-'.$key);
         }
     }
@@ -189,7 +179,6 @@ final class MemcachedTest extends TestCase {
      * @throws MemcachedException
      */
     public function testRunCommand(string $expected, string $command): void {
-        $expected = strtr($expected, ['\r\n' => "\r\n"]);
-        $this->assertSame($expected, $this->memcached->runCommand($command));
+        $this->assertSame(strtr($expected, ['\r\n' => "\r\n"]), $this->memcached->runCommand($command));
     }
 }

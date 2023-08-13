@@ -19,6 +19,11 @@ use RobiNN\Pca\Dashboards\Redis\Compatibility\Predis;
 final class PredisTest extends TestCase {
     private Predis $predis;
 
+    /**
+     * @var array<string>
+     */
+    private array $keys = ['string', 'set', 'list', 'zset', 'hash', 'stream'];
+
     protected function setUp(): void {
         $this->predis = new Predis(['host' => '127.0.0.1']);
     }
@@ -36,28 +41,16 @@ final class PredisTest extends TestCase {
         $this->predis->streamAdd('pu-pred-test-stream', '*', ['field1' => 'value1', 'field2' => 'value2']);
         $this->predis->streamAdd('pu-pred-test-stream', '*', ['field3' => 'value3']);
 
-        $this->assertSame('string', $this->predis->getType('pu-pred-test-string'));
-        $this->assertSame('set', $this->predis->getType('pu-pred-test-set'));
-        $this->assertSame('list', $this->predis->getType('pu-pred-test-list'));
-        $this->assertSame('zset', $this->predis->getType('pu-pred-test-zset'));
-        $this->assertSame('hash', $this->predis->getType('pu-pred-test-hash'));
-        $this->assertSame('stream', $this->predis->getType('pu-pred-test-stream'));
+        foreach ($this->keys as $key) {
+            $this->assertSame($key, $this->predis->getType('pu-pred-test-'.$key));
+        }
     }
 
     public function testDelete(): void {
-        $this->predis->del('pu-pred-test-string');
-        $this->predis->del('pu-pred-test-set');
-        $this->predis->del('pu-pred-test-list');
-        $this->predis->del('pu-pred-test-zset');
-        $this->predis->del('pu-pred-test-hash');
-        $this->predis->del('pu-pred-test-stream');
-
-        $this->assertSame(0, $this->predis->exists('pu-pred-test-string'));
-        $this->assertSame(0, $this->predis->exists('pu-pred-test-set'));
-        $this->assertSame(0, $this->predis->exists('pu-pred-test-list'));
-        $this->assertSame(0, $this->predis->exists('pu-pred-test-zset'));
-        $this->assertSame(0, $this->predis->exists('pu-pred-test-hash'));
-        $this->assertSame(0, $this->predis->exists('pu-pred-test-stream'));
+        foreach ($this->keys as $key) {
+            $this->predis->del('pu-pred-test-'.$key);
+            $this->assertSame(0, $this->predis->exists('pu-pred-test-'.$key));
+        }
     }
 
     public function testGetInfo(): void {

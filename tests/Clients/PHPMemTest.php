@@ -49,17 +49,7 @@ final class PHPMemTest extends TestCase {
 
         foreach ($keys as $key => $value) {
             $this->phpmem->set('pu-pmem-test-'.$key, $value['original']);
-        }
-
-        $this->assertSame($keys['string']['expected'], $this->phpmem->getKey('pu-pmem-test-string'));
-        $this->assertSame($keys['int']['expected'], $this->phpmem->getKey('pu-pmem-test-int'));
-        $this->assertSame($keys['float']['expected'], $this->phpmem->getKey('pu-pmem-test-float'));
-        $this->assertSame($keys['bool']['expected'], $this->phpmem->getKey('pu-pmem-test-bool'));
-        $this->assertSame($keys['null']['expected'], $this->phpmem->getKey('pu-pmem-test-null'));
-        $this->assertSame($keys['array']['expected'], $this->phpmem->getKey('pu-pmem-test-array'));
-        $this->assertSame($keys['object']['expected'], $this->phpmem->getKey('pu-pmem-test-object'));
-
-        foreach ($keys as $key => $value) {
+            $this->assertSame($value['expected'], $this->phpmem->getKey('pu-pmem-test-'.$key));
             $this->phpmem->delete('pu-pmem-test-'.$key);
         }
     }

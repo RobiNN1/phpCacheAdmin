@@ -13,7 +13,6 @@ declare(strict_types=1);
 namespace Tests\Dashboards;
 
 use Exception;
-use JsonException;
 use PHPUnit\Framework\TestCase;
 use RobiNN\Pca\Dashboards\DashboardException;
 use RobiNN\Pca\Dashboards\Redis\Compatibility\Predis;
@@ -44,24 +43,30 @@ final class RedisTest extends TestCase {
     }
 
     /**
-     * @throws Exception|JsonException
+     * @param array<int, string>|string $keys
+     *
+     * @throws Exception
+     */
+    private function deleteKeys($keys): void {
+        $this->assertSame(
+            $this->template->render('components/alert', ['message' => (is_array($keys) ? 'Keys' : 'Key "'.$keys.'"').' has been deleted.']),
+            Helpers::deleteKey($this->template, fn (string $key): bool => $this->redis->del($key) > 0, true, $keys)
+        );
+    }
+
+    /**
+     * @throws Exception
      */
     public function testDeleteKey(): void {
         $key = 'pu-test-delete-key';
 
         $this->redis->set($key, 'data');
-
-        $_POST['delete'] = json_encode(base64_encode($key), JSON_THROW_ON_ERROR);
-
-        $this->assertSame(
-            $this->template->render('components/alert', ['message' => 'Key "'.$key.'" has been deleted.']),
-            Helpers::deleteKey($this->template, fn (string $key): bool => $this->redis->del($key) > 0, true)
-        );
+        $this->deleteKeys($key);
         $this->assertSame(0, $this->redis->exists($key));
     }
 
     /**
-     * @throws Exception|JsonException
+     * @throws Exception
      */
     public function testDeleteKeys(): void {
         $key1 = 'pu-test-delete-key1';
@@ -72,12 +77,8 @@ final class RedisTest extends TestCase {
         $this->redis->set($key2, 'data2');
         $this->redis->set($key3, 'data3');
 
-        $_POST['delete'] = json_encode(array_map(static fn (string $key): string => base64_encode($key), [$key1, $key2, $key3]), JSON_THROW_ON_ERROR);
+        $this->deleteKeys([$key1, $key2, $key3]);
 
-        $this->assertSame(
-            $this->template->render('components/alert', ['message' => 'Keys has been deleted.']),
-            Helpers::deleteKey($this->template, fn (string $key): bool => $this->redis->del($key) > 0, true)
-        );
         $this->assertSame(0, $this->redis->exists($key1));
         $this->assertSame(0, $this->redis->exists($key2));
         $this->assertSame(0, $this->redis->exists($key3));
@@ -106,18 +107,7 @@ final class RedisTest extends TestCase {
 
         foreach ($keys as $key => $value) {
             $this->redis->set('pu-test-'.$key, $value['original']);
-        }
-
-        $this->assertSame($keys['string']['expected'], $this->redis->get('pu-test-string'));
-        $this->assertSame($keys['int']['expected'], $this->redis->get('pu-test-int'));
-        $this->assertSame($keys['float']['expected'], $this->redis->get('pu-test-float'));
-        $this->assertSame($keys['bool']['expected'], $this->redis->get('pu-test-bool'));
-        $this->assertSame($keys['null']['expected'], $this->redis->get('pu-test-null'));
-        $this->assertSame($keys['gzip']['expected'], $this->redis->get('pu-test-gzip'));
-        $this->assertSame($keys['array']['expected'], $this->redis->get('pu-test-array'));
-        $this->assertSame($keys['object']['expected'], $this->redis->get('pu-test-object'));
-
-        foreach ($keys as $key => $value) {
+            $this->assertSame($value['expected'], $this->redis->get('pu-test-'.$key));
             $this->redis->del('pu-test-'.$key);
         }
     }

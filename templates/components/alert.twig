@@ -1,6 +1,6 @@
 <div class="py-3 px-4 flex items-center rounded {{ alert_color ? alert_color : 'bg-indigo-500' }} shadow-lg fixed top-5 right-5 z-50 max-w-md">
     <div class="mr-3 text-white break-all">{{ message|raw }}</div>
     <button type="button" class="close text-white hover:opacity-75" onclick="this.parentElement.remove();">
-        {{ svg('x', 13) }}
+        {{ svg('close', 13) }}
     </button>
 </div>

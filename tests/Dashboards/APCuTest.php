@@ -12,11 +12,11 @@ declare(strict_types=1);
 
 namespace Tests\Dashboards;
 
-use PHPUnit\Framework\TestCase;
 use RobiNN\Pca\Dashboards\APCu\APCuDashboard;
 use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
 use RobiNN\Pca\Template;
+use Tests\TestCase;
 
 final class APCuTest extends TestCase {
     private Template $template;
@@ -62,29 +62,16 @@ final class APCuTest extends TestCase {
         $this->assertFalse(apcu_exists($key3));
     }
 
-    public function testSetGetKey(): void {
-        $keys = [
-            'string' => ['original' => 'phpCacheAdmin', 'expected' => 'phpCacheAdmin'],
-            'int'    => ['original' => 23, 'expected' => '23'],
-            'float'  => ['original' => 23.99, 'expected' => '23.99'],
-            'bool'   => ['original' => true, 'expected' => '1'],
-            'null'   => ['original' => null, 'expected' => ''],
-            'gzip'   => ['original' => gzcompress('test'), 'expected' => gzcompress('test')],
-            'array'  => [
-                'original' => ['key1', 'key2'],
-                'expected' => 'a:2:{i:0;s:4:"key1";i:1;s:4:"key2";}',
-            ],
-            'object' => [
-                'original' => (object) ['key1', 'key2'],
-                'expected' => 'O:8:"stdClass":2:{s:1:"0";s:4:"key1";s:1:"1";s:4:"key2";}',
-            ],
-        ];
-
-        foreach ($keys as $key => $value) {
-            apcu_store('pu-test-'.$key, $value['original']);
-            $this->assertSame($value['expected'], Helpers::mixedToString(apcu_fetch('pu-test-'.$key)));
-            apcu_delete('pu-test-'.$key);
-        }
+    /**
+     * @dataProvider keysProvider
+     *
+     * @param mixed $original
+     * @param mixed $expected
+     */
+    public function testSetGetKey(string $type, $original, $expected): void {
+        apcu_store('pu-test-'.$type, $original);
+        $this->assertSame($expected, Helpers::mixedToString(apcu_fetch('pu-test-'.$type)));
+        apcu_delete('pu-test-'.$type);
     }
 
     public function testSaveKey(): void {

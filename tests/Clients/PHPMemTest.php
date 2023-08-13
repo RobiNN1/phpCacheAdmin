@@ -12,9 +12,9 @@ declare(strict_types=1);
 
 namespace Tests\Clients;
 
-use PHPUnit\Framework\TestCase;
 use RobiNN\Pca\Dashboards\Memcached\Compatibility\PHPMem;
 use RobiNN\Pca\Dashboards\Memcached\MemcachedException;
+use Tests\TestCase;
 
 final class PHPMemTest extends TestCase {
     private PHPMem $phpmem;
@@ -28,30 +28,18 @@ final class PHPMemTest extends TestCase {
     }
 
     /**
+     * @dataProvider keysProvider
+     *
+     * @param mixed $original
+     * @param mixed $expected
+     *
      * @throws MemcachedException
      */
-    public function testSetGetKey(): void {
-        $keys = [
-            'string' => ['original' => 'phpCacheAdmin', 'expected' => 'phpCacheAdmin'],
-            'int'    => ['original' => 23, 'expected' => '23'],
-            'float'  => ['original' => 23.99, 'expected' => '23.99'],
-            'bool'   => ['original' => true, 'expected' => '1'],
-            'null'   => ['original' => null, 'expected' => ''],
-            'array'  => [
-                'original' => ['key1', 'key2'],
-                'expected' => 'a:2:{i:0;s:4:"key1";i:1;s:4:"key2";}',
-            ],
-            'object' => [
-                'original' => (object) ['key1', 'key2'],
-                'expected' => 'O:8:"stdClass":2:{s:1:"0";s:4:"key1";s:1:"1";s:4:"key2";}',
-            ],
-        ];
-
-        foreach ($keys as $key => $value) {
-            $this->phpmem->set('pu-pmem-test-'.$key, $value['original']);
-            $this->assertSame($value['expected'], $this->phpmem->getKey('pu-pmem-test-'.$key));
-            $this->phpmem->delete('pu-pmem-test-'.$key);
-        }
+    public function testSetGetKey(string $type, $original, $expected): void {
+        $key = 'pu-pmem-test-'.$type;
+        $this->phpmem->set($key, $original);
+        $this->assertSame($expected, $this->phpmem->getKey($key));
+        $this->phpmem->delete($key);
     }
 
     /**

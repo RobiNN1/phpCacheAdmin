@@ -13,7 +13,6 @@ declare(strict_types=1);
 namespace Tests\Dashboards;
 
 use Exception;
-use PHPUnit\Framework\TestCase;
 use RobiNN\Pca\Dashboards\DashboardException;
 use RobiNN\Pca\Dashboards\Redis\Compatibility\Predis;
 use RobiNN\Pca\Dashboards\Redis\Compatibility\Redis;
@@ -21,6 +20,7 @@ use RobiNN\Pca\Dashboards\Redis\RedisDashboard;
 use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
 use RobiNN\Pca\Template;
+use Tests\TestCase;
 
 final class RedisTest extends TestCase {
     private Template $template;
@@ -85,31 +85,19 @@ final class RedisTest extends TestCase {
     }
 
     /**
+     * @dataProvider keysProvider
+     *
+     * @param mixed $original
+     * @param mixed $expected
+     *
      * @throws Exception
      */
-    public function testSetGetKey(): void {
-        $keys = [
-            'string' => ['original' => 'phpCacheAdmin', 'expected' => 'phpCacheAdmin'],
-            'int'    => ['original' => 23, 'expected' => '23'],
-            'float'  => ['original' => 23.99, 'expected' => '23.99'],
-            'bool'   => ['original' => true, 'expected' => '1'],
-            'null'   => ['original' => null, 'expected' => ''],
-            'gzip'   => ['original' => gzcompress('test'), 'expected' => gzcompress('test')],
-            'array'  => [
-                'original' => serialize(['key1', 'key2']),
-                'expected' => 'a:2:{i:0;s:4:"key1";i:1;s:4:"key2";}',
-            ],
-            'object' => [
-                'original' => serialize((object) ['key1', 'key2']),
-                'expected' => 'O:8:"stdClass":2:{s:1:"0";s:4:"key1";s:1:"1";s:4:"key2";}',
-            ],
-        ];
+    public function testSetGetKey(string $type, $original, $expected): void {
+        $original = is_array($original) || is_object($original) ? serialize($original) : $original;
 
-        foreach ($keys as $key => $value) {
-            $this->redis->set('pu-test-'.$key, $value['original']);
-            $this->assertSame($value['expected'], $this->redis->get('pu-test-'.$key));
-            $this->redis->del('pu-test-'.$key);
-        }
+        $this->redis->set('pu-test-'.$type, $original);
+        $this->assertSame($expected, Helpers::mixedToString($this->redis->get('pu-test-'.$type)));
+        $this->redis->del('pu-test-'.$type);
     }
 
     /**

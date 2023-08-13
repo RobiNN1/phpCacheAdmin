@@ -12,7 +12,6 @@ declare(strict_types=1);
 
 namespace Tests\Dashboards;
 
-use PHPUnit\Framework\TestCase;
 use RobiNN\Pca\Dashboards\DashboardException;
 use RobiNN\Pca\Dashboards\Memcached\Compatibility\Memcache;
 use RobiNN\Pca\Dashboards\Memcached\Compatibility\Memcached;
@@ -22,6 +21,7 @@ use RobiNN\Pca\Dashboards\Memcached\MemcachedException;
 use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
 use RobiNN\Pca\Template;
+use Tests\TestCase;
 
 final class MemcachedTest extends TestCase {
     private Template $template;
@@ -86,31 +86,17 @@ final class MemcachedTest extends TestCase {
     }
 
     /**
+     * @dataProvider keysProvider
+     *
+     * @param mixed $original
+     * @param mixed $expected
+     *
      * @throws MemcachedException
      */
-    public function testSetGetKey(): void {
-        $keys = [
-            'string' => ['original' => 'phpCacheAdmin', 'expected' => 'phpCacheAdmin'],
-            'int'    => ['original' => 23, 'expected' => '23'],
-            'float'  => ['original' => 23.99, 'expected' => '23.99'],
-            'bool'   => ['original' => true, 'expected' => '1'],
-            'null'   => ['original' => null, 'expected' => ''],
-            'gzip'   => ['original' => gzcompress('test'), 'expected' => gzcompress('test')],
-            'array'  => [
-                'original' => ['key1', 'key2'],
-                'expected' => 'a:2:{i:0;s:4:"key1";i:1;s:4:"key2";}',
-            ],
-            'object' => [
-                'original' => (object) ['key1', 'key2'],
-                'expected' => 'O:8:"stdClass":2:{s:1:"0";s:4:"key1";s:1:"1";s:4:"key2";}',
-            ],
-        ];
-
-        foreach ($keys as $key => $value) {
-            $this->memcached->set('pu-test-'.$key, $value['original']);
-            $this->assertSame($value['expected'], $this->memcached->getKey('pu-test-'.$key));
-            $this->memcached->delete('pu-test-'.$key);
-        }
+    public function testSetGetKey(string $type, $original, $expected): void {
+        $this->memcached->set('pu-test-'.$type, $original);
+        $this->assertSame($expected, Helpers::mixedToString($this->memcached->getKey('pu-test-'.$type)));
+        $this->memcached->delete('pu-test-'.$type);
     }
 
     /**

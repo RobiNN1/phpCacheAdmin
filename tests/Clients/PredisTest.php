@@ -19,19 +19,23 @@ use RobiNN\Pca\Dashboards\Redis\Compatibility\Predis;
 final class PredisTest extends TestCase {
     private Predis $predis;
 
-    /**
-     * @var array<string>
-     */
-    private array $keys = ['string', 'set', 'list', 'zset', 'hash', 'stream'];
-
     protected function setUp(): void {
         $this->predis = new Predis(['host' => '127.0.0.1']);
     }
 
     /**
+     * @return array<int, array<string>>
+     */
+    public function keysProvider(): array {
+        return [['string'], ['set'], ['list'], ['zset'], ['hash'], ['stream']];
+    }
+
+    /**
+     * @dataProvider keysProvider
+     *
      * @throws DashboardException
      */
-    public function testGetType(): void {
+    public function testGetType(string $key): void {
         $this->predis->set('pu-pred-test-string', 'value');
         $this->predis->sadd('pu-pred-test-set', ['value1', 'value2', 'value3']);
         $this->predis->rpush('pu-pred-test-list', ['value1', 'value2', 'value3']);
@@ -41,16 +45,15 @@ final class PredisTest extends TestCase {
         $this->predis->streamAdd('pu-pred-test-stream', '*', ['field1' => 'value1', 'field2' => 'value2']);
         $this->predis->streamAdd('pu-pred-test-stream', '*', ['field3' => 'value3']);
 
-        foreach ($this->keys as $key) {
-            $this->assertSame($key, $this->predis->getType('pu-pred-test-'.$key));
-        }
+        $this->assertSame($key, $this->predis->getType('pu-pred-test-'.$key));
     }
 
-    public function testDelete(): void {
-        foreach ($this->keys as $key) {
-            $this->predis->del('pu-pred-test-'.$key);
-            $this->assertSame(0, $this->predis->exists('pu-pred-test-'.$key));
-        }
+    /**
+     * @dataProvider keysProvider
+     */
+    public function testDelete(string $key): void {
+        $this->predis->del('pu-pred-test-'.$key);
+        $this->assertSame(0, $this->predis->exists('pu-pred-test-'.$key));
     }
 
     public function testGetInfo(): void {

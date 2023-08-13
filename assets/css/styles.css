@@ -1217,6 +1217,18 @@ video {
   --tw-ring-color: #fecaca;
 }
 
+.disabled\:bg-green-300:disabled {
+  background-color: #86efac;
+}
+
+.disabled\:bg-primary-300:disabled {
+  background-color: var(--primary-color-300);
+}
+
+.disabled\:bg-red-300:disabled {
+  background-color: #fca5a5;
+}
+
 @media (min-width: 768px) {
   .md\:mb-0 {
     margin-bottom: 0px;

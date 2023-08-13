@@ -1,15 +1,14 @@
 const ajax = (endpoint, callback, data = null) => {
     let url = window.location.href;
     url += url.includes('?') ? '&' : '?';
-    url += !url.includes('type=') ? 'type=' + document.body.dataset.dashboard + '&' : '';
-    url = url + 'ajax&' + endpoint;
+    url += !url.includes('type=') ? `type=${document.body.dataset.dashboard}&` : '';
 
-    let request = new XMLHttpRequest();
-    request.open((data === null ? 'GET' : 'POST'), url, true);
+    const request = new XMLHttpRequest();
+    request.open((data === null ? 'GET' : 'POST'), `${url}ajax&${endpoint}`, true);
 
     if (data !== null) {
         request.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-        data = endpoint + '=' + JSON.stringify(data);
+        data = `${endpoint}=${JSON.stringify(data)}`;
     }
 
     request.onload = callback;
@@ -17,17 +16,18 @@ const ajax = (endpoint, callback, data = null) => {
 }
 
 const replace_query_param = (param, value) => {
-    if (location.href.indexOf('?') === -1) {
-        location.href = location.href + '?' + param + '=' + value;
-    } else if (location.href.indexOf('&' + param + '=') === -1) {
-        location.href = location.href + '&' + param + '=' + value;
-    } else {
-        location.href = location.href.replace(new RegExp('(' + param + '=)[^\&]+'), param + '=' + value);
-    }
+    const url = new URL(location.href);
+    const params = new URLSearchParams(url.search);
+
+    params.set(param, value);
+
+    url.search = params.toString();
+    location.href = url.toString();
 }
 
 const select_and_redirect = (id, param) => {
-    let select = document.getElementById(id);
+    const select = document.getElementById(id);
+
     if (select) {
         select.addEventListener('change', e => {
             replace_query_param(param, e.target.value);
@@ -46,8 +46,41 @@ document.getElementById('togglebtn').addEventListener('click', () => {
 /**
  * Keys
  */
+const delete_selected = document.getElementById('delete_selected');
+if (delete_selected) {
+    delete_selected.disabled = true;
+
+    delete_selected.addEventListener('click', () => {
+        if (!window.confirm('Are you sure you want to remove selected items?')) {
+            return;
+        }
+
+        let selected_keys = [];
+
+        document.querySelectorAll('.check-key:checked').forEach(checkbox => {
+            let parent = checkbox.parentElement.parentElement;
+            selected_keys.push(parent.dataset.key);
+            parent.remove();
+        });
+
+        ajax('delete', function (request) {
+            if (this.status >= 200 && this.status < 400) {
+                document.getElementById('alerts').innerHTML = request.currentTarget.response;
+            }
+
+            delete_selected.disabled = true;
+        }, selected_keys);
+    });
+}
+
 const keys = document.querySelectorAll('[data-key]');
 keys.forEach(key => {
+    if (delete_selected) {
+        key.querySelector('.check-key').addEventListener('change', function () {
+            delete_selected.disabled = document.querySelectorAll('.check-key:checked').length < 1;
+        });
+    }
+
     key.querySelector('.delete-key').addEventListener('click', () => {
         if (!window.confirm('Are you sure you want to remove this item?')) {
             return;
@@ -62,41 +95,7 @@ keys.forEach(key => {
     });
 });
 
-let check_all = document.querySelector('.check-all');
-if (check_all) {
-    check_all.addEventListener('change', () => {
-        keys.forEach(key => {
-            let checkbox = key.querySelector('[type="checkbox"]');
-
-            checkbox.checked = check_all.checked;
-        });
-    });
-}
-
-let delete_selected = document.getElementById('delete_selected');
-if (delete_selected) {
-    delete_selected.addEventListener('click', () => {
-        if (!window.confirm('Are you sure you want to remove selected items?')) {
-            return;
-        }
-
-        let selected_keys = [];
-
-        document.querySelectorAll('.checkbox-key:checked').forEach(checkbox => {
-            let parent = checkbox.parentElement.parentElement;
-            selected_keys.push(parent.dataset.key);
-            parent.remove();
-        });
-
-        ajax('delete', function (request) {
-            if (this.status >= 200 && this.status < 400) {
-                document.getElementById('alerts').innerHTML = request.currentTarget.response;
-            }
-        }, selected_keys);
-    });
-}
-
-let delete_all = document.getElementById('delete_all');
+const delete_all = document.getElementById('delete_all');
 if (delete_all) {
     delete_all.addEventListener('click', () => {
         if (!window.confirm('Are you sure you want to remove all items?')) {
@@ -115,26 +114,43 @@ if (delete_all) {
     });
 }
 
+const check_all = document.querySelector('.check-all');
+if (check_all) {
+    check_all.addEventListener('change', () => {
+        if (delete_selected) {
+            delete_selected.disabled = check_all.checked !== true;
+        }
+
+        keys.forEach(key => {
+            key.querySelector('[type="checkbox"]').checked = check_all.checked;
+        });
+    });
+}
+
+/**
+ * JSON syntax highlighter
+ */
 const json_syntax_highlight = (json) => {
     return json.replace(
         /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?|[\[\]{}:,s])/g,
         function (match) {
             if (/^"/.test(match)) {
                 if (/"(\w+)":/.test(match)) {
-                    return '<span class="json-key text-emerald-500">' + match.replace('":', '"') + '</span><span class="json-colon text-gray-900">:</span>';
+                    return `<span class="json-key text-emerald-500">${match.replace('":', '"')}</span>
+                            <span class="json-colon text-gray-900">:</span>`;
                 } else {
-                    return '<span class="json-string text-amber-500">' + match + '</span>';
+                    return `<span class="json-string text-amber-500">${match}</span>`;
                 }
             } else if (/[\[\]{}]/.test(match)) {
-                return '<span class="json-bracket text-gray-900">' + match + '</span>';
+                return `<span class="json-bracket text-gray-900">${match}</span>`;
             } else if (/true|false/.test(match)) {
-                return '<span class="json-boolean text-blue-500">' + match + '</span>';
+                return `<span class="json-boolean text-blue-500">${match}</span>`;
             } else if (/null/.test(match)) {
-                return '<span class="json-null text-rose-500">' + match + '</span>';
+                return `<span class="json-null text-rose-500">${match}</span>`;
             } else if (/^-?\d+(?:\.\d+)?(?:[eE][+\-]?\d+)?$/.test(match)) {
-                return '<span class="json-number text-violet-500">' + match + '</span>';
+                return `<span class="json-number text-violet-500">${match}</span>`;
             } else if (match === ',') {
-                return '<span class="json-comma text-gray-900">' + match + '</span>';
+                return `<span class="json-comma text-gray-900">${match}</span>`;
             } else {
                 return match;
             }
@@ -146,6 +162,10 @@ document.querySelectorAll('.json-code').forEach(value => {
     value.innerHTML = json_syntax_highlight(value.innerHTML);
 });
 
+
+/**
+ * Redirects
+ */
 select_and_redirect('per_page', 'pp');
 select_and_redirect('server_select', 'server');
 select_and_redirect('db_select', 'db');
@@ -153,7 +173,7 @@ select_and_redirect('db_select', 'db');
 /**
  * Import form
  */
-let import_btn = document.getElementById('import_btn');
+const import_btn = document.getElementById('import_btn');
 if (import_btn) {
     import_btn.addEventListener('click', () => {
         document.getElementById('import_form').classList.toggle('hidden');
@@ -163,15 +183,14 @@ if (import_btn) {
 /**
  * Search key
  */
-let submit_search = document.getElementById('submit_search');
-if (submit_search) {
+const search_form = document.getElementById('search_form');
+if (search_form) {
+    const submit_search = document.getElementById('submit_search');
     submit_search.addEventListener('click', () => {
         replace_query_param('s', document.getElementById('search_key').value)
     });
-}
 
-let search_key = document.getElementById('search_key');
-if (search_key) {
+    const search_key = document.getElementById('search_key');
     search_key.addEventListener('keypress', e => {
         if (e.key === 'Enter') {
             submit_search.click();
@@ -182,7 +201,7 @@ if (search_key) {
 /**
  * Redis form
  */
-let redis_type = document.getElementById('redis_type');
+const redis_type = document.getElementById('redis_type');
 if (redis_type) {
     redis_type.addEventListener('change', e => {
         document.getElementById('redis_index').style.display = e.target.value === 'list' ? 'block' : 'none';

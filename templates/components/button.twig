@@ -1,9 +1,9 @@
 {% if btn_green %}
-    {% set btn_color = 'bg-green-500 hover:bg-green-600 focus:ring-green-200' %}
+    {% set btn_color = 'bg-green-500 hover:bg-green-600 focus:ring-green-200 disabled:bg-green-300' %}
 {% elseif btn_red %}
-    {% set btn_color = 'bg-red-500 hover:bg-red-600 focus:ring-red-200' %}
+    {% set btn_color = 'bg-red-500 hover:bg-red-600 focus:ring-red-200 disabled:bg-red-300' %}
 {% else %}
-    {% set btn_color = 'bg-primary-500 hover:bg-primary-600 focus:ring-primary-200' %}
+    {% set btn_color = 'bg-primary-500 hover:bg-primary-600 focus:ring-primary-200 disabled:bg-primary-300' %}
 {% endif %}
 
 {% set classes = 'inline-flex items-center border border-transparent rounded py-1.5 px-3 text-base font-semibold text-white align-middle shadow focus:ring ' ~ btn_color %}

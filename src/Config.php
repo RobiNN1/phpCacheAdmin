@@ -114,7 +114,7 @@ class Config {
     public static function getEncoders(): array {
         $encoders = self::get('converters', []);
 
-        if (count($encoders) === 0) {
+        if ($encoders === []) {
             return [];
         }
 

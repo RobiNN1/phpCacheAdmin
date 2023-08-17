@@ -84,11 +84,7 @@ trait KeysTrait {
                 [$key, $val] = explode('=', $part);
 
                 if ($key === 'exp') {
-                    if ($val !== '-1') {
-                        $val = (int) $val - time();
-                    } else {
-                        $val = (int) $val;
-                    }
+                    $val = $val !== '-1' ? (int) $val - time() : (int) $val;
                 }
 
                 $data[$key] = $val;

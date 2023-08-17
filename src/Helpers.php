@@ -20,12 +20,7 @@ class Helpers {
      */
     public static function svg(string $icon, ?int $size = 16, ?string $class = null): string {
         $file = is_file($icon) ? $icon : __DIR__.'/../assets/icons/'.$icon.'.svg';
-
-        if (is_file($file)) {
-            $content = trim(file_get_contents($file));
-        } else {
-            $content = $icon;
-        }
+        $content = is_file($file) ? trim(file_get_contents($file)) : $icon;
 
         preg_match('~<svg([^<>]*)>~', $content, $attributes);
 

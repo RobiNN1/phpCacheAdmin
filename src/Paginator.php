@@ -85,7 +85,7 @@ class Paginator {
     }
 
     public function render(): string {
-        $on_page = count($this->paginated) > 0 ? 1 : 0;
+        $on_page = $this->paginated !== [] ? 1 : 0;
         $select = [25, 50, 100, 200, 300, 400];
 
         return $this->template->render('components/paginator', [

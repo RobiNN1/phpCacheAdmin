@@ -26,7 +26,7 @@ final class PredisTest extends TestCase {
     /**
      * @return array<int, array<string>>
      */
-    public function keysProvider(): array {
+    public static function keysProvider(): array {
         return [['string'], ['set'], ['list'], ['zset'], ['hash'], ['stream']];
     }
 

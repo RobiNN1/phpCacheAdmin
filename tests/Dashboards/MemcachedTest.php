@@ -127,7 +127,7 @@ final class MemcachedTest extends TestCase {
     /**
      * @return array<string, array<int,string>>
      */
-    public function provideCommandData(): array {
+    public static function commandDataProvider(): array {
         return [
             'test set'    => ['STORED', 'set pu-test-rc-set 0 0 3\r\nidk'],
             'test get'    => ['VALUE pu-test-rc-set 0 3\r\nidk\r\nEND', 'get pu-test-rc-set'],
@@ -160,7 +160,7 @@ final class MemcachedTest extends TestCase {
     }
 
     /**
-     * @dataProvider provideCommandData
+     * @dataProvider commandDataProvider
      *
      * @throws MemcachedException
      */

@@ -16,7 +16,7 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase {
     /**
      * @return array<int, mixed>
      */
-    public function keysProvider(): array {
+    public static function keysProvider(): array {
         return [
             ['string', 'phpCacheAdmin', 'phpCacheAdmin'],
             ['int', 23, '23'],

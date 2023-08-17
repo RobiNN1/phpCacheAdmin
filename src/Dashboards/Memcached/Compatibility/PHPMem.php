@@ -47,11 +47,7 @@ class PHPMem implements CompatibilityInterface {
 
         $raw = $this->runCommand('set '.$key.' 0 '.$expiration.' '.strlen((string) $value)."\r\n".$value);
 
-        if (str_starts_with($raw, 'STORED')) {
-            return true;
-        }
-
-        return false;
+        return str_starts_with($raw, 'STORED');
     }
 
     /**

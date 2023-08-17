@@ -120,7 +120,7 @@ class RedisDashboard implements DashboardInterface {
     }
 
     public function dashboard(): string {
-        if (count($this->servers) === 0) {
+        if ($this->servers === []) {
             return 'No servers';
         }
 

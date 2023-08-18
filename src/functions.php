@@ -91,7 +91,7 @@ function autoload(string $path): void {
 
 if (!extension_loaded('xdebug')) {
     set_error_handler(static function (int $errno, string $errstr, string $errfile, int $errline): bool {
-        if (!(error_reporting() & $errno)) {
+        if ((error_reporting() & $errno) === 0) {
             return false;
         }
 

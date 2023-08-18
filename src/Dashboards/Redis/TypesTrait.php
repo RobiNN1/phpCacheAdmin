@@ -173,6 +173,7 @@ trait TypesTrait {
                     $this->redis->sRem($key, $old_value);
                     $this->redis->sAdd($key, $value);
                 }
+
                 break;
             case 'list':
                 $size = $this->redis->lLen($key);
@@ -188,6 +189,7 @@ trait TypesTrait {
                     Http::stopRedirect();
                     Helpers::alert($this->template, 'Out of bounds index.', 'bg-red-500');
                 }
+
                 break;
             case 'zset':
                 $this->redis->zRem($key, $old_value);

@@ -117,7 +117,7 @@ trait CommandTrait {
             }
 
             // Bug fix for gzipped keys
-            if ($array === true) {
+            if ($array) {
                 $lines = explode("\r\n", $buffer);
                 $buffer = array_pop($lines);
 
@@ -129,7 +129,7 @@ trait CommandTrait {
 
         fclose($stream);
 
-        return $array === true ? $data : rtrim($buffer, "\r\n");
+        return $array ? $data : rtrim($buffer, "\r\n");
     }
 
     private function commandName(string $command): string {

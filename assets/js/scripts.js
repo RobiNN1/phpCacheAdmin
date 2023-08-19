@@ -132,22 +132,21 @@ if (check_all) {
  */
 const json_syntax_highlight = (json) => {
     return json.replace(
-        /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?|[\[\]{}:,s])/g,
+        /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?|[[\]{}:,s])/g,
         function (match) {
-            if (/^"/.test(match)) {
+            if (match.startsWith("\"")) {
                 if (/"(\w+)":/.test(match)) {
-                    return `<span class="json-key text-emerald-500">${match.replace('":', '"')}</span>
-                            <span class="json-colon text-gray-900">:</span>`;
+                    return `<span class="json-key text-emerald-500">${match.replace('":', '"')}</span><span class="json-colon text-gray-900">:</span>`;
                 } else {
                     return `<span class="json-string text-amber-500">${match}</span>`;
                 }
-            } else if (/[\[\]{}]/.test(match)) {
+            } else if (/[[\]{}]/.test(match)) {
                 return `<span class="json-bracket text-gray-900">${match}</span>`;
             } else if (/true|false/.test(match)) {
                 return `<span class="json-boolean text-blue-500">${match}</span>`;
             } else if (/null/.test(match)) {
                 return `<span class="json-null text-rose-500">${match}</span>`;
-            } else if (/^-?\d+(?:\.\d+)?(?:[eE][+\-]?\d+)?$/.test(match)) {
+            } else if (/^-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?$/.test(match)) {
                 return `<span class="json-number text-violet-500">${match}</span>`;
             } else if (match === ',') {
                 return `<span class="json-comma text-gray-900">${match}</span>`;

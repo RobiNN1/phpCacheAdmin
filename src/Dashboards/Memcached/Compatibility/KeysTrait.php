@@ -63,7 +63,7 @@ trait KeysTrait {
     }
 
     /**
-     * Check if key exists.
+     * Check if the key exists.
      *
      * @throws MemcachedException
      */

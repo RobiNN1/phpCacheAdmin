@@ -93,7 +93,7 @@ class Helpers {
     /**
      * Return key(s) as JSON.
      *
-     * This method exists mainly as helper for tests.
+     * This method exists mainly as a helper for tests.
      *
      * @param array<int, string>|string|null $keys
      *

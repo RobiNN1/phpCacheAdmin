@@ -60,7 +60,7 @@ class Paginator {
         $total_pages = (int) ceil($this->total / $this->per_page);
 
         if ($total_pages > 1 && $this->page <= $total_pages) {
-            $pages[] = 1; // always show first page
+            $pages[] = 1; // always show the first page
 
             $i = max(2, $this->page - 3);
 
@@ -78,7 +78,7 @@ class Paginator {
                 $pages[] = '...';
             }
 
-            $pages[] = $total_pages; // always show last page
+            $pages[] = $total_pages; // always show the last page
         }
 
         return $pages;

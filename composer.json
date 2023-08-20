@@ -9,6 +9,7 @@
     "memcached",
     "opcache",
     "apcu",
+    "realpath",
     "cache",
     "admin",
     "dashboard",

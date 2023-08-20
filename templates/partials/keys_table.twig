@@ -1,19 +1,26 @@
+{% set show_actions = hide_actions is not defined or hide_actions == false %}
 <div class="mb-3 rounded bg-white shadow-sm shadow-gray-300">
     <div class="overflow-hidden overflow-x-auto">
         <table class="w-full table-auto text-left">
             <thead>
             <tr class="bg-primary-100 text-primary-900">
-                <th class="pl-6 px-3 py-2 w-4 rounded-tl">{{ include('components/checkbox.twig', {disabled: keys|length == 0, class: 'check-all'}) }}</th>
+                {% if show_actions %}
+                    <th class="pl-6 px-3 py-2 w-4 rounded-tl">{{ include('components/checkbox.twig', {disabled: keys|length == 0, class: 'check-all'}) }}</th>
+                {% endif %}
                 {% for item in head_items %}
                     <th class="px-3 py-2 text-xs font-bold uppercase whitespace-nowrap{{ item.class|space }}">{{ item.title }}</th>
                 {% endfor %}
-                <th class="px-3 py-2 text-xs font-bold uppercase whitespace-nowrap rounded-tr w-24">Actions</th>
+                {% if show_actions %}
+                    <th class="px-3 py-2 text-xs font-bold uppercase whitespace-nowrap rounded-tr w-24">Actions</th>
+                {% endif %}
             </tr>
             </thead>
             <tbody>
             {% for key in keys %}
                 <tr class="[&:last-child>*]:border-b-0" data-key="{{ key.base64 ? key.key|base64 : key.key }}">
-                    <td class="pl-6 px-3 py-2 border-b border-gray-100">{{ include('components/checkbox.twig', {class: 'check-key'}) }}</td>
+                    {% if show_actions %}
+                        <td class="pl-6 px-3 py-2 border-b border-gray-100">{{ include('components/checkbox.twig', {class: 'check-key'}) }}</td>
+                    {% endif %}
                     {% for item_key, item in key.items %}
                         {% set td_class = item_key == 'title' or (item_key == 'link_title' and view_key) ? ' max-w-xs truncate hover:text-clip hover:break-all hover:whitespace-normal' : '' %}
                         <td class="px-3 py-2 border-b border-gray-100 text-sm{{ td_class }}{{ classes[loop.index]|space }}">
@@ -34,15 +41,17 @@
                             {% endif %}
                         </td>
                     {% endfor %}
-                    <td class="px-3 py-2 border-b border-gray-100 text-sm whitespace-nowrap">
-                        <button class="delete-key text-red-500 hover:text-red-700 font-semibold inline-flex items-center" type="button" title="Delete">
-                            {{ svg('trash', 16, 'mr-1') }} Delete
-                        </button>
-                    </td>
+                    {% if show_actions %}
+                        <td class="px-3 py-2 border-b border-gray-100 text-sm whitespace-nowrap">
+                            <button class="delete-key text-red-500 hover:text-red-700 font-semibold inline-flex items-center" type="button" title="Delete">
+                                {{ svg('trash', 16, 'mr-1') }} Delete
+                            </button>
+                        </td>
+                    {% endif %}
                 </tr>
             {% else %}
                 <tr>
-                    <td colspan="{{ head_items|length + 2 }}" class="p-5 text-center">No keys.</td>
+                    <td colspan="{{ head_items|length + (show_actions ? 2 : 0) }}" class="p-5 text-center">No keys.</td>
                 </tr>
             {% endfor %}
             </tbody>

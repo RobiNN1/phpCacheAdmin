@@ -81,18 +81,21 @@ keys.forEach(key => {
         });
     }
 
-    key.querySelector('.delete-key').addEventListener('click', () => {
-        if (!window.confirm('Are you sure you want to remove this item?')) {
-            return;
-        }
-
-        ajax('delete', function (request) {
-            if (this.status >= 200 && this.status < 400) {
-                document.getElementById('alerts').innerHTML = request.currentTarget.response;
-                key.remove();
+    const delete_key = key.querySelector('.delete-key');
+    if (delete_key) {
+        delete_key.addEventListener('click', () => {
+            if (!window.confirm('Are you sure you want to remove this item?')) {
+                return;
             }
-        }, key.dataset.key);
-    });
+
+            ajax('delete', function (request) {
+                if (this.status >= 200 && this.status < 400) {
+                    document.getElementById('alerts').innerHTML = request.currentTarget.response;
+                    key.remove();
+                }
+            }, key.dataset.key);
+        });
+    }
 });
 
 const delete_all = document.getElementById('delete_all');

@@ -27,11 +27,13 @@
             class: 'mr-1 ml-1',
         }) }}
 
-        {{ include('components/button.twig', {
-            text: 'Delete selected',
-            icon: 'trash',
-            id: 'delete_selected',
-            btn_red: true,
-        }) }}
+        {% if delete_selected_btn is not defined or delete_selected_btn == true %}
+            {{ include('components/button.twig', {
+                text: 'Delete selected',
+                icon: 'trash',
+                id: 'delete_selected',
+                btn_red: true,
+            }) }}
+        {% endif %}
     {% endif %}
 </div>

@@ -17,16 +17,38 @@ use DateTimeZone;
 use Exception;
 
 class Format {
-    public static function bytes(int $bytes): string {
+    public static function bytes(int $bytes, int $decimals = 2): string {
         if ($bytes > 1_048_576) {
-            return sprintf('%sMB', self::number($bytes / 1_048_576, 2));
+            return sprintf('%sMB', self::number($bytes / 1_048_576, $decimals));
         }
 
         if ($bytes > 1024) {
-            return sprintf('%sKB', self::number($bytes / 1024, 2));
+            return sprintf('%sKB', self::number($bytes / 1024, $decimals));
         }
 
-        return sprintf('%sB', self::number($bytes, 2));
+        return sprintf('%sB', self::number($bytes, $decimals));
+    }
+
+    /**
+     * @link https://www.php.net/manual/en/faq.using.php#faq.using.shorthandbytes
+     */
+    public static function iniSizeToBytes(string $ini_size): int {
+        $size = (int) substr($ini_size, 0, -1);
+        $unit = strtoupper(substr($ini_size, -1));
+
+        switch ($unit) {
+            case 'K':
+                $size *= 1024;
+                break;
+            case 'M':
+                $size *= 1024 * 1024;
+                break;
+            case 'G':
+                $size *= 1024 * 1024 * 1024;
+                break;
+        }
+
+        return $size;
     }
 
     public static function seconds(int $time): string {

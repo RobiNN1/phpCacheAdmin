@@ -42,7 +42,7 @@ trait APCuTrait {
             [
                 'title' => 'Memory',
                 'data'  => [
-                    'Total' => Format::bytes((int) $total_memory),
+                    'Total' => Format::bytes((int) $total_memory, 0),
                     'Used'  => Format::bytes((int) $memory_used).' ('.$memory_usage_percentage.'%)',
                     'Free'  => Format::bytes((int) $memory_info['avail_mem']),
                 ],
@@ -50,6 +50,7 @@ trait APCuTrait {
             [
                 'title' => 'Stats',
                 'data'  => [
+                    'Slots'         => $info['num_slots'],
                     'Keys'          => Format::number((int) $info['num_entries']),
                     'Hits / Misses' => Format::number((int) $info['num_hits']).' / '.Format::number((int) $info['num_misses']).
                         ' (Rate '.round($hit_rate * 100, 2).'%)',

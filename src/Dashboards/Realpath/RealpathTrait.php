@@ -20,13 +20,23 @@ trait RealpathTrait {
      * @param array<string, mixed> $all_keys
      */
     private function panels(array $all_keys): string {
+        $total_memory = Format::iniSizeToBytes(ini_get('realpath_cache_size'));
+        $memory_used = realpath_cache_size();
+        $memory_usage_percentage = round(($memory_used / $total_memory) * 100, 2);
+
         $panels = [
             [
                 'title' => 'Realpath info',
                 'data'  => [
-                    'Total'      => ini_get('realpath_cache_size'),
-                    'Used'       => Format::bytes(realpath_cache_size()),
-                    'Cache keys' => Format::number(count($all_keys)),
+                    'Total' => Format::bytes($total_memory, 0),
+                    'Used'  => Format::bytes($memory_used).' ('.$memory_usage_percentage.'%)',
+                ],
+            ],
+            [
+                'title' => 'Keys',
+                'data'  => [
+                    'TTL'    => ini_get('realpath_cache_ttl'),
+                    'Cached' => Format::number(count($all_keys)),
                 ],
             ],
         ];

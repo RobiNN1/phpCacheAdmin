@@ -45,7 +45,7 @@ trait OPCacheTrait {
             [
                 'title' => 'Memory',
                 'data'  => [
-                    'Total'  => Format::bytes($total_memory),
+                    'Total'  => Format::bytes($total_memory, 0),
                     'Used'   => Format::bytes($memory['used_memory']).' ('.$memory_usage_percentage.'%)',
                     'Free'   => Format::bytes($memory['free_memory']),
                     'Wasted' => Format::bytes($memory['wasted_memory']).' ('.round($memory['current_wasted_percentage'], 2).'%)',

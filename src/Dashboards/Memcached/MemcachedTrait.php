@@ -48,7 +48,7 @@ trait MemcachedTrait {
                 [
                     'title' => 'Stats',
                     'data'  => [
-                        'Cache limit' => Format::bytes((int) $server_info['limit_maxbytes']),
+                        'Cache limit' => Format::bytes((int) $server_info['limit_maxbytes'], 0),
                         'Used'        => Format::bytes((int) $server_info['bytes']),
                         'Keys'        => Format::number(count($all_keys)), // Keys are loaded via sockets and not extension itself
                     ],

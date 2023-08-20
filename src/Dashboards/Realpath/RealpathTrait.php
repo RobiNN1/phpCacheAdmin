@@ -22,7 +22,7 @@ trait RealpathTrait {
     private function panels(array $all_keys): string {
         $panels = [
             [
-                'title' => 'Realpath Info',
+                'title' => 'Realpath info',
                 'data'  => [
                     'Total'      => ini_get('realpath_cache_size'),
                     'Used'       => Format::bytes(realpath_cache_size()),

@@ -12,6 +12,8 @@ declare(strict_types=1);
 
 namespace RobiNN\Pca\Dashboards\Server;
 
+use RobiNN\Pca\Helpers;
+
 trait ServerTrait {
     private function getDisabledFunctions(): string {
         $disabled_functions = 'None';
@@ -37,6 +39,7 @@ trait ServerTrait {
                     'PHP Interface'      => PHP_SAPI,
                     'Disabled functions' => $this->getDisabledFunctions(),
                     'Xdebug'             => extension_loaded('xdebug') ? 'Enabled - v'.phpversion('xdebug') : 'Disabled',
+                    'Realpath Cache (total/used)' => ini_get('realpath_cache_size') .'/'. Helpers::convertToReadableSize(realpath_cache_size())
                 ],
             ],
             [

@@ -16,11 +16,12 @@
 
 ## Installation
 
-Simply extract the content. If you use the defaults, everything should work out of the box.
+Just unzip the archive and launch index.php in a web browser.
+No installation is required.
+However, it is highly recommended (although not required) to run `composer install`.
 
-To customize the configuration file, do not edit `config.dist.php` directly, but copy it into `config.php`.
-
-Optional but highly recommended, run `composer install` before use.
+If you use the defaults (e.g. Redis, Memcached servers), everything should work out of the box.
+To customize the configuration, do not edit `config.dist.php` directly, but copy it into `config.php`.
 
 ## Updating
 
@@ -62,10 +63,6 @@ services:
     image: memcached
 ```
 
-> **Note**
->
-> It is not required to have both Redis and Memcached.
-
 #### Environment variables
 
 Redis:
@@ -90,7 +87,7 @@ Memcached:
 - `PCA_MEMCACHED_0_PORT` Optional when the default port is used.
 - `PCA_MEMCACHED_0_PATH` Unix domain socket (optional).
 
-> To add another server, add the same environment variables, but change 0 to 1 (2 for third server and so on).
+> To add another server, add the same environment variables, but change `0` to `1` (`2` for third server and so on).
 
 > All keys from the config file are supported ENV variables, they just must start with PCA_ prefix.
 
@@ -99,33 +96,29 @@ Memcached:
 - PHP >= 7.4
 - redis, memcache(d), opcache or apcu php extensions
 - Redis server >= 3.0.0
-- Memcached server >= 1.4.31 If you do not see the keys, you need to enable `lru_crawler`. (SASL is not supported because there is no way to get the keys.)
+- Memcached server >= 1.4.31. If you do not see the keys, you need to enable `lru_crawler`. (SASL is not supported because there is no way to get the keys.)
 
-> **Note**
->
-> For better performance, always use extensions, however:
-> - If the Redis extension is not installed, the system will use a Predis client (if you are using composer, install Predis manually via `composer require predis/predis`).
-> - If the Memcache(d) extension is not installed, the system will use a custom PHPMem client.
+> It is not necessary to have all dashboards enabled.
 
 ## Custom Dashboards
 
 - [FileCache](https://github.com/RobiNN1/FileCache-Dashboard) ([`robinn/cache`](https://github.com/RobiNN1/Cache)) dashboard.
 
-## Testing
+## Development
 
-PHPUnit
+###### PHPUnit
 
 ```
 composer test
 ```
 
-PHPStan
+###### PHPStan
 
 ```
 composer phpstan
 ```
 
-## Development
+###### Tailwind CSS
 
 For compiling Tailwind CSS run `npm install` and then
 `npm run build` or `npm run watch` for auto-compiling.

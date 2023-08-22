@@ -164,7 +164,6 @@ document.querySelectorAll('.json-code').forEach(value => {
     value.innerHTML = json_syntax_highlight(value.innerHTML);
 });
 
-
 /**
  * Redirects
  */
@@ -183,7 +182,7 @@ if (import_btn) {
 }
 
 /**
- * Search key
+ * Search form
  */
 const search_form = document.getElementById('search_form');
 if (search_form) {
@@ -196,6 +195,13 @@ if (search_form) {
     search_key.addEventListener('keypress', e => {
         if (e.key === 'Enter') {
             submit_search.click();
+        }
+    });
+
+    document.addEventListener('keydown', e => {
+        if (e.key === '/') {
+            e.preventDefault();
+            search_key.focus();
         }
     });
 }

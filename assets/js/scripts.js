@@ -76,7 +76,7 @@ if (delete_selected) {
 const keys = document.querySelectorAll('[data-key]');
 keys.forEach(key => {
     if (delete_selected) {
-        key.querySelector('.check-key').addEventListener('change', function () {
+        key.querySelector('.check-key').addEventListener('change', () => {
             delete_selected.disabled = document.querySelectorAll('.check-key:checked').length < 1;
         });
     }
@@ -136,7 +136,7 @@ if (check_all) {
 const json_syntax_highlight = (json) => {
     return json.replace(
         /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?|[[\]{}:,s])/g,
-        function (match) {
+        match => {
             if (match.startsWith("\"")) {
                 if (/"(\w+)":/.test(match)) {
                     return `<span class="json-key text-emerald-500">${match.replace('":', '"')}</span><span class="json-colon text-gray-900">:</span>`;

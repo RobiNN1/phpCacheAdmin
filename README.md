@@ -65,13 +65,19 @@ services:
 
 #### Environment variables
 
+All keys from the [config](https://github.com/RobiNN1/phpCacheAdmin/blob/master/config.dist.php) file are supported ENV variables,
+they just must start with `PCA_` prefix.
+
+Options with an array can be set using "dot notation" but use `_` instead of a dot.
+Or you can even use JSON (e.g. Redis SSL option).
+
 Redis:
 
 - `PCA_REDIS_0_NAME` The server name (optional).
 - `PCA_REDIS_0_HOST` Optional when a path is specified.
 - `PCA_REDIS_0_PORT` Optional when the default port is used.
 - `PCA_REDIS_0_SCHEME` Connection scheme (optional).
-- `PCA_REDIS_0_SSL` [SSL options](https://www.php.net/manual/en/context.ssl.php) for TLS - requires Redis >= 6.0 (optional). You can set value as JSON `{"local_cert":"path/to/redis.crt","local_pk":"path/to/redis.key","cafile":"path/to/ca.crt","verify_peer_name":false}`.
+- `PCA_REDIS_0_SSL` [SSL options](https://www.php.net/manual/en/context.ssl.php) for TLS. Requires Redis >= 6.0 (optional). You can set value as JSON `{"local_cert":"path/to/redis.crt","local_pk":"path/to/redis.key","cafile":"path/to/ca.crt","verify_peer_name":false}`.
 - `PCA_REDIS_0_DATABASE` Default database (optional).
 - `PCA_REDIS_0_USERNAME` ACL - requires Redis >= 6.0 (optional).
 - `PCA_REDIS_0_PASSWORD` Optional.
@@ -88,8 +94,6 @@ Memcached:
 - `PCA_MEMCACHED_0_PATH` Unix domain socket (optional).
 
 > To add another server, add the same environment variables, but change `0` to `1` (`2` for third server and so on).
-
-> All keys from the config file are supported ENV variables, they just must start with PCA_ prefix.
 
 ## Requirements
 

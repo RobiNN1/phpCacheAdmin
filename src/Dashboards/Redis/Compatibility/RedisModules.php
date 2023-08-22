@@ -14,7 +14,7 @@ namespace RobiNN\Pca\Dashboards\Redis\Compatibility;
 
 use RedisException;
 
-trait ModuleTrait {
+trait RedisModules {
     /**
      * @return array<int, array<string, int|string>>
      */

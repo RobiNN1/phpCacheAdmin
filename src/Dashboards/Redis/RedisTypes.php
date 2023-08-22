@@ -16,7 +16,7 @@ use Exception;
 use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
 
-trait TypesTrait {
+trait RedisTypes {
     /**
      * Get all data types.
      *

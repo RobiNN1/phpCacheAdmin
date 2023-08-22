@@ -14,7 +14,7 @@ namespace RobiNN\Pca\Dashboards\Redis\Compatibility;
 
 use RedisException;
 
-trait JsonTrait {
+trait RedisJson {
     /**
      * @return mixed
      *

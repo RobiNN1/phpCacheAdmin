@@ -16,8 +16,8 @@ use RedisException;
 use RobiNN\Pca\Dashboards\DashboardException;
 
 class Redis extends \Redis implements CompatibilityInterface {
-    use JsonTrait;
-    use ModuleTrait;
+    use RedisJson;
+    use RedisModules;
 
     /**
      * @var array<int|string, string>

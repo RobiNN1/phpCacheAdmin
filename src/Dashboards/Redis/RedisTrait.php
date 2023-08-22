@@ -24,7 +24,7 @@ use RobiNN\Pca\Paginator;
 use RobiNN\Pca\Value;
 
 trait RedisTrait {
-    use TypesTrait;
+    use RedisTypes;
 
     private function panels(): string {
         if (extension_loaded('redis')) {

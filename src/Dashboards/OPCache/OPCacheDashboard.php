@@ -49,19 +49,17 @@ class OPCacheDashboard implements DashboardInterface {
     }
 
     public function ajax(): string {
-        $return = '';
-
         if (isset($_GET['deleteall']) && opcache_reset()) {
-            $return = $this->template->render('components/alert', [
+            return $this->template->render('components/alert', [
                 'message' => 'Cache has been cleaned.',
             ]);
         }
 
         if (isset($_GET['delete'])) {
-            $return = Helpers::deleteKey($this->template, static fn (string $key): bool => opcache_invalidate($key, true));
+            return Helpers::deleteKey($this->template, static fn (string $key): bool => opcache_invalidate($key, true));
         }
 
-        return $return;
+        return '';
     }
 
     public function dashboard(): string {

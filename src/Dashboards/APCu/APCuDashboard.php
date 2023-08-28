@@ -49,32 +49,33 @@ class APCuDashboard implements DashboardInterface {
     }
 
     public function ajax(): string {
-        $return = '';
-
         if (isset($_GET['deleteall']) && apcu_clear_cache()) {
-            $return = $this->template->render('components/alert', [
+            return $this->template->render('components/alert', [
                 'message' => 'Cache has been cleaned.',
             ]);
         }
 
         if (isset($_GET['delete'])) {
-            $return = Helpers::deleteKey($this->template, static fn (string $key): bool => apcu_delete($key), true);
+            return Helpers::deleteKey($this->template, static fn (string $key): bool => apcu_delete($key), true);
         }
 
-        return $return;
+        return '';
     }
 
     public function dashboard(): string {
         if (isset($_GET['moreinfo'])) {
-            $return = $this->moreInfo();
-        } elseif (isset($_GET['view'], $_GET['key'])) {
-            $return = $this->viewKey();
-        } elseif (isset($_GET['form'])) {
-            $return = $this->form();
-        } else {
-            $return = $this->mainDashboard();
+            return $this->moreInfo();
         }
 
-        return $return;
+        if (isset($_GET['view'], $_GET['key'])) {
+            return $this->viewKey();
+        }
+
+        if (isset($_GET['form'])) {
+            return $this->form();
+        }
+
+        return $this->mainDashboard();
+
     }
 }

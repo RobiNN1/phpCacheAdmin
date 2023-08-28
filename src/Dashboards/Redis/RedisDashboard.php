@@ -100,23 +100,21 @@ class RedisDashboard implements DashboardInterface {
     }
 
     public function ajax(): string {
-        $return = '';
-
         try {
             $this->redis = $this->connect($this->servers[$this->current_server]);
 
             if (isset($_GET['deleteall'])) {
-                $return = $this->deleteAllKeys();
+                return $this->deleteAllKeys();
             }
 
             if (isset($_GET['delete'])) {
-                $return = Helpers::deleteKey($this->template, fn (string $key): bool => $this->redis->del($key) > 0, true);
+                return Helpers::deleteKey($this->template, fn (string $key): bool => $this->redis->del($key) > 0, true);
             }
         } catch (DashboardException|Exception $e) {
-            $return = $e->getMessage();
+            return $e->getMessage();
         }
 
-        return $return;
+        return '';
     }
 
     public function dashboard(): string {
@@ -128,18 +126,20 @@ class RedisDashboard implements DashboardInterface {
             $this->redis = $this->connect($this->servers[$this->current_server]);
 
             if (isset($_GET['moreinfo'])) {
-                $return = $this->moreInfo();
-            } elseif (isset($_GET['view'], $_GET['key'])) {
-                $return = $this->viewKey();
-            } elseif (isset($_GET['form'])) {
-                $return = $this->form();
-            } else {
-                $return = $this->mainDashboard();
+                return $this->moreInfo();
             }
+
+            if (isset($_GET['view'], $_GET['key'])) {
+                return $this->viewKey();
+            }
+
+            if (isset($_GET['form'])) {
+                return $this->form();
+            }
+
+            return $this->mainDashboard();
         } catch (DashboardException|Exception $e) {
             return $e->getMessage();
         }
-
-        return $return;
     }
 }

@@ -40,17 +40,15 @@ class RealpathDashboard implements DashboardInterface {
     }
 
     public function ajax(): string {
-        $return = '';
-
         if (isset($_GET['deleteall'])) {
             clearstatcache(true);
 
-            $return = $this->template->render('components/alert', [
+            return $this->template->render('components/alert', [
                 'message' => 'Cache has been cleaned.',
             ]);
         }
 
-        return $return;
+        return '';
     }
 
     public function dashboard(): string {

@@ -16,11 +16,11 @@
     {%- endif %}
 
 </head>
-<body class="bg-gray-50 text-gray-900" data-dashboard="{{ current }}">
-<aside id="sidebar" class="hidden md:block bg-primary-500 fixed top-0 left-0 bottom-0 w-56 overflow-hidden overflow-y-auto py-4 pt-6 px-6 shadow-sm shadow-gray-500">
-    <div class="h-full px-0 flex flex-col justify-between">
+<body class="bg-gray-50 text-gray-900 md:ml-56" data-dashboard="{{ current }}">
+<aside id="sidebar" class="z-50 -translate-x-full md:translate-x-0 bg-primary-500 fixed top-0 left-0 bottom-0 w-56 overflow-hidden overflow-y-auto py-4 pt-6 px-6 shadow-sm shadow-gray-500">
+    <div class="h-full px-0 flex flex-col justify-between pt-7 md:pt-0">
         <div>
-            <a class="hidden pb-2 text-white md:block md:pb-5" href="{{ repo }}" target="_blank" rel="noopener">{{ svg('logo', null) }}</a>
+            <a class="hidden text-white md:block pb-5" href="{{ repo }}" target="_blank" rel="noopener">{{ svg('logo', null) }}</a>
             {% for link, item in nav %}
                 <a class="flex items-center py-2{{ current == link ? ' font-bold' : '' }} text-white hover:text-gray-200" href="?type={{ link }}">
                     {{ svg(item.icon, 16, 'mr-1' ~ (current == link ? '' : ' opacity-75')) }} {{~ item.title ~}}
@@ -41,7 +41,7 @@
         </footer>
     </div>
 </aside>
-<main class="relative md:ml-56 p-5" id="maincontent">
+<main class="relative p-5" id="maincontent">
     <header class="pb-5 relative flex flex-col justify-between md:hidden">
         <div class="flex justify-items-stretch">
             <button class="z-50 block" type="button" id="togglebtn">{{ svg('menu', 20) }}</button>

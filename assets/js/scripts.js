@@ -38,9 +38,11 @@ const select_and_redirect = (id, param) => {
 /**
  * Sidebar toggle
  */
-document.getElementById('togglebtn').addEventListener('click', () => {
-    document.getElementById('sidebar').classList.toggle('hidden');
-    document.getElementById('maincontent').classList.toggle('ml-56');
+const togglebtn = document.getElementById('togglebtn');
+togglebtn.addEventListener('click', () => {
+    togglebtn.classList.toggle('text-white');
+    togglebtn.classList.toggle('fixed');
+    document.getElementById('sidebar').classList.toggle('-translate-x-full');
 });
 
 /**

@@ -105,7 +105,6 @@ trait APCuTrait {
         return $this->template->render('partials/view_key', [
             'key'        => $key,
             'value'      => $formatted_value,
-            'type'       => 'string', // Checking the original data type with gettype() can affect performance.
             'ttl'        => Format::seconds($ttl),
             'size'       => Format::bytes(strlen($value)),
             'encode_fn'  => $encode_fn,

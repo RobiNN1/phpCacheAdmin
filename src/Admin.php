@@ -44,7 +44,7 @@ class Admin {
     }
 
     public function currentDashboard(): string {
-        $current = Http::get('type', '');
+        $current = Http::get('dashboard', '');
         $dashboards = $this->getDashboards();
 
         return array_key_exists($current, $dashboards) ? $current : array_key_first($dashboards);

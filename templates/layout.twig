@@ -22,7 +22,7 @@
         <div>
             <a class="hidden text-white md:block pb-5" href="{{ repo }}" target="_blank" rel="noopener">{{ svg('logo', null) }}</a>
             {% for link, item in nav %}
-                <a class="flex items-center py-2{{ current == link ? ' font-bold' : '' }} text-white hover:text-gray-200" href="?type={{ link }}">
+                <a class="flex items-center py-2{{ current == link ? ' font-bold' : '' }} text-white hover:text-gray-200" href="?dashboard={{ link }}">
                     {{ svg(item.icon, 16, 'mr-1' ~ (current == link ? '' : ' opacity-75')) }} {{~ item.title ~}}
                 </a>
             {% endfor %}

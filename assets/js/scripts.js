@@ -1,7 +1,7 @@
 const ajax = (endpoint, callback, data = null) => {
     let url = window.location.href;
     url += url.includes('?') ? '&' : '?';
-    url += !url.includes('type=') ? `type=${document.body.dataset.dashboard}&` : '';
+    url += !url.includes('dashboard=') ? `dashboard=${document.body.dataset.dashboard}&` : '';
 
     const request = new XMLHttpRequest();
     request.open((data === null ? 'GET' : 'POST'), `${url}ajax&${endpoint}`, true);

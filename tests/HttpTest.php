@@ -17,14 +17,14 @@ use RobiNN\Pca\Http;
 
 final class HttpTest extends TestCase {
     public function testQueryString(): void {
-        $_SERVER['REQUEST_URI'] = '/?type=server';
-        $this->assertSame('?type=server&param1=yes', Http::queryString([], ['param1' => 'yes']));
+        $_SERVER['REQUEST_URI'] = '/?dashboard=server';
+        $this->assertSame('?dashboard=server&param1=yes', Http::queryString([], ['param1' => 'yes']));
 
-        $_SERVER['REQUEST_URI'] = '/?type=redis&server=6&p=3';
-        $this->assertSame('?type=redis&server=6', Http::queryString(['server']));
+        $_SERVER['REQUEST_URI'] = '/?dashboard=redis&server=6&p=3';
+        $this->assertSame('?dashboard=redis&server=6', Http::queryString(['server']));
 
-        $_SERVER['REQUEST_URI'] = '/?type=redis&server=6&p=3&random=query&&view=key';
-        $this->assertSame('?type=redis&server=6&view=key&key=test', Http::queryString(['server', 'view'], ['key' => 'test']));
+        $_SERVER['REQUEST_URI'] = '/?dashboard=redis&server=6&p=3&random=query&&view=key';
+        $this->assertSame('?dashboard=redis&server=6&view=key&key=test', Http::queryString(['server', 'view'], ['key' => 'test']));
     }
 
     public function testGetString(): void {

@@ -59,13 +59,13 @@ class MemcachedDashboard implements DashboardInterface {
             'key'    => 'memcached',
             'title'  => 'Memcached',
             'colors' => [
-                100 => '#d1fae5',
-                200 => '#a7f3d0',
-                300 => '#6ee7b7',
-                500 => '#10b981',
-                600 => '#059669',
-                700 => '#047857',
-                900 => '#064e3b',
+                100 => '#d4f3ec',
+                200 => '#a9e6db',
+                300 => '#75d3c5',
+                500 => '#2b8e84',
+                600 => '#247d76',
+                700 => '#206560',
+                900 => '#1d4441',
             ],
         ];
     }

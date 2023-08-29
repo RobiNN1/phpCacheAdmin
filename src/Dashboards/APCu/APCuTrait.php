@@ -96,7 +96,7 @@ trait APCuTrait {
             Http::redirect();
         }
 
-        [$value, $encode_fn, $is_formatted] = Value::format($value);
+        [$formatted_value, $encode_fn, $is_formatted] = Value::format($value);
 
         $key_data = apcu_key_info($key);
 
@@ -104,7 +104,7 @@ trait APCuTrait {
 
         return $this->template->render('partials/view_key', [
             'key'        => $key,
-            'value'      => $value,
+            'value'      => $formatted_value,
             'type'       => 'string', // Checking the original data type with gettype() can affect performance.
             'ttl'        => Format::seconds($ttl),
             'size'       => Format::bytes(strlen($value)),

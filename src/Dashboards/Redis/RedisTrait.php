@@ -125,14 +125,14 @@ trait RedisTrait {
                 }
             }
 
-            [$value, $encode_fn, $is_formatted] = Value::format($item_value);
+            [$formatted_value, $encode_fn, $is_formatted] = Value::format($item_value);
 
             $items[] = [
                 'key'       => $item_key,
-                'value'     => $value,
+                'value'     => $formatted_value,
                 'encode_fn' => $encode_fn,
                 'formatted' => $is_formatted,
-                'sub_key'   => $type === 'zset' ? (string) $this->redis->zScore($key, $value) : $item_key,
+                'sub_key'   => $type === 'zset' ? (string) $this->redis->zScore($key, $item_value) : $item_key,
             ];
         }
 

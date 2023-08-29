@@ -113,14 +113,14 @@ trait MemcachedTrait {
 
         $value = $this->memcached->getKey($key);
 
-        [$value, $encode_fn, $is_formatted] = Value::format($value);
+        [$formatted_value, $encode_fn, $is_formatted] = Value::format($value);
 
         $ttl = Http::get('ttl', 0);
         $ttl = $ttl === 0 ? -1 : $ttl;
 
         return $this->template->render('partials/view_key', [
             'key'        => $key,
-            'value'      => $value,
+            'value'      => $formatted_value,
             'type'       => null,
             'ttl'        => Format::seconds($ttl),
             'size'       => Format::bytes(strlen($value)),

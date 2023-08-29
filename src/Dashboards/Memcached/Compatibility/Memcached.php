@@ -13,7 +13,7 @@ declare(strict_types=1);
 namespace RobiNN\Pca\Dashboards\Memcached\Compatibility;
 
 class Memcached extends \Memcached implements CompatibilityInterface {
-    use KeysTrait;
+    use MemcachedKeys;
 
     /**
      * @var array<string, int|string>

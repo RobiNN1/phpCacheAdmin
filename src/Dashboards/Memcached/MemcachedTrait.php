@@ -121,7 +121,6 @@ trait MemcachedTrait {
         return $this->template->render('partials/view_key', [
             'key'        => $key,
             'value'      => $formatted_value,
-            'type'       => null,
             'ttl'        => Format::seconds($ttl),
             'size'       => Format::bytes(strlen($value)),
             'encode_fn'  => $encode_fn,
@@ -205,7 +204,6 @@ trait MemcachedTrait {
                     'ttl'   => $ttl,
                     'items' => [
                         'link_title' => $key,
-                        'type'       => 'string', // In Memcached everything is stored as a string. Calling gettype() will slow down page loading.
                         'ttl'        => $ttl === -1 ? 'Doesn\'t expire' : $ttl,
                     ],
                 ];

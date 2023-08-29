@@ -60,13 +60,13 @@ class RedisDashboard implements DashboardInterface {
             'key'    => 'redis',
             'title'  => 'Redis',
             'colors' => [
-                100 => '#fee2e2',
-                200 => '#fecaca',
-                300 => '#fca5a5',
-                500 => '#ef4444',
-                600 => '#dc2626',
-                700 => '#b91c1c',
-                900 => '#7f1d1d',
+                100 => '#fee4e2',
+                200 => '#fececa',
+                300 => '#fcaba5',
+                500 => '#ee5145',
+                600 => '#dc382c',
+                700 => '#b8281d',
+                900 => '#7f241d',
             ],
         ];
     }

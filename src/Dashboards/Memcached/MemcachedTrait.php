@@ -203,8 +203,9 @@ trait MemcachedTrait {
                     'key'   => $key,
                     'ttl'   => $ttl,
                     'items' => [
-                        'link_title' => $key,
-                        'ttl'        => $ttl === -1 ? 'Doesn\'t expire' : $ttl,
+                        'link_title'       => $key,
+                        'time_last_access' => $key_data['la'],
+                        'ttl'              => $ttl === -1 ? 'Doesn\'t expire' : $ttl,
                     ],
                 ];
             }

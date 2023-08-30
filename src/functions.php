@@ -80,7 +80,6 @@ function autoload(string $path): void {
     spl_autoload_register(static function (string $class_name) use ($path): void {
         $class_name = str_replace("RobiNN\\Pca\\", '', $class_name);
         $filename = str_replace("\\", DIRECTORY_SEPARATOR, $class_name);
-
         $fullpath = $path.'src/'.$filename.'.php';
 
         if (is_file($fullpath)) {

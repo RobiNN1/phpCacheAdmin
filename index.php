@@ -10,25 +10,35 @@
 
 declare(strict_types=1);
 
+use Composer\InstalledVersions;
 use RobiNN\Pca\Admin;
 use RobiNN\Pca\Config;
 use RobiNN\Pca\Http;
 use RobiNN\Pca\Template;
 
 if (PHP_VERSION_ID < 70400) {
-    die('<strong>PHP >= 7.4 is required.</strong><br>Currently installed version is: '.PHP_VERSION);
+    die('<strong>PHP >= 7.4 is required.</strong><br>The current version of php is: '.PHP_VERSION);
 }
 
-// always display errors
+// Always display errors
 ini_set('display_errors', 'On');
 ini_set('display_startup_errors', 'On');
 error_reporting(E_ALL);
 
+$path = __DIR__.'/';
+
 if (is_file(__DIR__.'/vendor/autoload.php')) {
     require_once __DIR__.'/vendor/autoload.php';
+
+    if (!extension_loaded('redis') &&
+        InstalledVersions::isInstalled('predis/predis') === false &&
+        is_file($path.'predis.phar')
+    ) {
+        require_once 'phar://'.$path.'predis.phar/vendor/autoload.php';
+    }
 } else {
     require_once __DIR__.'/src/functions.php';
-    autoload(__DIR__.'/');
+    autoload($path);
 }
 
 if (is_callable(Config::get('auth'))) {

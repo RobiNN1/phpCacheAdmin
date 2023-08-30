@@ -7,8 +7,6 @@
   <tr>
     <td><img alt="Redis" src=".github/img/redis.png"></td>
     <td><img alt="Memcached" src=".github/img/memcached.png"></td>
-  </tr>
-  <tr>
     <td><img alt="OPCache" src=".github/img/opcache.png"></td>
     <td><img alt="APCu" src=".github/img/apcu.png"></td>
   </tr>

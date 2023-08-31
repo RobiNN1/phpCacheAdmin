@@ -49,7 +49,7 @@ trait RedisTypes {
      *
      * @return array<string, array<string, array<int, string>|string>>
      */
-    private function getTypesData(): array {
+    private function typesTplOptions(): array {
         return [
             'extra'  => [
                 'hide_title' => ['set'],
@@ -116,7 +116,7 @@ trait RedisTypes {
     }
 
     /**
-     * Get all key's values.
+     * Get all key values.
      *
      * Used in view page.
      *

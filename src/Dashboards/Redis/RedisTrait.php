@@ -224,7 +224,7 @@ trait RedisTrait {
             'export_url'     => Http::queryString(['db', 'view', 'p', 'key'], ['export' => 'key']),
             'delete_url'     => Http::queryString(['db', 'view'], ['delete' => 'key', 'key' => $key]),
             'paginator'      => $paginator,
-            'types'          => $this->getTypesData(),
+            'types'          => $this->typesTplOptions(),
         ]);
     }
 

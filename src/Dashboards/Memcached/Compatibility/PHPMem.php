@@ -118,7 +118,7 @@ class PHPMem implements CompatibilityInterface {
 
             $stats[$name] = $value;
 
-            ++$line_n;
+            $line_n++;
         }
 
         return $stats;

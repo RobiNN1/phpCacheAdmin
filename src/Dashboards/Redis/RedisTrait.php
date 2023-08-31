@@ -368,7 +368,7 @@ trait RedisTrait {
             $db_count = $dbs['databases'] ?? 1;
         }
 
-        for ($d = 0; $d < $db_count; ++$d) {
+        for ($d = 0; $d < $db_count; $d++) {
             $keyspace = $this->redis->getInfo('keyspace');
             $keys_in_db = '';
 

@@ -17,7 +17,7 @@ use RobiNN\Pca\Http;
 use RobiNN\Pca\Template;
 
 if (PHP_VERSION_ID < 70400) {
-    die('<strong>PHP >= 7.4 is required.</strong><br>The current version of php is: '.PHP_VERSION);
+    exit('<strong>PHP >= 7.4 is required.</strong><br>The current version of php is: '.PHP_VERSION);
 }
 
 // Always display errors

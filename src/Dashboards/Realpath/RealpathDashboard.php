@@ -13,6 +13,7 @@ declare(strict_types=1);
 namespace RobiNN\Pca\Dashboards\Realpath;
 
 use RobiNN\Pca\Dashboards\DashboardInterface;
+use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Paginator;
 use RobiNN\Pca\Template;
 
@@ -56,9 +57,7 @@ class RealpathDashboard implements DashboardInterface {
         if (isset($_GET['deleteall'])) {
             clearstatcache(true);
 
-            return $this->template->render('components/alert', [
-                'message' => 'Cache has been cleaned.',
-            ]);
+            return Helpers::alert($this->template, 'Cache has been cleaned.', 'success');
         }
 
         return '';

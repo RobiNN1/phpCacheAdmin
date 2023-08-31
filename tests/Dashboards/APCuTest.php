@@ -33,7 +33,7 @@ final class APCuTest extends TestCase {
      */
     private function deleteKeys($keys): void {
         $this->assertSame(
-            $this->template->render('components/alert', ['message' => (is_array($keys) ? 'Keys' : 'Key "'.$keys.'"').' has been deleted.']),
+            Helpers::alert($this->template, (is_array($keys) ? 'Keys' : 'Key "'.$keys.'"').' has been deleted.', 'success'),
             Helpers::deleteKey($this->template, static fn (string $key): bool => apcu_delete($key), true, $keys)
         );
     }

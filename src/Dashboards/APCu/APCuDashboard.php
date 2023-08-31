@@ -54,9 +54,7 @@ class APCuDashboard implements DashboardInterface {
 
     public function ajax(): string {
         if (isset($_GET['deleteall']) && apcu_clear_cache()) {
-            return $this->template->render('components/alert', [
-                'message' => 'Cache has been cleaned.',
-            ]);
+            return Helpers::alert($this->template, 'Cache has been cleaned.', 'success');
         }
 
         if (isset($_GET['delete'])) {

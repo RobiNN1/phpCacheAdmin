@@ -35,7 +35,7 @@ class Admin {
     /**
      * @return array<string, DashboardInterface>
      */
-    public function getDashboards(): array {
+    public function dashboards(): array {
         return $this->dashboards;
     }
 
@@ -45,7 +45,7 @@ class Admin {
 
     public function currentDashboard(): string {
         $current = Http::get('dashboard', '');
-        $dashboards = $this->getDashboards();
+        $dashboards = $this->dashboards();
 
         return array_key_exists($current, $dashboards) ? $current : array_key_first($dashboards);
     }

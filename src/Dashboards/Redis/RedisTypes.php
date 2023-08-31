@@ -187,7 +187,7 @@ trait RedisTypes {
                     $this->redis->lSet($key, (int) $index, $value);
                 } else {
                     Http::stopRedirect();
-                    Helpers::alert($this->template, 'Out of bounds index.', 'bg-red-500');
+                    Helpers::alert($this->template, 'Out of bounds index.', 'error');
                 }
 
                 break;

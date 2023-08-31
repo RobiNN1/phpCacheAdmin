@@ -32,11 +32,15 @@ class Helpers {
         return str_replace("\n", '', $svg);
     }
 
-    public static function alert(Template $template, string $message, ?string $color = null): void {
-        $template->addGlobal('alerts', $template->render('components/alert', [
+    public static function alert(Template $template, string $message, ?string $color = null): string {
+        $alert = $template->render('components/alert', [
             'message'     => $message,
-            'alert_color' => $color,
-        ]));
+            'alert_color' => $color, // success/error
+        ]);
+
+        $template->addGlobal('alerts', $alert);
+
+        return $alert;
     }
 
     /**
@@ -127,14 +131,17 @@ class Helpers {
             foreach ($keys as $key) {
                 $delete_key($base64 ? base64_decode($key) : $key);
             }
-            $message = 'Keys has been deleted.';
-        } elseif (is_string($keys) && $delete_key($base64 ? base64_decode($keys) : $keys)) {
-            $message = sprintf('Key "%s" has been deleted.', $base64 ? base64_decode($keys) : $keys);
-        } else {
-            $message = 'No keys are selected.';
+
+            return self::alert($template, 'Keys has been deleted.', 'success');
         }
 
-        return $template->render('components/alert', ['message' => $message]);
+        if (is_string($keys) && $delete_key($base64 ? base64_decode($keys) : $keys)) {
+            $message = sprintf('Key "%s" has been deleted.', $base64 ? base64_decode($keys) : $keys);
+
+            return self::alert($template, $message, 'success');
+        }
+
+        return self::alert($template, 'No keys are selected.');
     }
 
     public static function import(callable $exists, callable $store, string $type = 'text/plain'): void {

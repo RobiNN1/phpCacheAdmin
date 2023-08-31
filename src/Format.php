@@ -68,16 +68,17 @@ class Format {
         $minute_seconds = $hour_seconds % $seconds_in_hour;
         $minutes = floor($minute_seconds / $seconds_in_minute);
 
-        $remainingSeconds = $minute_seconds % $seconds_in_minute;
-        $seconds = ceil($remainingSeconds);
+        $remaining_seconds = $minute_seconds % $seconds_in_minute;
+        $seconds = ceil($remaining_seconds);
 
-        $time_parts = [];
         $sections = [
             'day'    => (int) $days,
             'hour'   => (int) $hours,
             'minute' => (int) $minutes,
             'second' => (int) $seconds,
         ];
+
+        $time_parts = [];
 
         foreach ($sections as $name => $value) {
             if ($value > 0) {

@@ -20,20 +20,20 @@ class Http {
     }
 
     /**
-     * Query string manipulation.
+     * Generate a query string based on the provided filter and additional parameters.
      *
-     * @param array<int|string, string>     $filter     Parameters to be preserved.
+     * @param array<int|string, string>     $preserve   Parameters to be preserved.
      * @param array<int|string, int|string> $additional Additional parameters with their new value.
      */
-    public static function queryString(array $filter = [], array $additional = []): string {
+    public static function queryString(array $preserve = [], array $additional = []): string {
         $keep = ['dashboard', 'server'];
-        $filter = array_flip(array_merge($keep, $filter));
+        $preserve = array_flip(array_merge($keep, $preserve));
         $query = [];
 
         if ($url = parse_url($_SERVER['REQUEST_URI'])) {
             parse_str($url['query'] ?? '', $query);
 
-            $query = array_intersect_key($query, $filter);
+            $query = array_intersect_key($query, $preserve);
         }
 
         $query += $additional;
@@ -51,13 +51,12 @@ class Http {
      * @return Type
      */
     public static function get(string $key, $default = null) {
-        $filter = FILTER_SANITIZE_FULL_SPECIAL_CHARS;
-
-        if (is_int($default)) {
-            $filter = FILTER_SANITIZE_NUMBER_INT;
+        if (!isset($_GET[$key])) {
+            return $default;
         }
 
-        $value = isset($_GET[$key]) ? filter_var($_GET[$key], $filter) : $default;
+        $filter = is_int($default) ? FILTER_SANITIZE_NUMBER_INT : FILTER_SANITIZE_FULL_SPECIAL_CHARS;
+        $value = filter_var($_GET[$key], $filter);
 
         return is_int($default) ? (int) $value : $value;
     }
@@ -72,24 +71,23 @@ class Http {
      * @return Type
      */
     public static function post(string $key, $default = null) {
-        $filter = FILTER_UNSAFE_RAW;
-
-        if (is_int($default)) {
-            $filter = FILTER_SANITIZE_NUMBER_INT;
+        if (!isset($_POST[$key])) {
+            return $default;
         }
 
-        $value = isset($_POST[$key]) ? filter_var($_POST[$key], $filter) : $default;
+        $filter = is_int($default) ? FILTER_SANITIZE_NUMBER_INT : FILTER_UNSAFE_RAW;
+        $value = filter_var($_POST[$key], $filter);
 
         return is_int($default) ? (int) $value : $value;
     }
 
     /**
-     * @param array<int|string, string>     $filter     Parameters to be preserved.
+     * @param array<int|string, string>     $preserve   Parameters to be preserved.
      * @param array<int|string, int|string> $additional Additional parameters with their new value.
      */
-    public static function redirect(array $filter = [], array $additional = []): void {
+    public static function redirect(array $preserve = [], array $additional = []): void {
         if (self::$stop_redirect === false) {
-            $location = self::queryString($filter, $additional);
+            $location = self::queryString($preserve, $additional);
 
             if (!headers_sent()) {
                 header('Location: '.$location);

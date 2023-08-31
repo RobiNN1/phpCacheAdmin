@@ -75,12 +75,10 @@ trait RedisTrait {
      */
     private function deleteAllKeys(): string {
         if ($this->redis->flushDB()) {
-            $message = 'All keys from the current database have been removed.';
-        } else {
-            $message = 'An error occurred while deleting all keys.';
+            return Helpers::alert($this->template, 'All keys from the current database have been removed.', 'success');
         }
 
-        return $this->template->render('components/alert', ['message' => $message]);
+        return Helpers::alert($this->template, 'An error occurred while deleting all keys.', 'error');
     }
 
     private function moreInfo(): string {
@@ -286,7 +284,7 @@ trait RedisTrait {
             try {
                 $type = $this->redis->getType($key);
             } catch (DashboardException $e) {
-                Helpers::alert($this->template, $e->getMessage());
+                Helpers::alert($this->template, $e->getMessage(), 'error');
                 $type = 'unknown';
             }
             $expire = $this->redis->ttl($key);

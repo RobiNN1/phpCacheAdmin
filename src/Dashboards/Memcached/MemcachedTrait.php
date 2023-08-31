@@ -66,12 +66,10 @@ trait MemcachedTrait {
      */
     private function deleteAllKeys(): string {
         if ($this->memcached->flush()) {
-            $message = 'All keys have been removed.';
-        } else {
-            $message = 'An error occurred while deleting all keys.';
+            return Helpers::alert($this->template, 'All keys have been removed.', 'success');
         }
 
-        return $this->template->render('components/alert', ['message' => $message]);
+        return Helpers::alert($this->template, 'An error occurred while deleting all keys.', 'error');
     }
 
     private function moreInfo(): string {

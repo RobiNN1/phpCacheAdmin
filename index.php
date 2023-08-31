@@ -51,7 +51,7 @@ $admin = new Admin($tpl);
 
 $nav = [];
 
-foreach ($admin->getDashboards() as $d_key => $d_dashboard) {
+foreach ($admin->dashboards() as $d_key => $d_dashboard) {
     $d_info = $d_dashboard->dashboardInfo();
     $nav[$d_key] = [
         'title' => $d_info['title'],

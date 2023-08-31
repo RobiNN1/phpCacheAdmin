@@ -33,7 +33,7 @@ trait OPCacheTrait {
 
         $panels = [
             [
-                'title'    => 'PHP OPCache extension <span class="font-semibold">v'.phpversion('Zend OPcache').'</span>',
+                'title'    => 'PHP OPCache extension <span>v'.phpversion('Zend OPcache').'</span>',
                 'moreinfo' => true,
                 'data'     => [
                     'JIT'          => isset($status['jit']) && $status['jit']['enabled'] ? 'Enabled' : 'Disabled',

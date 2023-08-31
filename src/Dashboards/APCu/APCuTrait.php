@@ -32,7 +32,7 @@ trait APCuTrait {
 
         $panels = [
             [
-                'title'    => 'PHP APCu extension <span class="font-semibold">v'.phpversion('apcu').'</span>',
+                'title'    => 'PHP APCu extension <span>v'.phpversion('apcu').'</span>',
                 'moreinfo' => true,
                 'data'     => [
                     'Start time'       => Format::time($info['start_time']),

@@ -37,13 +37,17 @@ class RealpathDashboard implements DashboardInterface {
             'key'    => 'realpath',
             'title'  => 'Realpath',
             'colors' => [
+                50  => '#f4f6fa',
                 100 => '#e6ebf3',
                 200 => '#d2dbeb',
                 300 => '#b3c3dd',
+                400 => '#8fa5cb',
                 500 => '#748abd',
                 600 => '#6172af',
                 700 => '#4f5b93',
+                800 => '#4a5283',
                 900 => '#3f4669',
+                950 => '#292d42',
             ],
         ];
     }

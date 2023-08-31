@@ -4,13 +4,17 @@
 
 @layer base {
     :root {
+        --primary-color-50: #f8fafc;
         --primary-color-100: #f1f5f9;
         --primary-color-200: #e2e8f0;
         --primary-color-300: #cbd5e1;
+        --primary-color-400: #94a3b8;
         --primary-color-500: #64748b;
         --primary-color-600: #475569;
         --primary-color-700: #334155;
+        --primary-color-800: #1e293b;
         --primary-color-900: #0f172a;
+        --primary-color-950: #020617;
     }
 }
 

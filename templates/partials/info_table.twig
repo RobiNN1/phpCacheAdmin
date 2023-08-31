@@ -1,19 +1,13 @@
 <div class="mb-3 rounded bg-white shadow-sm shadow-gray-300">
-    <div class="px-4 py-1.5">
+    <div class="border-b border-gray-100 px-4 py-1.5 bg-primary-50 text-primary-700 rounded-tl rounded-tr">
         <div class="flex flex-wrap items-center">
             <div class="relative w-full max-w-full flex-1 flex-grow">
-                <h2 class="text-primary-900 text-lg">{{ panel_title|raw }}</h2>
+                <h2 class="text-lg font-semibold">{{ panel_title|replace({'<span>' : '<span class="text-primary-900">'})|raw }}</h2>
             </div>
         </div>
     </div>
     <div class="w-full overflow-x-auto">
         <table class="w-full table-auto text-left">
-            <thead>
-            <tr class="bg-primary-100 text-primary-900">
-                <th class="px-4 py-2 text-xs font-bold uppercase whitespace-nowrap">Name</th>
-                <th class="px-4 py-2 text-xs font-bold uppercase whitespace-nowrap">Value</th>
-            </tr>
-            </thead>
             <tbody>
             {% for name, value in array %}
                 {% if value is iterable %}
@@ -45,7 +39,7 @@
         </table>
     </div>
     {% if moreinfo %}
-        <div class="border-t px-4 py-1 text-right">
+        <div class="border-t border-gray-100 px-4 py-1 text-right">
             {% set id = server_id is not null ? '&server=' ~ server_id : '' %}
             <a class="text-primary-500 hover:text-primary-700 font-semibold" href="?dashboard={{ current }}&moreinfo{{ id|raw }}">Show more info</a>
         </div>

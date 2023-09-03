@@ -6,7 +6,7 @@ RUN apt install -y git
 
 RUN pecl install redis && docker-php-ext-enable redis
 
-RUN apt install -y libz-dev libmemcached-dev && pecl install memcached && docker-php-ext-enable memcached
+RUN apt install -y libz-dev libmemcached-dev libssl-dev && pecl install memcached && docker-php-ext-enable memcached
 
 RUN docker-php-ext-enable opcache
 

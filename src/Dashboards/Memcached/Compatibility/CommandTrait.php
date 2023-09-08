@@ -139,7 +139,16 @@ trait CommandTrait {
     }
 
     private function checkCommandEnd(string $command, string $buffer): bool {
-        return in_array($this->commandName($command), $this->no_end, true) ||
-            preg_match('/^('.implode('|', $this->with_end).')/imu', $buffer);
+        if (in_array($this->commandName($command), $this->no_end, true)) {
+            return true;
+        }
+
+        foreach ($this->with_end as $ending) {
+            if (str_ends_with($buffer, $ending."\r\n")) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

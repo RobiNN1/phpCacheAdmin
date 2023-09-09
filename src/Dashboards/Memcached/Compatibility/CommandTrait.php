@@ -108,11 +108,12 @@ trait CommandTrait {
 
         $buffer = '';
         $data = [];
+        $start_time = time();
 
         while (!feof($stream)) {
             $buffer .= fgets($stream, 256);
 
-            if ($this->checkCommandEnd($command, $buffer)) {
+            if ($this->checkCommandEnd($command, $buffer) || time() - $start_time > 60) {
                 break;
             }
 

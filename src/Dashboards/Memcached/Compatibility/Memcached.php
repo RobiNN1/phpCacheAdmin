@@ -12,7 +12,7 @@ declare(strict_types=1);
 
 namespace RobiNN\Pca\Dashboards\Memcached\Compatibility;
 
-class Memcached extends \Memcached implements CompatibilityInterface {
+class Memcached extends \Memcached implements MemcachedCompatibilityInterface {
     use MemcachedKeys;
 
     /**

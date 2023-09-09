@@ -16,7 +16,7 @@ use Predis\Client;
 use Predis\Collection\Iterator\Keyspace;
 use RobiNN\Pca\Dashboards\DashboardException;
 
-class Predis extends Client implements CompatibilityInterface {
+class Predis extends Client implements RedisCompatibilityInterface {
     use RedisJson;
     use RedisModules;
 

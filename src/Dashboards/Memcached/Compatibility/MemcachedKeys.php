@@ -15,7 +15,7 @@ namespace RobiNN\Pca\Dashboards\Memcached\Compatibility;
 use RobiNN\Pca\Dashboards\Memcached\MemcachedException;
 
 trait MemcachedKeys {
-    use CommandTrait;
+    use RunCommand;
 
     /**
      * Get all the keys.

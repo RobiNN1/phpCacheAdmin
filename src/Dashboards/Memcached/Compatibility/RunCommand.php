@@ -14,7 +14,7 @@ namespace RobiNN\Pca\Dashboards\Memcached\Compatibility;
 
 use RobiNN\Pca\Dashboards\Memcached\MemcachedException;
 
-trait CommandTrait {
+trait RunCommand {
     /**
      * Unknown or incorrect commands can cause an infinite loop,
      * so only tested commands are allowed.

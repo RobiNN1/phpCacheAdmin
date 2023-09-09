@@ -14,7 +14,7 @@ namespace RobiNN\Pca\Dashboards\Redis\Compatibility;
 
 use RobiNN\Pca\Dashboards\DashboardException;
 
-interface CompatibilityInterface {
+interface RedisCompatibilityInterface {
     /**
      * Get a key type.
      *

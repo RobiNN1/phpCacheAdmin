@@ -14,7 +14,7 @@ namespace RobiNN\Pca\Dashboards\Memcached\Compatibility;
 
 use RobiNN\Pca\Dashboards\Memcached\MemcachedException;
 
-class PHPMem implements CompatibilityInterface {
+class PHPMem implements MemcachedCompatibilityInterface {
     use MemcachedKeys;
 
     public const VERSION = '1.1.0';

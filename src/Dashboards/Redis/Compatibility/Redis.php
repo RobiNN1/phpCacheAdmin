@@ -15,7 +15,7 @@ namespace RobiNN\Pca\Dashboards\Redis\Compatibility;
 use RedisException;
 use RobiNN\Pca\Dashboards\DashboardException;
 
-class Redis extends \Redis implements CompatibilityInterface {
+class Redis extends \Redis implements RedisCompatibilityInterface {
     use RedisJson;
     use RedisModules;
 

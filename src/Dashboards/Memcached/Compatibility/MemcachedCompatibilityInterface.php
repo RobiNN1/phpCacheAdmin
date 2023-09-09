@@ -12,7 +12,7 @@ declare(strict_types=1);
 
 namespace RobiNN\Pca\Dashboards\Memcached\Compatibility;
 
-interface CompatibilityInterface {
+interface MemcachedCompatibilityInterface {
     public function isConnected(): bool;
 
     /**

@@ -46,9 +46,8 @@ return [
             //'path' => '/var/run/memcached/memcached.sock', // Unix domain socket (optional).
         ],
     ],
-    /*'auth'        => static function (): void {
-        // Example of authentication with http auth.
-
+    // Example of authentication with http auth. Uncomment to enable it.
+    /*'auth'          => static function (): void {
         $username = 'admin';
         $password = 'pass';
 
@@ -59,12 +58,10 @@ return [
             header('WWW-Authenticate: Basic realm="phpCacheAdmin Login"');
             header('HTTP/1.0 401 Unauthorized');
 
-            echo 'Incorrect username or password!';
-            exit();
+            exit('Incorrect username or password!');
         }
 
-        // Use this section for the logout.
-        // It will display a link in the sidebar.
+        // Use this section for the logout. It will display a link in the sidebar.
         if (isset($_GET['logout'])) {
             $is_https = (
                 (isset($_SERVER['HTTPS']) && ($_SERVER['HTTPS'] === 'on' || $_SERVER['HTTPS'] === 1)) ||
@@ -74,7 +71,7 @@ return [
             header('Location: http'.($is_https ? 's' : '').'://reset:reset@'.($_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI']));
         }
     },*/
-    // Decoding/Encoding functions
+    // Decoding / Encoding functions
     'converters'    => [
         'gzcompress' => [
             'view' => static fn (string $value): ?string => extension_loaded('zlib') && @gzuncompress($value) !== false ? gzuncompress($value) : null,
@@ -91,9 +88,7 @@ return [
         /*'gz_magento' => [
             'view' => static function (string $value): ?string {
                 // https://github.com/colinmollenhour/Cm_Cache_Backend_Redis/blob/master/Cm/Cache/Backend/Redis.php#L1307-L1328
-                if (strpos($value, "gz:\x1f\x8b") === 0) {
-                    $value = substr($value, 5);
-                }
+                $value = str_starts_with($value, "gz:\x1f\x8b") ? (string) substr($value, 5) : $value;
 
                 return extension_loaded('zlib') && @gzuncompress($value) !== false ? gzuncompress($value) : null;
             },

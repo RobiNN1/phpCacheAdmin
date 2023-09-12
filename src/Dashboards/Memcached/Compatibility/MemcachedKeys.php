@@ -53,9 +53,10 @@ trait MemcachedKeys {
      * @throws MemcachedException
      */
     public function getKey(string $key) {
-        $data = $this->runCommand('get '.$key, true);
+        $raw = $this->runCommand('get '.$key);
+        $data = explode("\r\n", $raw);
 
-        if (!isset($data[0])) {
+        if ($data[0] === 'END') {
             return false;
         }
 

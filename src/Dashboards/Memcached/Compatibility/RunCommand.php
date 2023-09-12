@@ -77,11 +77,9 @@ trait RunCommand {
      *
      * @link https://github.com/memcached/memcached/blob/master/doc/protocol.txt
      *
-     * @return array<int, mixed>|string
-     *
      * @throws MemcachedException
      */
-    public function runCommand(string $command, bool $array = false) {
+    public function runCommand(string $command): string {
         $command_name = $this->commandName($command);
 
         if (!in_array($command_name, $this->allowed_commands, true)) {
@@ -90,15 +88,13 @@ trait RunCommand {
 
         $command = strtr($command, ['\r\n' => "\r\n"])."\r\n";
 
-        return $this->streamConnection($command, $command_name, $array);
+        return $this->streamConnection($command, $command_name);
     }
 
     /**
-     * @return array<int, mixed>|string
-     *
      * @throws MemcachedException
      */
-    private function streamConnection(string $command, string $command_name, bool $array = false) {
+    private function streamConnection(string $command, string $command_name): string {
         $address = isset($this->server['path']) ? 'unix://'.$this->server['path'] : 'tcp://'.$this->server['host'].':'.$this->server['port'];
         $stream = @stream_socket_client($address, $error_code, $error_message, 3);
 
@@ -109,7 +105,6 @@ trait RunCommand {
         fwrite($stream, $command, strlen($command));
 
         $buffer = '';
-        $data = [];
         $start_time = time();
 
         while (!feof($stream)) {
@@ -118,21 +113,11 @@ trait RunCommand {
             if ($this->checkCommandEnd($command_name, $buffer) || time() - $start_time > 60) {
                 break;
             }
-
-            // Bug fix for gzipped keys
-            if ($array) {
-                $lines = explode("\r\n", $buffer);
-                $buffer = array_pop($lines);
-
-                foreach ($lines as $line) {
-                    $data[] = trim($line);
-                }
-            }
         }
 
         fclose($stream);
 
-        return $array ? $data : rtrim($buffer, "\r\n");
+        return rtrim($buffer, "\r\n");
     }
 
     private function commandName(string $command): string {

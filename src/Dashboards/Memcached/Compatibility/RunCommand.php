@@ -82,13 +82,15 @@ trait RunCommand {
      * @throws MemcachedException
      */
     public function runCommand(string $command, bool $array = false) {
-        if (!in_array($this->commandName($command), $this->allowed_commands, true)) {
+        $command_name = $this->commandName($command);
+
+        if (!in_array($command_name, $this->allowed_commands, true)) {
             throw new MemcachedException('Unknown or not allowed command "'.$command.'".');
         }
 
         $command = strtr($command, ['\r\n' => "\r\n"])."\r\n";
 
-        return $this->streamConnection($command, $array);
+        return $this->streamConnection($command, $command_name, $array);
     }
 
     /**
@@ -96,7 +98,7 @@ trait RunCommand {
      *
      * @throws MemcachedException
      */
-    private function streamConnection(string $command, bool $array = false) {
+    private function streamConnection(string $command, string $command_name, bool $array = false) {
         $address = isset($this->server['path']) ? 'unix://'.$this->server['path'] : 'tcp://'.$this->server['host'].':'.$this->server['port'];
         $stream = @stream_socket_client($address, $error_code, $error_message, 3);
 
@@ -113,7 +115,7 @@ trait RunCommand {
         while (!feof($stream)) {
             $buffer .= fgets($stream, 256);
 
-            if ($this->checkCommandEnd($command, $buffer) || time() - $start_time > 60) {
+            if ($this->checkCommandEnd($command_name, $buffer) || time() - $start_time > 60) {
                 break;
             }
 
@@ -140,7 +142,7 @@ trait RunCommand {
     }
 
     private function checkCommandEnd(string $command, string $buffer): bool {
-        if (in_array($this->commandName($command), $this->no_end, true)) {
+        if (in_array($command, $this->no_end, true)) {
             return true;
         }
 

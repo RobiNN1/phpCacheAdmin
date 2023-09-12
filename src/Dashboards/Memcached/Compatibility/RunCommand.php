@@ -87,8 +87,9 @@ trait RunCommand {
         }
 
         $command = strtr($command, ['\r\n' => "\r\n"])."\r\n";
+        $data = $this->streamConnection($command, $command_name);
 
-        return $this->streamConnection($command, $command_name);
+        return rtrim($data, "\r\n");
     }
 
     /**
@@ -117,7 +118,7 @@ trait RunCommand {
 
         fclose($stream);
 
-        return rtrim($buffer, "\r\n");
+        return $buffer;
     }
 
     private function commandName(string $command): string {

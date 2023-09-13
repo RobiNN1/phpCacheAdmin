@@ -14,8 +14,7 @@
 
 ## Installation
 
-Just unzip the archive and launch index.php in a web browser.
-No installation is required.
+Just unzip the archive and launch index.php in a web browser. No installation is required.
 However, it is highly recommended (although not required) to run `composer install`.
 
 If you use the defaults (e.g. Redis, Memcached servers), everything should work out of the box.
@@ -104,24 +103,5 @@ Memcached:
 ## Custom Dashboards
 
 - [FileCache](https://github.com/RobiNN1/FileCache-Dashboard) ([`robinn/cache`](https://github.com/RobiNN1/Cache)) dashboard.
-
-## Development
-
-###### PHPUnit
-
-```
-composer test
-```
-
-###### PHPStan
-
-```
-composer phpstan
-```
-
-###### Tailwind CSS
-
-For compiling Tailwind CSS run `npm install` and then
-`npm run build` or `npm run watch` for auto-compiling.
 
 <!-- Font used in logo Arial Rounded MT Bold -->

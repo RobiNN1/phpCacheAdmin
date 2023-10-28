@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace Tests\Clients;
 
+use Iterator;
 use PHPUnit\Framework\TestCase;
 use RobiNN\Pca\Dashboards\DashboardException;
 use RobiNN\Pca\Dashboards\Redis\Compatibility\Predis;
@@ -22,8 +23,13 @@ final class PredisTest extends TestCase {
     /**
      * @return array<int, array<string>>
      */
-    public static function keysProvider(): array {
-        return [['string'], ['set'], ['list'], ['zset'], ['hash'], ['stream']];
+    public static function keysProvider(): Iterator {
+        yield ['string'];
+        yield ['set'];
+        yield ['list'];
+        yield ['zset'];
+        yield ['hash'];
+        yield ['stream'];
     }
 
     /**

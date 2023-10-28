@@ -283,6 +283,7 @@ trait RedisTrait {
                 Helpers::alert($this->template, $e->getMessage(), 'error');
                 $type = 'unknown';
             }
+
             $expire = $this->redis->ttl($key);
         }
 

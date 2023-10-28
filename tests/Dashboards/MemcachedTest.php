@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace Tests\Dashboards;
 
+use Iterator;
 use RobiNN\Pca\Dashboards\DashboardException;
 use RobiNN\Pca\Dashboards\Memcached\Compatibility\Memcache;
 use RobiNN\Pca\Dashboards\Memcached\Compatibility\Memcached;
@@ -120,39 +121,27 @@ final class MemcachedTest extends TestCase {
         $this->assertArrayHasKey('version', $this->memcached->getServerStats());
     }
 
-    /**
-     * @return array<string, array<int,string>>
-     */
-    public static function commandDataProvider(): array {
-        return [
-            'test set'    => ['STORED', 'set pu-test-rc-set 0 0 3\r\nidk'],
-            'test get'    => ['VALUE pu-test-rc-set 0 3\r\nidk\r\nEND', 'get pu-test-rc-set'],
-            'test delete' => ['DELETED', 'delete pu-test-rc-set'],
-
-            'test add'             => ['STORED', 'add pu-test-rc-add 0 0 3\r\nidk'],
-            'test replace'         => ['STORED', 'replace pu-test-rc-add 0 0 4\r\ntest'],
-            'test replaced value'  => ['VALUE pu-test-rc-add 0 4\r\ntest\r\nEND', 'get pu-test-rc-add'],
-            'test append'          => ['STORED', 'append pu-test-rc-add 0 0 2\r\naa'],
-            'test appended value'  => ['VALUE pu-test-rc-add 0 6\r\ntestaa\r\nEND', 'get pu-test-rc-add'],
-            'test prepend'         => ['STORED', 'prepend pu-test-rc-add 0 0 2\r\npp'],
-            'test prepended value' => ['VALUE pu-test-rc-add 0 8\r\npptestaa\r\nEND', 'get pu-test-rc-add'],
-
-            'test gat' => ['VALUE pu-test-rc-add 0 8\r\npptestaa\r\nEND', 'gat 700 pu-test-rc-add'],
-
-            'test touch' => ['TOUCHED', 'touch pu-test-rc-add 0'],
-
-            'test set int'  => ['STORED', 'set pu-test-rc-int 0 0 1\r\n1'],
-            'test set incr' => ['6', 'incr pu-test-rc-int 5'],
-            'test set decr' => ['3', 'decr pu-test-rc-int 3'],
-
-            'test ms' => ['HD', 'ms pu-test-rc-ms 1\r\n4'],
-            'test mg' => ['VA 1', 'mg pu-test-rc-ms v'],
-            'test ma' => ['HD', 'ma pu-test-rc-ms'],
-
-            'test cache_memlimit' => ['OK', 'cache_memlimit 100'],
-
-            'test flush_all' => ['OK', 'flush_all'],
-        ];
+    public static function commandDataProvider(): Iterator {
+        yield 'test set' => ['STORED', 'set pu-test-rc-set 0 0 3\r\nidk'];
+        yield 'test get' => ['VALUE pu-test-rc-set 0 3\r\nidk\r\nEND', 'get pu-test-rc-set'];
+        yield 'test delete' => ['DELETED', 'delete pu-test-rc-set'];
+        yield 'test add' => ['STORED', 'add pu-test-rc-add 0 0 3\r\nidk'];
+        yield 'test replace' => ['STORED', 'replace pu-test-rc-add 0 0 4\r\ntest'];
+        yield 'test replaced value' => ['VALUE pu-test-rc-add 0 4\r\ntest\r\nEND', 'get pu-test-rc-add'];
+        yield 'test append' => ['STORED', 'append pu-test-rc-add 0 0 2\r\naa'];
+        yield 'test appended value' => ['VALUE pu-test-rc-add 0 6\r\ntestaa\r\nEND', 'get pu-test-rc-add'];
+        yield 'test prepend' => ['STORED', 'prepend pu-test-rc-add 0 0 2\r\npp'];
+        yield 'test prepended value' => ['VALUE pu-test-rc-add 0 8\r\npptestaa\r\nEND', 'get pu-test-rc-add'];
+        yield 'test gat' => ['VALUE pu-test-rc-add 0 8\r\npptestaa\r\nEND', 'gat 700 pu-test-rc-add'];
+        yield 'test touch' => ['TOUCHED', 'touch pu-test-rc-add 0'];
+        yield 'test set int' => ['STORED', 'set pu-test-rc-int 0 0 1\r\n1'];
+        yield 'test set incr' => ['6', 'incr pu-test-rc-int 5'];
+        yield 'test set decr' => ['3', 'decr pu-test-rc-int 3'];
+        yield 'test ms' => ['HD', 'ms pu-test-rc-ms 1\r\n4'];
+        yield 'test mg' => ['VA 1', 'mg pu-test-rc-ms v'];
+        yield 'test ma' => ['HD', 'ma pu-test-rc-ms'];
+        yield 'test cache_memlimit' => ['OK', 'cache_memlimit 100'];
+        yield 'test flush_all' => ['OK', 'flush_all'];
     }
 
     /**

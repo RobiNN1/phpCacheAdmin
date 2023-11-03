@@ -105,7 +105,7 @@ trait OPCacheTrait {
                             'number_hits'    => $script['hits'],
                             'bytes_memory'   => $script['memory_consumption'],
                             'time_last_used' => $script['last_used_timestamp'],
-                            'time_created'   => $script['timestamp'],
+                            'time_created'   => $script['timestamp'] ?? 0,
                         ],
                     ];
                 }

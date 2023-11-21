@@ -108,7 +108,7 @@ class RedisDashboard implements DashboardInterface {
             }
 
             if (isset($_GET['delete'])) {
-                return Helpers::deleteKey($this->template, fn (string $key): bool => $this->redis->del($key) > 0, true);
+                return Helpers::deleteKey($this->template, fn (string $key): bool => is_int($this->redis->del($key)) && $this->redis->del($key) > 0, true);
             }
         } catch (DashboardException|Exception $e) {
             return $e->getMessage();

@@ -51,7 +51,11 @@ final class RedisTest extends TestCase {
     private function deleteKeys($keys): void {
         $this->assertSame(
             Helpers::alert($this->template, (is_array($keys) ? 'Keys' : 'Key "'.$keys.'"').' has been deleted.', 'success'),
-            Helpers::deleteKey($this->template, fn (string $key): bool => is_int($this->redis->del($key)) && $this->redis->del($key) > 0, true, $keys)
+            Helpers::deleteKey($this->template, function (string $key): bool {
+                $delete_key = $this->redis->del($key);
+
+                return is_int($delete_key) && $delete_key > 0;
+            }, true, $keys)
         );
     }
 

@@ -20,6 +20,10 @@ final class APCuTest extends TestCase {
     private APCuDashboard $dashboard;
 
     protected function setUp(): void {
+        if (!extension_loaded('apcu')) {
+            $this->markTestSkipped('The apcu extension is not installed.');
+        }
+
         $this->template = new Template();
         $this->dashboard = new APCuDashboard($this->template);
     }

@@ -21,7 +21,7 @@ final class PredisTest extends TestCase {
     }
 
     /**
-     * @return array<int, array<string>>
+     * @return Iterator
      */
     public static function keysProvider(): Iterator {
         yield ['string'];

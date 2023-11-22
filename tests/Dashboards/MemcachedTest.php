@@ -34,6 +34,10 @@ final class MemcachedTest extends TestCase {
      * @throws DashboardException
      */
     protected function setUp(): void {
+        if (!class_exists(PHPMem::class) || !extension_loaded('memcache') || !extension_loaded('memcached')) {
+            $this->markTestSkipped('The memcache/memcached extension or or PHPMem client is not installed.');
+        }
+
         $this->template = new Template();
         $this->dashboard = new MemcachedDashboard($this->template);
         $this->memcached = $this->dashboard->connect(['host' => '127.0.0.1']);

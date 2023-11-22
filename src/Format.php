@@ -42,6 +42,8 @@ class Format {
             case 'G':
                 $size *= 1024 * 1024 * 1024;
                 break;
+            default:
+                break;
         }
 
         return $size;

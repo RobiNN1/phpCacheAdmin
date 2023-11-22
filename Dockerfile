@@ -1,8 +1,6 @@
-FROM php:8.2-apache
+FROM php:8.3-apache
 
-RUN apt update
-
-RUN apt install -y git
+RUN apt update && apt install -y git
 
 RUN pecl install redis && docker-php-ext-enable redis
 

@@ -409,7 +409,7 @@ trait RedisTrait {
 
                     return is_int($exists) && $exists > 0;
                 },
-                fn (string $key, string $value, int $expire): bool => $this->redis->restore($key, ($expire === -1 ? 0 : $expire), $value, null), // temp fix for phpstan
+                fn (string $key, string $value, int $expire): bool => $this->redis->restore($key, ($expire === -1 ? 0 : $expire), $value),
                 'application/octet-stream'
             );
         }

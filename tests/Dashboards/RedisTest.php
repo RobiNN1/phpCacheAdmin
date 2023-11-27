@@ -9,7 +9,6 @@ declare(strict_types=1);
 namespace Tests\Dashboards;
 
 use Exception;
-use Predis\Client as PredisClient;
 use RobiNN\Pca\Dashboards\DashboardException;
 use RobiNN\Pca\Dashboards\Redis\Compatibility\Predis;
 use RobiNN\Pca\Dashboards\Redis\Compatibility\Redis;
@@ -33,10 +32,6 @@ final class RedisTest extends TestCase {
      * @throws DashboardException
      */
     protected function setUp(): void {
-        if (!class_exists(PredisClient::class) || !extension_loaded('redis')) {
-            $this->markTestSkipped('The redis extension is not installed.');
-        }
-
         $this->template = new Template();
         $this->dashboard = new RedisDashboard($this->template);
         $this->redis = $this->dashboard->connect(['host' => '127.0.0.1', 'database' => 10]);

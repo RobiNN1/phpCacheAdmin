@@ -20,9 +20,6 @@ final class PredisTest extends TestCase {
         $this->predis = new Predis(['host' => '127.0.0.1']);
     }
 
-    /**
-     * @return Iterator
-     */
     public static function keysProvider(): Iterator {
         yield ['string'];
         yield ['set'];

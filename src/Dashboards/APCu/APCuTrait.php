@@ -77,7 +77,7 @@ trait APCuTrait {
     private function viewKey(): string {
         $key = Http::get('key', '');
 
-        if (!apcu_exists($key)) {
+        if (apcu_exists($key) === false) {
             Http::redirect();
         }
 

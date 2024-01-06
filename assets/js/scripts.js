@@ -207,17 +207,3 @@ if (search_form) {
         }
     });
 }
-
-/**
- * Redis form
- */
-const redis_type = document.getElementById('redis_type');
-if (redis_type) {
-    redis_type.addEventListener('change', e => {
-        document.getElementById('redis_index').style.display = e.target.value === 'list' ? 'block' : 'none';
-        document.getElementById('redis_score').style.display = e.target.value === 'zset' ? 'block' : 'none';
-        document.getElementById('score').required = e.target.value === 'zset';
-        document.getElementById('redis_hash_key').style.display = e.target.value === 'hash' ? 'block' : 'none';
-        document.getElementById('hash_key').required = e.target.value === 'hash';
-    });
-}

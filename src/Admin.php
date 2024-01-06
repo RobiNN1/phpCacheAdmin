@@ -11,12 +11,12 @@ namespace RobiNN\Pca;
 use RobiNN\Pca\Dashboards\DashboardInterface;
 
 class Admin {
-    public const VERSION = '1.6.2';
+    public const VERSION = '1.6.3';
 
     /**
      * @var array<string, DashboardInterface>
      */
-    private array $dashboards = [];
+    public array $dashboards = [];
 
     public function __construct(Template $template) {
         foreach (Config::get('dashboards', []) as $class) {
@@ -26,13 +26,6 @@ class Admin {
                 $this->dashboards[$info['key']] = $dashboard;
             }
         }
-    }
-
-    /**
-     * @return array<string, DashboardInterface>
-     */
-    public function dashboards(): array {
-        return $this->dashboards;
     }
 
     public function getDashboard(string $dashboard): DashboardInterface {

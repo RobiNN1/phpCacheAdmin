@@ -89,7 +89,7 @@ class Http {
                 header('Location: '.$location);
             }
 
-            echo '<script data-cfasync="false">window.location.replace("'.$location.'");</script>';
+            echo '<script>window.location.replace("'.$location.'");</script>';
 
             exit;
         }

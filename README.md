@@ -14,7 +14,7 @@
 
 ## Installation
 
-Just unzip the archive and launch index.php in a web browser. No installation is required.
+Unzip the archive and launch index.php in a web browser. No installation is required.
 However, it is highly recommended (although not required) to run `composer install`.
 
 If you use the defaults (e.g. Redis, Memcached servers), everything should work out of the box.
@@ -34,7 +34,7 @@ Run with single command:
 docker run -p 8080:80 -d --name phpcacheadmin -e "PCA_REDIS_0_HOST=redis_host" -e "PCA_REDIS_0_PORT=6379" -e "PCA_MEMCACHED_0_HOST=memcached_host" -e "PCA_MEMCACHED_0_PORT=11211" robinn/phpcacheadmin
 ```
 
-Or simply use it in **docker-compose.yml**
+Or use it in **docker-compose.yml**
 
 ```yaml
 version: '3'
@@ -74,7 +74,7 @@ Redis:
 - `PCA_REDIS_0_HOST` Optional when a path is specified.
 - `PCA_REDIS_0_PORT` Optional when the default port is used.
 - `PCA_REDIS_0_SCHEME` Connection scheme (optional). If you need a TLS connection, set it to `tls`.
-- `PCA_REDIS_0_SSL` [SSL options](https://www.php.net/manual/en/context.ssl.php) for TLS. Requires Redis >= 6.0 (optional). You can set value as JSON `{"local_cert":"path/to/redis.crt","local_pk":"path/to/redis.key","cafile":"path/to/ca.crt","verify_peer_name":false}`.
+- `PCA_REDIS_0_SSL` [SSL options](https://www.php.net/manual/en/context.ssl.php) for TLS. Requires Redis >= 6.0 (optional). You can set value as JSON `{"cafile":"private.pem","verify_peer":true}`.
 - `PCA_REDIS_0_DATABASE` Default database (optional).
 - `PCA_REDIS_0_USERNAME` ACL - requires Redis >= 6.0 (optional).
 - `PCA_REDIS_0_PASSWORD` Optional.
@@ -89,6 +89,8 @@ Memcached:
 - `PCA_MEMCACHED_0_HOST` Optional when a path is specified.
 - `PCA_MEMCACHED_0_PORT` Optional when the default port is used.
 - `PCA_MEMCACHED_0_PATH` Unix domain socket (optional).
+
+Open [config](https://github.com/RobiNN1/phpCacheAdmin/blob/master/config.dist.php) file for more info.
 
 > To add another server, add the same environment variables, but change `0` to `1` (`2` for third server and so on).
 

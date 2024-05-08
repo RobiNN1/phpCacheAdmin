@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace Tests\Dashboards;
 
 use Iterator;
+use PHPUnit\Framework\Attributes\DataProvider;
 use RobiNN\Pca\Dashboards\DashboardException;
 use RobiNN\Pca\Dashboards\Memcached\Compatibility\Memcache;
 use RobiNN\Pca\Dashboards\Memcached\Compatibility\Memcached;
@@ -90,6 +91,7 @@ final class MemcachedTest extends TestCase {
      *
      * @throws MemcachedException
      */
+    #[DataProvider('keysProvider')]
     public function testSetGetKey(string $type, $original, $expected): void {
         $this->memcached->set('pu-test-'.$type, $original);
         $this->assertSame($expected, Helpers::mixedToString($this->memcached->getKey('pu-test-'.$type)));
@@ -149,6 +151,7 @@ final class MemcachedTest extends TestCase {
      *
      * @throws MemcachedException
      */
+    #[DataProvider('commandDataProvider')]
     public function testRunCommand(string $expected, string $command): void {
         $this->assertSame(strtr($expected, ['\r\n' => "\r\n"]), $this->memcached->runCommand($command));
     }

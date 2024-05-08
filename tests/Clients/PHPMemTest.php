@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace Tests\Clients;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use RobiNN\Pca\Dashboards\Memcached\Compatibility\PHPMem;
 use RobiNN\Pca\Dashboards\Memcached\MemcachedException;
 use Tests\TestCase;
@@ -31,6 +32,7 @@ final class PHPMemTest extends TestCase {
      *
      * @throws MemcachedException
      */
+    #[DataProvider('keysProvider')]
     public function testSetGetKey(string $type, $original, $expected): void {
         $key = 'pu-pmem-test-'.$type;
         $this->phpmem->set($key, $original);

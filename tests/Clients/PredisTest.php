@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace Tests\Clients;
 
 use Iterator;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use RobiNN\Pca\Dashboards\DashboardException;
 use RobiNN\Pca\Dashboards\Redis\Compatibility\Predis;
@@ -34,6 +35,7 @@ final class PredisTest extends TestCase {
      *
      * @throws DashboardException
      */
+    #[DataProvider('keysProvider')]
     public function testGetType(string $key): void {
         $this->predis->set('pu-pred-test-string', 'value');
         $this->predis->sadd('pu-pred-test-set', ['value1', 'value2', 'value3']);
@@ -50,6 +52,7 @@ final class PredisTest extends TestCase {
     /**
      * @dataProvider keysProvider
      */
+    #[DataProvider('keysProvider')]
     public function testDelete(string $key): void {
         $this->predis->del('pu-pred-test-'.$key);
         $this->assertSame(0, $this->predis->exists('pu-pred-test-'.$key));

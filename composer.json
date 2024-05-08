@@ -30,7 +30,7 @@
   "require-dev": {
     "clue/phar-composer": "^1.4",
     "phpstan/phpstan": "^1.10",
-    "phpunit/phpunit": "^9.6"
+    "phpunit/phpunit": "^9.6|^10.5|^11.1"
   },
   "suggest": {
     "ext-apcu": "Required for the APCu dashboard.",

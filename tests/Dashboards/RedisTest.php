@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace Tests\Dashboards;
 
 use Exception;
+use PHPUnit\Framework\Attributes\DataProvider;
 use RobiNN\Pca\Dashboards\DashboardException;
 use RobiNN\Pca\Dashboards\Redis\Compatibility\Predis;
 use RobiNN\Pca\Dashboards\Redis\Compatibility\Redis;
@@ -92,6 +93,7 @@ final class RedisTest extends TestCase {
      *
      * @throws Exception
      */
+    #[DataProvider('keysProvider')]
     public function testSetGetKey(string $type, $original, $expected): void {
         $original = is_array($original) || is_object($original) ? serialize($original) : $original;
 

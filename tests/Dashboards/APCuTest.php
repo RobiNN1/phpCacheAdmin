@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace Tests\Dashboards;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use RobiNN\Pca\Dashboards\APCu\APCuDashboard;
 use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
@@ -64,6 +65,7 @@ final class APCuTest extends TestCase {
      * @param mixed $original
      * @param mixed $expected
      */
+    #[DataProvider('keysProvider')]
     public function testSetGetKey(string $type, $original, $expected): void {
         apcu_store('pu-test-'.$type, $original);
         $this->assertSame($expected, Helpers::mixedToString(apcu_fetch('pu-test-'.$type)));

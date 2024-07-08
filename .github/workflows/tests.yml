@@ -52,7 +52,7 @@ jobs:
       - name: Execute tests
         run: vendor/bin/phpunit
 
-  tests_no_composer:
+  tests_php_clients:
     runs-on: ubuntu-latest
 
     services:

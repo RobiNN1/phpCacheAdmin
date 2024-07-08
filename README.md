@@ -16,43 +16,7 @@ To customize the configuration, do not edit `config.dist.php` directly, but copy
 
 Replace all files and delete the `tmp` folder (this folder contains only compiled Twig templates).
 
-## Docker
-
-https://hub.docker.com/r/robinn/phpcacheadmin
-
-Run with single command:
-
-```bash
-docker run -p 8080:80 -d --name phpcacheadmin -e "PCA_REDIS_0_HOST=redis_host" -e "PCA_REDIS_0_PORT=6379" -e "PCA_MEMCACHED_0_HOST=memcached_host" -e "PCA_MEMCACHED_0_PORT=11211" robinn/phpcacheadmin
-```
-
-Or use it in **docker-compose.yml**
-
-```yaml
-version: '3'
-services:
-  phpcacheadmin:
-    image: robinn/phpcacheadmin
-    ports:
-      - "8080:80"
-    #volumes:
-    # If you want to use config.php instead of ENV variables
-    #  - "./config.php:/var/www/html/config.php"
-    environment:
-      - PCA_REDIS_0_HOST=redis
-      - PCA_REDIS_0_PORT=6379
-      - PCA_MEMCACHED_0_HOST=memcached
-      - PCA_MEMCACHED_0_PORT=11211
-    links:
-      - redis
-      - memcached
-  redis:
-    image: redis
-  memcached:
-    image: memcached
-```
-
-#### Environment variables
+## Environment variables
 
 All keys from the [config](https://github.com/RobiNN1/phpCacheAdmin/blob/master/config.dist.php) file are supported ENV variables,
 they just must start with `PCA_` prefix.
@@ -85,6 +49,42 @@ Memcached:
 Open [config](https://github.com/RobiNN1/phpCacheAdmin/blob/master/config.dist.php) file for more info.
 
 > To add another server, add the same environment variables, but change `0` to `1` (`2` for third server and so on).
+
+## Docker
+
+A Docker image is also available: https://hub.docker.com/r/robinn/phpcacheadmin
+
+Run with single command:
+
+```bash
+docker run -p 8080:80 -d --name phpcacheadmin -e "PCA_REDIS_0_HOST=redis_host" -e "PCA_REDIS_0_PORT=6379" -e "PCA_MEMCACHED_0_HOST=memcached_host" -e "PCA_MEMCACHED_0_PORT=11211" robinn/phpcacheadmin
+```
+
+Or use it in **docker-compose.yml**
+
+```yaml
+version: '3'
+services:
+  phpcacheadmin:
+    image: robinn/phpcacheadmin
+    ports:
+      - "8080:80"
+    #volumes:
+    # If you want to use config.php instead of ENV variables
+    #  - "./config.php:/var/www/html/config.php"
+    environment:
+      - PCA_REDIS_0_HOST=redis
+      - PCA_REDIS_0_PORT=6379
+      - PCA_MEMCACHED_0_HOST=memcached
+      - PCA_MEMCACHED_0_PORT=11211
+    links:
+      - redis
+      - memcached
+  redis:
+    image: redis
+  memcached:
+    image: memcached
+```
 
 ## Requirements
 

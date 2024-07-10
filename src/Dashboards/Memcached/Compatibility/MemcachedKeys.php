@@ -44,11 +44,9 @@ trait MemcachedKeys {
     /**
      * Get raw key.
      *
-     * @return string|false
-     *
      * @throws MemcachedException
      */
-    public function getKey(string $key) {
+    public function getKey(string $key): string|false {
         $raw = $this->runCommand('get '.$key);
         $data = explode("\r\n", $raw);
 

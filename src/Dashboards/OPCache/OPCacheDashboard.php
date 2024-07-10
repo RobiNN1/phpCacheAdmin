@@ -15,10 +15,7 @@ use RobiNN\Pca\Template;
 class OPCacheDashboard implements DashboardInterface {
     use OPCacheTrait;
 
-    private Template $template;
-
-    public function __construct(Template $template) {
-        $this->template = $template;
+    public function __construct(private readonly Template $template) {
     }
 
     public static function check(): bool {

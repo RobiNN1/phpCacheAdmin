@@ -16,25 +16,17 @@ class PHPMem implements MemcachedCompatibilityInterface {
     public const VERSION = '1.1.0';
 
     /**
-     * @var array<string, int|string>
-     */
-    protected array $server;
-
-    /**
      * @param array<string, int|string> $server
      */
-    public function __construct(array $server = []) {
-        $this->server = $server;
+    public function __construct(protected array $server = []) {
     }
 
     /**
      * Store an item.
      *
-     * @param mixed $value
-     *
      * @throws MemcachedException
      */
-    public function set(string $key, $value, int $expiration = 0): bool {
+    public function set(string $key, mixed $value, int $expiration = 0): bool {
         $type = gettype($value);
 
         if ($type !== 'string' && $type !== 'integer' && $type !== 'double' && $type !== 'boolean') {
@@ -49,11 +41,9 @@ class PHPMem implements MemcachedCompatibilityInterface {
     /**
      * Retrieve an item.
      *
-     * @return string|false
-     *
      * @throws MemcachedException
      */
-    public function get(string $key) {
+    public function get(string $key): string|false {
         $raw = $this->runCommand('get '.$key);
         $lines = explode("\r\n", $raw);
 
@@ -89,7 +79,7 @@ class PHPMem implements MemcachedCompatibilityInterface {
     public function isConnected(): bool {
         try {
             $stats = $this->getServerStats();
-        } catch (MemcachedException $e) {
+        } catch (MemcachedException) {
             return false;
         }
 

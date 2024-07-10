@@ -25,15 +25,40 @@ trait OPCacheTrait {
         $memory_usage = ($memory['used_memory'] + $memory['wasted_memory']) / $total_memory;
         $memory_usage_percentage = round($memory_usage * 100, 2);
 
+        $interned_strings = $status['interned_strings_usage'];
+        $interned_usage = $interned_strings['used_memory'] / $interned_strings['buffer_size'];
+        $interned_usage_percentage = round($interned_usage * 100, 2);
+
         $used_keys_percentage = round(($stats['num_cached_keys'] / $stats['max_cached_keys']) * 100);
+
+        $jit_enabled = false;
+        $jit_info = [];
+
+        if (isset($status['jit']['enabled']) && $status['jit']['buffer_size'] > 0) {
+            $jit_enabled = true;
+            $jit = $status['jit'];
+            $jit_used = $jit['buffer_size'] - $jit['buffer_free'];
+            $jit_usage = $jit_used / $jit['buffer_size'];
+            $jit_usage_percentage = round($jit_usage * 100, 2);
+
+            $jit_info = [
+                'title' => 'JIT',
+                'data'  => [
+                    'Buffer size' => Format::bytes($jit['buffer_size']),
+                    'Used'        => Format::bytes($jit_used).' ('.$jit_usage_percentage.'%)',
+                    'Free'        => Format::bytes($jit['buffer_free']),
+                ],
+            ];
+        }
 
         $panels = [
             [
-                'title'    => 'PHP OPCache extension <span>v'.phpversion('Zend OPcache').'</span>',
+                'title'    => 'PHP OPCache extension v'.phpversion('Zend OPcache'),
                 'moreinfo' => true,
                 'data'     => [
-                    'JIT'          => isset($status['jit']) && $status['jit']['enabled'] ? 'Enabled' : 'Disabled',
+                    'JIT'          => $jit_enabled ? 'Enabled' : 'Disabled',
                     'Start time'   => Format::time($stats['start_time']),
+                    'Uptime'       => Format::seconds(time() - $stats['start_time']),
                     'Last restart' => Format::time($stats['last_restart_time']),
                     'Cache full'   => $status['cache_full'] ? 'Yes' : 'No',
                 ],
@@ -57,9 +82,19 @@ trait OPCacheTrait {
                         ' (Rate '.round($stats['opcache_hit_rate'], 2).'%)',
                 ],
             ],
+            $jit_info,
+            [
+                'title' => 'Interned strings usage',
+                'data'  => [
+                    'Buffer size' => Format::bytes($interned_strings['buffer_size']),
+                    'Used'        => Format::bytes($interned_strings['used_memory']).' ('.$interned_usage_percentage.'%)',
+                    'Free'        => Format::bytes($interned_strings['free_memory']),
+                    'Strings'     => Format::number($interned_strings['number_of_strings']),
+                ],
+            ],
         ];
 
-        return $this->template->render('partials/info', ['panels' => $panels]);
+        return $this->template->render('partials/info', ['panels' => $panels, 'left' => true]);
     }
 
     private function moreInfo(): string {
@@ -97,15 +132,15 @@ trait OPCacheTrait {
                     continue;
                 }
 
-                if ($search === '' || stripos($script['full_path'], $search) !== false) {
+                if (stripos($script['full_path'], $search) !== false) {
                     $cached_scripts[] = [
                         'key'   => $script['full_path'],
                         'items' => [
-                            'title'          => $full_path,
-                            'number_hits'    => $script['hits'],
-                            'bytes_memory'   => $script['memory_consumption'],
-                            'time_last_used' => $script['last_used_timestamp'],
-                            'time_created'   => $script['timestamp'] ?? 0,
+                            'title'              => $full_path,
+                            'number_hits'        => $script['hits'],
+                            'bytes_memory'       => $script['memory_consumption'],
+                            'timediff_last_used' => $script['last_used_timestamp'],
+                            'time_created'       => $script['timestamp'] ?? 0,
                         ],
                     ];
                 }

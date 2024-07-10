@@ -19,7 +19,7 @@ trait RedisModules {
 
         try {
             $list = $this->rawCommand('MODULE', 'LIST'); // require Redis >= 4.0
-        } catch (RedisException $e) {
+        } catch (RedisException) {
             return [];
         }
 

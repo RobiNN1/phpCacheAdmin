@@ -1,8 +1,8 @@
-<div class="mb-3 rounded bg-white shadow-sm shadow-gray-300">
-    <div class="border-b border-gray-100 px-4 py-1.5 bg-primary-50 text-primary-700 rounded-tl rounded-tr">
+<div class="mb-4 rounded bg-white border border-gray-200">
+    <div class="border-b border-gray-200 px-4 py-1.5 text-primary-700">
         <div class="flex flex-wrap items-center">
-            <div class="relative w-full max-w-full flex-1 flex-grow">
-                <h2 class="text-lg font-semibold">{{ panel_title|replace({'<span>': '<span class="text-primary-900">'})|raw }}</h2>
+            <div class="w-full max-w-full flex-1 flex-grow">
+                <h2 class="font-semibold">{{ panel_title }}</h2>
             </div>
         </div>
     </div>
@@ -12,34 +12,34 @@
             {% for name, value in array %}
                 {% if value is iterable %}
                     {% if value|length > 0 %}
-                        <tr class="bg-primary-100 opacity-75 text-primary-900">
+                        <tr class="border-b border-gray-200 text-primary-700">
                             <td colspan="2" class="px-4 py-2 text-xs font-bold uppercase whitespace-nowrap">{{ name|replace({'_': ' '}) }}</td>
                         </tr>
                         {% for sub_name, sub_value in value %}
                             {% if sub_value is not iterable %}
                                 <tr class="[&:last-child>*]:border-b-0">
-                                    <td class="border-b border-gray-100 px-4 py-1 text-sm font-semibold whitespace-nowrap">{{ sub_name }}</td>
-                                    <td class="border-b border-gray-100 px-4 py-1 text-sm">{{ sub_value|raw }}</td>
+                                    <td class="border-b border-gray-200 px-4 py-1 text-sm font-semibold whitespace-nowrap">{{ sub_name }}</td>
+                                    <td class="border-b border-gray-200 px-4 py-1 text-sm">{{ sub_value|raw }}</td>
                                 </tr>
                             {% endif %}
                         {% endfor %}
                     {% endif %}
                 {% else %}
                     <tr class="[&:last-child>*]:border-b-0">
-                        <td class="border-b border-gray-100 px-4 py-1 text-sm font-semibold whitespace-nowrap">{{ name }}</td>
-                        <td class="border-b border-gray-100 px-4 py-1 text-sm">{{ value|raw }}</td>
+                        <td class="border-b border-gray-200 px-4 py-1 text-sm font-semibold whitespace-nowrap">{{ name }}</td>
+                        <td class="border-b border-gray-200 px-4 py-1 text-sm">{{ value|raw }}</td>
                     </tr>
                 {% endif %}
             {% else %}
                 <tr>
-                    <td colspan="2" class="p-5 text-center">No info.</td>
+                    <td colspan="2" class="p-4 text-center">No info.</td>
                 </tr>
             {% endfor %}
             </tbody>
         </table>
     </div>
     {% if moreinfo %}
-        <div class="border-t border-gray-100 px-4 py-1 text-right">
+        <div class="border-t border-gray-200 px-4 py-1 text-right">
             {% set id = server_id is not null ? '&server=' ~ server_id : '' %}
             <a class="text-primary-500 hover:text-primary-700 font-semibold" href="?dashboard={{ current }}&moreinfo{{ id|raw }}">Show more info</a>
         </div>

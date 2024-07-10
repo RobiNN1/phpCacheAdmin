@@ -15,10 +15,7 @@ use RobiNN\Pca\Template;
 class ServerDashboard implements DashboardInterface {
     use ServerTrait;
 
-    private Template $template;
-
-    public function __construct(Template $template) {
-        $this->template = $template;
+    public function __construct(private readonly Template $template) {
     }
 
     public static function check(): bool {
@@ -33,6 +30,10 @@ class ServerDashboard implements DashboardInterface {
             'key'   => 'server',
             'title' => 'Server',
         ];
+    }
+
+    public function ajax(): string {
+        return '';
     }
 
     public function dashboard(): string {

@@ -24,10 +24,7 @@ final class RedisTest extends TestCase {
 
     private RedisDashboard $dashboard;
 
-    /**
-     * @var Redis|Predis
-     */
-    private $redis;
+    private Predis|Redis $redis;
 
     /**
      * @throws DashboardException
@@ -44,7 +41,7 @@ final class RedisTest extends TestCase {
      *
      * @throws Exception
      */
-    private function deleteKeys($keys): void {
+    private function deleteKeys(array|string $keys): void {
         $this->assertSame(
             Helpers::alert($this->template, (is_array($keys) ? 'Keys' : 'Key "'.$keys.'"').' has been deleted.', 'success'),
             Helpers::deleteKey($this->template, function (string $key): bool {
@@ -86,15 +83,10 @@ final class RedisTest extends TestCase {
     }
 
     /**
-     * @dataProvider keysProvider
-     *
-     * @param mixed $original
-     * @param mixed $expected
-     *
      * @throws Exception
      */
     #[DataProvider('keysProvider')]
-    public function testSetGetKey(string $type, $original, $expected): void {
+    public function testSetGetKey(string $type, mixed $original, mixed $expected): void {
         $original = is_array($original) || is_object($original) ? serialize($original) : $original;
 
         $this->redis->set('pu-test-'.$type, $original);

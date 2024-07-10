@@ -24,9 +24,9 @@ trait RedisTrait {
 
     private function panels(): string {
         if (extension_loaded('redis')) {
-            $title = 'PHP Redis extension <span>v'.phpversion('redis').'</span>';
+            $title = 'PHP Redis extension v'.phpversion('redis');
         } elseif (class_exists(Predis::class)) {
-            $title = 'Predis <span>v'.Predis::VERSION.'</span>';
+            $title = 'Predis v'.Predis::VERSION;
         }
 
         try {
@@ -63,7 +63,7 @@ trait RedisTrait {
             $panels = ['error' => $e->getMessage()];
         }
 
-        return $this->template->render('partials/info', ['panels' => $panels]);
+        return $this->template->render('partials/info', ['panels' => $panels, 'left' => true]);
     }
 
     /**
@@ -150,25 +150,14 @@ trait RedisTrait {
         }
 
         if (isset($_GET['deletesub'])) {
-            switch ($type) {
-                case 'set':
-                    $subkey = Http::get('member', 0);
-                    break;
-                case 'list':
-                    $subkey = Http::get('index', 0);
-                    break;
-                case 'zset':
-                    $subkey = Http::get('range', 0);
-                    break;
-                case 'hash':
-                    $subkey = Http::get('hash_key', '');
-                    break;
-                case 'stream':
-                    $subkey = Http::get('stream_id', '');
-                    break;
-                default:
-                    $subkey = null;
-            }
+            $subkey = match ($type) {
+                'set' => Http::get('member', 0),
+                'list' => Http::get('index', 0),
+                'zset' => Http::get('range', 0),
+                'hash' => Http::get('hash_key', ''),
+                'stream' => Http::get('stream_id', ''),
+                default => null,
+            };
 
             $this->deleteSubKey($type, $key, $subkey);
 
@@ -327,7 +316,7 @@ trait RedisTrait {
         foreach ($keys_array as $key) {
             try {
                 $type = $this->redis->getType($key);
-            } catch (DashboardException $e) {
+            } catch (DashboardException) {
                 $type = 'unknown';
             }
 
@@ -387,9 +376,9 @@ trait RedisTrait {
                 'id'       => 'db_select',
                 'options'  => $this->getDatabases(),
                 'selected' => Http::get('db', $this->servers[$this->current_server]['database'] ?? 0),
-                'class'    => 'mb-3',
+                'class'    => 'mb-4',
             ]);
-        } catch (DashboardException|Exception $e) {
+        } catch (DashboardException|Exception) {
             $databases = '';
         }
 

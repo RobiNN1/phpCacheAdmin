@@ -12,16 +12,9 @@ class Memcache extends \Memcache implements MemcachedCompatibilityInterface {
     use MemcachedKeys;
 
     /**
-     * @var array<string, int|string>
-     */
-    protected array $server;
-
-    /**
      * @param array<string, int|string> $server
      */
-    public function __construct(array $server = []) {
-        $this->server = $server;
-
+    public function __construct(protected array $server = []) {
         if (isset($this->server['path'])) {
             $this->addServer($this->server['path']);
         } else {

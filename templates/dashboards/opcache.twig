@@ -1,33 +1,40 @@
-{{ panels|raw }}
-<div class="mb-3 lg:grid lg:grid-cols-2 lg:gap-4">
-    <div class="mb-3 md:grid md:grid-cols-2 md:gap-2 lg:mb-0">
-        {% if all_files != 0 %}
-            <div>{{ include('components/search_input.twig') }}</div>
-        {% endif %}
+<div class="md:grid md:grid-cols-10 gap-4">
+    <div class="col-span-2">
+        {{ panels|raw }}
     </div>
 
-    <div class="lg:flex lg:justify-end">
-        <div>
-            {{ include('components/button.twig', {
-                text: (is_ignored ? 'Show' : 'Ignore') ~ ' scripts from this tool',
-                link: ignore_url,
-                class: 'mr-1',
-            }) }}
+    <div class="col-span-8">
+        <div class="mb-4 lg:grid lg:grid-cols-2 lg:gap-4">
+            <div class="mb-4 md:grid md:grid-cols-2 md:gap-2 lg:mb-0">
+                {% if all_files != 0 %}
+                    <div>{{ include('components/search_input.twig') }}</div>
+                {% endif %}
+            </div>
+
+            <div class="lg:flex lg:justify-end">
+                <div>
+                    {{ include('components/button.twig', {
+                        text: (is_ignored ? 'Show' : 'Ignore') ~ ' scripts from this tool',
+                        link: ignore_url,
+                        class: 'mr-1',
+                    }) }}
+                </div>
+                {{ include('partials/keys_buttons.twig', {all_keys: all_files}) }}
+            </div>
         </div>
-        {{ include('partials/keys_buttons.twig', {all_keys: all_files}) }}
+
+        {{ include('partials/keys_table.twig', {
+            head_items: [
+                {'title': 'Filename'},
+                {'title': 'Hits', 'class': 'w-16'},
+                {'title': 'Memory', 'class': 'w-24'},
+                {'title': 'Last used', 'class': 'w-32'},
+                {'title': 'Created', 'class': 'w-40 hidden md:table-cell'},
+            ],
+            classes: {
+                5: 'hidden md:table-cell',
+            },
+            keys: cached_scripts,
+        }) }}
     </div>
 </div>
-
-{{ include('partials/keys_table.twig', {
-    head_items: [
-        {'title': 'Filename'},
-        {'title': 'Hits', 'class': 'w-16'},
-        {'title': 'Memory', 'class': 'w-24'},
-        {'title': 'Last used', 'class': 'w-40'},
-        {'title': 'Created', 'class': 'w-40 hidden md:table-cell'},
-    ],
-    classes: {
-        5: 'hidden md:table-cell',
-    },
-    keys: cached_scripts,
-}) }}

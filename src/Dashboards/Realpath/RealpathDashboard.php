@@ -16,10 +16,7 @@ use RobiNN\Pca\Template;
 class RealpathDashboard implements DashboardInterface {
     use RealpathTrait;
 
-    private Template $template;
-
-    public function __construct(Template $template) {
-        $this->template = $template;
+    public function __construct(private readonly Template $template) {
     }
 
     public static function check(): bool {

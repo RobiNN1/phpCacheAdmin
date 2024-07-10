@@ -29,10 +29,8 @@ class Template {
 
     /**
      * Add global Twig variable.
-     *
-     * @param mixed $value
      */
-    public function addGlobal(string $name, $value): void {
+    public function addGlobal(string $name, mixed $value): void {
         $this->globals[$name] = $value;
     }
 
@@ -66,7 +64,7 @@ class Template {
             $twig->addExtension(new DebugExtension());
         }
 
-        $twig->addFunction(new TwigFunction('svg', [Helpers::class, 'svg'], ['is_safe' => ['html']]));
+        $twig->addFunction(new TwigFunction('svg', Helpers::svg(...), ['is_safe' => ['html']]));
 
         $twig->addFilter(new TwigFilter('space', static function (?string $value, bool $right = false): string {
             $right_side = $right ? $value.' ' : ' '.$value;
@@ -74,9 +72,10 @@ class Template {
             return $value !== null && $value !== '' ? $right_side : '';
         }, ['is_safe' => ['html']]));
 
-        $twig->addFilter(new TwigFilter('number', [Format::class, 'number']));
-        $twig->addFilter(new TwigFilter('bytes', [Format::class, 'bytes']));
-        $twig->addFilter(new TwigFilter('time', [Format::class, 'time']));
+        $twig->addFilter(new TwigFilter('number', Format::number(...)));
+        $twig->addFilter(new TwigFilter('bytes', Format::bytes(...)));
+        $twig->addFilter(new TwigFilter('time', Format::time(...)));
+        $twig->addFilter(new TwigFilter('timediff', Format::timeDiff(...)));
         $twig->addFilter(new TwigFilter('base64', static fn (string $string): string => base64_encode($string)));
 
         foreach ($this->globals as $name => $value) {

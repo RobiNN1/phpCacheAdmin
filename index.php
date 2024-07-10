@@ -12,8 +12,8 @@ use RobiNN\Pca\Config;
 use RobiNN\Pca\Http;
 use RobiNN\Pca\Template;
 
-if (PHP_VERSION_ID < 70400) {
-    exit('<strong>PHP >= 7.4 is required.</strong><br>The current version of php is: '.PHP_VERSION);
+if (PHP_VERSION_ID < 80200) {
+    exit('<strong>PHP >= 8.2 is required.</strong><br>The current version of php is: '.PHP_VERSION);
 }
 
 // Always display errors
@@ -48,11 +48,7 @@ $admin = new Admin($tpl);
 $nav = [];
 
 foreach ($admin->dashboards as $d_key => $d_dashboard) {
-    $d_info = $d_dashboard->dashboardInfo();
-    $nav[$d_key] = [
-        'title' => $d_info['title'],
-        'icon'  => $d_info['icon'] ?? 'dashboards/'.$d_key,
-    ];
+    $nav[$d_key] = $d_dashboard->dashboardInfo();
 }
 
 $current = $admin->currentDashboard();
@@ -61,7 +57,7 @@ $info = $dashboard->dashboardInfo();
 
 $tpl->addGlobal('current', $current);
 
-if (isset($_GET['ajax']) && method_exists($dashboard, 'ajax')) {
+if (isset($_GET['ajax'])) {
     echo $dashboard->ajax();
 } else {
     if (isset($_GET['moreinfo']) || isset($_GET['form']) || isset($_GET['view'], $_GET['key'])) {

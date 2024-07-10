@@ -64,7 +64,7 @@ class Value {
                 $value = json_encode($json_array, JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT);
 
                 return '<pre class="json-code">'.htmlspecialchars($value).'</pre>';
-            } catch (JsonException $e) {
+            } catch (JsonException) {
                 return htmlspecialchars($value);
             }
         }

@@ -88,7 +88,7 @@ services:
 
 ## Requirements
 
-- PHP >= 7.4
+- PHP >= 8.2 (Use [v1 branch](https://github.com/RobiNN1/phpCacheAdmin/tree/v1.x) if you need support for >=7.4)
 - Redis server >= 3.0.0
 - Memcached server >= 1.4.31. If you do not see the keys, you need to enable `lru_crawler`. SASL is not supported because there is no way to get the keys.
 

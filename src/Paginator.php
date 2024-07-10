@@ -8,9 +8,7 @@ declare(strict_types=1);
 
 namespace RobiNN\Pca;
 
-class Paginator {
-    private Template $template;
-
+readonly class Paginator {
     private int $total;
 
     /**
@@ -23,17 +21,14 @@ class Paginator {
     private int $per_page;
 
     /**
-     * @var array<int, array<int|string, string>>
-     */
-    private array $url;
-
-    /**
      * @param array<int, array<string, int|string>> $items
      * @param array<int, array<int|string, string>> $url
      */
-    public function __construct(Template $template, array $items, array $url = [['pp'], ['p' => '']]) {
-        $this->template = $template;
-        $this->url = $url;
+    public function __construct(
+        private Template $template,
+        array            $items,
+        private array    $url = [['pp'], ['p' => '']]
+    ) {
         $this->total = count($items);
         $this->page = Http::get('p', 1);
         $this->per_page = Http::get('pp', 25);

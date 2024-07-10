@@ -25,15 +25,10 @@ final class PHPMemTest extends TestCase {
     }
 
     /**
-     * @dataProvider keysProvider
-     *
-     * @param mixed $original
-     * @param mixed $expected
-     *
      * @throws MemcachedException
      */
     #[DataProvider('keysProvider')]
-    public function testSetGetKey(string $type, $original, $expected): void {
+    public function testSetGetKey(string $type, mixed $original, mixed $expected): void {
         $key = 'pu-pmem-test-'.$type;
         $this->phpmem->set($key, $original);
         $this->assertSame($expected, $this->phpmem->getKey($key));

@@ -62,10 +62,7 @@ class Helpers {
         return $array;
     }
 
-    /**
-     * @param mixed $data
-     */
-    public static function mixedToString($data): string {
+    public static function mixedToString(mixed $data): string {
         if (is_array($data) || is_object($data)) {
             $data = serialize($data);
         }
@@ -99,7 +96,7 @@ class Helpers {
      *
      * @throws JsonException
      */
-    private static function keysJson($keys = null, bool $base64 = false): string {
+    private static function keysJson(array|string $keys = null, bool $base64 = false): string {
         if ($keys === null) {
             return Http::post('delete', '');
         }
@@ -116,10 +113,10 @@ class Helpers {
      *
      * @param array<int, string>|string|null $keys_for_json
      */
-    public static function deleteKey(Template $template, callable $delete_key, bool $base64 = false, $keys_for_json = null): string {
+    public static function deleteKey(Template $template, callable $delete_key, bool $base64 = false, array|string $keys_for_json = null): string {
         try {
             $keys = json_decode(self::keysJson($keys_for_json, $base64), false, 512, JSON_THROW_ON_ERROR);
-        } catch (JsonException $e) {
+        } catch (JsonException) {
             $keys = [];
         }
 
@@ -188,7 +185,7 @@ class Helpers {
             'id'       => 'server_select',
             'options'  => $options,
             'selected' => $selected,
-            'class'    => 'mb-3',
+            'class'    => 'mb-4',
         ]);
     }
 }

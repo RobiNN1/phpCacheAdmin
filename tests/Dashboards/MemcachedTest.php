@@ -26,10 +26,7 @@ final class MemcachedTest extends TestCase {
 
     private MemcachedDashboard $dashboard;
 
-    /**
-     * @var Memcached|Memcache|PHPMem
-     */
-    private $memcached;
+    private PHPMem|Memcache|Memcached $memcached;
 
     /**
      * @throws DashboardException
@@ -46,7 +43,7 @@ final class MemcachedTest extends TestCase {
      *
      * @throws MemcachedException
      */
-    private function deleteKeys($keys): void {
+    private function deleteKeys(array|string $keys): void {
         $this->assertSame(
             Helpers::alert($this->template, (is_array($keys) ? 'Keys' : 'Key "'.$keys.'"').' has been deleted.', 'success'),
             Helpers::deleteKey($this->template, fn (string $key): bool => $this->memcached->delete($key), false, $keys)
@@ -84,15 +81,10 @@ final class MemcachedTest extends TestCase {
     }
 
     /**
-     * @dataProvider keysProvider
-     *
-     * @param mixed $original
-     * @param mixed $expected
-     *
      * @throws MemcachedException
      */
     #[DataProvider('keysProvider')]
-    public function testSetGetKey(string $type, $original, $expected): void {
+    public function testSetGetKey(string $type, mixed $original, mixed $expected): void {
         $this->memcached->set('pu-test-'.$type, $original);
         $this->assertSame($expected, Helpers::mixedToString($this->memcached->getKey('pu-test-'.$type)));
         $this->memcached->delete('pu-test-'.$type);
@@ -147,8 +139,6 @@ final class MemcachedTest extends TestCase {
     }
 
     /**
-     * @dataProvider commandDataProvider
-     *
      * @throws MemcachedException
      */
     #[DataProvider('commandDataProvider')]

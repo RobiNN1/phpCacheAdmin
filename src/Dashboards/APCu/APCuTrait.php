@@ -28,16 +28,18 @@ trait APCuTrait {
 
         $panels = [
             [
-                'title'    => 'PHP APCu extension <span>v'.phpversion('apcu').'</span>',
+                'title'    => 'PHP APCu extension v'.phpversion('apcu'),
                 'moreinfo' => true,
                 'data'     => [
                     'Start time'       => Format::time($info['start_time']),
+                    'Uptime'           => Format::seconds(time() - $info['start_time']),
                     'Cache full count' => $info['expunges'],
                 ],
             ],
             [
                 'title' => 'Memory',
                 'data'  => [
+                    'Type'  => $info['memory_type'].' - '.$memory_info['num_seg'].' segment(s) * '.Format::bytes((int) $memory_info['seg_size'], 0),
                     'Total' => Format::bytes((int) $total_memory, 0),
                     'Used'  => Format::bytes((int) $memory_used).' ('.$memory_usage_percentage.'%)',
                     'Free'  => Format::bytes((int) $memory_info['avail_mem']),
@@ -54,7 +56,7 @@ trait APCuTrait {
             ],
         ];
 
-        return $this->template->render('partials/info', ['panels' => $panels]);
+        return $this->template->render('partials/info', ['panels' => $panels, 'left' => true]);
     }
 
     private function moreInfo(): string {
@@ -172,16 +174,16 @@ trait APCuTrait {
         foreach ($info['cache_list'] as $key_data) {
             $key = $key_data['info'];
 
-            if ($search === '' || stripos($key, $search) !== false) {
+            if (stripos($key, $search) !== false) {
                 $keys[] = [
                     'key'    => $key,
                     'base64' => true,
                     'items'  => [
-                        'link_title'     => $key,
-                        'number_hits'    => $key_data['num_hits'],
-                        'time_last_used' => $key_data['access_time'],
-                        'time_created'   => $key_data['creation_time'],
-                        'ttl'            => $key_data['ttl'] === 0 ? 'Doesn\'t expire' : $key_data['creation_time'] + $key_data['ttl'] - time(),
+                        'link_title'         => $key,
+                        'number_hits'        => $key_data['num_hits'],
+                        'timediff_last_used' => $key_data['access_time'],
+                        'time_created'       => $key_data['creation_time'],
+                        'ttl'                => $key_data['ttl'] === 0 ? 'Doesn\'t expire' : $key_data['creation_time'] + $key_data['ttl'] - time(),
                     ],
                 ];
             }

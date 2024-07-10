@@ -98,9 +98,33 @@ class Format {
             return (new DateTimeImmutable('@'.$time))
                 ->setTimezone(new DateTimeZone(Config::get('timezone', date_default_timezone_get())))
                 ->format($format);
-        } catch (Exception $e) {
+        } catch (Exception) {
             return date($format, $time);
         }
+    }
+
+    public static function timeDiff(int $from, int $to = null): string {
+        $units = [
+            'year'   => 365 * 24 * 60 * 60,
+            'month'  => 30 * 24 * 60 * 60,
+            'week'   => 7 * 24 * 60 * 60,
+            'day'    => 24 * 60 * 60,
+            'hour'   => 60 * 60,
+            'minute' => 60,
+            'second' => 1,
+        ];
+
+        $diff = ($to ?? time()) - $from;
+
+        foreach ($units as $name => $seconds) {
+            if ($diff >= $seconds) {
+                $value = round($diff / $seconds);
+
+                return sprintf('%d %s%s ago', $value, $name, $value > 1 ? 's' : '');
+            }
+        }
+
+        return '1 second ago';
     }
 
     public static function number(float $number, int $decimals = 0): string {

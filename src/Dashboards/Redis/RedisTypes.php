@@ -120,34 +120,17 @@ trait RedisTypes {
      *
      * @throws Exception
      */
-    public function getAllKeyValues(string $type, string $key) {
-        switch ($type) {
-            case 'string':
-                $value = $this->redis->get($key);
-                break;
-            case 'set':
-                $value = $this->redis->sMembers($key);
-                break;
-            case 'list':
-                $value = $this->redis->lRange($key, 0, -1);
-                break;
-            case 'zset':
-                $value = $this->redis->zRange($key, 0, -1);
-                break;
-            case 'hash':
-                $value = $this->redis->hGetAll($key);
-                break;
-            case 'stream':
-                $value = $this->redis->xRange($key, '-', '+');
-                break;
-            case 'rejson':
-                $value = $this->redis->jsonGet($key);
-                break;
-            default:
-                $value = '';
-        }
-
-        return $value;
+    public function getAllKeyValues(string $type, string $key): array|string {
+        return match ($type) {
+            'string' => $this->redis->get($key),
+            'set' => $this->redis->sMembers($key),
+            'list' => $this->redis->lRange($key, 0, -1),
+            'zset' => $this->redis->zRange($key, 0, -1),
+            'hash' => $this->redis->hGetAll($key),
+            'stream' => $this->redis->xRange($key, '-', '+'),
+            'rejson' => $this->redis->jsonGet($key),
+            default => '',
+        };
     }
 
     /**
@@ -209,11 +192,9 @@ trait RedisTypes {
     }
 
     /**
-     * @param int|string|null $subkey
-     *
      * @throws Exception
      */
-    public function deleteSubKey(string $type, string $key, $subkey = null): void {
+    public function deleteSubKey(string $type, string $key, int|string $subkey = null): void {
         switch ($type) {
             case 'set':
                 $members = $this->redis->sMembers($key);
@@ -241,26 +222,13 @@ trait RedisTypes {
      * @throws Exception
      */
     private function getCountOfItemsInKey(string $type, string $key): ?int {
-        switch ($type) {
-            case 'set':
-                $items = $this->redis->sCard($key);
-                break;
-            case 'list':
-                $items = $this->redis->lLen($key);
-                break;
-            case 'zset':
-                $items = $this->redis->zCard($key);
-                break;
-            case 'hash':
-                $items = $this->redis->hLen($key);
-                break;
-            case 'stream':
-                $items = $this->redis->xLen($key);
-                break;
-            default:
-                $items = null;
-        }
-
-        return $items;
+        return match ($type) {
+            'set' => $this->redis->sCard($key),
+            'list' => $this->redis->lLen($key),
+            'zset' => $this->redis->zCard($key),
+            'hash' => $this->redis->hLen($key),
+            'stream' => $this->redis->xLen($key),
+            default => null,
+        };
     }
 }

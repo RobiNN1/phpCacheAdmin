@@ -6,36 +6,6 @@
 
 declare(strict_types=1);
 
-// https://github.com/symfony/polyfill-php80/blob/main/Php80.php
-
-if (!function_exists('str_contains')) {
-    function str_contains(string $haystack, string $needle): bool {
-        return '' === $needle || false !== strpos($haystack, $needle);
-    }
-}
-
-if (!function_exists('str_starts_with')) {
-    function str_starts_with(string $haystack, string $needle): bool {
-        return 0 === strncmp($haystack, $needle, strlen($needle));
-    }
-}
-
-if (!function_exists('str_ends_with')) {
-    function str_ends_with(string $haystack, string $needle): bool {
-        if ('' === $needle || $needle === $haystack) {
-            return true;
-        }
-
-        if ('' === $haystack) {
-            return false;
-        }
-
-        $needleLength = strlen($needle);
-
-        return $needleLength <= strlen($haystack) && 0 === substr_compare($haystack, $needle, -$needleLength);
-    }
-}
-
 // https://github.com/symfony/polyfill-php83/blob/main/Php83.php
 
 if (!function_exists('json_validate')) {
@@ -56,7 +26,7 @@ if (!function_exists('json_validate')) {
 
         try {
             json_decode($json, null, $depth, JSON_THROW_ON_ERROR | $flags);
-        } catch (JsonException $e) {
+        } catch (JsonException) {
             return false;
         }
 

@@ -36,16 +36,6 @@ const select_and_redirect = (id, param) => {
 }
 
 /**
- * Sidebar toggle
- */
-const togglebtn = document.getElementById('togglebtn');
-togglebtn.addEventListener('click', () => {
-    togglebtn.classList.toggle('text-white');
-    togglebtn.classList.toggle('fixed');
-    document.getElementById('sidebar').classList.toggle('-translate-x-full');
-});
-
-/**
  * Keys
  */
 const delete_selected = document.getElementById('delete_selected');

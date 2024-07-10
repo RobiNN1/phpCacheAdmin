@@ -20,8 +20,6 @@ use RobiNN\Pca\Template;
 class RedisDashboard implements DashboardInterface {
     use RedisTrait;
 
-    private Template $template;
-
     /**
      * @var array<int, array<string, int|string>>
      */
@@ -29,14 +27,9 @@ class RedisDashboard implements DashboardInterface {
 
     private int $current_server;
 
-    /**
-     * @var Compatibility\Redis|Compatibility\Predis
-     */
-    public $redis;
+    public Compatibility\Redis|Compatibility\Predis $redis;
 
-    public function __construct(Template $template) {
-        $this->template = $template;
-
+    public function __construct(private readonly Template $template) {
         $this->servers = Config::get('redis', []);
 
         $server = Http::get('server', 0);
@@ -76,11 +69,9 @@ class RedisDashboard implements DashboardInterface {
      *
      * @param array<string, int|string> $server
      *
-     * @return Compatibility\Redis|Compatibility\Predis
-     *
      * @throws DashboardException
      */
-    public function connect(array $server) {
+    public function connect(array $server): Compatibility\Redis|Compatibility\Predis {
         $server['database'] = Http::get('db', $server['database'] ?? 0);
 
         if (isset($server['authfile'])) {

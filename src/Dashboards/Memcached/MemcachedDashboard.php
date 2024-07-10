@@ -18,8 +18,6 @@ use RobiNN\Pca\Template;
 class MemcachedDashboard implements DashboardInterface {
     use MemcachedTrait;
 
-    private Template $template;
-
     /**
      * @var array<int, array<string, int|string>>
      */
@@ -27,14 +25,9 @@ class MemcachedDashboard implements DashboardInterface {
 
     private int $current_server;
 
-    /**
-     * @var Compatibility\Memcached|Compatibility\Memcache|Compatibility\PHPMem
-     */
-    public $memcached;
+    public Compatibility\Memcached|Compatibility\Memcache|Compatibility\PHPMem $memcached;
 
-    public function __construct(Template $template) {
-        $this->template = $template;
-
+    public function __construct(private readonly Template $template) {
         $this->servers = Config::get('memcached', []);
 
         $server = Http::get('server', 0);
@@ -75,11 +68,9 @@ class MemcachedDashboard implements DashboardInterface {
      *
      * @param array<string, int|string> $server
      *
-     * @return Compatibility\Memcached|Compatibility\Memcache|Compatibility\PHPMem
-     *
      * @throws DashboardException
      */
-    public function connect(array $server) {
+    public function connect(array $server): Compatibility\Memcached|Compatibility\Memcache|Compatibility\PHPMem {
         $server['port'] ??= 11211;
 
         if (extension_loaded('memcached')) {

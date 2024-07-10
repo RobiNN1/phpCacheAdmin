@@ -94,8 +94,8 @@ return [
         ],
         /*'gz_magento' => [
             'view' => static function (string $value): ?string {
-                // https://github.com/colinmollenhour/Cm_Cache_Backend_Redis/blob/master/Cm/Cache/Backend/Redis.php#L1307-L1328
-                $value = str_starts_with($value, "gz:\x1f\x8b") ? (string) substr($value, 5) : $value;
+                // https://github.com/colinmollenhour/Cm_Cache_Backend_Redis/blob/master/Cm/Cache/Backend/Redis.php (_encodeData method)
+                $value = str_starts_with($value, "gz:\x1f\x8b") ? substr($value, 5) : $value;
 
                 return extension_loaded('zlib') && @gzuncompress($value) !== false ? gzuncompress($value) : null;
             },
@@ -109,7 +109,7 @@ return [
             if ($unserialized_value !== false && is_array($unserialized_value)) {
                 try {
                     return json_encode($unserialized_value, JSON_THROW_ON_ERROR);
-                } catch (JsonException $e) {
+                } catch (JsonException) {
                     return null;
                 }
             }

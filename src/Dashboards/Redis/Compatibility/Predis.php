@@ -125,12 +125,7 @@ class Predis extends Client implements RedisCompatibilityInterface {
         return $this->xadd($key, $messages, $id);
     }
 
-    /**
-     * @param mixed ...$arguments
-     *
-     * @return mixed
-     */
-    public function rawCommand(string $command, ...$arguments) {
+    public function rawCommand(string $command, mixed ...$arguments): mixed {
         return $this->executeRaw(func_get_args());
     }
 }

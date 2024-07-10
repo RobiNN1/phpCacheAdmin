@@ -28,7 +28,7 @@ final class APCuTest extends TestCase {
     /**
      * @param array<int, string>|string $keys
      */
-    private function deleteKeys($keys): void {
+    private function deleteKeys(array|string $keys): void {
         $this->assertSame(
             Helpers::alert($this->template, (is_array($keys) ? 'Keys' : 'Key "'.$keys.'"').' has been deleted.', 'success'),
             Helpers::deleteKey($this->template, static fn (string $key): bool => apcu_delete($key), true, $keys)
@@ -59,14 +59,8 @@ final class APCuTest extends TestCase {
         $this->assertFalse(apcu_exists($key3));
     }
 
-    /**
-     * @dataProvider keysProvider
-     *
-     * @param mixed $original
-     * @param mixed $expected
-     */
     #[DataProvider('keysProvider')]
-    public function testSetGetKey(string $type, $original, $expected): void {
+    public function testSetGetKey(string $type, mixed $original, mixed $expected): void {
         apcu_store('pu-test-'.$type, $original);
         $this->assertSame($expected, Helpers::mixedToString(apcu_fetch('pu-test-'.$type)));
         apcu_delete('pu-test-'.$type);

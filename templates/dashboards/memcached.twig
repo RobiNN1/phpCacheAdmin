@@ -1,30 +1,37 @@
-<div class="md:grid md:grid-cols-2 md:gap-4">{{ select|raw }}</div>
-{{ panels|raw }}
-<div class="mb-3 lg:grid lg:grid-cols-2 lg:gap-4">
-    <div class="mb-3 md:grid md:grid-cols-2 md:gap-2 lg:mb-0">
-        {% if all_keys != 0 %}
-            <div>{{ include('components/search_input.twig') }}</div>
-        {% endif %}
+<div class="md:grid md:grid-cols-10 gap-4">
+    <div class="col-span-2">
+        {{ select|raw }}
+        {{ panels|raw }}
     </div>
 
-    <div class="lg:flex lg:justify-end">
-        {{ include('partials/keys_buttons.twig', {
-            import_btn: true,
-            add_new_btn: true,
+    <div class="col-span-8">
+        <div class="mb-4 lg:grid lg:grid-cols-2 lg:gap-4">
+            <div class="mb-4 md:grid md:grid-cols-2 md:gap-2 lg:mb-0">
+                {% if all_keys != 0 %}
+                    <div>{{ include('components/search_input.twig') }}</div>
+                {% endif %}
+            </div>
+
+            <div class="lg:flex lg:justify-end">
+                {{ include('partials/keys_buttons.twig', {
+                    import_btn: true,
+                    add_new_btn: true,
+                }) }}
+            </div>
+        </div>
+
+        {{ include('partials/import_form.twig', {
+            expire_default: '0',
+            expire_max: 2592000,
+            key_desc: 'The text value in the .txt file.',
+        }) }}
+
+        {{ include('partials/keys_table.twig', {
+            head_items: [
+                {'title': 'Key'},
+                {'title': 'Last used', 'class': 'w-32'},
+                {'title': 'TTL', 'class': 'w-32'},
+            ],
         }) }}
     </div>
 </div>
-
-{{ include('partials/import_form.twig', {
-    expire_default: '0',
-    expire_max: 2592000,
-    key_desc: 'The text value in the .txt file.',
-}) }}
-
-{{ include('partials/keys_table.twig', {
-    head_items: [
-        {'title': 'Key'},
-        {'title': 'Last used', 'class': 'w-40'},
-        {'title': 'TTL', 'class': 'w-32'},
-    ],
-}) }}

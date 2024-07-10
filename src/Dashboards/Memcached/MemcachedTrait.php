@@ -22,9 +22,9 @@ trait MemcachedTrait {
     private function panels(array $all_keys): string {
         if (extension_loaded('memcached') || extension_loaded('memcache')) {
             $memcached = extension_loaded('memcached') ? 'd' : '';
-            $title = 'PHP Memcache'.$memcached.' extension <span>v'.phpversion('memcache'.$memcached).'</span>';
+            $title = 'PHP Memcache'.$memcached.' extension v'.phpversion('memcache'.$memcached);
         } elseif (class_exists(Compatibility\PHPMem::class)) {
-            $title = 'PHPMem <span>v'.Compatibility\PHPMem::VERSION.'</span>';
+            $title = 'PHPMem v'.Compatibility\PHPMem::VERSION;
         }
 
         try {
@@ -54,7 +54,7 @@ trait MemcachedTrait {
             $panels = ['error' => $e->getMessage()];
         }
 
-        return $this->template->render('partials/info', ['panels' => $panels]);
+        return $this->template->render('partials/info', ['panels' => $panels, 'left' => true]);
     }
 
     /**
@@ -190,16 +190,16 @@ trait MemcachedTrait {
         foreach ($all_keys as $key_data) {
             $key = $key_data['key'] ?? $key_data;
 
-            if ($search === '' || stripos($key, $search) !== false) {
+            if (stripos($key, $search) !== false) {
                 $ttl = $key_data['exp'] ?? null;
 
                 $keys[] = [
                     'key'   => $key,
                     'ttl'   => $ttl,
                     'items' => [
-                        'link_title'       => $key,
-                        'time_last_access' => $key_data['la'],
-                        'ttl'              => $ttl === -1 ? 'Doesn\'t expire' : $ttl,
+                        'link_title'           => $key,
+                        'timediff_last_access' => $key_data['la'],
+                        'ttl'                  => $ttl === -1 ? 'Doesn\'t expire' : $ttl,
                     ],
                 ];
             }

@@ -20,12 +20,11 @@
     </div>
 
     {% if encoders %}
-        <div class="mb-3">
+        <div class="mb-4">
             <label for="encoder" class="mb-2 block text-sm font-semibold">Encode function</label>
             {{ include('components/select.twig', {
                 id: 'encoder',
                 options: encoders,
-                class: 'w-full',
                 selected: encoder,
             }) }}
         </div>

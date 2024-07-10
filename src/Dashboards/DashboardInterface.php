@@ -22,6 +22,11 @@ interface DashboardInterface {
     public function dashboardInfo(): array;
 
     /**
+     * Ajax content.
+     */
+    public function ajax(): string;
+
+    /**
      * Main dashboard content.
      */
     public function dashboard(): string;

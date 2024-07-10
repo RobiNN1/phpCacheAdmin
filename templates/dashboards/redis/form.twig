@@ -2,7 +2,7 @@
     <input type="hidden" name="old_key" value="{{ key }}">
     <input type="hidden" name="old_value" value="{{ value }}">
 
-    <div class="mb-3">
+    <div class="mb-4">
         <label for="redis_type" class="mb-2 block text-sm font-semibold">Type</label>
         {{ include('components/select.twig', {
             id: 'redis_type',
@@ -55,7 +55,7 @@
     }) }}
 
     {% if encoders %}
-        <div class="mb-3">
+        <div class="mb-4">
             <label for="encoder" class="mb-2 block text-sm font-semibold">Encode function</label>
             {{ include('components/select.twig', {
                 id: 'encoder',

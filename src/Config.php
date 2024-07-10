@@ -73,7 +73,7 @@ class Config {
     private static function envVarToArray(array &$array, string $var, string $value): void {
         $var = str_replace('PCA_', '', $var);
         $keys = explode('_', $var);
-        $keys = array_map('strtolower', $keys);
+        $keys = array_map(strtolower(...), $keys);
 
         foreach ($keys as $i => $key) {
             if (count($keys) === 1) {
@@ -92,7 +92,7 @@ class Config {
         if (json_validate($value)) {
             try {
                 $value = json_decode($value, true, 512, JSON_THROW_ON_ERROR);
-            } catch (JsonException $e) {
+            } catch (JsonException) {
                 //
             }
         }

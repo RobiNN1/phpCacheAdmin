@@ -31,8 +31,6 @@ final class PredisTest extends TestCase {
     }
 
     /**
-     * @dataProvider keysProvider
-     *
      * @throws DashboardException
      */
     #[DataProvider('keysProvider')]
@@ -49,9 +47,6 @@ final class PredisTest extends TestCase {
         $this->assertSame($key, $this->predis->getType('pu-pred-test-'.$key));
     }
 
-    /**
-     * @dataProvider keysProvider
-     */
     #[DataProvider('keysProvider')]
     public function testDelete(string $key): void {
         $this->predis->del('pu-pred-test-'.$key);

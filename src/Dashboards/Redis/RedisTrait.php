@@ -406,8 +406,6 @@ trait RedisTrait {
         $paginator = new Paginator($this->template, $keys, [['db', 's', 'pp'], ['p' => '']]);
 
         return $this->template->render('dashboards/redis/redis', [
-            'select'      => $this->select(),
-            'panels'      => $this->panels(),
             'keys'        => $paginator->getPaginated(),
             'all_keys'    => $this->redis->dbSize(),
             'new_key_url' => Http::queryString(['db'], ['form' => 'new']),

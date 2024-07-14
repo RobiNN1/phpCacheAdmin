@@ -12,10 +12,7 @@ use RobiNN\Pca\Format;
 use RobiNN\Pca\Http;
 
 trait RealpathTrait {
-    /**
-     * @param array<string, mixed> $all_keys
-     */
-    private function panels(array $all_keys): string {
+    private function panels(): string {
         $total_memory = Format::iniSizeToBytes(ini_get('realpath_cache_size'));
         $memory_used = realpath_cache_size();
         $memory_usage_percentage = round(($memory_used / $total_memory) * 100, 2);
@@ -32,26 +29,24 @@ trait RealpathTrait {
                 'title' => 'Keys',
                 'data'  => [
                     'TTL'    => ini_get('realpath_cache_ttl'),
-                    'Cached' => Format::number(count($all_keys)),
+                    'Cached' => Format::number(count($this->all_keys)),
                 ],
             ],
         ];
 
-        return $this->template->render('partials/info', ['panels' => $panels]);
+        return $this->template->render('partials/info', ['panels' => $panels, 'left' => true]);
     }
 
     /**
-     * @param array<string, mixed> $all_keys
-     *
      * @return array<int, array<string, string|int>>
      */
-    private function getAllKeys(array $all_keys): array {
+    private function getAllKeys(): array {
         static $keys = [];
         $search = Http::get('s', '');
 
         $this->template->addGlobal('search_value', $search);
 
-        foreach ($all_keys as $key_name => $key_data) {
+        foreach ($this->all_keys as $key_name => $key_data) {
             if ($search === '' || stripos($key_name, $search) !== false) {
                 $keys[] = [
                     'key'   => $key_name,

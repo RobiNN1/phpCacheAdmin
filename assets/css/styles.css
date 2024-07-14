@@ -677,6 +677,10 @@ video {
   margin-left: calc(-1px * calc(1 - var(--tw-space-x-reverse)));
 }
 
+.self-center {
+  align-self: center;
+}
+
 .overflow-hidden {
   overflow: hidden;
 }
@@ -1200,6 +1204,14 @@ video {
 @media (min-width: 768px) {
   .md\:mb-0 {
     margin-bottom: 0px;
+  }
+
+  .md\:me-4 {
+    margin-inline-end: 1rem;
+  }
+
+  .md\:inline-flex {
+    display: inline-flex;
   }
 
   .md\:table-cell {

@@ -157,7 +157,6 @@ trait OPCacheTrait {
         $status = opcache_get_status(false);
 
         return $this->template->render('dashboards/opcache', [
-            'panels'         => $this->panels(),
             'cached_scripts' => $paginator->getPaginated(),
             'all_files'      => $status['opcache_statistics']['num_cached_scripts'],
             'paginator'      => $paginator->render(),

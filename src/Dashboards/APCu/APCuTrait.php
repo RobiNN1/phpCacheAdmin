@@ -207,7 +207,6 @@ trait APCuTrait {
         $info = apcu_cache_info(true);
 
         return $this->template->render('dashboards/apcu', [
-            'panels'      => $this->panels(),
             'keys'        => $paginator->getPaginated(),
             'all_keys'    => (int) $info['num_entries'],
             'new_key_url' => Http::queryString([], ['form' => 'new']),

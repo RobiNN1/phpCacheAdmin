@@ -16,10 +16,7 @@ use RobiNN\Pca\Paginator;
 use RobiNN\Pca\Value;
 
 trait MemcachedTrait {
-    /**
-     * @param array<int, mixed> $all_keys
-     */
-    private function panels(array $all_keys): string {
+    private function panels(): string {
         if (extension_loaded('memcached') || extension_loaded('memcache')) {
             $memcached = extension_loaded('memcached') ? 'd' : '';
             $title = 'PHP Memcache'.$memcached.' extension v'.phpversion('memcache'.$memcached);
@@ -46,7 +43,7 @@ trait MemcachedTrait {
                     'data'  => [
                         'Cache limit' => Format::bytes((int) $server_info['limit_maxbytes'], 0),
                         'Used'        => Format::bytes((int) $server_info['bytes']),
-                        'Keys'        => Format::number(count($all_keys)), // Keys are loaded via sockets and not extension itself
+                        'Keys'        => Format::number(count($this->all_keys)), // Keys are loaded via sockets and not extension itself
                     ],
                 ],
             ];
@@ -177,17 +174,15 @@ trait MemcachedTrait {
     }
 
     /**
-     * @param array<int, mixed> $all_keys
-     *
      * @return array<int, array<string, string|int>>
      */
-    private function getAllKeys(array $all_keys): array {
+    private function getAllKeys(): array {
         static $keys = [];
         $search = Http::get('s', '');
 
         $this->template->addGlobal('search_value', $search);
 
-        foreach ($all_keys as $key_data) {
+        foreach ($this->all_keys as $key_data) {
             $key = $key_data['key'] ?? $key_data;
 
             if (stripos($key, $search) !== false) {
@@ -212,8 +207,7 @@ trait MemcachedTrait {
      * @throws MemcachedException
      */
     private function mainDashboard(): string {
-        $all_keys = $this->memcached->getKeys();
-        $keys = $this->getAllKeys($all_keys);
+        $keys = $this->getAllKeys();
 
         if (isset($_POST['submit_import_key'])) {
             Helpers::import(
@@ -225,10 +219,8 @@ trait MemcachedTrait {
         $paginator = new Paginator($this->template, $keys);
 
         return $this->template->render('dashboards/memcached', [
-            'select'      => Helpers::serverSelector($this->template, $this->servers, $this->current_server),
-            'panels'      => $this->panels($all_keys),
             'keys'        => $paginator->getPaginated(),
-            'all_keys'    => count($all_keys),
+            'all_keys'    => count($this->all_keys),
             'new_key_url' => Http::queryString([], ['form' => 'new']),
             'paginator'   => $paginator->render(),
             'view_key'    => Http::queryString([], ['view' => 'key', 'ttl' => '__ttl__', 'key' => '__key__']),

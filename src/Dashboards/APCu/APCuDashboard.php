@@ -58,6 +58,8 @@ class APCuDashboard implements DashboardInterface {
     }
 
     public function dashboard(): string {
+        $this->template->addGlobal('side', $this->panels());
+
         if (isset($_GET['moreinfo'])) {
             return $this->moreInfo();
         }

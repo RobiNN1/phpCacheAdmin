@@ -28,7 +28,7 @@ final class FormatTest extends TestCase {
     }
 
     public function testTimeDiff(): void {
-        $current_time = 1720644659;
+        $current_time = time();
 
         $diffs = [
             '1 second ago'  => $current_time - 1,

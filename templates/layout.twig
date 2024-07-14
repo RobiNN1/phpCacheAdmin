@@ -18,7 +18,15 @@
 </head>
 <body class="bg-gray-50 text-gray-900" data-dashboard="{{ current }}">
 <header class="grid md:grid-cols-3 p-4 bg-white border-b border-gray-200">
-    <a class="block w-72" href="/">{{ svg('logo', null) }}</a>
+    <div class="flex">
+        <a class="block w-72 md:me-4" href="/">{{ svg('logo', null) }}</a>
+
+        {% if back_url %}
+            <a class="hidden md:inline-flex self-center text-lg text-primary-500 hover:text-primary-700 font-semibold  items-center" href="{{ back_url }}">
+                {{ svg('back', 16, 'mr-1') }} Back
+            </a>
+        {% endif %}
+    </div>
 
     <div class="flex items-center justify-center gap-4">
         {% for link, item in nav %}
@@ -40,15 +48,15 @@
 <main class="p-4" id="maincontent">
     <div id="alerts">{{ alerts|raw }}</div>
 
-    {% if back_url %}
-        <div class="block">
-            <a class="text-lg text-primary-500 hover:text-primary-700 font-semibold inline-flex items-center mb-2" href="{{ back_url }}">
-                {{ svg('back', 16, 'mr-1') }} Back
-            </a>
-        </div>
-    {% endif %}
+    {% if side %}
+        <div class="md:grid md:grid-cols-10 gap-4">
+            <div class="col-span-2">{{ side|raw }}</div>
 
-    {{ dashboard|raw }}
+            <div class="col-span-8">{{ dashboard|raw }}</div>
+        </div>
+    {% else %}
+        {{ dashboard|raw }}
+    {% endif %}
 </main>
 
 <footer class="my-4 text-center">

@@ -16,6 +16,12 @@ use RobiNN\Pca\Template;
 class RealpathDashboard implements DashboardInterface {
     use RealpathTrait;
 
+    /**
+     * @var array<string, mixed>
+     * @noinspection PhpPrivateFieldCanBeLocalVariableInspection
+     */
+    private array $all_keys = [];
+
     public function __construct(private readonly Template $template) {
     }
 
@@ -57,15 +63,16 @@ class RealpathDashboard implements DashboardInterface {
     }
 
     public function dashboard(): string {
-        $all_keys = realpath_cache_get();
-        $keys = $this->getAllKeys($all_keys);
+        $this->all_keys = realpath_cache_get();
 
+        $this->template->addGlobal('side', $this->panels());
+
+        $keys = $this->getAllKeys();
         $paginator = new Paginator($this->template, $keys);
 
         return $this->template->render('dashboards/realpath', [
-            'panels'    => $this->panels($all_keys),
             'keys'      => $paginator->getPaginated(),
-            'all_keys'  => count($all_keys),
+            'all_keys'  => count($this->all_keys),
             'paginator' => $paginator->render(),
         ]);
     }

@@ -27,6 +27,11 @@ class MemcachedDashboard implements DashboardInterface {
 
     public Compatibility\Memcached|Compatibility\Memcache|Compatibility\PHPMem $memcached;
 
+    /**
+     * @var array<int, mixed>
+     */
+    private array $all_keys = [];
+
     public function __construct(private readonly Template $template) {
         $this->servers = Config::get('memcached', []);
 
@@ -116,6 +121,10 @@ class MemcachedDashboard implements DashboardInterface {
 
         try {
             $this->memcached = $this->connect($this->servers[$this->current_server]);
+            $this->all_keys = $this->memcached->getKeys();
+            $select = Helpers::serverSelector($this->template, $this->servers, $this->current_server);
+
+            $this->template->addGlobal('side', $select.$this->panels());
 
             if (isset($_GET['moreinfo'])) {
                 return $this->moreInfo();

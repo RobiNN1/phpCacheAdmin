@@ -14,7 +14,7 @@ trait RedisJson {
     /**
      * @throws RedisException
      */
-    public function jsonGet(string $key): mixed {
+    public function jsonGet(string $key): string {
         return $this->rawCommand('JSON.GET', $key);
     }
 

@@ -131,12 +131,12 @@ const json_syntax_highlight = (json) => {
         match => {
             if (match.startsWith("\"")) {
                 if (/"(\w+)":/.test(match)) {
-                    return `<span class="json-key text-emerald-500">${match.replace('":', '"')}</span><span class="json-colon text-gray-900">:</span>`;
+                    return `<span class="json-key text-emerald-500">${match.replace('":', '"')}</span><span class="json-colon text-gray-900 dark:text-gray-400">:</span>`;
                 } else {
                     return `<span class="json-string text-amber-500">${match}</span>`;
                 }
             } else if (/[[\]{}]/.test(match)) {
-                return `<span class="json-bracket text-gray-900">${match}</span>`;
+                return `<span class="json-bracket text-gray-900 dark:text-gray-400">${match}</span>`;
             } else if (/true|false/.test(match)) {
                 return `<span class="json-boolean text-blue-500">${match}</span>`;
             } else if (/null/.test(match)) {
@@ -144,7 +144,7 @@ const json_syntax_highlight = (json) => {
             } else if (/^-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?$/.test(match)) {
                 return `<span class="json-number text-violet-500">${match}</span>`;
             } else if (match === ',') {
-                return `<span class="json-comma text-gray-900">${match}</span>`;
+                return `<span class="json-comma text-gray-900 dark:text-gray-400">${match}</span>`;
             } else {
                 return match;
             }

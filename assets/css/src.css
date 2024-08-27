@@ -18,7 +18,12 @@
         --link-bg: #64748b;
         --link-bg-hover: #334155;
         --link-active: #cbd5e1;
+        --link-active-dark: #0f172a;
     }
+}
+
+.dark {
+    color-scheme: dark;
 }
 
 .sblink {
@@ -33,6 +38,10 @@
     box-shadow: 0 0 0 4px var(--link-active);
 }
 
+.dark .sblink.active {
+    box-shadow: 0 0 0 4px var(--link-active-dark);
+}
+
 .select {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%23475569' stroke-width='3' stroke-linecap='round' stroke-linejoin='round' d='m2 5 6 6 6-6'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
@@ -45,7 +54,6 @@
     background-repeat: no-repeat;
     background-position: center;
     background-size: cover;
-    background-color: currentColor;
 }
 
 #phpinfo .center {
@@ -117,4 +125,25 @@
 #phpinfo img {
     float: right;
     border: 0;
+}
+
+.dark #phpinfo td,
+.dark #phpinfo th {
+    border: 1px solid #111827;
+}
+
+.dark #phpinfo .e {
+    background-color: #99c;
+}
+
+.dark #phpinfo .h {
+    background-color: #669;
+}
+
+.dark #phpinfo .v {
+    background-color: #717171;
+}
+
+.dark #phpinfo .v i {
+    color: #c2c2c2;
 }

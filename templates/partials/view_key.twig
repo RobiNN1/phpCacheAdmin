@@ -1,6 +1,6 @@
 {% import 'partials/key_type_badge.twig' as key_badge %}
-<div class="mb-2 text-lg font-semibold break-all">{{ key }}</div>
-<div class="mb-4 lg:flex lg:items-center lg:gap-2">
+<div class="mb-2 text-lg font-semibold break-all dark:text-gray-300">{{ key }}</div>
+<div class="mb-4 lg:flex lg:items-center lg:gap-2 dark:text-gray-300">
     {% if type %}
         <span>Type {{ key_badge.key_type(type) }}</span>
     {% endif %}
@@ -11,7 +11,7 @@
             {{ include('components/badge.twig', {
                 text: ttl == -1 ? 'Doesn\'t expire' : ttl,
                 class: 'uppercase font-bold',
-                bg: 'bg-slate-500',
+                bg: 'bg-slate-500 dark:bg-slate-700',
             }) }}
         </span>
     {% endif %}
@@ -22,29 +22,29 @@
             {{ include('components/badge.twig', {
                 text: size,
                 class: 'font-bold',
-                bg: 'bg-sky-500',
+                bg: 'bg-sky-500 dark:bg-sky-700',
             }) }}
         </span>
     {% endif %}
 
     {% if encode_fn %}
-        <span>Encoded with {{ include('components/badge.twig', {text: encode_fn, class: 'uppercase font-bold', bg: 'bg-blue-500'}) }}</span>
+        <span>Encoded with {{ include('components/badge.twig', {text: encode_fn, class: 'uppercase font-bold', bg: 'bg-blue-500 dark:bg-blue-700'}) }}</span>
         {% set encode_url = '&encoder=' ~ encode_fn %}
     {% endif %}
 
     {% if formatted == true %}
-        {{ include('components/badge.twig', {text: 'Formatted', class: 'uppercase font-bold', bg: 'bg-blue-500'}) }}
+        {{ include('components/badge.twig', {text: 'Formatted', class: 'uppercase font-bold', bg: 'bg-blue-500 dark:bg-blue-700'}) }}
     {% endif %}
 
     <span>
         {% if export_url %}
-            <a href="{{ export_url }}" class="inline-flex items-center font-semibold text-gray-500 hover:text-gray-700">
+            <a href="{{ export_url }}" class="inline-flex items-center font-semibold text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
                 {{ svg('export', 16, 'mr-1') }} Export
             </a>
         {% endif %}
 
         {% if delete_url %}
-            <a href="{{ delete_url }}" class="inline-flex items-center font-semibold text-red-500 hover:text-red-700"
+            <a href="{{ delete_url }}" class="inline-flex items-center font-semibold text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
                onclick="return confirm('Are you sure you want to remove this item?');">
                 {{ svg('trash', 16, 'mr-1') }} Delete
             </a>
@@ -56,12 +56,12 @@
     {{ include('partials/view_key_array.twig') }}
 {% else %}
     {% if edit_url %}
-        <a href="{{ edit_url ~ encode_url }}" class="mr-3 mb-4 inline-flex items-center font-semibold text-gray-500 hover:text-gray-700">
+        <a href="{{ edit_url ~ encode_url }}" class="mr-3 mb-4 inline-flex items-center font-semibold text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
             {{ svg('edit', 16, 'mr-1') }} Edit
         </a>
     {% endif %}
-    <div class="rounded bg-white border border-gray-200">
-        <div class="overflow-y-auto p-4">
+    <div class="rounded bg-white border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+        <div class="overflow-y-auto p-4 dark:text-gray-300">
             {{ value|raw }}
         </div>
     </div>

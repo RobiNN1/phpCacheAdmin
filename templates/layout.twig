@@ -16,13 +16,13 @@
     {%- endif %}
 
 </head>
-<body class="bg-gray-50 text-gray-900" data-dashboard="{{ current }}">
-<header class="grid md:grid-cols-3 p-4 bg-white border-b border-gray-200">
+<body class="bg-gray-50 text-gray-900 dark:text-gray-200 dark:bg-gray-900" data-dashboard="{{ current }}">
+<header class="grid md:grid-cols-3 p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
     <div class="flex">
         <a class="block w-72 md:me-4" href="/">{{ svg('logo', null) }}</a>
 
         {% if back_url %}
-            <a class="hidden md:inline-flex self-center text-lg text-primary-500 hover:text-primary-700 font-semibold  items-center" href="{{ back_url }}">
+            <a class="hidden md:inline-flex self-center text-lg text-primary-500 font-semibold items-center hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-500" href="{{ back_url }}">
                 {{ svg('back', 16, 'mr-1') }} Back
             </a>
         {% endif %}
@@ -30,8 +30,8 @@
 
     <div class="flex items-center justify-center gap-4">
         {% for link, item in nav %}
-            {% set link_bg = item.colors ? ' style="--link-bg:' ~ item.colors.500 ~ ';--link-bg-hover:' ~ item.colors.700 ~ ';--link-active:' ~ item.colors.300 ~ ';"' : '' %}
-            <a class="sblink{{ current == link ? ' active' : '' }} flex size-9 items-center justify-center rounded text-white" {{ link_bg|raw }}href="?dashboard={{ link }}" title="{{ item.title }}">
+            {% set link_bg = item.colors ? ' style="--link-bg:' ~ item.colors.500 ~ ';--link-bg-hover:' ~ item.colors.700 ~ ';--link-active:' ~ item.colors.300 ~ ';--link-active-dark:' ~ item.colors.900 ~ ';"' : '' %}
+            <a class="sblink{{ current == link ? ' active' : '' }} flex size-9 items-center justify-center rounded text-white" {{ link_bg|raw }} href="?dashboard={{ link }}" title="{{ item.title }}">
                 {{ svg(item.icon ?? ('dashboards/' ~ item.key), 16) }}
             </a>
         {% endfor %}
@@ -39,10 +39,16 @@
 
     <div class="flex items-center justify-end gap-4">
         {% if logout_url %}
-            <a class="text-gray-700 hover:text-gray-900" href="{{ logout_url }}" title="Logout" target="_blank" rel="noopener">{{ svg('logout', 32) }}</a>
+            <a class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" href="{{ logout_url }}" title="Logout" target="_blank" rel="noopener">{{ svg('logout', 32) }}</a>
         {% endif %}
 
-        <a class="text-gray-700 hover:text-gray-900" href="{{ repo }}" title="GitHub" target="_blank" rel="noopener">{{ svg('github', 32) }}</a>
+        <div class="flex gap-3 [&>.active]:text-gray-600 dark:[&>.active]:text-gray-300">
+            <button class="flex items-center justify-center text-gray-400 dark:text-gray-500" type="button" data-theme="light" title="Light">{{ svg('sun', 28) }}</button>
+            <button class="flex items-center justify-center text-gray-400 dark:text-gray-500" type="button" data-theme="dark" title="Dark">{{ svg('moon', 28) }}</button>
+            <button class="flex items-center justify-center text-gray-400 dark:text-gray-500" type="button" data-theme="system" title="System">{{ svg('system', 28) }}</button>
+        </div>
+
+        <a class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" href="{{ repo }}" title="GitHub" target="_blank" rel="noopener">{{ svg('github', 28) }}</a>
     </div>
 </header>
 <main class="p-4" id="maincontent">
@@ -62,12 +68,12 @@
 <footer class="my-4 text-center">
     <div>
         &copy; {{ 'now'|date('Y') }}
-        <a class="text-primary-500 hover:text-primary-700 font-semibold" href="https://github.com/RobiNN1">RobiNN1</a>.
+        <a class="text-primary-500 font-semibold hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-500" href="https://github.com/RobiNN1">RobiNN1</a>.
         All Rights Reserved.
     </div>
     <div>
         v{{ version }}
-        <a class="text-primary-500 hover:text-primary-700 font-semibold" href="{{ repo }}/issues" target="_blank" rel="noopener">Report Issue</a>
+        <a class="text-primary-500 font-semibold hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-500" href="{{ repo }}/issues" target="_blank" rel="noopener">Report Issue</a>
     </div>
 </footer>
 <script src="assets/js/scripts.js?v={{ version }}"></script>

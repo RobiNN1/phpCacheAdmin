@@ -1,5 +1,5 @@
 /*
-! tailwindcss v3.4.6 | MIT License | https://tailwindcss.com
+! tailwindcss v3.4.10 | MIT License | https://tailwindcss.com
 */
 
 /*
@@ -461,6 +461,7 @@ video {
   --link-bg: #64748b;
   --link-bg-hover: #334155;
   --link-active: #cbd5e1;
+  --link-active-dark: #0f172a;
 }
 
 .shadow, .shadow-lg {
@@ -661,6 +662,10 @@ video {
 
 .gap-2 {
   gap: 0.5rem;
+}
+
+.gap-3 {
+  gap: 0.75rem;
 }
 
 .gap-4 {
@@ -908,6 +913,10 @@ video {
   color: #10b981;
 }
 
+.text-gray-400 {
+  color: #9ca3af;
+}
+
 .text-gray-500 {
   color: #6b7280;
 }
@@ -960,6 +969,10 @@ video {
   box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
 }
 
+.dark {
+  color-scheme: dark;
+}
+
 .sblink {
   background-color: var(--link-bg);
 }
@@ -970,6 +983,10 @@ video {
 
 .sblink.active {
   box-shadow: 0 0 0 4px var(--link-active);
+}
+
+.dark .sblink.active {
+  box-shadow: 0 0 0 4px var(--link-active-dark);
 }
 
 .select {
@@ -984,7 +1001,6 @@ video {
   background-repeat: no-repeat;
   background-position: center;
   background-size: cover;
-  background-color: currentColor;
 }
 
 #phpinfo .center {
@@ -1058,6 +1074,27 @@ video {
   border: 0;
 }
 
+.dark #phpinfo td,
+.dark #phpinfo th {
+  border: 1px solid #111827;
+}
+
+.dark #phpinfo .e {
+  background-color: #99c;
+}
+
+.dark #phpinfo .h {
+  background-color: #669;
+}
+
+.dark #phpinfo .v {
+  background-color: #717171;
+}
+
+.dark #phpinfo .v i {
+  color: #c2c2c2;
+}
+
 .file\:mr-3::file-selector-button {
   margin-right: 0.75rem;
 }
@@ -1099,6 +1136,14 @@ video {
 
 .file\:text-white::file-selector-button {
   color: #fff;
+}
+
+.checked\:border-primary-200:checked {
+  border-color: var(--primary-color-200);
+}
+
+.checked\:bg-primary-500:checked {
+  background-color: var(--primary-color-500);
 }
 
 .hover\:text-clip:hover {
@@ -1192,6 +1237,210 @@ video {
   background-color: #fca5a5;
 }
 
+.dark\:border-gray-600:is(.dark *) {
+  border-color: #4b5563;
+}
+
+.dark\:border-gray-700:is(.dark *) {
+  border-color: #374151;
+}
+
+.dark\:border-primary-400:is(.dark *) {
+  border-color: var(--primary-color-400);
+}
+
+.dark\:bg-blue-600:is(.dark *) {
+  background-color: #2563eb;
+}
+
+.dark\:bg-blue-700:is(.dark *) {
+  background-color: #1d4ed8;
+}
+
+.dark\:bg-gray-800:is(.dark *) {
+  background-color: #1f2937;
+}
+
+.dark\:bg-gray-900:is(.dark *) {
+  background-color: #111827;
+}
+
+.dark\:bg-green-400:is(.dark *) {
+  background-color: #4ade80;
+}
+
+.dark\:bg-green-700:is(.dark *) {
+  background-color: #15803d;
+}
+
+.dark\:bg-indigo-400:is(.dark *) {
+  background-color: #818cf8;
+}
+
+.dark\:bg-primary-600:is(.dark *) {
+  background-color: var(--primary-color-600);
+}
+
+.dark\:bg-primary-700:is(.dark *) {
+  background-color: var(--primary-color-700);
+}
+
+.dark\:bg-red-400:is(.dark *) {
+  background-color: #f87171;
+}
+
+.dark\:bg-red-700:is(.dark *) {
+  background-color: #b91c1c;
+}
+
+.dark\:bg-sky-700:is(.dark *) {
+  background-color: #0369a1;
+}
+
+.dark\:bg-slate-600:is(.dark *) {
+  background-color: #475569;
+}
+
+.dark\:bg-slate-700:is(.dark *) {
+  background-color: #334155;
+}
+
+.dark\:text-black:is(.dark *) {
+  color: #000;
+}
+
+.dark\:text-gray-100:is(.dark *) {
+  color: #f3f4f6;
+}
+
+.dark\:text-gray-200:is(.dark *) {
+  color: #e5e7eb;
+}
+
+.dark\:text-gray-300:is(.dark *) {
+  color: #d1d5db;
+}
+
+.dark\:text-gray-400:is(.dark *) {
+  color: #9ca3af;
+}
+
+.dark\:text-gray-500:is(.dark *) {
+  color: #6b7280;
+}
+
+.dark\:text-primary-400:is(.dark *) {
+  color: var(--primary-color-400);
+}
+
+.dark\:text-red-400:is(.dark *) {
+  color: #f87171;
+}
+
+.dark\:text-white:is(.dark *) {
+  color: #fff;
+}
+
+.dark\:placeholder-gray-400:is(.dark *)::-moz-placeholder {
+  color: #9ca3af;
+}
+
+.dark\:placeholder-gray-400:is(.dark *)::placeholder {
+  color: #9ca3af;
+}
+
+.dark\:file\:bg-slate-700:is(.dark *)::file-selector-button {
+  background-color: #334155;
+}
+
+.dark\:checked\:border-primary-800:checked:is(.dark *) {
+  border-color: var(--primary-color-800);
+}
+
+.dark\:checked\:bg-primary-500:checked:is(.dark *) {
+  background-color: var(--primary-color-500);
+}
+
+.dark\:hover\:bg-gray-700:hover:is(.dark *) {
+  background-color: #374151;
+}
+
+.dark\:hover\:bg-green-800:hover:is(.dark *) {
+  background-color: #166534;
+}
+
+.dark\:hover\:bg-primary-800:hover:is(.dark *) {
+  background-color: var(--primary-color-800);
+}
+
+.dark\:hover\:bg-red-800:hover:is(.dark *) {
+  background-color: #991b1b;
+}
+
+.dark\:hover\:text-gray-100:hover:is(.dark *) {
+  color: #f3f4f6;
+}
+
+.dark\:hover\:text-gray-300:hover:is(.dark *) {
+  color: #d1d5db;
+}
+
+.dark\:hover\:text-primary-300:hover:is(.dark *) {
+  color: var(--primary-color-300);
+}
+
+.dark\:hover\:text-primary-500:hover:is(.dark *) {
+  color: var(--primary-color-500);
+}
+
+.dark\:hover\:text-red-300:hover:is(.dark *) {
+  color: #fca5a5;
+}
+
+.dark\:hover\:text-white:hover:is(.dark *) {
+  color: #fff;
+}
+
+.dark\:file\:hover\:bg-slate-600:hover:is(.dark *)::file-selector-button {
+  background-color: #475569;
+}
+
+.dark\:focus\:border-primary-400:focus:is(.dark *) {
+  border-color: var(--primary-color-400);
+}
+
+.dark\:focus\:border-primary-500:focus:is(.dark *) {
+  border-color: var(--primary-color-500);
+}
+
+.dark\:focus\:ring-green-400:focus:is(.dark *) {
+  --tw-ring-color: #4ade80;
+}
+
+.dark\:focus\:ring-primary-400:focus:is(.dark *) {
+  --tw-ring-color: var(--primary-color-400);
+}
+
+.dark\:focus\:ring-primary-500:focus:is(.dark *) {
+  --tw-ring-color: var(--primary-color-500);
+}
+
+.dark\:focus\:ring-red-400:focus:is(.dark *) {
+  --tw-ring-color: #f87171;
+}
+
+.dark\:disabled\:bg-green-400:disabled:is(.dark *) {
+  background-color: #4ade80;
+}
+
+.dark\:disabled\:bg-primary-400:disabled:is(.dark *) {
+  background-color: var(--primary-color-400);
+}
+
+.dark\:disabled\:bg-red-400:disabled:is(.dark *) {
+  background-color: #f87171;
+}
+
 @media (min-width: 768px) {
   .md\:mb-0 {
     margin-bottom: 0px;
@@ -1278,6 +1527,14 @@ video {
 
 .\[\&\:last-child\>\*\]\:border-b-0:last-child>* {
   border-bottom-width: 0px;
+}
+
+.\[\&\>\.active\]\:text-gray-600>.active {
+  color: #4b5563;
+}
+
+.dark\:\[\&\>\.active\]\:text-gray-300>.active:is(.dark *) {
+  color: #d1d5db;
 }
 
 .\[\&\>\:last-child\]\:border-b-0>:last-child {

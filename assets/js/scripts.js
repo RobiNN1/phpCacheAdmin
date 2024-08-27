@@ -197,3 +197,56 @@ if (search_form) {
         }
     });
 }
+
+/**
+ * Light / Dark mode
+ */
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+    if (localStorage.theme === 'system' && event.matches) {
+        document.documentElement.classList.add('dark');
+    } else {
+        document.documentElement.classList.remove('dark');
+    }
+});
+
+const update_theme = () => {
+    if (!('theme' in localStorage)) {
+        localStorage.theme = 'system';
+    }
+
+    switch (localStorage.theme) {
+        case 'system':
+            if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+            break;
+        case 'dark':
+            document.documentElement.classList.add('dark');
+            break;
+        case 'light':
+            document.documentElement.classList.remove('dark');
+            break;
+    }
+}
+
+update_theme();
+
+const theme_sw = document.querySelectorAll("[data-theme]");
+
+theme_sw.forEach(button => {
+    let theme = button.getAttribute('data-theme');
+
+    button.addEventListener('click', () => {
+        localStorage.theme = theme;
+        update_theme();
+        theme_sw.forEach(btn => btn.classList.remove('active'));
+
+        button.classList.add('active');
+    });
+
+    if (theme === localStorage.theme) {
+        button.classList.add('active');
+    }
+});

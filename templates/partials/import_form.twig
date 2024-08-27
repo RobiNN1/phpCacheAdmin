@@ -1,5 +1,5 @@
 <form method="post" enctype="multipart/form-data" id="import_form" class="hidden">
-    <div class="mb-4 rounded bg-white p-3 border border-gray-200">
+    <div class="mb-4 rounded bg-white p-3 border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
         <div class="md:grid md:grid-cols-2 md:gap-2">
             {{ include('components/input.twig', {
                 id: 'key_name',
@@ -17,10 +17,10 @@
         </div>
 
         <div class="mb-4">
-            <label for="import" class="mb-2 block text-sm font-semibold">Key</label>
+            <label for="import" class="mb-2 block text-sm font-semibold dark:text-gray-300">Key</label>
             <input id="import" name="import" type="file"
-                   class="w-full text-base file:border file:border-transparent file:rounded file:py-1.5 file:px-2 file:mr-3 file:text-base file:font-semibold file:text-white file:bg-slate-500 file:hover:bg-slate-600">
-            <small class="text-xs">{{ key_desc }}</small>
+                   class="w-full text-base file:border file:border-transparent file:rounded file:py-1.5 file:px-2 file:mr-3 file:text-base file:font-semibold file:text-white file:bg-slate-500 file:hover:bg-slate-600 dark:file:bg-slate-700 dark:file:hover:bg-slate-600">
+            <small class="text-xs dark:text-gray-400">{{ key_desc }}</small>
         </div>
 
         {{ include('components/button.twig', {

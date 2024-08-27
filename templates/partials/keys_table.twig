@@ -1,9 +1,9 @@
 {% set show_actions = hide_actions is not defined or hide_actions == false %}
-<div class="mb-4 rounded bg-white border border-gray-200">
+<div class="mb-4 rounded bg-white border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
     <div class="overflow-hidden overflow-x-auto">
-        <table class="w-full table-auto text-left">
+        <table class="w-full table-auto text-left dark:text-gray-300">
             <thead>
-            <tr class="text-primary-900 border-b border-gray-200">
+            <tr class="text-primary-900 border-b border-gray-200 dark:border-gray-700 dark:text-primary-400">
                 {% if show_actions %}
                     <th class="pl-6 px-3 py-2 w-4">{{ include('components/checkbox.twig', {disabled: keys|length == 0, class: 'check-all'}) }}</th>
                 {% endif %}
@@ -17,16 +17,16 @@
             </thead>
             <tbody>
             {% for key in keys %}
-                <tr class="[&:last-child>*]:border-b-0" data-key="{{ key.base64 ? key.key|base64 : key.key }}">
+                <tr class="[&:last-child>*]:border-b-0 dark:border-gray-700" data-key="{{ key.base64 ? key.key|base64 : key.key }}">
                     {% if show_actions %}
-                        <td class="pl-6 px-3 py-2 border-b border-gray-200">{{ include('components/checkbox.twig', {class: 'check-key'}) }}</td>
+                        <td class="pl-6 px-3 py-2 border-b border-gray-200 dark:border-gray-700">{{ include('components/checkbox.twig', {class: 'check-key'}) }}</td>
                     {% endif %}
                     {% for item_key, item in key.items %}
                         {% set td_class = item_key == 'title' or (item_key == 'link_title' and view_key) ? ' max-w-xs truncate hover:text-clip hover:break-all hover:whitespace-normal' : '' %}
-                        <td class="px-3 py-2 border-b border-gray-200 text-sm{{ td_class }}{{ classes[loop.index]|space }}">
+                        <td class="px-3 py-2 border-b border-gray-200 text-sm{{ td_class }}{{ classes[loop.index]|space }} dark:border-gray-700 dark:text-gray-300">
                             {% if item_key == 'link_title' and view_key %}
                                 {% set link = view_key|replace({'__key__': key.key, '__ttl__': key.ttl ?? ''}) %}
-                                <a class="text-primary-500 hover:text-primary-700 font-semibold" href="{{ link }}">{{ item }}</a>
+                                <a class="text-primary-500 hover:text-primary-700 font-semibold dark:text-primary-400 dark:hover:text-primary-300" href="{{ link }}">{{ item }}</a>
                             {% elseif item_key == 'type' %}
                                 {% import 'partials/key_type_badge.twig' as key_badge %}
                                 {{- key_badge.key_type(item) -}}
@@ -44,7 +44,7 @@
                         </td>
                     {% endfor %}
                     {% if show_actions %}
-                        <td class="px-3 py-2 border-b border-gray-200 text-sm whitespace-nowrap">
+                        <td class="px-3 py-2 border-b border-gray-200 text-sm whitespace-nowrap dark:border-gray-700">
                             <button class="delete-key text-red-500 hover:text-red-700 font-semibold inline-flex items-center" type="button" title="Delete">
                                 {{ svg('trash', 16, 'mr-1') }} Delete
                             </button>
@@ -53,7 +53,7 @@
                 </tr>
             {% else %}
                 <tr>
-                    <td colspan="{{ head_items|length + (show_actions ? 2 : 0) }}" class="p-4 text-center">No keys.</td>
+                    <td colspan="{{ head_items|length + (show_actions ? 2 : 0) }}" class="p-4 text-center dark:text-gray-400">No keys.</td>
                 </tr>
             {% endfor %}
             </tbody>

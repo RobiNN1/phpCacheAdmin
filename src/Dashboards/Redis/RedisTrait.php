@@ -107,7 +107,7 @@ trait RedisTrait {
      *
      * @throws Exception
      */
-    private function formatViewItems(string $key, array $value_items, string $type): array {
+    private function formatViewItems(array $value_items): array {
         $items = [];
 
         foreach ($value_items as $item_key => $item_value) {
@@ -126,7 +126,7 @@ trait RedisTrait {
                 'value'     => $formatted_value,
                 'encode_fn' => $encode_fn,
                 'formatted' => $is_formatted,
-                'sub_key'   => $type === 'zset' ? (string) $this->redis->zScore($key, $item_value) : $item_key,
+                'sub_key'   => $item_key,
             ];
         }
 
@@ -180,8 +180,7 @@ trait RedisTrait {
         $is_formatted = null;
 
         if (is_array($value)) {
-            $items = $this->formatViewItems($key, $value, $type);
-
+            $items = $this->formatViewItems($value);
             $paginator = new Paginator($this->template, $items, [['db', 'view', 'key', 'pp'], ['p' => '']]);
             $value = $paginator->getPaginated();
             $paginator = $paginator->render();

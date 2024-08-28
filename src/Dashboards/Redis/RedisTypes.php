@@ -126,9 +126,10 @@ trait RedisTypes {
             'set' => $this->redis->sMembers($key),
             'list' => $this->redis->lRange($key, 0, -1),
             'zset' => (function () use ($key) {
-                $zsetValues = $this->redis->zRange($key, 0, -1, ['WITHSCORES' => true]);
+                $values = $this->redis->zRange($key, 0, -1, ['WITHSCORES' => true]);
                 $zset = [];
-                foreach ($zsetValues as $value => $score) {
+
+                foreach ($values as $value => $score) {
                     $zset[(int) $score] = $value;
                 }
 

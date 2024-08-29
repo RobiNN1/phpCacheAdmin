@@ -12,11 +12,9 @@ use RedisException;
 
 trait RedisJson {
     /**
-     * @return mixed
-     *
      * @throws RedisException
      */
-    public function jsonGet(string $key) {
+    public function jsonGet(string $key): string {
         return $this->rawCommand('JSON.GET', $key);
     }
 

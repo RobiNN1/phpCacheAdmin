@@ -1,5 +1,5 @@
 /*
-! tailwindcss v3.4.3 | MIT License | https://tailwindcss.com
+! tailwindcss v3.4.10 | MIT License | https://tailwindcss.com
 */
 
 /*
@@ -532,10 +532,6 @@ video {
 .my-4 {
   margin-top: 1rem;
   margin-bottom: 1rem;
-}
-
-.-mt-1 {
-  margin-top: -0.25rem;
 }
 
 .-mt-1\.5 {
@@ -1148,11 +1144,6 @@ video {
 .file\:px-2::file-selector-button {
   padding-left: 0.5rem;
   padding-right: 0.5rem;
-}
-
-.file\:py-1::file-selector-button {
-  padding-top: 0.25rem;
-  padding-bottom: 0.25rem;
 }
 
 .file\:py-1\.5::file-selector-button {

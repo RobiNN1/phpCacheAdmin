@@ -189,13 +189,13 @@ final class RedisTest extends TestCase {
         $this->dashboard->store('zset', 'pu-test-type-zset', 'zvalue3', '', ['zset_score' => 77]);
 
         $this->assertEqualsCanonicalizing(
-            [0 => 'zvalue1', 1 => 'zvalue2', 77 => 'zvalue3'],
+            ['zvalue1', 'zvalue2', 'zvalue3'],
             $this->dashboard->getAllKeyValues('zset', 'pu-test-type-zset')
         );
 
         $this->dashboard->deleteSubKey('zset', 'pu-test-type-zset', 1);
         $this->assertEqualsCanonicalizing(
-            [0 => 'zvalue1', 77 => 'zvalue3'],
+            ['zvalue1', 'zvalue3'],
             $this->dashboard->getAllKeyValues('zset', 'pu-test-type-zset')
         );
     }

@@ -125,16 +125,7 @@ trait RedisTypes {
             'string' => $this->redis->get($key),
             'set' => $this->redis->sMembers($key),
             'list' => $this->redis->lRange($key, 0, -1),
-            'zset' => (function () use ($key) {
-                $values = $this->redis->zRange($key, 0, -1, ['WITHSCORES' => true]);
-                $zset = [];
-
-                foreach ($values as $value => $score) {
-                    $zset[(int) $score] = $value;
-                }
-
-                return $zset;
-            })(),
+            'zset' => $this->redis->zRange($key, 0, -1),
             'hash' => $this->redis->hGetAll($key),
             'stream' => $this->redis->xRange($key, '-', '+'),
             'rejson' => $this->redis->jsonGet($key),

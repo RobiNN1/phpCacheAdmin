@@ -17,10 +17,10 @@ final class PaginatorTest extends TestCase {
 
     protected function setUp(): void {
         $items = [
-            ['key' => 'value1', 'title' => 'value1'],
-            ['key' => 'value2', 'title' => 'value2'],
-            ['key' => 'value3', 'title' => 'value3'],
-            ['key' => 'value4', 'title' => 'value4'],
+            1 => ['key' => 'value1', 'title' => 'value1'],
+            2 => ['key' => 'value2', 'title' => 'value2'],
+            3 => ['key' => 'value3', 'title' => 'value3'],
+            4 => ['key' => 'value4', 'title' => 'value4'],
         ];
 
         $_GET['p'] = 2;
@@ -31,8 +31,8 @@ final class PaginatorTest extends TestCase {
 
     public function testGetPaginated(): void {
         $expected = [
-            ['key' => 'value3', 'title' => 'value3'],
-            ['key' => 'value4', 'title' => 'value4'],
+            3 => ['key' => 'value3', 'title' => 'value3'],
+            4 => ['key' => 'value4', 'title' => 'value4'],
         ];
 
         $this->assertEqualsCanonicalizing($expected, $this->paginator->getPaginated());

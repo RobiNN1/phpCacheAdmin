@@ -84,9 +84,15 @@ trait APCuTrait {
         }
 
         $value = Helpers::mixedToString(apcu_fetch($key));
+        $key_data = apcu_key_info($key);
+        $ttl = $key_data['ttl'] === 0 ? -1 : $key_data['creation_time'] + $key_data['ttl'] - time();
 
         if (isset($_GET['export'])) {
-            Helpers::export($key, $value);
+            Helpers::export(
+                [['key' => $key, 'ttl' => $ttl]],
+                $key,
+                static fn (string $key): string => base64_encode(serialize(apcu_fetch($key)))
+            );
         }
 
         if (isset($_GET['delete'])) {
@@ -95,10 +101,6 @@ trait APCuTrait {
         }
 
         [$formatted_value, $encode_fn, $is_formatted] = Value::format($value);
-
-        $key_data = apcu_key_info($key);
-
-        $ttl = $key_data['ttl'] === 0 ? -1 : $key_data['creation_time'] + $key_data['ttl'] - time();
 
         return $this->template->render('partials/view_key', [
             'key'        => $key,
@@ -198,8 +200,14 @@ trait APCuTrait {
         if (isset($_POST['submit_import_key'])) {
             Helpers::import(
                 static fn (string $key): bool => apcu_exists($key),
-                static fn (string $key, string $value, int $expire): bool => apcu_store($key, $value, $expire)
+                static function (string $key, string $value, int $ttl): bool {
+                    return apcu_store($key, unserialize(base64_decode($value), ['allowed_classes' => false]), $ttl);
+                }
             );
+        }
+
+        if (isset($_POST['export_btn'])) {
+            Helpers::export($keys, 'apcu_backup', static fn (string $key): string => base64_encode(serialize(apcu_fetch($key))));
         }
 
         $paginator = new Paginator($this->template, $keys);

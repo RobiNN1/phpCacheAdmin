@@ -1,12 +1,23 @@
-<div>
+<div class="md:flex gap-1">
     {% if import_btn %}
         {{ include('components/button.twig', {
             text: 'Import',
             icon: 'import',
             id: 'import_btn',
             btn_green: true,
-            class: 'mr-1',
         }) }}
+    {% endif %}
+
+    {% if export_btn and all_keys != 0 %}
+        <form method="post">
+            {{ include('components/button.twig', {
+                text: 'Export',
+                icon: 'export',
+                id: 'export_btn',
+                submit: true,
+                btn_green: true,
+            }) }}
+        </form>
     {% endif %}
 
     {% if add_new_btn %}
@@ -24,7 +35,6 @@
             icon: 'trash',
             id: 'delete_all',
             btn_red: true,
-            class: 'mr-1 ml-1',
         }) }}
 
         {% if delete_selected_btn is not defined or delete_selected_btn == true %}

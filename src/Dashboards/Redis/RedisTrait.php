@@ -169,8 +169,14 @@ trait RedisTrait {
             Http::redirect(['db']);
         }
 
-        if (isset($_GET['export']) && $dump = $this->redis->dump($key)) {
-            Helpers::export($key, $dump, 'bin', 'application/octet-stream');
+        $ttl = $this->redis->ttl($key);
+
+        if (isset($_GET['export'])) {
+            Helpers::export(
+                [['key' => $key, 'ttl' => $ttl]],
+                $key,
+                fn (string $key): string => bin2hex($this->redis->dump($key))
+            );
         }
 
         $value = $this->getAllKeyValues($type, $key);
@@ -188,7 +194,6 @@ trait RedisTrait {
             [$value, $encode_fn, $is_formatted] = Value::format($value);
         }
 
-        $ttl = $this->redis->ttl($key);
 
         $size = $this->redis->rawCommand('MEMORY', 'usage', $key); // requires Redis >= 4.0.0
 
@@ -397,9 +402,14 @@ trait RedisTrait {
 
                     return is_int($exists) && $exists > 0;
                 },
-                fn (string $key, string $value, int $expire): bool => $this->redis->restore($key, ($expire === -1 ? 0 : $expire), $value),
-                'application/octet-stream'
+                function (string $key, string $value, int $ttl): bool {
+                    return $this->redis->restore($key, ($ttl === -1 ? 0 : $ttl), hex2bin($value));
+                }
             );
+        }
+
+        if (isset($_POST['export_btn'])) {
+            Helpers::export($keys, 'redis_backup', fn (string $key): string => bin2hex($this->redis->dump($key)));
         }
 
         $paginator = new Paginator($this->template, $keys, [['db', 's', 'pp'], ['p' => '']]);

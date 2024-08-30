@@ -93,8 +93,15 @@ trait MemcachedTrait {
             Http::redirect();
         }
 
+        $ttl = Http::get('ttl', 0);
+        $ttl = $ttl === 0 ? -1 : $ttl;
+
         if (isset($_GET['export'])) {
-            Helpers::export($key, $this->memcached->getKey($key));
+            Helpers::export(
+                [['key' => $key, 'ttl' => $ttl]],
+                $key,
+                fn (string $key): string => base64_encode($this->memcached->getKey($key))
+            );
         }
 
         if (isset($_GET['delete'])) {
@@ -105,9 +112,6 @@ trait MemcachedTrait {
         $value = $this->memcached->getKey($key);
 
         [$formatted_value, $encode_fn, $is_formatted] = Value::format($value);
-
-        $ttl = Http::get('ttl', 0);
-        $ttl = $ttl === 0 ? -1 : $ttl;
 
         return $this->template->render('partials/view_key', [
             'key'        => $key,
@@ -212,8 +216,12 @@ trait MemcachedTrait {
         if (isset($_POST['submit_import_key'])) {
             Helpers::import(
                 fn (string $key): bool => $this->memcached->exists($key),
-                fn (string $key, string $value, int $expire): bool => $this->memcached->store($key, $value, $expire)
+                fn (string $key, string $value, int $ttl): bool => $this->memcached->store($key, base64_decode($value), $ttl)
             );
+        }
+
+        if (isset($_POST['export_btn'])) {
+            Helpers::export($keys, 'memcached_backup', fn (string $key): string => base64_encode($this->memcached->getKey($key)));
         }
 
         $paginator = new Paginator($this->template, $keys);

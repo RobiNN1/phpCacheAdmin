@@ -8,16 +8,13 @@
     <div class="lg:flex lg:justify-end">
         {{ include('partials/keys_buttons.twig', {
             import_btn: true,
+            export_btn: true,
             add_new_btn: true,
         }) }}
     </div>
 </div>
 
-{{ include('partials/import_form.twig', {
-    expire_default: '0',
-    expire_max: 2592000,
-    key_desc: 'The text value in the .txt file.',
-}) }}
+{{ include('partials/import_form.twig') }}
 
 {{ include('partials/keys_table.twig', {
     head_items: [

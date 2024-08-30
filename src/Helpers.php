@@ -137,25 +137,51 @@ class Helpers {
         return self::alert($template, 'No keys are selected.');
     }
 
-    public static function import(callable $exists, callable $store, string $type = 'text/plain'): void {
-        if ($_FILES['import']['type'] === $type) {
-            $key_name = Http::post('key_name', '');
+    public static function import(callable $exists, callable $store): void {
+        if ($_FILES['import']['type'] === 'application/json') {
+            $file = file_get_contents($_FILES['import']['tmp_name']);
 
-            if (!$exists($key_name)) {
-                $value = file_get_contents($_FILES['import']['tmp_name']);
+            try {
+                $json = json_decode($file, true, 512, JSON_THROW_ON_ERROR);
 
-                $store($key_name, $value, Http::post('expire', 0));
-
-                Http::redirect(['db']);
+                foreach ($json as $data) {
+                    if (!$exists($data['key'])) {
+                        $store($data['key'], $data['value'], (int) $data['ttl']);
+                    }
+                }
+            } catch (JsonException) {
+                //
             }
+
+            Http::redirect(['db']);
         }
     }
 
-    public static function export(string $key, string $value, string $ext = 'txt', string $type = 'text/plain'): void {
-        header('Content-disposition: attachment; filename='.$key.'.'.$ext);
-        header('Content-Type: '.$type);
+    /**
+     * @param array<int, mixed> $keys
+     */
+    public static function export(array $keys, string $filename, callable $value): void {
+        header('Content-disposition: attachment; filename='.$filename.'.json');
+        header('Content-Type: application/json');
 
-        echo $value;
+        $json = [];
+
+        foreach ($keys as $key) {
+            $ttl = isset($key['items']['ttl']) && is_int($key['items']['ttl']) ? $key['items']['ttl'] : 0;
+            $ttl = $key['ttl'] ?? $ttl;
+
+            $json[] = [
+                'key'   => $key['key'],
+                'ttl'   => $ttl === -1 ? 0 : $ttl,
+                'value' => $value($key['key']),
+            ];
+        }
+
+        try {
+            echo json_encode($json, JSON_THROW_ON_ERROR);
+        } catch (JsonException $e) {
+            echo $e->getMessage();
+        }
 
         exit;
     }

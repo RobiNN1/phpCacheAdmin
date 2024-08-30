@@ -527,10 +527,6 @@ video {
   margin-bottom: 1rem;
 }
 
-.ml-1 {
-  margin-left: 0.25rem;
-}
-
 .mr-1 {
   margin-right: 0.25rem;
 }
@@ -658,6 +654,10 @@ video {
 
 .justify-between {
   justify-content: space-between;
+}
+
+.gap-1 {
+  gap: 0.25rem;
 }
 
 .gap-2 {
@@ -1432,6 +1432,10 @@ video {
 
   .md\:me-4 {
     margin-inline-end: 1rem;
+  }
+
+  .md\:flex {
+    display: flex;
   }
 
   .md\:inline-flex {

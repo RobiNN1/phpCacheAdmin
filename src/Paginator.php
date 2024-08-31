@@ -27,7 +27,7 @@ readonly class Paginator {
     public function __construct(
         private Template $template,
         array            $items,
-        private array    $url = [['pp'], ['p' => '']]
+        private array    $url = [['pp', 's'], ['p' => '']]
     ) {
         $this->total = count($items);
         $this->page = Http::get('p', 1);

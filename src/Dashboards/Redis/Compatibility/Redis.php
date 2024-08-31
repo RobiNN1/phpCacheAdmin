@@ -67,10 +67,14 @@ class Redis extends \Redis implements RedisCompatibilityInterface {
         return $this;
     }
 
+    public function getType(string|int $type): string {
+        return $this->data_types[$type] ?? 'unknown';
+    }
+
     /**
-     * @throws RedisException|DashboardException
+     * @throws RedisException
      */
-    public function getType(string $key): string {
+    public function getKeyType(string $key): string {
         $type = $this->type($key);
 
         if ($type === self::REDIS_NOT_FOUND) {
@@ -78,11 +82,7 @@ class Redis extends \Redis implements RedisCompatibilityInterface {
             $type = $this->rawCommand('TYPE', $key);
         }
 
-        if (!isset($this->data_types[$type])) {
-            throw new DashboardException(sprintf('Unsupported data type: %s', $type));
-        }
-
-        return $this->data_types[$type];
+        return $this->getType($type);
     }
 
     /**
@@ -139,5 +139,34 @@ class Redis extends \Redis implements RedisCompatibilityInterface {
      */
     public function streamAdd(string $key, string $id, array $messages): string {
         return $this->xAdd($key, $id, $messages);
+    }
+
+    /**
+     * @param array<int, string> $keys
+     *
+     * @return array<string, mixed>
+     *
+     * @throws RedisException
+     */
+    public function pipelineKeys(array $keys): array {
+        $pipeline = $this->multi(self::PIPELINE);
+
+        foreach ($keys as $key) {
+            $pipeline->ttl($key);
+            $pipeline->type($key);
+        }
+
+        $results = $pipeline->exec();
+
+        $data = [];
+
+        foreach ($keys as $i => $key) {
+            $data[$key] = [
+                'ttl'  => $results[$i * 2],
+                'type' => $this->getType($results[$i * 2 + 1]),
+            ];
+        }
+
+        return $data;
     }
 }

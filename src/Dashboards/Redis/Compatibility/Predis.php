@@ -10,7 +10,6 @@ namespace RobiNN\Pca\Dashboards\Redis\Compatibility;
 
 use Predis\Client;
 use Predis\Collection\Iterator\Keyspace;
-use RobiNN\Pca\Dashboards\DashboardException;
 
 class Predis extends Client implements RedisCompatibilityInterface {
     use RedisJson;
@@ -56,17 +55,14 @@ class Predis extends Client implements RedisCompatibilityInterface {
             ]);
     }
 
-    /**
-     * @throws DashboardException
-     */
-    public function getType(string $key): string {
+    public function getType(string|int $type): string {
+        return $this->data_types[$type] ?? 'unknown';
+    }
+
+    public function getKeyType(string $key): string {
         $type = (string) $this->type($key);
 
-        if (!isset($this->data_types[$type])) {
-            throw new DashboardException(sprintf('Unsupported data type: %s', $type));
-        }
-
-        return $this->data_types[$type];
+        return $this->getType($type);
     }
 
     /**
@@ -127,5 +123,30 @@ class Predis extends Client implements RedisCompatibilityInterface {
 
     public function rawCommand(string $command, mixed ...$arguments): mixed {
         return $this->executeRaw(func_get_args());
+    }
+
+    /**
+     * @param array<int, string> $keys
+     *
+     * @return array<string, mixed>
+     */
+    public function pipelineKeys(array $keys): array {
+        $results = $this->pipeline(function ($pipe) use ($keys) {
+            foreach ($keys as $key) {
+                $pipe->ttl($key);
+                $pipe->type($key);
+            }
+        });
+
+        $data = [];
+
+        foreach ($keys as $i => $key) {
+            $data[$key] = [
+                'ttl'  => $results[$i * 2],
+                'type' => $this->getType((string) $results[$i * 2 + 1]),
+            ];
+        }
+
+        return $data;
     }
 }

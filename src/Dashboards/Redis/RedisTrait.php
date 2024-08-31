@@ -144,7 +144,7 @@ trait RedisTrait {
         }
 
         try {
-            $type = $this->redis->getType($key);
+            $type = $this->redis->getKeyType($key);
         } catch (DashboardException $e) {
             return $e->getMessage();
         }
@@ -271,7 +271,7 @@ trait RedisTrait {
         // edit|subkeys
         if (isset($_GET['key']) && $this->redis->exists($key)) {
             try {
-                $type = $this->redis->getType($key);
+                $type = $this->redis->getKeyType($key);
             } catch (DashboardException $e) {
                 Helpers::alert($this->template, $e->getMessage(), 'error');
                 $type = 'unknown';
@@ -317,14 +317,11 @@ trait RedisTrait {
             $keys_array = $this->redis->keys($filter);
         }
 
-        foreach ($keys_array as $key) {
-            try {
-                $type = $this->redis->getType($key);
-            } catch (DashboardException) {
-                $type = 'unknown';
-            }
+        $pipeline = $this->redis->pipelineKeys($keys_array);
 
-            $ttl = $this->redis->ttl($key);
+        foreach ($keys_array as $key) {
+            $ttl = $pipeline[$key]['ttl'];
+            $type = $pipeline[$key]['type'];
             $total = $this->getCountOfItemsInKey($type, $key);
 
             $keys[] = [

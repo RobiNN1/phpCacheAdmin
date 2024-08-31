@@ -44,7 +44,7 @@ final class PredisTest extends TestCase {
         $this->predis->streamAdd('pu-pred-test-stream', '*', ['field1' => 'value1', 'field2' => 'value2']);
         $this->predis->streamAdd('pu-pred-test-stream', '*', ['field3' => 'value3']);
 
-        $this->assertSame($key, $this->predis->getType('pu-pred-test-'.$key));
+        $this->assertSame($key, $this->predis->getKeyType('pu-pred-test-'.$key));
     }
 
     #[DataProvider('keysProvider')]

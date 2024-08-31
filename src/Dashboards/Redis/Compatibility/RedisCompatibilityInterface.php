@@ -12,11 +12,16 @@ use RobiNN\Pca\Dashboards\DashboardException;
 
 interface RedisCompatibilityInterface {
     /**
+     * Get a key type from an array.
+     */
+    public function getType(string|int $type): string;
+
+    /**
      * Get a key type.
      *
      * @throws DashboardException
      */
-    public function getType(string $key): string;
+    public function getKeyType(string $key): string;
 
     /**
      * Get server info.
@@ -43,4 +48,13 @@ interface RedisCompatibilityInterface {
      * @param array<string, string> $messages
      */
     public function streamAdd(string $key, string $id, array $messages): string;
+
+    /**
+     * Pipeline keys for better performance.
+     *
+     * @param array<int, string> $keys
+     *
+     * @return array<string, mixed>
+     */
+    public function pipelineKeys(array $keys): array;
 }

@@ -117,7 +117,7 @@ trait OPCacheTrait {
 
     private function mainDashboard(): string {
         $cached_scripts = $this->getCachedScripts();
-        $paginator = new Paginator($this->template, $cached_scripts, [['ignore', 'pp'], ['p' => '']]);
+        $paginator = new Paginator($this->template, $cached_scripts, [['ignore', 'pp', 's'], ['p' => '']]);
         $is_ignored = isset($_GET['ignore']) && $_GET['ignore'] === 'yes';
         $status = opcache_get_status(false);
 

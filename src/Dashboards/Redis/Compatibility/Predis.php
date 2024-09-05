@@ -131,7 +131,7 @@ class Predis extends Client implements RedisCompatibilityInterface {
      * @return array<string, mixed>
      */
     public function pipelineKeys(array $keys): array {
-        $results = $this->pipeline(function ($pipe) use ($keys) {
+        $results = $this->pipeline(function ($pipe) use ($keys): void {
             foreach ($keys as $key) {
                 $pipe->ttl($key);
                 $pipe->type($key);

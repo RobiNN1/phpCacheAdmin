@@ -11,6 +11,7 @@ namespace Tests\Clients;
 use Iterator;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use RobiNN\Pca\Config;
 use RobiNN\Pca\Dashboards\DashboardException;
 use RobiNN\Pca\Dashboards\Redis\Compatibility\Predis;
 
@@ -18,7 +19,11 @@ final class PredisTest extends TestCase {
     private Predis $predis;
 
     protected function setUp(): void {
-        $this->predis = new Predis(['host' => '127.0.0.1']);
+        $this->predis = new Predis([
+            'host'     => Config::get('redis')[0]['host'],
+            'port'     => Config::get('redis')[0]['port'],
+            'database' => 10,
+        ]);
     }
 
     public static function keysProvider(): Iterator {

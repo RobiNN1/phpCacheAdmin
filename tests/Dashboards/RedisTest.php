@@ -10,6 +10,7 @@ namespace Tests\Dashboards;
 
 use Exception;
 use PHPUnit\Framework\Attributes\DataProvider;
+use RobiNN\Pca\Config;
 use RobiNN\Pca\Dashboards\DashboardException;
 use RobiNN\Pca\Dashboards\Redis\Compatibility\Predis;
 use RobiNN\Pca\Dashboards\Redis\Compatibility\Redis;
@@ -32,7 +33,11 @@ final class RedisTest extends TestCase {
     protected function setUp(): void {
         $this->template = new Template();
         $this->dashboard = new RedisDashboard($this->template);
-        $this->redis = $this->dashboard->connect(['host' => '127.0.0.1', 'database' => 10]);
+        $this->redis = $this->dashboard->connect([
+            'host'     => Config::get('redis')[0]['host'],
+            'port'     => Config::get('redis')[0]['port'],
+            'database' => 10,
+        ]);
         $this->dashboard->redis = $this->redis;
     }
 

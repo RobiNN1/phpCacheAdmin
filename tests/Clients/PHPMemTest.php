@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace Tests\Clients;
 
 use PHPUnit\Framework\Attributes\DataProvider;
+use RobiNN\Pca\Config;
 use RobiNN\Pca\Dashboards\Memcached\Compatibility\PHPMem;
 use RobiNN\Pca\Dashboards\Memcached\MemcachedException;
 use Tests\TestCase;
@@ -17,7 +18,10 @@ final class PHPMemTest extends TestCase {
     private PHPMem $phpmem;
 
     protected function setUp(): void {
-        $this->phpmem = new PHPMem(['host' => '127.0.0.1', 'port' => 11211]);
+        $this->phpmem = new PHPMem([
+            'host' => Config::get('memcached')[0]['host'],
+            'port' => Config::get('memcached')[0]['port'],
+        ]);
     }
 
     public function testIsConnected(): void {

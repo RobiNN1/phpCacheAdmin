@@ -103,7 +103,7 @@ class Format {
         }
     }
 
-    public static function timeDiff(int $from, int $to = null): string {
+    public static function timeDiff(int $from, ?int $to = null): string {
         $units = [
             'year'   => 365 * 24 * 60 * 60,
             'month'  => 30 * 24 * 60 * 60,

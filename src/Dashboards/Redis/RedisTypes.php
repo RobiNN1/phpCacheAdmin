@@ -194,7 +194,7 @@ trait RedisTypes {
     /**
      * @throws Exception
      */
-    public function deleteSubKey(string $type, string $key, int|string $subkey = null): void {
+    public function deleteSubKey(string $type, string $key, int|string|null $subkey = null): void {
         switch ($type) {
             case 'set':
                 $members = $this->redis->sMembers($key);

@@ -96,7 +96,7 @@ class Helpers {
      *
      * @throws JsonException
      */
-    private static function keysJson(array|string $keys = null, bool $base64 = false): string {
+    private static function keysJson(array|string|null $keys = null, bool $base64 = false): string {
         if ($keys === null) {
             return Http::post('delete', '');
         }
@@ -113,7 +113,7 @@ class Helpers {
      *
      * @param array<int, string>|string|null $keys_for_json
      */
-    public static function deleteKey(Template $template, callable $delete_key, bool $base64 = false, array|string $keys_for_json = null): string {
+    public static function deleteKey(Template $template, callable $delete_key, bool $base64 = false, array|string|null $keys_for_json = null): string {
         try {
             $keys = json_decode(self::keysJson($keys_for_json, $base64), false, 512, JSON_THROW_ON_ERROR);
         } catch (JsonException) {

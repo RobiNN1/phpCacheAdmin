@@ -1,4 +1,4 @@
-{% macro progress(percentage, type = 'lower') %}
+{% macro progress(percentage, type='lower') %}
     {% if type == 'higher' %}{# higher is better #}
         {% if percentage >= 80 %}
             {% set color = 'bg-green-600' %}

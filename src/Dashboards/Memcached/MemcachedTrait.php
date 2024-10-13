@@ -209,6 +209,8 @@ trait MemcachedTrait {
 
         $this->template->addGlobal('search_value', $search);
 
+        $time = time();
+
         foreach ($this->all_keys as $key_data) {
             $key = $key_data['key'] ?? $key_data;
 
@@ -221,7 +223,7 @@ trait MemcachedTrait {
                     'items' => [
                         'link_title'           => $key,
                         'timediff_last_access' => $key_data['la'],
-                        'ttl'                  => $ttl === -1 ? 'Doesn\'t expire' : $ttl,
+                        'ttl'                  => $ttl === -1 ? 'Doesn\'t expire' : $ttl - $time,
                     ],
                 ];
             }

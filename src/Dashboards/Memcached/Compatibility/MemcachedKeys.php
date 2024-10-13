@@ -28,17 +28,33 @@ trait MemcachedKeys {
      * @throws MemcachedException
      */
     public function getKeys(): array {
+        $raw = $this->runCommand('lru_crawler metadump all');
+        $lines = array_filter(explode("\n", trim($raw)), static fn ($line): bool => !empty($line) && $line !== 'END');
         $keys = [];
 
-        $raw = $this->runCommand('lru_crawler metadump all');
-        $lines = explode("\n", $raw);
-        array_pop($lines);
-
         foreach ($lines as $line) {
-            $keys[] = $this->keyData($line);
+            $keys[] = $this->parseLine($line);
         }
 
         return $keys;
+    }
+
+    /**
+     * Convert raw key line to an array.
+     *
+     * @return array<string, string|int>
+     */
+    private function parseLine(string $line): array {
+        $data = [];
+
+        foreach (explode(' ', $line) as $part) {
+            if ($part !== '') {
+                [$key, $val] = explode('=', $part);
+                $data[$key] = is_numeric($val) ? (int) $val : $val;
+            }
+        }
+
+        return $data;
     }
 
     /**
@@ -64,28 +80,5 @@ trait MemcachedKeys {
      */
     public function exists(string $key): bool {
         return $this->getKey($key) !== false;
-    }
-
-    /**
-     * Convert raw key line to an array.
-     *
-     * @return array<string, string|int>
-     */
-    private function keyData(string $line): array {
-        static $data = [];
-
-        foreach (explode(' ', $line) as $part) {
-            if ($part !== '') {
-                [$key, $val] = explode('=', $part);
-
-                if ($key === 'exp') {
-                    $val = $val !== '-1' ? (int) $val - time() : (int) $val;
-                }
-
-                $data[$key] = $val;
-            }
-        }
-
-        return $data;
     }
 }

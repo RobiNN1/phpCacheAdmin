@@ -105,9 +105,15 @@ trait RunCommand {
         $start_time = time();
 
         while (!feof($stream)) {
-            $buffer .= fgets($stream, 256);
+            $line = fgets($stream, 256);
 
-            if ($this->checkCommandEnd($command_name, $buffer) || time() - $start_time > 60) {
+            if ($line === false) {
+                break;
+            }
+
+            $buffer .= $line;
+
+            if ($this->checkCommandEnd($command_name, $buffer) || (time() - $start_time > 60)) {
                 break;
             }
         }
@@ -118,9 +124,7 @@ trait RunCommand {
     }
 
     private function commandName(string $command): string {
-        $parts = explode(' ', $command);
-
-        return strtolower($parts[0]);
+        return strtolower(strtok($command, ' '));
     }
 
     private function checkCommandEnd(string $command, string $buffer): bool {

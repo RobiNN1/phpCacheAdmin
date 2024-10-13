@@ -15,14 +15,14 @@ trait RealpathTrait {
     private function panels(): string {
         $total_memory = Format::iniSizeToBytes(ini_get('realpath_cache_size'));
         $memory_used = realpath_cache_size();
-        $memory_usage_percentage = round(($memory_used / $total_memory) * 100, 2);
+        $memory_usage = round(($memory_used / $total_memory) * 100, 2);
 
         $panels = [
             [
                 'title' => 'Realpath info',
                 'data'  => [
                     'Total' => Format::bytes($total_memory, 0),
-                    'Used'  => Format::bytes($memory_used).' ('.$memory_usage_percentage.'%)',
+                    ['Used', Format::bytes($memory_used).' ('.$memory_usage.'%)', $memory_usage],
                 ],
             ],
             [

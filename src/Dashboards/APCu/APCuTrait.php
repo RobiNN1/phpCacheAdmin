@@ -21,10 +21,12 @@ trait APCuTrait {
         $memory_info = apcu_sma_info(true);
 
         $total_memory = $memory_info['num_seg'] * $memory_info['seg_size'];
-        $memory_used = ($memory_info['num_seg'] * $memory_info['seg_size']) - $memory_info['avail_mem'];
-        $memory_usage_percentage = round(($memory_used / $total_memory) * 100, 2);
+        $memory_used = $total_memory - $memory_info['avail_mem'];
+        $memory_usage = round(($memory_used / $total_memory) * 100, 2);
 
-        $hit_rate = (int) $info['num_hits'] !== 0 ? $info['num_hits'] / ($info['num_hits'] + $info['num_misses']) : 0;
+        $num_hits = (int) $info['num_hits'];
+        $num_misses = (int) $info['num_misses'];
+        $hit_rate = $num_hits !== 0 ? round(($num_hits / ($num_hits + $num_misses)) * 100, 2) : 0;
 
         $panels = [
             [
@@ -39,19 +41,19 @@ trait APCuTrait {
             [
                 'title' => 'Memory',
                 'data'  => [
-                    'Type'  => $info['memory_type'].' - '.$memory_info['num_seg'].' segment(s) * '.Format::bytes((int) $memory_info['seg_size'], 0),
+                    'Type'  => $info['memory_type'].' - '.$memory_info['num_seg'].' segment(s)',
                     'Total' => Format::bytes((int) $total_memory, 0),
-                    'Used'  => Format::bytes((int) $memory_used).' ('.$memory_usage_percentage.'%)',
+                    ['Used', Format::bytes((int) $memory_used).' ('.$memory_usage.'%)', $memory_usage],
                     'Free'  => Format::bytes((int) $memory_info['avail_mem']),
                 ],
             ],
             [
                 'title' => 'Stats',
                 'data'  => [
-                    'Slots'         => $info['num_slots'],
-                    'Keys'          => Format::number((int) $info['num_entries']),
-                    'Hits / Misses' => Format::number((int) $info['num_hits']).' / '.Format::number((int) $info['num_misses']).
-                        ' (Rate '.round($hit_rate * 100, 2).'%)',
+                    'Slots'    => $info['num_slots'],
+                    'Keys'     => Format::number((int) $info['num_entries']),
+                    ['Hits / Misses', Format::number($num_hits).' / '.Format::number($num_misses).' (Rate '.$hit_rate.'%)', $hit_rate, 'higher'],
+                    'Expunges' => Format::number((int) $info['expunges']),
                 ],
             ],
         ];

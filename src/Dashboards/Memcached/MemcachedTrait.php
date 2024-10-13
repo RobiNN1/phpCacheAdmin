@@ -25,7 +25,14 @@ trait MemcachedTrait {
         }
 
         try {
-            $server_info = $this->memcached->getServerStats();
+            $info = $this->memcached->getServerStats();
+
+            $bytes = (int) $info['bytes'];
+            $max_bytes = (int) $info['limit_maxbytes'];
+            $get_hits = (int) $info['get_hits'];
+            $get_misses = (int) $info['get_misses'];
+            $memory_usage = round(($bytes / $max_bytes) * 100, 2);
+            $hit_rate = $get_hits !== 0 ? round(($get_hits / ($get_hits + $get_misses)) * 100, 2) : 0;
 
             $panels = [
                 [
@@ -33,17 +40,33 @@ trait MemcachedTrait {
                     'moreinfo'  => true,
                     'server_id' => $this->current_server,
                     'data'      => [
-                        'Version'          => $server_info['version'],
-                        'Open connections' => $server_info['curr_connections'],
-                        'Uptime'           => Format::seconds((int) $server_info['uptime']),
+                        'Version'          => $info['version'],
+                        'Open connections' => $info['curr_connections'],
+                        'Uptime'           => Format::seconds((int) $info['uptime']),
+                    ],
+                ],
+                [
+                    'title' => 'Memory',
+                    'data'  => [
+                        'Total' => Format::bytes($max_bytes, 0),
+                        ['Used', Format::bytes($bytes).' ('.$memory_usage.'%)', $memory_usage],
+                        'Free'  => Format::bytes($max_bytes - $bytes),
                     ],
                 ],
                 [
                     'title' => 'Stats',
                     'data'  => [
-                        'Cache limit' => Format::bytes((int) $server_info['limit_maxbytes'], 0),
-                        'Used'        => Format::bytes((int) $server_info['bytes']),
-                        'Keys'        => Format::number(count($this->all_keys)), // Keys are loaded via sockets and not extension itself
+                        'Keys'      => Format::number(count($this->all_keys)),
+                        ['Hits / Misses', Format::number($get_hits).' / '.Format::number($get_misses).' (Rate '.$hit_rate.'%)', $hit_rate, 'higher'],
+                        'Evictions' => Format::number((int) $info['evictions']),
+                    ],
+                ],
+                [
+                    'title' => 'Connections',
+                    'data'  => [
+                        'Current'  => Format::number((int) $info['curr_connections']).' / '.Format::number((int) $info['max_connections']),
+                        'Total'    => Format::number((int) $info['total_connections']),
+                        'Rejected' => Format::number((int) $info['rejected_connections']),
                     ],
                 ],
             ];

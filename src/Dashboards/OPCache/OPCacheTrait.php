@@ -20,33 +20,33 @@ trait OPCacheTrait {
 
         $stats = $status['opcache_statistics'];
 
-        $total_memory = $configuration['directives']['opcache.memory_consumption'];
         $memory = $status['memory_usage'];
-        $memory_usage = ($memory['used_memory'] + $memory['wasted_memory']) / $total_memory;
-        $memory_usage_percentage = round($memory_usage * 100, 2);
+        $total_memory = $configuration['directives']['opcache.memory_consumption'];
+        $memory_usage = round((($memory['used_memory'] + $memory['wasted_memory']) / $total_memory) * 100, 2);
+        $memory_wasted = round($memory['current_wasted_percentage'], 2);
 
         $interned_strings = $status['interned_strings_usage'];
-        $interned_usage = $interned_strings['used_memory'] / $interned_strings['buffer_size'];
-        $interned_usage_percentage = round($interned_usage * 100, 2);
+        $interned_usage = round(($interned_strings['used_memory'] / $interned_strings['buffer_size']) * 100, 2);
 
-        $used_keys_percentage = round(($stats['num_cached_keys'] / $stats['max_cached_keys']) * 100);
+        $used_scripts = round(($stats['num_cached_scripts'] / (int) ini_get('opcache.max_accelerated_files')) * 100);
+        $used_keys = round(($stats['num_cached_keys'] / $stats['max_cached_keys']) * 100);
+        $hit_rate = round($stats['opcache_hit_rate'], 2);
 
-        $jit_enabled = false;
+        $jit_enabled = isset($status['jit']['enabled']) && $status['jit']['buffer_size'] > 0;
         $jit_info = [];
 
-        if (isset($status['jit']['enabled']) && $status['jit']['buffer_size'] > 0) {
-            $jit_enabled = true;
+        if ($jit_enabled) {
             $jit = $status['jit'];
             $jit_used = $jit['buffer_size'] - $jit['buffer_free'];
-            $jit_usage = $jit_used / $jit['buffer_size'];
-            $jit_usage_percentage = round($jit_usage * 100, 2);
+            $jit_usage = round(($jit_used / $jit['buffer_size']) * 100, 2);
 
             $jit_info = [
                 'title' => 'JIT',
                 'data'  => [
-                    'Buffer size' => Format::bytes($jit['buffer_size']),
-                    'Used'        => Format::bytes($jit_used).' ('.$jit_usage_percentage.'%)',
-                    'Free'        => Format::bytes($jit['buffer_free']),
+                    'Buffer size'        => Format::bytes($jit['buffer_size']),
+                    ['Used', Format::bytes($jit_used).' ('.$jit_usage.'%)', $jit_usage],
+                    'Free'               => Format::bytes($jit['buffer_free']),
+                    'Optimization level' => $jit['optimization_level'],
                 ],
             ];
         }
@@ -56,30 +56,31 @@ trait OPCacheTrait {
                 'title'    => 'PHP OPCache extension v'.phpversion('Zend OPcache'),
                 'moreinfo' => true,
                 'data'     => [
-                    'JIT'          => $jit_enabled ? 'Enabled' : 'Disabled',
-                    'Start time'   => Format::time($stats['start_time']),
-                    'Uptime'       => Format::seconds(time() - $stats['start_time']),
-                    'Last restart' => Format::time($stats['last_restart_time']),
-                    'Cache full'   => $status['cache_full'] ? 'Yes' : 'No',
+                    'JIT'                 => $jit_enabled ? 'Enabled' : 'Disabled',
+                    'Start time'          => Format::time($stats['start_time']),
+                    'Uptime'              => Format::seconds(time() - $stats['start_time']),
+                    'Last restart'        => Format::time($stats['last_restart_time']),
+                    'Cache full'          => $status['cache_full'] ? 'Yes' : 'No',
+                    'Restart pending'     => $status['restart_pending'] ? 'Yes' : 'No',
+                    'Restart in progress' => $status['restart_in_progress'] ? 'Yes' : 'No',
                 ],
             ],
             [
                 'title' => 'Memory',
                 'data'  => [
-                    'Total'  => Format::bytes($total_memory, 0),
-                    'Used'   => Format::bytes($memory['used_memory']).' ('.$memory_usage_percentage.'%)',
-                    'Free'   => Format::bytes($memory['free_memory']),
-                    'Wasted' => Format::bytes($memory['wasted_memory']).' ('.round($memory['current_wasted_percentage'], 2).'%)',
+                    'Total' => Format::bytes($total_memory, 0),
+                    ['Used', Format::bytes($memory['used_memory']).' ('.$memory_usage.'%)', $memory_usage],
+                    'Free'  => Format::bytes($memory['free_memory']),
+                    ['Wasted', Format::bytes($memory['wasted_memory']).' ('.$memory_wasted.'%)', $memory_wasted],
                 ],
             ],
             [
                 'title' => 'Stats',
                 'data'  => [
-                    'Cached scripts'  => Format::number($stats['num_cached_scripts']),
-                    'Cached keys'     => Format::number($stats['num_cached_keys']).' ('.$used_keys_percentage.'%)',
+                    ['Cached scripts', Format::number($stats['num_cached_scripts']).' ('.$used_scripts.'%)', $used_scripts, 'higher'],
+                    ['Cached keys', Format::number($stats['num_cached_keys']).' ('.$used_keys.'%)', $used_keys, 'higher'],
                     'Max cached keys' => Format::number($stats['max_cached_keys']),
-                    'Hits / Misses'   => Format::number($stats['hits']).' / '.Format::number($stats['misses']).
-                        ' (Rate '.round($stats['opcache_hit_rate'], 2).'%)',
+                    ['Hits / Misses', Format::number($stats['hits']).' / '.Format::number($stats['misses']).' (Rate '.$hit_rate.'%)', $hit_rate, 'higher'],
                 ],
             ],
             $jit_info,
@@ -87,7 +88,7 @@ trait OPCacheTrait {
                 'title' => 'Interned strings usage',
                 'data'  => [
                     'Buffer size' => Format::bytes($interned_strings['buffer_size']),
-                    'Used'        => Format::bytes($interned_strings['used_memory']).' ('.$interned_usage_percentage.'%)',
+                    ['Used', Format::bytes($interned_strings['used_memory']).' ('.$interned_usage.'%)', $interned_usage],
                     'Free'        => Format::bytes($interned_strings['free_memory']),
                     'Strings'     => Format::number($interned_strings['number_of_strings']),
                 ],

@@ -1,3 +1,27 @@
+{% macro progress(percentage, type = 'lower') %}
+    {% if type == 'higher' %}{# higher is better #}
+        {% if percentage >= 80 %}
+            {% set color = 'bg-green-600' %}
+        {% elseif percentage >= 50 %}
+            {% set color = 'bg-orange-600' %}
+        {% else %}
+            {% set color = 'bg-red-600' %}
+        {% endif %}
+    {% else %}{# lower is better #}
+        {% if percentage <= 50 %}
+            {% set color = 'bg-green-600' %}
+        {% elseif percentage <= 80 %}
+            {% set color = 'bg-orange-600' %}
+        {% else %}
+            {% set color = 'bg-red-600' %}
+        {% endif %}
+    {% endif %}
+
+    <div class="mb-0.5 w-full bg-gray-200 rounded h-1.5 dark:bg-gray-700">
+        <div class="{{ color }} h-1.5 rounded" style="width: {{ percentage }}%;"></div>
+    </div>
+{% endmacro %}
+
 <div class="mb-4 rounded bg-white border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
     <div class="border-b border-gray-200 px-4 py-1.5 text-primary-700 dark:border-gray-700 dark:text-primary-400">
         <div class="flex flex-wrap items-center">
@@ -9,9 +33,15 @@
 
     <div class="[&>:last-child]:border-b-0 dark:border-gray-700">
         {% for name, value in array %}
-            <div class="border-b border-gray-200 px-4 py-1 flex justify-between items-center text-right dark:border-gray-700 dark:text-gray-300">
-                <b class="text-xs">{{ name }}</b>
-                <span class="text-sm">{{ value }}</span>
+            <div class="border-b border-gray-200 px-4 py-1 flex flex-col text-right dark:border-gray-700 dark:text-gray-300">
+                <div class="flex justify-between items-center">
+                    <b class="text-xs">{{ value is iterable ? value[0] : name }}</b>
+                    <span class="text-sm">{{ value is iterable ? value[1] : value }}</span>
+                </div>
+
+                {% if value[2] is not null %}
+                    {{ _self.progress(value[2], (value[3] ?? 'lower')) }}
+                {% endif %}
             </div>
         {% endfor %}
     </div>

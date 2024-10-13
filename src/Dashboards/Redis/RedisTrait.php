@@ -30,15 +30,19 @@ trait RedisTrait {
         }
 
         try {
-            $server_info = $this->redis->getInfo();
+            $info = $this->redis->getInfo();
 
             $count_of_all_keys = 0;
 
-            foreach ($server_info['keyspace'] as $value) {
-                $db = explode(',', $value);
-                $keys = explode('=', $db[0]);
-                $count_of_all_keys += (int) $keys[1];
+            foreach ($info['keyspace'] as $value) {
+                [$keys] = explode(',', $value);
+                [, $key_count] = explode('=', $keys);
+                $count_of_all_keys += (int) $key_count;
             }
+
+            $used_memory = (int) $info['memory']['used_memory'];
+            $max_memory = (int) $info['memory']['maxmemory'];
+            $memory_usage = round(($used_memory / $max_memory) * 100, 2);
 
             $panels = [
                 [
@@ -46,16 +50,32 @@ trait RedisTrait {
                     'moreinfo'  => true,
                     'server_id' => $this->current_server,
                     'data'      => [
-                        'Version' => $server_info['server']['redis_version'],
-                        'Uptime'  => Format::seconds((int) $server_info['server']['uptime_in_seconds']),
+                        'Version' => $info['server']['redis_version'].', '.$info['server']['redis_mode'].' mode',
+                        'Cluster' => $info['cluster']['cluster_enabled'] ? 'Enabled' : 'Disabled',
+                        'Uptime'  => Format::seconds((int) $info['server']['uptime_in_seconds']),
+                        'Role'    => $info['replication']['role'].', connected slaves '.$info['replication']['connected_slaves'],
+                        'Keys'    => Format::number($count_of_all_keys).' (all databases)',
+                    ],
+                ],
+                [
+                    'title' => 'Memory',
+                    'data'  => [
+                        'Total'                => Format::bytes($max_memory, 0),
+                        ['Used', Format::bytes($used_memory).' ('.$memory_usage.'%)', $memory_usage],
+                        'Free'                 => Format::bytes($max_memory - $used_memory),
+                        'Fragmentation ratio'  => $info['memory']['mem_fragmentation_ratio'],
+                        'Used peak percentage' => $info['memory']['used_memory_peak_perc'],
                     ],
                 ],
                 [
                     'title' => 'Stats',
                     'data'  => [
-                        'Connected clients' => $server_info['clients']['connected_clients'],
-                        'Memory used'       => Format::bytes((int) $server_info['memory']['used_memory']),
-                        'Keys'              => Format::number($count_of_all_keys).' (all databases)',
+                        'Connected clients'            => Format::number((int) $info['clients']['connected_clients']).' / '.
+                            Format::number((int) $info['clients']['maxclients']),
+                        'Blocked clients'              => Format::number((int) $info['clients']['blocked_clients']),
+                        'Total connections received'   => Format::number((int) $info['stats']['total_connections_received']),
+                        'Total commands processed'     => Format::number((int) $info['stats']['total_commands_processed']),
+                        'Instantaneous ops per second' => Format::number((int) $info['stats']['instantaneous_ops_per_sec']),
                     ],
                 ],
             ];

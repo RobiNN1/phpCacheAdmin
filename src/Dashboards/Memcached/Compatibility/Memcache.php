@@ -23,8 +23,7 @@ class Memcache extends \Memcache implements MemcachedCompatibilityInterface {
     }
 
     public function isConnected(): bool {
-        // Need to be silenced since Memcache doesn't throw exceptions...
-        $stats = @$this->getStats();
+        $stats = $this->getServerStats();
 
         return isset($stats['pid']) && $stats['pid'] > 0;
     }
@@ -33,6 +32,7 @@ class Memcache extends \Memcache implements MemcachedCompatibilityInterface {
      * @return array<string, mixed>
      */
     public function getServerStats(): array {
+        // Need to be silenced since Memcache doesn't throw exceptions...
         return (array) @$this->getStats();
     }
 

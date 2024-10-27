@@ -46,7 +46,7 @@ trait OPCacheTrait {
                     'Buffer size'        => Format::bytes($jit['buffer_size']),
                     ['Used', Format::bytes($jit_used).' ('.$jit_usage.'%)', $jit_usage],
                     'Free'               => Format::bytes($jit['buffer_free']),
-                    'Optimization level' => $jit['optimization_level'],
+                    'Optimization level' => $jit['opt_level'],
                 ],
             ];
         }

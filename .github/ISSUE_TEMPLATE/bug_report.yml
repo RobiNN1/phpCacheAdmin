@@ -1,6 +1,6 @@
 name: Bug report
 description: Tell us about a bug or issue you may have identified in phpCacheAdmin.
-title: ""
+title: " "
 labels: [bug]
 assignees: "-"
 body:

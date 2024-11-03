@@ -6,11 +6,11 @@
 
 declare(strict_types=1);
 
-namespace RobiNN\Pca\Dashboards\Memcached\Compatibility;
+namespace RobiNN\Pca\Dashboards\Memcached;
 
-use RobiNN\Pca\Dashboards\Memcached\MemcachedException;
+class PHPMem {
+    public const VERSION = '1.1.0';
 
-trait RunCommand {
     /**
      * Unknown or incorrect commands can cause an infinite loop,
      * so only tested commands are allowed.
@@ -41,6 +41,170 @@ trait RunCommand {
         'ERROR', 'CLIENT_ERROR', 'SERVER_ERROR', 'STORED', 'NOT_STORED', 'EXISTS', 'NOT_FOUND', 'TOUCHED',
         'DELETED', 'OK', 'END', 'BUSY', 'BADCLASS', 'NOSPARE', 'NOTFULL', 'UNSAFE', 'SAME', 'RESET', 'EN',
     ];
+
+    /**
+     * @param array<string, int|string> $server
+     */
+    public function __construct(protected array $server = []) {
+    }
+
+    /**
+     * Store an item.
+     *
+     * @throws MemcachedException
+     */
+    public function set(string $key, mixed $value, int $expiration = 0): bool {
+        $type = gettype($value);
+
+        if ($type !== 'string' && $type !== 'integer' && $type !== 'double' && $type !== 'boolean') {
+            $value = serialize($value);
+        }
+
+        $raw = $this->runCommand('set '.$key.' 0 '.$expiration.' '.strlen((string) $value)."\r\n".$value);
+
+        return str_starts_with($raw, 'STORED');
+    }
+
+    /**
+     * Retrieve an item.
+     *
+     * @throws MemcachedException
+     */
+    public function get(string $key): string|false {
+        $raw = $this->runCommand('get '.$key);
+        $lines = explode("\r\n", $raw);
+
+        if (str_starts_with($raw, 'VALUE') && str_ends_with($raw, 'END')) {
+            return $lines[1];
+        }
+
+        return false;
+    }
+
+    /**
+     * Delete item from the server.
+     *
+     * @throws MemcachedException
+     */
+    public function delete(string $key): bool {
+        $raw = $this->runCommand('delete '.$key);
+
+        return $raw === 'DELETED';
+    }
+
+    /**
+     * Invalidate all items in the cache.
+     *
+     * @throws MemcachedException
+     */
+    public function flush(): bool {
+        $raw = $this->runCommand('flush_all');
+
+        return $raw === 'OK';
+    }
+
+    public function isConnected(): bool {
+        try {
+            $stats = $this->getServerStats();
+        } catch (MemcachedException) {
+            return false;
+        }
+
+        return isset($stats['pid']) && $stats['pid'] > 0;
+    }
+
+    /**
+     * @return array<string, mixed>
+     *
+     * @throws MemcachedException
+     */
+    public function getServerStats(): array {
+        $raw = $this->runCommand('stats');
+        $lines = explode("\r\n", $raw);
+        $line_n = 0;
+        $stats = [];
+
+        while ($lines[$line_n] !== 'END') {
+            $line = explode(' ', $lines[$line_n]);
+            array_shift($line); // remove 'STAT'
+            [$name, $value] = $line;
+
+            $stats[$name] = $value;
+
+            $line_n++;
+        }
+
+        return $stats;
+    }
+
+    /**
+     * Get all the keys.
+     *
+     * Note: `getAllKeys()` or `stats cachedump` based functions do not work
+     * properly, and this is currently the best way to retrieve all keys.
+     *
+     * This command requires Memcached server >= 1.4.31
+     *
+     * @link https://github.com/memcached/memcached/wiki/ReleaseNotes1431
+     *
+     * @return array<int, mixed>
+     *
+     * @throws MemcachedException
+     */
+    public function getKeys(): array {
+        $raw = $this->runCommand('lru_crawler metadump all');
+        $lines = array_filter(explode("\n", trim($raw)), static fn ($line): bool => !empty($line) && $line !== 'END');
+        $keys = [];
+
+        foreach ($lines as $line) {
+            $keys[] = $this->parseLine($line);
+        }
+
+        return $keys;
+    }
+
+    /**
+     * Convert raw key line to an array.
+     *
+     * @return array<string, string|int>
+     */
+    private function parseLine(string $line): array {
+        $data = [];
+
+        foreach (explode(' ', $line) as $part) {
+            if ($part !== '') {
+                [$key, $val] = explode('=', $part);
+                $data[$key] = is_numeric($val) ? (int) $val : $val;
+            }
+        }
+
+        return $data;
+    }
+
+    /**
+     * Get raw key.
+     *
+     * @throws MemcachedException
+     */
+    public function getKey(string $key): string|false {
+        $raw = $this->runCommand('get '.$key);
+        $data = explode("\r\n", $raw);
+
+        if ($data[0] === 'END') {
+            return false;
+        }
+
+        return !isset($data[1]) || $data[1] === 'N;' ? '' : $data[1];
+    }
+
+    /**
+     * Check if the key exists.
+     *
+     * @throws MemcachedException
+     */
+    public function exists(string $key): bool {
+        return $this->getKey($key) !== false;
+    }
 
     /**
      * Run command.

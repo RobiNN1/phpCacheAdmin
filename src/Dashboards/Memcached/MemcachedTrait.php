@@ -17,11 +17,8 @@ use RobiNN\Pca\Value;
 
 trait MemcachedTrait {
     private function panels(): string {
-        if (extension_loaded('memcached') || extension_loaded('memcache')) {
-            $memcached = extension_loaded('memcached') ? 'd' : '';
-            $title = 'PHP Memcache'.$memcached.' extension v'.phpversion('memcache'.$memcached);
-        } elseif (class_exists(Compatibility\PHPMem::class)) {
-            $title = 'PHPMem v'.Compatibility\PHPMem::VERSION;
+        if (class_exists(PHPMem::class)) {
+            $title = 'PHPMem v'.PHPMem::VERSION;
         }
 
         try {
@@ -162,7 +159,7 @@ trait MemcachedTrait {
             $this->memcached->delete($old_key);
         }
 
-        $this->memcached->store($key, $value, $expire);
+        $this->memcached->set($key, $value, $expire);
 
         Http::redirect([], ['view' => 'key', 'ttl' => $expire, 'key' => $key]);
     }
@@ -241,7 +238,7 @@ trait MemcachedTrait {
         if (isset($_POST['submit_import_key'])) {
             Helpers::import(
                 fn (string $key): bool => $this->memcached->exists($key),
-                fn (string $key, string $value, int $ttl): bool => $this->memcached->store($key, base64_decode($value), $ttl)
+                fn (string $key, string $value, int $ttl): bool => $this->memcached->set($key, base64_decode($value), $ttl)
             );
         }
 

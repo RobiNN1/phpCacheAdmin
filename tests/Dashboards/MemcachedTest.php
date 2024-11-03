@@ -12,11 +12,9 @@ use Iterator;
 use PHPUnit\Framework\Attributes\DataProvider;
 use RobiNN\Pca\Config;
 use RobiNN\Pca\Dashboards\DashboardException;
-use RobiNN\Pca\Dashboards\Memcached\Compatibility\Memcache;
-use RobiNN\Pca\Dashboards\Memcached\Compatibility\Memcached;
-use RobiNN\Pca\Dashboards\Memcached\Compatibility\PHPMem;
 use RobiNN\Pca\Dashboards\Memcached\MemcachedDashboard;
 use RobiNN\Pca\Dashboards\Memcached\MemcachedException;
+use RobiNN\Pca\Dashboards\Memcached\PHPMem;
 use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
 use RobiNN\Pca\Template;
@@ -27,7 +25,7 @@ final class MemcachedTest extends TestCase {
 
     private MemcachedDashboard $dashboard;
 
-    private PHPMem|Memcache|Memcached $memcached;
+    private PHPMem $memcached;
 
     /**
      * @throws DashboardException

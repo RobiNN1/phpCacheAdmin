@@ -10,8 +10,8 @@ namespace Tests\Clients;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use RobiNN\Pca\Config;
-use RobiNN\Pca\Dashboards\Memcached\Compatibility\PHPMem;
 use RobiNN\Pca\Dashboards\Memcached\MemcachedException;
+use RobiNN\Pca\Dashboards\Memcached\PHPMem;
 use Tests\TestCase;
 
 final class PHPMemTest extends TestCase {

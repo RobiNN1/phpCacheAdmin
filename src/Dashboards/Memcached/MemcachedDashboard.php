@@ -25,7 +25,7 @@ class MemcachedDashboard implements DashboardInterface {
 
     private int $current_server;
 
-    public Compatibility\Memcached|Compatibility\Memcache|Compatibility\PHPMem $memcached;
+    public PHPMem $memcached;
 
     /**
      * @var array<int, mixed>
@@ -42,7 +42,7 @@ class MemcachedDashboard implements DashboardInterface {
     public static function check(): bool {
         return extension_loaded('memcached') ||
             extension_loaded('memcache') ||
-            class_exists(Compatibility\PHPMem::class);
+            class_exists(PHPMem::class);
     }
 
     /**
@@ -75,17 +75,13 @@ class MemcachedDashboard implements DashboardInterface {
      *
      * @throws DashboardException
      */
-    public function connect(array $server): Compatibility\Memcached|Compatibility\Memcache|Compatibility\PHPMem {
+    public function connect(array $server): PHPMem {
         $server['port'] ??= 11211;
 
-        if (extension_loaded('memcached')) {
-            $memcached = new Compatibility\Memcached($server);
-        } elseif (extension_loaded('memcache')) {
-            $memcached = new Compatibility\Memcache($server);
-        } elseif (class_exists(Compatibility\PHPMem::class)) {
-            $memcached = new Compatibility\PHPMem($server);
+        if (class_exists(PHPMem::class)) {
+            $memcached = new PHPMem($server);
         } else {
-            throw new DashboardException('Memcache(d) extension or PHPMem client is not installed.');
+            throw new DashboardException('PHPMem client is not installed.');
         }
 
         if (!$memcached->isConnected()) {

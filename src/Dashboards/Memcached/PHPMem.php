@@ -103,16 +103,6 @@ class PHPMem {
         return $raw === 'OK';
     }
 
-    public function isConnected(): bool {
-        try {
-            $stats = $this->getServerStats();
-        } catch (MemcachedException) {
-            return false;
-        }
-
-        return isset($stats['pid']) && $stats['pid'] > 0;
-    }
-
     /**
      * @return array<string, mixed>
      *
@@ -135,6 +125,16 @@ class PHPMem {
         }
 
         return $stats;
+    }
+
+    public function isConnected(): bool {
+        try {
+            $stats = $this->getServerStats();
+        } catch (MemcachedException) {
+            return false;
+        }
+
+        return isset($stats['pid']) && $stats['pid'] > 0;
     }
 
     /**
@@ -195,6 +195,19 @@ class PHPMem {
         }
 
         return !isset($data[1]) || $data[1] === 'N;' ? '' : $data[1];
+    }
+
+    /**
+     * Get key meta data.
+     *
+     * @return array<string, string|int>
+     * @throws MemcachedException
+     */
+    public function getKeyMeta(string $key): array {
+        $raw = $this->runCommand('me '.$key);
+        $raw = preg_replace('/^ME\s+\S+\s+/', '', $raw); // Remove `ME keyname`
+
+        return $this->parseLine($raw);
     }
 
     /**

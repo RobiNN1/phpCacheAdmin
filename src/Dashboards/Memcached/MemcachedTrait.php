@@ -113,7 +113,8 @@ trait MemcachedTrait {
             Http::redirect();
         }
 
-        $ttl = Http::get('ttl', 0);
+        $info = $this->memcached->getKeyMeta($key);
+        $ttl = $info['exp'];
         $ttl = $ttl === 0 ? -1 : $ttl;
 
         if (isset($_GET['export'])) {
@@ -137,7 +138,7 @@ trait MemcachedTrait {
             'key'        => $key,
             'value'      => $formatted_value,
             'ttl'        => Format::seconds($ttl),
-            'size'       => Format::bytes(strlen($value)),
+            'size'       => Format::bytes($info['size']),
             'encode_fn'  => $encode_fn,
             'formatted'  => $is_formatted,
             'edit_url'   => Http::queryString(['ttl'], ['form' => 'edit', 'key' => $key]),
@@ -253,7 +254,7 @@ trait MemcachedTrait {
             'all_keys'    => count($this->all_keys),
             'new_key_url' => Http::queryString([], ['form' => 'new']),
             'paginator'   => $paginator->render(),
-            'view_key'    => Http::queryString([], ['view' => 'key', 'ttl' => '__ttl__', 'key' => '__key__']),
+            'view_key'    => Http::queryString([], ['view' => 'key', 'key' => '__key__']),
         ]);
     }
 }

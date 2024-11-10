@@ -25,7 +25,7 @@
                         {% set td_class = item_key == 'title' or (item_key == 'link_title' and view_key) ? ' max-w-xs truncate hover:text-clip hover:break-all hover:whitespace-normal' : '' %}
                         <td class="px-3 py-2 border-b border-gray-200 text-sm{{ td_class }}{{ classes[loop.index]|space }} dark:border-gray-700 dark:text-gray-300">
                             {% if item_key == 'link_title' and view_key %}
-                                {% set link = view_key|replace({'__key__': key.key, '__ttl__': key.ttl ?? ''}) %}
+                                {% set link = view_key|replace({'__key__': key.key}) %}
                                 <a class="text-primary-500 hover:text-primary-700 font-semibold dark:text-primary-400 dark:hover:text-primary-300" href="{{ link }}">{{ item }}</a>
                             {% elseif item_key == 'type' %}
                                 {% import 'partials/key_type_badge.twig' as key_badge %}

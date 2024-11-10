@@ -38,7 +38,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
-          extensions: apcu, memcached, redis
+          extensions: apcu, redis
           ini-values: apc.enable_cli=1
           coverage: none
         env:

@@ -52,6 +52,10 @@ final class MemcachedTest extends TestCase {
         );
     }
 
+    public function testIsConnected(): void {
+        $this->assertTrue($this->memcached->isConnected());
+    }
+
     /**
      * @throws MemcachedException
      */

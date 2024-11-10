@@ -40,9 +40,7 @@ class MemcachedDashboard implements DashboardInterface {
     }
 
     public static function check(): bool {
-        return extension_loaded('memcached') ||
-            extension_loaded('memcache') ||
-            class_exists(PHPMem::class);
+        return class_exists(PHPMem::class);
     }
 
     /**

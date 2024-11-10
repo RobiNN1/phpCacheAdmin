@@ -54,13 +54,8 @@ class PHPMem {
      * @throws MemcachedException
      */
     public function set(string $key, mixed $value, int $expiration = 0): bool {
-        $type = gettype($value);
-
-        if ($type !== 'string' && $type !== 'integer' && $type !== 'double' && $type !== 'boolean') {
-            $value = serialize($value);
-        }
-
-        $raw = $this->runCommand('set '.$key.' 0 '.$expiration.' '.strlen((string) $value)."\r\n".$value);
+        $value = is_scalar($value) ? (string) $value : serialize($value);
+        $raw = $this->runCommand('set '.$key.' 0 '.$expiration.' '.strlen($value)."\r\n".$value);
 
         return str_starts_with($raw, 'STORED');
     }
@@ -87,9 +82,7 @@ class PHPMem {
      * @throws MemcachedException
      */
     public function delete(string $key): bool {
-        $raw = $this->runCommand('delete '.$key);
-
-        return $raw === 'DELETED';
+        return $this->runCommand('delete '.$key) === 'DELETED';
     }
 
     /**
@@ -98,9 +91,7 @@ class PHPMem {
      * @throws MemcachedException
      */
     public function flush(): bool {
-        $raw = $this->runCommand('flush_all');
-
-        return $raw === 'OK';
+        return $this->runCommand('flush_all') === 'OK';
     }
 
     /**
@@ -110,18 +101,13 @@ class PHPMem {
      */
     public function getServerStats(): array {
         $raw = $this->runCommand('stats');
-        $lines = explode("\r\n", $raw);
-        $line_n = 0;
         $stats = [];
 
-        while ($lines[$line_n] !== 'END') {
-            $line = explode(' ', $lines[$line_n]);
-            array_shift($line); // remove 'STAT'
-            [$name, $value] = $line;
-
-            $stats[$name] = $value;
-
-            $line_n++;
+        foreach (explode("\r\n", $raw) as $line) {
+            if (str_starts_with($line, 'STAT')) {
+                [, $key, $value] = explode(' ', $line, 3);
+                $stats[$key] = $value;
+            }
         }
 
         return $stats;
@@ -130,11 +116,11 @@ class PHPMem {
     public function isConnected(): bool {
         try {
             $stats = $this->getServerStats();
+
+            return isset($stats['pid']) && $stats['pid'] > 0;
         } catch (MemcachedException) {
             return false;
         }
-
-        return isset($stats['pid']) && $stats['pid'] > 0;
     }
 
     /**

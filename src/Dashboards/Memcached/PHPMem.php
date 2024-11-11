@@ -143,8 +143,7 @@ class PHPMem {
         $keys = [];
 
         foreach ($lines as $line) {
-            //$keys[] = $this->parseLine($line);
-            $keys[] = $line;
+            $keys[] = $this->parseLine($line);
         }
 
         return $keys;

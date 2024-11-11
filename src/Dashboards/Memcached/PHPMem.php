@@ -143,7 +143,8 @@ class PHPMem {
         $keys = [];
 
         foreach ($lines as $line) {
-            $keys[] = $this->parseLine($line);
+            //$keys[] = $this->parseLine($line);
+            $keys[] = $line;
         }
 
         return $keys;
@@ -239,7 +240,7 @@ class PHPMem {
      * @throws MemcachedException
      */
     public function runCommand(string $command): string {
-        $command_name = $this->commandName($command);
+        $command_name = strtolower(strtok($command, ' '));
 
         if (!in_array($command_name, $this->allowed_commands, true)) {
             throw new MemcachedException('Unknown or not allowed command "'.$command.'".');
@@ -256,16 +257,16 @@ class PHPMem {
      */
     private function streamConnection(string $command, string $command_name): string {
         $address = isset($this->server['path']) ? 'unix://'.$this->server['path'] : 'tcp://'.$this->server['host'].':'.$this->server['port'];
-        $stream = @stream_socket_client($address, $error_code, $error_message, 3);
+        $stream = @stream_socket_client($address, $error_code, $error_message, 0.5);
 
-        if ($error_message !== '' || $stream === false) {
+        if ($stream === false) {
             throw new MemcachedException('Command: "'.$command.'": '.$error_code.' - '.$error_message);
         }
 
-        fwrite($stream, $command, strlen($command));
+        stream_set_timeout($stream, 1);
+        fwrite($stream, $command);
 
         $buffer = '';
-        $start_time = time();
 
         while (!feof($stream)) {
             $line = fgets($stream, 256);
@@ -276,7 +277,7 @@ class PHPMem {
 
             $buffer .= $line;
 
-            if ($this->checkCommandEnd($command_name, $buffer) || (time() - $start_time > 60)) {
+            if ($this->checkCommandEnd($command_name, $buffer)) {
                 break;
             }
         }
@@ -284,10 +285,6 @@ class PHPMem {
         fclose($stream);
 
         return $buffer;
-    }
-
-    private function commandName(string $command): string {
-        return strtolower(strtok($command, ' '));
     }
 
     private function checkCommandEnd(string $command, string $buffer): bool {

@@ -79,7 +79,7 @@ class Redis extends \Redis implements RedisCompatibilityInterface {
 
         if ($type === self::REDIS_NOT_FOUND) {
             $this->setOption(self::OPT_REPLY_LITERAL, true);
-            $type = $this->rawCommand('TYPE', $key);
+            $type = $this->rawcommand('TYPE', $key);
         }
 
         return $this->getType($type);
@@ -129,7 +129,7 @@ class Redis extends \Redis implements RedisCompatibilityInterface {
      * @throws RedisException
      */
     public function listRem(string $key, string $value, int $count): int {
-        return $this->lRem($key, $value, $count);
+        return $this->lrem($key, $value, $count);
     }
 
     /**
@@ -138,7 +138,7 @@ class Redis extends \Redis implements RedisCompatibilityInterface {
      * @throws RedisException
      */
     public function streamAdd(string $key, string $id, array $messages): string {
-        return $this->xAdd($key, $id, $messages);
+        return $this->xadd($key, $id, $messages);
     }
 
     /**

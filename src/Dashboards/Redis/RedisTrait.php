@@ -44,6 +44,12 @@ trait RedisTrait {
             $max_memory = (int) $info['memory']['maxmemory'];
             $memory_usage = $max_memory > 0 ? round(($used_memory / $max_memory) * 100, 2) : 0;
 
+            if ($max_memory > 0) { // 0 = unlimited
+                $used_memory_formatted = ['Used', Format::bytes($used_memory).' ('.$memory_usage.'%)', $memory_usage];
+            } else {
+                $used_memory_formatted = ['Used', Format::bytes($used_memory)];
+            }
+
             $panels = [
                 [
                     'title'     => $title ?? null,
@@ -60,9 +66,9 @@ trait RedisTrait {
                 [
                     'title' => 'Memory',
                     'data'  => [
-                        'Total'                => Format::bytes($max_memory, 0),
-                        ['Used', Format::bytes($used_memory).' ('.$memory_usage.'%)', $memory_usage],
-                        'Free'                 => Format::bytes($max_memory - $used_memory),
+                        'Total'                => $max_memory > 0 ? Format::bytes($max_memory, 0) : '&infin;',
+                        $used_memory_formatted,
+                        'Free'                 => $max_memory > 0 ? Format::bytes($max_memory - $used_memory) : '&infin;',
                         'Fragmentation ratio'  => $info['memory']['mem_fragmentation_ratio'],
                         'Used peak percentage' => $info['memory']['used_memory_peak_perc'],
                     ],

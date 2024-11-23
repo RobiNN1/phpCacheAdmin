@@ -11,12 +11,19 @@ namespace Tests\Clients;
 use Iterator;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Predis\Client as PredisClient;
 use RobiNN\Pca\Config;
 use RobiNN\Pca\Dashboards\DashboardException;
 use RobiNN\Pca\Dashboards\Redis\Compatibility\Predis;
 
 final class PredisTest extends TestCase {
     private Predis $predis;
+
+    public static function setUpBeforeClass(): void {
+        if (!class_exists(PredisClient::class)) {
+            self::markTestSkipped('Predis is not installed. Skipping all tests.');
+        }
+    }
 
     protected function setUp(): void {
         $this->predis = new Predis([

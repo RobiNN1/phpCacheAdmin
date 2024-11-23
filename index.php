@@ -45,11 +45,7 @@ if (is_callable(Config::get('auth'))) {
 $tpl = new Template();
 $admin = new Admin($tpl);
 
-$nav = [];
-
-foreach ($admin->dashboards as $d_key => $d_dashboard) {
-    $nav[$d_key] = $d_dashboard->dashboardInfo();
-}
+$nav = array_map(static fn ($d_dashboard) => $d_dashboard->dashboardInfo(), $admin->dashboards);
 
 $current = $admin->currentDashboard();
 $dashboard = $admin->getDashboard($current);

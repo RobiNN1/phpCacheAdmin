@@ -184,7 +184,7 @@ class PHPMem {
     }
 
     /**
-     * Get key meta data.
+     * Get key meta-data.
      *
      * @return array<string, string|int>
      * @throws MemcachedException

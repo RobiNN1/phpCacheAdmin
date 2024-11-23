@@ -42,9 +42,9 @@ trait RedisTrait {
 
             $used_memory = (int) $info['memory']['used_memory'];
             $max_memory = (int) $info['memory']['maxmemory'];
-            $memory_usage = $max_memory > 0 ? round(($used_memory / $max_memory) * 100, 2) : 0;
 
             if ($max_memory > 0) { // 0 = unlimited
+                $memory_usage = round(($used_memory / $max_memory) * 100, 2);
                 $used_memory_formatted = ['Used', Format::bytes($used_memory).' ('.$memory_usage.'%)', $memory_usage];
             } else {
                 $used_memory_formatted = ['Used', Format::bytes($used_memory)];

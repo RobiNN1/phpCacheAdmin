@@ -34,9 +34,9 @@
     <div class="[&>:last-child]:border-b-0 dark:border-gray-700">
         {% for name, value in array %}
             <div class="border-b border-gray-200 px-4 py-1 flex flex-col text-right dark:border-gray-700 dark:text-gray-300">
-                <div class="flex justify-between items-center">
+                <div class="flex justify-between items-center gap-2">
                     <b class="text-xs">{{ value is iterable ? value[0] : name }}</b>
-                    <span class="text-sm">{{ (value is iterable ? value[1] : value)|raw }}</span>
+                    <span class="text-sm text-left truncate hover:text-clip hover:break-all hover:whitespace-normal">{{ (value is iterable ? value[1] : value)|raw }}</span>
                 </div>
 
                 {% if value[2] is not null %}

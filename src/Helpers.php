@@ -120,18 +120,18 @@ class Helpers {
             $keys = [];
         }
 
+        $b64_decode = static fn ($key): string => $base64 ? base64_decode($key) : $key;
+
         if (is_array($keys) && count($keys)) {
             foreach ($keys as $key) {
-                $delete_key($base64 ? base64_decode($key) : $key);
+                $delete_key($b64_decode($key));
             }
 
             return self::alert($template, 'Keys has been deleted.', 'success');
         }
 
-        if (is_string($keys) && $delete_key($base64 ? base64_decode($keys) : $keys)) {
-            $message = sprintf('Key "%s" has been deleted.', $base64 ? base64_decode($keys) : $keys);
-
-            return self::alert($template, $message, 'success');
+        if (is_string($keys) && $delete_key($b64_decode($keys))) {
+            return self::alert($template, sprintf('Key "%s" has been deleted.', $b64_decode($keys)), 'success');
         }
 
         return self::alert($template, 'No keys are selected.');

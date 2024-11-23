@@ -21,7 +21,7 @@ final class APCuTest extends TestCase {
     private APCuDashboard $dashboard;
 
     public static function setUpBeforeClass(): void {
-        if (!ini_get('apc.enable_cli')) {
+        if (ini_get('apc.enable_cli') !== '1') {
             self::markTestSkipped('APC CLI is not enabled. Skipping all tests.');
         }
     }

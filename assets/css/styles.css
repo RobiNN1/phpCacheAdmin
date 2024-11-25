@@ -17,7 +17,7 @@
 }
 
 /*
-! tailwindcss v3.4.13 | MIT License | https://tailwindcss.com
+! tailwindcss v3.4.15 | MIT License | https://tailwindcss.com
 */
 
 /*
@@ -460,7 +460,7 @@ video {
 
 /* Make elements with the HTML hidden attribute stay hidden by default */
 
-[hidden] {
+[hidden]:where(:not([hidden="until-found"])) {
   display: none;
 }
 
@@ -676,10 +676,6 @@ video {
   gap: 0.5rem;
 }
 
-.gap-3 {
-  gap: 0.75rem;
-}
-
 .gap-4 {
   gap: 1rem;
 }
@@ -749,6 +745,10 @@ video {
 
 .border-b {
   border-bottom-width: 1px;
+}
+
+.border-l {
+  border-left-width: 1px;
 }
 
 .border-t {
@@ -1549,8 +1549,16 @@ video {
   border-bottom-width: 0px;
 }
 
+.\[\&\>\.active\]\:bg-gray-100>.active {
+  background-color: #f3f4f6;
+}
+
 .\[\&\>\.active\]\:text-gray-600>.active {
   color: #4b5563;
+}
+
+.dark\:\[\&\>\.active\]\:bg-gray-600>.active:is(.dark *) {
+  background-color: #4b5563;
 }
 
 .dark\:\[\&\>\.active\]\:text-gray-300>.active:is(.dark *) {

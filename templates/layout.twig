@@ -42,10 +42,16 @@
             <a class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" href="{{ logout_url }}" title="Logout" target="_blank" rel="noopener">{{ svg('logout', 32) }}</a>
         {% endif %}
 
-        <div class="flex gap-3 [&>.active]:text-gray-600 dark:[&>.active]:text-gray-300">
-            <button class="flex items-center justify-center text-gray-400 dark:text-gray-500" type="button" data-theme="light" title="Light">{{ svg('sun', 28) }}</button>
-            <button class="flex items-center justify-center text-gray-400 dark:text-gray-500" type="button" data-theme="dark" title="Dark">{{ svg('moon', 28) }}</button>
-            <button class="flex items-center justify-center text-gray-400 dark:text-gray-500" type="button" data-theme="system" title="System">{{ svg('system', 28) }}</button>
+        <div class="flex border rounded overflow-hidden border-gray-300 dark:border-gray-600 [&>.active]:text-gray-600 dark:[&>.active]:text-gray-300 [&>.active]:bg-gray-100 dark:[&>.active]:bg-gray-600">
+            <button class="flex items-center justify-center px-3 py-2 text-gray-400 dark:text-gray-500" type="button" data-theme="light" title="Light">
+                {{ svg('sun', 18) }}
+            </button>
+            <button class="flex items-center justify-center px-3 py-2 text-gray-400 dark:text-gray-500 border-l border-gray-300 dark:border-gray-600" type="button" data-theme="dark" title="Dark">
+                {{ svg('moon', 18) }}
+            </button>
+            <button class="flex items-center justify-center px-3 py-2 text-gray-400 dark:text-gray-500 border-l border-gray-300 dark:border-gray-600" type="button" data-theme="system" title="System">
+                {{ svg('system', 18) }}
+            </button>
         </div>
 
         <a class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" href="{{ repo }}" title="GitHub" target="_blank" rel="noopener">{{ svg('github', 28) }}</a>

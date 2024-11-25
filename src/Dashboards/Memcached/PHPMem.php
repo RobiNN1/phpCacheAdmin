@@ -20,7 +20,7 @@ class PHPMem {
     private array $allowed_commands = [
         'set', 'add', 'replace', 'append', 'prepend', 'cas', 'get', 'gets', 'gat', 'gats',
         'touch', 'delete', 'incr', 'decr', 'stats', 'flush_all', 'version', 'lru_crawler',
-        'lru', 'slabs', 'me', 'mg', 'ms', 'md', 'ma', 'cache_memlimit', 'verbosity',
+        'lru', 'slabs', 'me', 'mg', 'ms', 'md', 'ma', 'cache_memlimit', 'verbosity', 'quit',
     ];
 
     /**
@@ -29,7 +29,7 @@ class PHPMem {
      * @var array<int, string>
      */
     private array $no_end = [
-        'incr', 'decr', 'version', 'me', 'mg', 'ms', 'md', 'ma', 'cache_memlimit',
+        'incr', 'decr', 'version', 'me', 'mg', 'ms', 'md', 'ma', 'cache_memlimit', 'quit',
     ];
 
     /**
@@ -298,5 +298,12 @@ class PHPMem {
         }
 
         return false;
+    }
+
+    /**
+     * @throws MemcachedException
+     */
+    public function __destruct() {
+        $this->runCommand('quit');
     }
 }

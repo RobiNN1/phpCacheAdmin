@@ -168,7 +168,6 @@ class Helpers {
 
         foreach ($keys as $key) {
             $ttl = isset($key['items']['ttl']) && is_int($key['items']['ttl']) ? $key['items']['ttl'] : 0;
-            $ttl = $key['ttl'] ?? $ttl;
 
             $json[] = [
                 'key'   => $key['key'],

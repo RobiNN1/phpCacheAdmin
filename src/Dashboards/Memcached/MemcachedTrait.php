@@ -217,7 +217,6 @@ trait MemcachedTrait {
 
                 $keys[] = [
                     'key'   => $key,
-                    'ttl'   => $ttl,
                     'items' => [
                         'link_title'           => $key,
                         'timediff_last_access' => $key_data['la'],

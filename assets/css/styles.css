@@ -1549,16 +1549,16 @@ video {
   border-bottom-width: 0px;
 }
 
-.\[\&\>\.active\]\:bg-gray-100>.active {
-  background-color: #f3f4f6;
+.\[\&\>\.active\]\:bg-gray-200>.active {
+  background-color: #e5e7eb;
 }
 
 .\[\&\>\.active\]\:text-gray-600>.active {
   color: #4b5563;
 }
 
-.dark\:\[\&\>\.active\]\:bg-gray-600>.active:is(.dark *) {
-  background-color: #4b5563;
+.dark\:\[\&\>\.active\]\:bg-gray-950>.active:is(.dark *) {
+  background-color: #030712;
 }
 
 .dark\:\[\&\>\.active\]\:text-gray-300>.active:is(.dark *) {

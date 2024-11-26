@@ -299,11 +299,4 @@ class PHPMem {
 
         return false;
     }
-
-    /**
-     * @throws MemcachedException
-     */
-    public function __destruct() {
-        $this->runCommand('quit');
-    }
 }

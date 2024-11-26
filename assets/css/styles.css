@@ -596,8 +596,8 @@ video {
   width: 1rem;
 }
 
-.w-40 {
-  width: 10rem;
+.w-44 {
+  width: 11rem;
 }
 
 .w-72 {
@@ -1480,6 +1480,10 @@ video {
 
   .md\:grid {
     display: grid;
+  }
+
+  .md\:max-w-md {
+    max-width: 28rem;
   }
 
   .md\:grid-cols-10 {

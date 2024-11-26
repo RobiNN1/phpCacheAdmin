@@ -22,7 +22,7 @@
                         <td class="pl-6 px-3 py-2 border-b border-gray-200 dark:border-gray-700">{{ include('components/checkbox.twig', {class: 'check-key'}) }}</td>
                     {% endif %}
                     {% for item_key, item in key.items %}
-                        {% set td_class = item_key == 'title' or (item_key == 'link_title' and view_key) ? ' max-w-xs truncate hover:text-clip hover:break-all hover:whitespace-normal' : '' %}
+                        {% set td_class = item_key == 'title' or (item_key == 'link_title' and view_key) ? ' max-w-xs md:max-w-md truncate hover:text-clip hover:break-all hover:whitespace-normal' : '' %}
                         <td class="px-3 py-2 border-b border-gray-200 text-sm{{ td_class }}{{ classes[loop.index]|space }} dark:border-gray-700 dark:text-gray-300">
                             {% if item_key == 'link_title' and view_key %}
                                 {% set link = view_key|replace({'__key__': key.key}) %}

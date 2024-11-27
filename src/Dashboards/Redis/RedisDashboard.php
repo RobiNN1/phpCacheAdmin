@@ -42,7 +42,7 @@ class RedisDashboard implements DashboardInterface {
     }
 
     /**
-     * @return array<string, string|array<int, string>>
+     * @return array<string, array<int, string>|string>
      */
     public function dashboardInfo(): array {
         return [

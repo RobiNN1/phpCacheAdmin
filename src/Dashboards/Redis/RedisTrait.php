@@ -249,10 +249,9 @@ trait RedisTrait {
         $value = Value::converter(Http::post('value', ''), Http::post('encoder', ''), 'save');
         $old_value = Http::post('old_value', '');
         $type = Http::post('redis_type', '');
+        $old_key = (string) Http::post('old_key', '');
 
-        $old_key = Http::post('old_key', '');
-
-        if ($old_key !== '' && $old_key !== $key) {
+        if ($old_key !== $key) {
             $this->redis->rename($old_key, $key);
         }
 

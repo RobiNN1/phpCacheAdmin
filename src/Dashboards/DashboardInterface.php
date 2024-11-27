@@ -17,7 +17,7 @@ interface DashboardInterface {
     /**
      * Array that contains key, name, and optionally an icon or colors.
      *
-     * @return array<string, string|array<int, string>>
+     * @return array<string, array<int, string>|string>
      */
     public function dashboardInfo(): array;
 

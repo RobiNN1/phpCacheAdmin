@@ -19,11 +19,11 @@ class OPCacheDashboard implements DashboardInterface {
     }
 
     public static function check(): bool {
-        return extension_loaded('Zend OPcache') && ini_get('opcache.restrict_api') !== null;
+        return extension_loaded('Zend OPcache') && ini_get('opcache.restrict_api') !== false;
     }
 
     /**
-     * @return array<string, string|array<int, string>>
+     * @return array<string, array<int, string>|string>
      */
     public function dashboardInfo(): array {
         return [

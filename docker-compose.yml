@@ -1,12 +1,10 @@
-version: '3'
 services:
   phpcacheadmin:
     build: .
     ports:
       - "8080:80"
-    #volumes:
-    # If you want to use config.php instead of ENV variables
-    #  - "./config.php:/var/www/html/config.php"
+    volumes:
+      - "./:/var/www/html/"
     environment:
       - PCA_REDIS_0_HOST=redis
       - PCA_REDIS_0_PORT=6379

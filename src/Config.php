@@ -52,11 +52,9 @@ class Config {
      * @return array<string, mixed>
      */
     private static function getEnvConfig(array $config): array {
-        $vars = preg_grep('/^PCA_/', array_keys(getenv()));
-
-        if ($vars !== false && count($vars)) {
-            foreach ($vars as $var) {
-                self::envVarToArray($config, $var, (string) getenv($var));
+        foreach (getenv() as $var => $value) {
+            if (str_starts_with($var, 'PCA_')) {
+                self::envVarToArray($config, $var, $value);
             }
         }
 

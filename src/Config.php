@@ -52,9 +52,11 @@ class Config {
      * @return array<string, mixed>
      */
     private static function getEnvConfig(array $config): array {
-        foreach (getenv() as $var => $value) {
-            if (str_starts_with($var, 'PCA_')) {
-                $config = self::envVarToArray($config, $var, $value);
+        $vars = preg_grep('/^PCA_/', array_keys(getenv()));
+
+        if ($vars !== false && count($vars)) {
+            foreach ($vars as $var) {
+                self::envVarToArray($config, $var, (string) getenv($var));
             }
         }
 
@@ -67,10 +69,8 @@ class Config {
      * It allows the app to use ENV variables and config.php together.
      *
      * @param array<string, mixed> $array
-     *
-     * @return array<string, mixed>
      */
-    private static function envVarToArray(array $array, string $var, string $value): array {
+    private static function envVarToArray(array &$array, string $var, string $value): void {
         $var = substr($var, 4);
         $keys = array_map(strtolower(...), explode('_', $var));
 
@@ -81,9 +81,7 @@ class Config {
 
             unset($keys[$i]);
 
-            if (!isset($array[$key]) || !is_array($array[$key])) {
-                $array[$key] = [];
-            }
+            $array = &$array[$key];
         }
 
         if (json_validate($value)) {
@@ -95,8 +93,6 @@ class Config {
         }
 
         $array[array_shift($keys)] = $value;
-
-        return $array;
     }
 
     /**

@@ -201,52 +201,47 @@ if (search_form) {
 /**
  * Light / Dark mode
  */
-window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
-    if (localStorage.theme === 'system' && event.matches) {
-        document.documentElement.classList.add('dark');
-    } else {
-        document.documentElement.classList.remove('dark');
-    }
-});
-
 const update_theme = () => {
-    if (!('theme' in localStorage)) {
-        localStorage.theme = 'system';
+    const theme = localStorage.getItem('theme') || 'system';
+    let current_theme = theme;
+
+    if (theme === 'system') {
+        current_theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        document.documentElement.setAttribute('color-theme', 'system');
+    } else {
+        document.documentElement.setAttribute('color-theme', theme);
     }
 
-    switch (localStorage.theme) {
-        case 'system':
-            if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-                document.documentElement.classList.add('dark');
-            } else {
-                document.documentElement.classList.remove('dark');
-            }
-            break;
-        case 'dark':
-            document.documentElement.classList.add('dark');
-            break;
-        case 'light':
-            document.documentElement.classList.remove('dark');
-            break;
-    }
-}
+    document.documentElement.classList.toggle('dark', current_theme === 'dark');
 
-update_theme();
+    const theme_colors = {light: '#fff', dark: '#1f2937'};
+    document.querySelector("meta[name='theme-color']").content = theme_colors[current_theme]
+};
 
-const theme_sw = document.querySelectorAll("[data-theme]");
+const init_theme_switcher = () => {
+    const theme_switchers = document.querySelectorAll("[data-theme]");
 
-theme_sw.forEach(button => {
-    let theme = button.getAttribute('data-theme');
+    theme_switchers.forEach(button => {
+        const theme = button.getAttribute('data-theme');
 
-    button.addEventListener('click', () => {
-        localStorage.theme = theme;
-        update_theme();
-        theme_sw.forEach(btn => btn.classList.remove('active'));
+        button.addEventListener('click', () => {
+            localStorage.setItem('theme', theme);
+            update_theme();
+            theme_switchers.forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+        });
 
-        button.classList.add('active');
+        if (theme === localStorage.getItem('theme')) {
+            button.classList.add('active');
+        }
     });
 
-    if (theme === localStorage.theme) {
-        button.classList.add('active');
-    }
-});
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+        if (localStorage.getItem('theme') === 'system') {
+            update_theme();
+        }
+    });
+};
+
+update_theme();
+init_theme_switcher();

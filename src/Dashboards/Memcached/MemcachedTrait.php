@@ -210,7 +210,7 @@ trait MemcachedTrait {
         $time = time();
 
         foreach ($this->all_keys as $key_data) {
-            $key = $key_data['key'] ?? $key_data;
+            $key = $key_data['key'];
 
             if (stripos($key, $search) !== false) {
                 $ttl = $key_data['exp'] ?? null;
@@ -219,6 +219,7 @@ trait MemcachedTrait {
                     'key'   => $key,
                     'items' => [
                         'link_title'           => $key,
+                        'bytes_size'           => $key_data['size'],
                         'timediff_last_access' => $key_data['la'],
                         'ttl'                  => $ttl === -1 ? 'Doesn\'t expire' : $ttl - $time,
                     ],

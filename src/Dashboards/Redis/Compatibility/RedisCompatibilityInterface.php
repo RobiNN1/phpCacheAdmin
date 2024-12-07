@@ -57,4 +57,12 @@ interface RedisCompatibilityInterface {
      * @return array<string, mixed>
      */
     public function pipelineKeys(array $keys): array;
+
+
+    /**
+     * Get key size.
+     *
+     * Requires Redis >= 4.0.0.
+     */
+    public function size(string $key): int;
 }

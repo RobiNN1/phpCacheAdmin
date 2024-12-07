@@ -154,6 +154,7 @@ class Redis extends \Redis implements RedisCompatibilityInterface {
         foreach ($keys as $key) {
             $pipeline->ttl($key);
             $pipeline->type($key);
+            $pipeline->rawcommand('MEMORY', 'USAGE', $key);
         }
 
         $results = $pipeline->exec();
@@ -161,12 +162,21 @@ class Redis extends \Redis implements RedisCompatibilityInterface {
         $data = [];
 
         foreach ($keys as $i => $key) {
+            $index = $i * 3;
+
             $data[$key] = [
-                'ttl'  => $results[$i * 2],
-                'type' => $this->getType($results[$i * 2 + 1]),
+                'ttl'  => $results[$index],
+                'type' => $this->getType($results[$index + 1]),
+                'size' => is_int($results[$index + 2]) ? $results[$index + 2] : 0,
             ];
         }
 
         return $data;
+    }
+
+    public function size(string $key): int {
+        $size = $this->rawcommand('MEMORY', 'USAGE', $key);
+
+        return is_int($size) ? $size : 0;
     }
 }

@@ -220,15 +220,12 @@ trait RedisTrait {
             [$value, $encode_fn, $is_formatted] = Value::format($value);
         }
 
-
-        $size = $this->redis->rawCommand('MEMORY', 'usage', $key); // requires Redis >= 4.0.0
-
         return $this->template->render('partials/view_key', [
             'key'            => $key,
             'value'          => $value,
             'type'           => $type,
             'ttl'            => Format::seconds($ttl),
-            'size'           => is_int($size) ? Format::bytes($size) : null,
+            'size'           => Format::bytes($this->redis->size($key)),
             'encode_fn'      => $encode_fn,
             'formatted'      => $is_formatted,
             'add_subkey_url' => Http::queryString(['db'], ['form' => 'new', 'key' => $key]),
@@ -354,6 +351,7 @@ trait RedisTrait {
                 'base64' => true,
                 'items'  => [
                     'link_title' => ($total !== null ? '('.$total.' items) ' : '').$key,
+                    'bytes_size' => $pipeline[$key]['size'],
                     'type'       => $type,
                     'ttl'        => $ttl === -1 ? 'Doesn\'t expire' : $ttl,
                 ],

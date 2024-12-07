@@ -135,18 +135,28 @@ class Predis extends Client implements RedisCompatibilityInterface {
             foreach ($keys as $key) {
                 $pipe->ttl($key);
                 $pipe->type($key);
+                $pipe->eval('return redis.call("MEMORY", "USAGE", KEYS[1])', 1, $key);
             }
         });
 
         $data = [];
 
         foreach ($keys as $i => $key) {
+            $index = $i * 3;
+
             $data[$key] = [
-                'ttl'  => $results[$i * 2],
-                'type' => $this->getType((string) $results[$i * 2 + 1]),
+                'ttl'  => $results[$index],
+                'type' => $this->getType((string) $results[$index + 1]),
+                'size' => is_int($results[$index + 2]) ? $results[$index + 2] : 0,
             ];
         }
 
         return $data;
+    }
+
+    public function size(string $key): int {
+        $size = $this->executeRaw(['MEMORY', 'USAGE', $key]);
+
+        return is_int($size) ? $size : 0;
     }
 }

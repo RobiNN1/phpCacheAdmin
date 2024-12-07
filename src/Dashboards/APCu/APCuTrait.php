@@ -78,6 +78,19 @@ trait APCuTrait {
         ]);
     }
 
+    private function getKeySize(string $key): int {
+        $cache_info = apcu_cache_info();
+
+        // For some reason apcu_key_info() does not contain the key size
+        foreach ($cache_info['cache_list'] as $entry) {
+            if ($entry['info'] === $key) {
+                return $entry['mem_size'];
+            }
+        }
+
+        return 0;
+    }
+
     private function viewKey(): string {
         $key = Http::get('key', '');
 
@@ -108,7 +121,7 @@ trait APCuTrait {
             'key'        => $key,
             'value'      => $formatted_value,
             'ttl'        => Format::seconds($ttl),
-            'size'       => Format::bytes(strlen($value)),
+            'size'       => Format::bytes($this->getKeySize($key)),
             'encode_fn'  => $encode_fn,
             'formatted'  => $is_formatted,
             'edit_url'   => Http::queryString(['ttl'], ['form' => 'edit', 'key' => $key]),
@@ -184,6 +197,7 @@ trait APCuTrait {
                     'base64' => true,
                     'items'  => [
                         'link_title'         => $key,
+                        'bytes_size'         => $key_data['mem_size'],
                         'number_hits'        => $key_data['num_hits'],
                         'timediff_last_used' => $key_data['access_time'],
                         'time_created'       => $key_data['creation_time'],

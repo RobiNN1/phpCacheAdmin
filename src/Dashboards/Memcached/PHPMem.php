@@ -9,7 +9,7 @@ declare(strict_types=1);
 namespace RobiNN\Pca\Dashboards\Memcached;
 
 class PHPMem {
-    public const VERSION = '1.1.0';
+    public const VERSION = '2.0.0';
 
     /**
      * Unknown or incorrect commands can cause an infinite loop,
@@ -21,25 +21,6 @@ class PHPMem {
         'set', 'add', 'replace', 'append', 'prepend', 'cas', 'get', 'gets', 'gat', 'gats',
         'touch', 'delete', 'incr', 'decr', 'stats', 'flush_all', 'version', 'lru_crawler',
         'lru', 'slabs', 'me', 'mg', 'ms', 'md', 'ma', 'cache_memlimit', 'verbosity', 'quit',
-    ];
-
-    /**
-     * Commands without a specific end string.
-     *
-     * @var array<int, string>
-     */
-    private array $no_end = [
-        'incr', 'decr', 'version', 'me', 'mg', 'ms', 'md', 'ma', 'cache_memlimit', 'quit',
-    ];
-
-    /**
-     * Loop until the server returns one of these end strings.
-     *
-     * @var array<int, string>
-     */
-    private array $with_end = [
-        'ERROR', 'CLIENT_ERROR', 'SERVER_ERROR', 'STORED', 'NOT_STORED', 'EXISTS', 'NOT_FOUND', 'TOUCHED',
-        'DELETED', 'OK', 'END', 'BUSY', 'BADCLASS', 'NOSPARE', 'NOTFULL', 'UNSAFE', 'SAME', 'RESET', 'EN',
     ];
 
     /**
@@ -157,10 +138,10 @@ class PHPMem {
     private function parseLine(string $line): array {
         $data = [];
 
-        foreach (explode(' ', $line) as $part) {
+        foreach (\explode(' ', $line) as $part) {
             if ($part !== '') {
-                [$key, $val] = explode('=', $part);
-                $data[$key] = is_numeric($val) ? (int) $val : $val;
+                [$key, $val] = \explode('=', $part);
+                $data[$key] = \is_numeric($val) ? (int) $val : $val;
             }
         }
 
@@ -268,7 +249,7 @@ class PHPMem {
         $buffer = '';
 
         while (!feof($stream)) {
-            $line = fgets($stream, 256);
+            $line = \fgets($stream, 4096);
 
             if ($line === false) {
                 break;
@@ -276,7 +257,16 @@ class PHPMem {
 
             $buffer .= $line;
 
-            if ($this->checkCommandEnd($command_name, $buffer)) {
+            // Commands without a specific end string.
+            if ($command_name === 'incr' || $command_name === 'decr' || $command_name === 'version' ||
+                $command_name === 'me' || $command_name === 'mg' || $command_name === 'ms' ||
+                $command_name === 'md' || $command_name === 'ma' || $command_name === 'cache_memlimit' ||
+                $command_name === 'quit') {
+                break;
+            }
+
+            // Loop until the server returns one of these end strings.
+            if ($this->checkCommandEnd($buffer)) {
                 break;
             }
         }
@@ -286,17 +276,26 @@ class PHPMem {
         return $buffer;
     }
 
-    private function checkCommandEnd(string $command, string $buffer): bool {
-        if (in_array($command, $this->no_end, true)) {
-            return true;
-        }
-
-        foreach ($this->with_end as $ending) {
-            if (str_ends_with($buffer, $ending."\r\n")) {
-                return true;
-            }
-        }
-
-        return false;
+    private function checkCommandEnd(string $buffer): bool {
+        return
+            \str_ends_with($buffer, "ERROR\r\n") ||
+            \str_ends_with($buffer, "CLIENT_ERROR\r\n") ||
+            \str_ends_with($buffer, "SERVER_ERROR\r\n") ||
+            \str_ends_with($buffer, "STORED\r\n") ||
+            \str_ends_with($buffer, "NOT_STORED\r\n") ||
+            \str_ends_with($buffer, "EXISTS\r\n") ||
+            \str_ends_with($buffer, "NOT_FOUND\r\n") ||
+            \str_ends_with($buffer, "TOUCHED\r\n") ||
+            \str_ends_with($buffer, "DELETED\r\n") ||
+            \str_ends_with($buffer, "OK\r\n") ||
+            \str_ends_with($buffer, "END\r\n") ||
+            \str_ends_with($buffer, "BUSY\r\n") ||
+            \str_ends_with($buffer, "BADCLASS\r\n") ||
+            \str_ends_with($buffer, "NOSPARE\r\n") ||
+            \str_ends_with($buffer, "NOTFULL\r\n") ||
+            \str_ends_with($buffer, "UNSAFE\r\n") ||
+            \str_ends_with($buffer, "SAME\r\n") ||
+            \str_ends_with($buffer, "RESET\r\n") ||
+            \str_ends_with($buffer, "EN\r\n");
     }
 }

@@ -207,6 +207,8 @@ trait APCuTrait {
             }
         }
 
+        $keys = Helpers::sortKeys($this->template, $keys);
+
         return $keys;
     }
 

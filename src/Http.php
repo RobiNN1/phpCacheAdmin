@@ -22,7 +22,7 @@ class Http {
      * @param array<int|string, int|string> $additional Additional parameters with their new value.
      */
     public static function queryString(array $preserve = [], array $additional = []): string {
-        $keep = ['dashboard', 'server'];
+        $keep = ['dashboard', 'server', 's', 'sortdir', 'sortcol'];
         $preserve = array_flip(array_merge($keep, $preserve));
         $query = [];
 

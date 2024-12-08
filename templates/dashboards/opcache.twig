@@ -19,11 +19,11 @@
 
 {{ include('partials/keys_table.twig', {
     head_items: [
-        {'title': 'Filename'},
-        {'title': 'Hits', 'class': 'w-16'},
-        {'title': 'Memory', 'class': 'w-24'},
-        {'title': 'Last used', 'class': 'w-32'},
-        {'title': 'Created', 'class': 'w-44 hidden md:table-cell'},
+        {'title': 'Filename', 'sort': 'title'},
+        {'title': 'Hits', 'class': 'w-16', 'sort': 'number_hits'},
+        {'title': 'Memory', 'class': 'w-24', 'sort': 'bytes_memory'},
+        {'title': 'Last used', 'class': 'w-32', 'sort': 'timediff_last_used'},
+        {'title': 'Created', 'class': 'w-44 hidden md:table-cell', 'sort': 'time_created'},
     ],
     classes: {
         5: 'hidden md:table-cell',

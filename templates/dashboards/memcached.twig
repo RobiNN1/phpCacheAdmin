@@ -18,9 +18,9 @@
 
 {{ include('partials/keys_table.twig', {
     head_items: [
-        {'title': 'Key'},
-        {'title': 'Size', 'class': 'w-24'},
-        {'title': 'Last used', 'class': 'w-32'},
-        {'title': 'TTL', 'class': 'w-32'},
+        {'title': 'Key', 'sort': 'link_title'},
+        {'title': 'Size', 'class': 'w-24', 'sort': 'bytes_size'},
+        {'title': 'Last used', 'class': 'w-32', 'sort': 'timediff_last_access'},
+        {'title': 'TTL', 'class': 'w-32', 'sort': 'ttl'},
     ],
 }) }}

@@ -209,4 +209,31 @@ class Helpers {
             'class'    => 'mb-4',
         ]);
     }
+
+    /**
+     * @param array<int, array<string, mixed>> $keys
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public static function sortKeys(Template $template, array $keys): array {
+        $dir = Http::get('sortdir', 'none');
+        $column = Http::get('sortcol', 'none');
+
+        $template->addGlobal('sortdir', $dir);
+        $template->addGlobal('sortcol', $column);
+
+        if (strtolower($dir) === 'none' || strtolower($column) === 'none') {
+            return $keys;
+        }
+
+        usort($keys, static function ($a, $b) use ($dir, $column) {
+            $a_val = (string) $a['items'][$column];
+            $b_val = (string) $b['items'][$column];
+            $comparison = strnatcmp($a_val, $b_val);
+
+            return strtolower($dir) === 'desc' ? -$comparison : $comparison;
+        });
+
+        return $keys;
+    }
 }

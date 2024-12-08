@@ -227,6 +227,8 @@ trait MemcachedTrait {
             }
         }
 
+        $keys = Helpers::sortKeys($this->template, $keys);
+
         return $keys;
     }
 

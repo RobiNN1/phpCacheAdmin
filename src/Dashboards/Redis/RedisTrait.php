@@ -358,6 +358,8 @@ trait RedisTrait {
             ];
         }
 
+        $keys = Helpers::sortKeys($this->template, $keys);
+
         return $keys;
     }
 

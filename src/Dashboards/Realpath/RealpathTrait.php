@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace RobiNN\Pca\Dashboards\Realpath;
 
 use RobiNN\Pca\Format;
+use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
 
 trait RealpathTrait {
@@ -59,6 +60,8 @@ trait RealpathTrait {
                 ];
             }
         }
+
+        $keys = Helpers::sortKeys($this->template, $keys);
 
         return $keys;
     }

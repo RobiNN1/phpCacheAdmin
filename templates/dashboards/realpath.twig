@@ -16,10 +16,10 @@
 
 {{ include('partials/keys_table.twig', {
     head_items: [
-        {'title': 'Path'},
-        {'title': 'Realpath'},
-        {'title': 'Is dir', 'class': 'w-16'},
-        {'title': 'TTL', 'class': 'w-16'},
+        {'title': 'Path', 'sort': 'title'},
+        {'title': 'Realpath', 'sort': 'realpath'},
+        {'title': 'Is dir', 'class': 'w-16', 'sort': 'is_dir'},
+        {'title': 'TTL', 'class': 'w-16', 'sort': 'ttl'},
     ],
     hide_actions: true,
 }) }}

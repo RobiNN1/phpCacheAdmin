@@ -18,10 +18,10 @@
 
 {{ include('partials/keys_table.twig', {
     head_items: [
-        {'title': 'Key'},
-        {'title': 'Size', 'class': 'w-24'},
-        {'title': 'Type', 'class': 'w-24 hidden md:table-cell'},
-        {'title': 'TTL', 'class': 'w-32'},
+        {'title': 'Key', 'sort': 'link_title'},
+        {'title': 'Size', 'class': 'w-24', 'sort': 'bytes_size'},
+        {'title': 'Type', 'class': 'w-24 hidden md:table-cell', 'sort': 'type'},
+        {'title': 'TTL', 'class': 'w-32', 'sort': 'ttl'},
     ],
     classes: {
         2: 'hidden md:table-cell',

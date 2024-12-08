@@ -15,13 +15,23 @@ const ajax = (endpoint, callback, data = null) => {
     request.send(data);
 }
 
-const replace_query_param = (param, value) => {
+const query_params = (...args) => {
     const url = new URL(location.href);
-    const params = new URLSearchParams(url.search);
+    const search_params = new URLSearchParams(url.search);
 
-    params.set(param, value);
+    if (args.length === 2 && typeof args[0] === 'string') {
+        search_params.set(args[0], String(args[1]));
+    } else if (args.length === 1 && typeof args[0] === 'object') {
+        Object.entries(args[0]).forEach(([key, value]) => {
+            if (value === null) {
+                search_params.delete(key);
+            } else {
+                search_params.set(key, String(value));
+            }
+        });
+    }
 
-    url.search = params.toString();
+    url.search = search_params.toString();
     location.href = url.toString();
 }
 
@@ -30,7 +40,7 @@ const select_and_redirect = (id, param) => {
 
     if (select) {
         select.addEventListener('change', e => {
-            replace_query_param(param, e.target.value);
+            query_params(param, e.target.value);
         });
     }
 }
@@ -180,7 +190,7 @@ const search_form = document.getElementById('search_form');
 if (search_form) {
     const submit_search = document.getElementById('submit_search');
     submit_search.addEventListener('click', () => {
-        replace_query_param('s', document.getElementById('search_key').value)
+        query_params('s', document.getElementById('search_key').value)
     });
 
     const search_key = document.getElementById('search_key');
@@ -197,6 +207,28 @@ if (search_form) {
         }
     });
 }
+
+/**
+ * Table sorting
+ */
+document.querySelectorAll('[data-sortcol]').forEach(element => {
+    element.addEventListener('click', () => {
+        const sort_col = element.getAttribute('data-sortcol');
+        const search_params = new URLSearchParams(window.location.search);
+        const current_sort_dir = search_params.get('sortcol') === sort_col ? search_params.get('sortdir') || 'none' : 'none';
+
+        const sort_dir_cycle = ['none', 'asc', 'desc'];
+        const current_index = sort_dir_cycle.indexOf(current_sort_dir);
+        const new_sort_dir = sort_dir_cycle[(current_index + 1) % sort_dir_cycle.length];
+        element.setAttribute('data-sortdir', new_sort_dir);
+
+        if (new_sort_dir === 'none') {
+            query_params({sortdir: null, sortcol: null});
+        } else {
+            query_params({p: null, sortdir: new_sort_dir, sortcol: sort_col});
+        }
+    });
+});
 
 /**
  * Light / Dark mode

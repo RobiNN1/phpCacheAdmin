@@ -90,8 +90,6 @@ class Helpers {
     /**
      * Return key(s) as JSON.
      *
-     * This method exists mainly as a helper for tests.
-     *
      * @param array<int, string>|string|null $keys
      *
      * @throws JsonException
@@ -160,10 +158,7 @@ class Helpers {
     /**
      * @param array<int, mixed> $keys
      */
-    public static function export(array $keys, string $filename, callable $value): void {
-        header('Content-disposition: attachment; filename='.$filename.'.json');
-        header('Content-Type: application/json');
-
+    public static function export(array $keys, string $filename, callable $value, bool $tests = false): ?string {
         $json = [];
 
         foreach ($keys as $key) {
@@ -177,11 +172,18 @@ class Helpers {
         }
 
         try {
-            echo json_encode($json, JSON_THROW_ON_ERROR);
+            $output = json_encode($json, JSON_THROW_ON_ERROR);
         } catch (JsonException $e) {
-            echo $e->getMessage();
+            $output = $e->getMessage();
         }
 
+        if ($tests) {
+            return $output;
+        }
+
+        header('Content-disposition: attachment; filename='.$filename.'.json');
+        header('Content-Type: application/json');
+        echo $output;
         exit;
     }
 

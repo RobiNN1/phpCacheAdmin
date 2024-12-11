@@ -228,7 +228,7 @@ class Helpers {
             return $keys;
         }
 
-        usort($keys, static function ($a, $b) use ($dir, $column) {
+        usort($keys, static function (array $a, array $b) use ($dir, $column): int {
             $a_val = (string) $a['items'][$column];
             $b_val = (string) $b['items'][$column];
             $comparison = strnatcmp($a_val, $b_val);

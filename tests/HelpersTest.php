@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace Tests;
 
+use Iterator;
 use JsonException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -94,17 +95,17 @@ final class HelpersTest extends TestCase {
         Http::stopRedirect();
 
         Helpers::import(
-            static fn ($key) => false,
-            static function (string $key, string $value, int $ttl) use (&$stored) {
+            static fn ($key): false => false,
+            static function (string $key, string $value, int $ttl) use (&$stored): void {
                 $stored[] = ['key' => $key, 'value' => $value, 'ttl' => $ttl];
             }
         );
 
         unlink($_FILES['import']['tmp_name']);
 
-        $this->assertEquals('testkey1', $stored[0]['key']);
-        $this->assertEquals('value1', $stored[0]['value']);
-        $this->assertEquals(3600, $stored[0]['ttl']);
+        $this->assertSame('testkey1', $stored[0]['key']);
+        $this->assertSame('value1', $stored[0]['value']);
+        $this->assertSame(3600, $stored[0]['ttl']);
     }
 
     /**
@@ -138,41 +139,36 @@ final class HelpersTest extends TestCase {
         $this->assertSame($expected, Helpers::sortKeys($this->template, $keys));
     }
 
-    /**
-     * @return array<string, array<string, mixed>>
-     */
-    public static function sortKeysProvider(): array {
-        return [
-            'no sorting'                    => [
-                'sortdir'  => 'none',
-                'sortcol'  => 'column1',
-                'keys'     => [['items' => ['column1' => 'value1']], ['items' => ['column1' => 'value2']], ['items' => ['column1' => 'value3']],],
-                'expected' => [['items' => ['column1' => 'value1']], ['items' => ['column1' => 'value2']], ['items' => ['column1' => 'value3']],],
-            ],
-            'ascending sort'                => [
-                'sortdir'  => 'asc',
-                'sortcol'  => 'column1',
-                'keys'     => [['items' => ['column1' => 'value3']], ['items' => ['column1' => 'value1']], ['items' => ['column1' => 'value2']],],
-                'expected' => [['items' => ['column1' => 'value1']], ['items' => ['column1' => 'value2']], ['items' => ['column1' => 'value3']],],
-            ],
-            'descending sort'               => [
-                'sortdir'  => 'desc',
-                'sortcol'  => 'column1',
-                'keys'     => [['items' => ['column1' => 'value1']], ['items' => ['column1' => 'value2']], ['items' => ['column1' => 'value3']],],
-                'expected' => [['items' => ['column1' => 'value3']], ['items' => ['column1' => 'value2']], ['items' => ['column1' => 'value1']],],
-            ],
-            'ascending sort with integers'  => [
-                'sortdir'  => 'asc',
-                'sortcol'  => 'column1',
-                'keys'     => [['items' => ['column1' => 3]], ['items' => ['column1' => 1]], ['items' => ['column1' => 2]],],
-                'expected' => [['items' => ['column1' => 1]], ['items' => ['column1' => 2]], ['items' => ['column1' => 3]],],
-            ],
-            'descending sort with integers' => [
-                'sortdir'  => 'desc',
-                'sortcol'  => 'column1',
-                'keys'     => [['items' => ['column1' => 1]], ['items' => ['column1' => 2]], ['items' => ['column1' => 3]],],
-                'expected' => [['items' => ['column1' => 3]], ['items' => ['column1' => 2]], ['items' => ['column1' => 1]],],
-            ],
+    public static function sortKeysProvider(): Iterator {
+        yield 'no sorting' => [
+            'sortdir'  => 'none',
+            'sortcol'  => 'column1',
+            'keys'     => [['items' => ['column1' => 'value1']], ['items' => ['column1' => 'value2']], ['items' => ['column1' => 'value3']],],
+            'expected' => [['items' => ['column1' => 'value1']], ['items' => ['column1' => 'value2']], ['items' => ['column1' => 'value3']],],
+        ];
+        yield 'ascending sort' => [
+            'sortdir'  => 'asc',
+            'sortcol'  => 'column1',
+            'keys'     => [['items' => ['column1' => 'value3']], ['items' => ['column1' => 'value1']], ['items' => ['column1' => 'value2']],],
+            'expected' => [['items' => ['column1' => 'value1']], ['items' => ['column1' => 'value2']], ['items' => ['column1' => 'value3']],],
+        ];
+        yield 'descending sort' => [
+            'sortdir'  => 'desc',
+            'sortcol'  => 'column1',
+            'keys'     => [['items' => ['column1' => 'value1']], ['items' => ['column1' => 'value2']], ['items' => ['column1' => 'value3']],],
+            'expected' => [['items' => ['column1' => 'value3']], ['items' => ['column1' => 'value2']], ['items' => ['column1' => 'value1']],],
+        ];
+        yield 'ascending sort with integers' => [
+            'sortdir'  => 'asc',
+            'sortcol'  => 'column1',
+            'keys'     => [['items' => ['column1' => 3]], ['items' => ['column1' => 1]], ['items' => ['column1' => 2]],],
+            'expected' => [['items' => ['column1' => 1]], ['items' => ['column1' => 2]], ['items' => ['column1' => 3]],],
+        ];
+        yield 'descending sort with integers' => [
+            'sortdir'  => 'desc',
+            'sortcol'  => 'column1',
+            'keys'     => [['items' => ['column1' => 1]], ['items' => ['column1' => 2]], ['items' => ['column1' => 3]],],
+            'expected' => [['items' => ['column1' => 3]], ['items' => ['column1' => 2]], ['items' => ['column1' => 1]],],
         ];
     }
 }

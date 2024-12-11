@@ -217,18 +217,4 @@ trait RedisTypes {
             default:
         }
     }
-
-    /**
-     * @throws Exception
-     */
-    private function getCountOfItemsInKey(string $type, string $key): ?int {
-        return match ($type) {
-            'set' => $this->redis->sCard($key),
-            'list' => $this->redis->lLen($key),
-            'zset' => $this->redis->zCard($key),
-            'hash' => $this->redis->hLen($key),
-            'stream' => $this->redis->xLen($key),
-            default => null,
-        };
-    }
 }

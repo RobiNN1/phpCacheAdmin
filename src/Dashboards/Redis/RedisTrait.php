@@ -23,9 +23,9 @@ trait RedisTrait {
     use RedisTypes;
 
     private function panels(): string {
-        if (extension_loaded('redis')) {
+        if ($this->clinet === 'redis') {
             $title = 'PHP Redis extension v'.phpversion('redis');
-        } elseif (class_exists(Predis::class)) {
+        } elseif ($this->clinet === 'predis') {
             $title = 'Predis v'.Predis::VERSION;
         }
 
@@ -246,9 +246,9 @@ trait RedisTrait {
         $value = Value::converter(Http::post('value', ''), Http::post('encoder', ''), 'save');
         $old_value = Http::post('old_value', '');
         $type = Http::post('redis_type', '');
-        $old_key = (string) Http::post('old_key', '');
+        $old_key = Http::post('old_key', '');
 
-        if ($old_key !== $key) {
+        if ($old_key !== '' && $old_key !== $key) { // @phpstan-ignore-line
             $this->redis->rename($old_key, $key);
         }
 
@@ -344,7 +344,7 @@ trait RedisTrait {
         foreach ($keys_array as $key) {
             $ttl = $pipeline[$key]['ttl'];
             $type = $pipeline[$key]['type'];
-            $total = $this->getCountOfItemsInKey($type, $key);
+            $total = $pipeline[$key]['count'];
 
             $keys[] = [
                 'key'    => $key,

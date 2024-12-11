@@ -6,7 +6,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Dashboards;
+namespace Tests\Dashboards\Redis;
 
 use Exception;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -20,19 +20,21 @@ use RobiNN\Pca\Http;
 use RobiNN\Pca\Template;
 use Tests\TestCase;
 
-final class RedisTest extends TestCase {
+abstract class RedisTestCase extends TestCase {
     private Template $template;
 
     private RedisDashboard $dashboard;
 
     private Predis|Redis $redis;
 
+    protected string $client;
+
     /**
      * @throws DashboardException
      */
     protected function setUp(): void {
         $this->template = new Template();
-        $this->dashboard = new RedisDashboard($this->template);
+        $this->dashboard = new RedisDashboard($this->template, $this->client);
         $this->redis = $this->dashboard->connect([
             'host'     => Config::get('redis')[0]['host'],
             'port'     => Config::get('redis')[0]['port'],

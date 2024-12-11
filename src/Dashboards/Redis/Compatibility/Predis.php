@@ -143,12 +143,32 @@ class Predis extends Client implements RedisCompatibilityInterface {
 
         foreach ($keys as $i => $key) {
             $index = $i * 3;
-
             $data[$key] = [
-                'ttl'  => $results[$index],
-                'type' => $this->getType((string) $results[$index + 1]),
-                'size' => is_int($results[$index + 2]) ? $results[$index + 2] : 0,
+                'ttl'   => $results[$index],
+                'type'  => (string) $results[$index + 1],
+                'size'  => is_int($results[$index + 2]) ? $results[$index + 2] : 0,
+                'count' => null,
             ];
+        }
+
+        $type_results = $this->pipeline(function ($pipe) use ($keys, $data): void {
+            foreach ($keys as $key) {
+                $lua_script = match ($data[$key]['type']) {
+                    'set' => 'return redis.call("SCARD", KEYS[1])',
+                    'list' => 'return redis.call("LLEN", KEYS[1])',
+                    'zset' => 'return redis.call("ZCARD", KEYS[1])',
+                    'hash' => 'return redis.call("HLEN", KEYS[1])',
+                    'stream' => 'return redis.call("XLEN", KEYS[1])',
+                    default => 'return nil',
+                };
+
+                $pipe->eval($lua_script, 1, $key);
+            }
+        });
+
+        foreach ($keys as $i => $key) {
+            $type = $data[$key]['type'];
+            $data[$key]['count'] = ($type !== 'none' && isset($type_results[$i]) && is_int($type_results[$i])) ? $type_results[$i] : null;
         }
 
         return $data;

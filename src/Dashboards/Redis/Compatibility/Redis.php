@@ -155,6 +155,11 @@ class Redis extends \Redis implements RedisCompatibilityInterface {
             $pipeline->ttl($key);
             $pipeline->type($key);
             $pipeline->rawcommand('MEMORY', 'USAGE', $key);
+            $pipeline->rawcommand('SCARD', $key);
+            $pipeline->rawcommand('LLEN', $key);
+            $pipeline->rawcommand('ZCARD', $key);
+            $pipeline->rawcommand('HLEN', $key);
+            $pipeline->rawcommand('XLEN', $key);
         }
 
         $results = $pipeline->exec();
@@ -162,12 +167,23 @@ class Redis extends \Redis implements RedisCompatibilityInterface {
         $data = [];
 
         foreach ($keys as $i => $key) {
-            $index = $i * 3;
+            $index = $i * 8;
+            $type = $this->getType($results[$index + 1]);
+
+            $count = match ($type) {
+                'set' => is_int($results[$index + 3]) ? $results[$index + 3] : null,
+                'list' => is_int($results[$index + 4]) ? $results[$index + 4] : null,
+                'zset' => is_int($results[$index + 5]) ? $results[$index + 5] : null,
+                'hash' => is_int($results[$index + 6]) ? $results[$index + 6] : null,
+                'stream' => is_int($results[$index + 7]) ? $results[$index + 7] : null,
+                default => null,
+            };
 
             $data[$key] = [
-                'ttl'  => $results[$index],
-                'type' => $this->getType($results[$index + 1]),
-                'size' => is_int($results[$index + 2]) ? $results[$index + 2] : 0,
+                'ttl'   => $results[$index],
+                'type'  => $type,
+                'size'  => is_int($results[$index + 2]) ? $results[$index + 2] : 0,
+                'count' => $count,
             ];
         }
 

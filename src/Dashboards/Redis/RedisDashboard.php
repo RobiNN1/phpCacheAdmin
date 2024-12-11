@@ -29,7 +29,10 @@ class RedisDashboard implements DashboardInterface {
 
     public Compatibility\Redis|Compatibility\Predis $redis;
 
-    public function __construct(private readonly Template $template) {
+    public string $clinet = '';
+
+    public function __construct(private readonly Template $template, ?string $clinet = null) {
+        $this->clinet = $clinet ?? (extension_loaded('redis') ? 'redis' : 'predis');
         $this->servers = Config::get('redis', []);
 
         $server = Http::get('server', 0);
@@ -78,10 +81,10 @@ class RedisDashboard implements DashboardInterface {
             $server['password'] = trim(file_get_contents($server['authfile']));
         }
 
-        if (extension_loaded('redis')) {
+        if ($this->clinet === 'redis') {
             $redis = new Compatibility\Redis();
             $redis->connection($server);
-        } elseif (class_exists(Predis::class)) {
+        } elseif ($this->clinet === 'predis') {
             $redis = new Compatibility\Predis($server);
         } else {
             throw new DashboardException('Redis extension or Predis is not installed.');

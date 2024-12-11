@@ -343,7 +343,6 @@ trait RedisTrait {
 
         foreach ($keys_array as $key) {
             $ttl = $pipeline[$key]['ttl'];
-            $type = $pipeline[$key]['type'];
             $total = $pipeline[$key]['count'];
 
             $keys[] = [
@@ -352,7 +351,7 @@ trait RedisTrait {
                 'items'  => [
                     'link_title' => ($total !== null ? '('.$total.' items) ' : '').$key,
                     'bytes_size' => $pipeline[$key]['size'],
-                    'type'       => $type,
+                    'type'       => $pipeline[$key]['type'],
                     'ttl'        => $ttl === -1 ? 'Doesn\'t expire' : $ttl,
                 ],
             ];

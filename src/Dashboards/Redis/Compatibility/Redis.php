@@ -171,19 +171,19 @@ class Redis extends \Redis implements RedisCompatibilityInterface {
             $type = $this->getType($results[$index + 1]);
 
             $count = match ($type) {
-                'set' => is_int($results[$index + 3]) ? $results[$index + 3] : null,
-                'list' => is_int($results[$index + 4]) ? $results[$index + 4] : null,
-                'zset' => is_int($results[$index + 5]) ? $results[$index + 5] : null,
-                'hash' => is_int($results[$index + 6]) ? $results[$index + 6] : null,
-                'stream' => is_int($results[$index + 7]) ? $results[$index + 7] : null,
+                'set' => $results[$index + 3] ?? null,
+                'list' => $results[$index + 4] ?? null,
+                'zset' => $results[$index + 5] ?? null,
+                'hash' => $results[$index + 6] ?? null,
+                'stream' => $results[$index + 7] ?? null,
                 default => null,
             };
 
             $data[$key] = [
                 'ttl'   => $results[$index],
                 'type'  => $type,
-                'size'  => is_int($results[$index + 2]) ? $results[$index + 2] : 0,
-                'count' => $count,
+                'size'  => $results[$index + 2] ?? 0,
+                'count' => is_numeric($count) ? (int) $count : null,
             ];
         }
 

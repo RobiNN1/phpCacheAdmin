@@ -151,9 +151,9 @@ class Predis extends Client implements RedisCompatibilityInterface {
             ];
         }
 
-        $type_results = $this->pipeline(function ($pipe) use ($keys, $data): void {
+        $count_results = $this->pipeline(function ($pipe) use ($keys, $data): void {
             foreach ($keys as $key) {
-                $lua_script = match ($data[$key]['type']) {
+                $lua = match ($data[$key]['type']) {
                     'set' => 'return redis.call("SCARD", KEYS[1])',
                     'list' => 'return redis.call("LLEN", KEYS[1])',
                     'zset' => 'return redis.call("ZCARD", KEYS[1])',
@@ -162,13 +162,13 @@ class Predis extends Client implements RedisCompatibilityInterface {
                     default => 'return nil',
                 };
 
-                $pipe->eval($lua_script, 1, $key);
+                $pipe->eval($lua, 1, $key);
             }
         });
 
         foreach ($keys as $i => $key) {
-            $type = $data[$key]['type'];
-            $data[$key]['count'] = ($type !== 'none' && isset($type_results[$i]) && is_int($type_results[$i])) ? $type_results[$i] : null;
+            $count = $count_results[$i] ?? null;
+            $data[$key]['count'] = $data[$key]['type'] !== 'none' && is_int($count) ? $count : null;
         }
 
         return $data;

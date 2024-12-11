@@ -153,10 +153,10 @@ trait MemcachedTrait {
     public function saveKey(): void {
         $key = Http::post('key', '');
         $expire = Http::post('expire', 0);
-        $old_key = (string) Http::post('old_key', '');
+        $old_key = Http::post('old_key', '');
         $value = Value::converter(Http::post('value', ''), Http::post('encoder', ''), 'save');
 
-        if ($old_key !== $key) {
+        if ($old_key !== '' && $old_key !== $key) { // @phpstan-ignore-line
             $this->memcached->delete($old_key);
         }
 

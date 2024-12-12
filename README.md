@@ -1,6 +1,6 @@
 <p align="center"><img src=".github/img/logo.svg" width="400" alt="Logo"></p>
 <p align="center">A web dashboard for your favorite caching system.</p>
-<p align="center"><img alt="Preview" src=".github/img/preview.png" width="300px"></p>
+<p align="center"><img alt="Preview" src=".github/img/preview.png" width="500px"></p>
 
 ![Visitor Badge](https://visitor-badge.laobi.icu/badge?page_id=RobiNN1.phpCacheAdmin)
 

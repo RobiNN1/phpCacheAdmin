@@ -1,13 +1,14 @@
 <div class="md:grid md:grid-cols-3">
-    <div class="flex items-center">
-        <span class="font-semibold">
-            Showing {{ first_on_page }} to {{ last_on_page }} of {{ total }} items
-        </span>
+    <div class="flex items-center gap-1">
+        Showing
+        <span class="font-semibold">{{ first_on_page }}</span> to
+        <span class="font-semibold">{{ last_on_page }}</span> of
+        <span class="font-semibold">{{ total }}</span> items
     </div>
 
     <div class="mb-4 flex items-center gap-2 md:mb-0 md:justify-center">
         {{ include('components/select.twig', {id: 'per_page', options: select, selected: per_page, width: 'w-24'}) }}
-        <label class="-mt-1.5 font-semibold" for="per_page">per page</label>
+        <label class="-mt-1.5" for="per_page">per page</label>
     </div>
 
     {% if pages and pages|length > 1 %}
@@ -15,7 +16,7 @@
             <ul class="inline-flex -space-x-px">
                 {% for page in pages %}
                     {% if page == current_page %}
-                        {% set class = 'border-primary-300 bg-primary-500 text-white hover:bg-primary-600 dark:bg-primary-600 dark:border-primary-400' %}
+                        {% set class = 'border-primary-400 bg-primary-500 text-white hover:bg-primary-600 dark:bg-primary-900 dark:hover:bg-primary-800 dark:border-primary-700' %}
                     {% else %}
                         {% set class = 'border-gray-300 bg-white hover:bg-gray-100 hover:text-gray-700 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white' %}
                     {% endif %}
@@ -25,7 +26,7 @@
 
                     <li>
                         {% if page == '...' %}
-                            <span class="py-1.5 px-3 border {{ class }}">{{ page }}</span>
+                            <span class="py-1.5 px-3 border border-gray-300 bg-white dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300">{{ page }}</span>
                         {% else %}
                             <a href="{{ url ~ page }}" class="py-1.5 px-3 border {{ class }}{{ first_item ~ last_item }}">{{ page }}</a>
                         {% endif %}

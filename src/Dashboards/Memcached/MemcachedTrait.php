@@ -210,6 +210,8 @@ trait MemcachedTrait {
         $time = time();
 
         foreach ($this->all_keys as $key_data) {
+            $key_data = $this->memcached->parseLine($key_data);
+
             $key = $key_data['key'];
 
             if (stripos($key, $search) !== false) {

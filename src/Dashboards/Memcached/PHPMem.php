@@ -120,14 +120,10 @@ class PHPMem {
      */
     public function getKeys(): array {
         $raw = $this->runCommand('lru_crawler metadump all');
-        $lines = array_filter(explode("\n", trim($raw)), static fn ($line): bool => !empty($line) && $line !== 'END');
-        $keys = [];
+        $lines = explode("\n", $raw);
+        array_pop($lines);
 
-        foreach ($lines as $line) {
-            $keys[] = $this->parseLine($line);
-        }
-
-        return $keys;
+        return $lines;
     }
 
     /**
@@ -135,7 +131,7 @@ class PHPMem {
      *
      * @return array<string, string|int>
      */
-    private function parseLine(string $line): array {
+    public function parseLine(string $line): array {
         $data = [];
 
         foreach (\explode(' ', $line) as $part) {

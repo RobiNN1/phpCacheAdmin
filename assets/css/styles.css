@@ -1213,6 +1213,10 @@ video {
   background-color: #f3f4f6;
 }
 
+.hover\:bg-gray-50:hover {
+  background-color: #f9fafb;
+}
+
 .hover\:bg-green-600:hover {
   background-color: #16a34a;
 }
@@ -1414,6 +1418,10 @@ video {
 
 .dark\:hover\:bg-red-800:hover:is(.dark *) {
   background-color: #991b1b;
+}
+
+.dark\:hover\:bg-white\/5:hover:is(.dark *) {
+  background-color: rgb(255 255 255 / 0.05);
 }
 
 .dark\:hover\:text-gray-100:hover:is(.dark *) {

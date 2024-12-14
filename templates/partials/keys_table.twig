@@ -27,7 +27,7 @@
             </thead>
             <tbody>
             {% for key in keys %}
-                <tr class="[&:last-child>*]:border-b-0 dark:border-gray-700" data-key="{{ key.base64 ? key.key|base64 : key.key }}">
+                <tr class="[&:last-child>*]:border-b-0 hover:bg-gray-50 dark:hover:bg-white/5 dark:border-gray-700" data-key="{{ key.base64 ? key.key|base64 : key.key }}">
                     {% if show_actions %}
                         <td class="pl-6 px-3 py-2 border-b border-gray-200 dark:border-gray-700">{{ include('components/checkbox.twig', {class: 'check-key'}) }}</td>
                     {% endif %}

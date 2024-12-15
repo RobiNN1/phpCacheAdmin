@@ -26,9 +26,9 @@
 
                     <li>
                         {% if page == '...' %}
-                            <span class="py-1.5 px-3 border border-gray-300 bg-white dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300">{{ page }}</span>
+                            <span class="py-[0.54rem] px-3 border border-gray-300 bg-white dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300">{{ page }}</span>
                         {% else %}
-                            <a href="{{ url ~ page }}" class="py-1.5 px-3 border {{ class }}{{ first_item ~ last_item }}">{{ page }}</a>
+                            <a href="{{ url ~ page }}" class="py-[0.54rem] px-3 border {{ class }}{{ first_item ~ last_item }}">{{ page }}</a>
                         {% endif %}
                     </li>
                 {% endfor %}

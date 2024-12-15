@@ -31,7 +31,7 @@ readonly class Paginator {
     ) {
         $this->total = count($items);
         $this->page = Http::get('p', 1);
-        $this->per_page = Http::get('pp', 25);
+        $this->per_page = Http::get('pp', 50);
         $this->paginated = array_slice($items, $this->per_page * ($this->page - 1), $this->per_page, true);
     }
 
@@ -49,24 +49,25 @@ readonly class Paginator {
         $pages = [];
 
         $total_pages = (int) ceil($this->total / $this->per_page);
+        $show_pages = 3; // number of pages displayed before and after the current page
 
         if ($total_pages > 1 && $this->page <= $total_pages) {
             $pages[] = 1; // always show the first page
 
-            $i = max(2, $this->page - 3);
+            $i = max(2, $this->page - $show_pages);
 
             if ($i > 2) {
-                $pages[] = '...';
+                $pages[] = '..';
             }
 
-            $min = min($this->page + 5, $total_pages);
+            $min = min($this->page + ($show_pages + 1), $total_pages);
 
             for (; $i < $min; $i++) {
                 $pages[] = $i;
             }
 
             if ($i !== $total_pages) {
-                $pages[] = '...';
+                $pages[] = '..';
             }
 
             $pages[] = $total_pages; // always show the last page
@@ -77,7 +78,7 @@ readonly class Paginator {
 
     public function render(): string {
         $on_page = $this->paginated !== [] ? 1 : 0;
-        $select = [25, 50, 100, 200, 300, 400];
+        $select = [50, 100, 200, 300, 400, 500];
 
         return $this->template->render('components/paginator', [
             'first_on_page' => Format::number((int) array_key_first($this->paginated) + $on_page),

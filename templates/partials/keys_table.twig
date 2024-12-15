@@ -67,8 +67,11 @@
                 </tr>
             {% endfor %}
             </tbody>
+            <tfoot>
+                <tr class="border-t border-gray-200 dark:border-gray-700">
+                    <td colspan="{{ head_items|length + (show_actions ? 2 : 0) }}" class="px-6 py-4">{{ paginator|raw }}</td>
+                </tr>
+            </tfoot>
         </table>
     </div>
 </div>
-
-{{ paginator|raw }}

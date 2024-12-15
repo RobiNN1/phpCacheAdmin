@@ -149,25 +149,25 @@ class Redis extends \Redis implements RedisCompatibilityInterface {
      * @throws RedisException
      */
     public function pipelineKeys(array $keys): array {
-        $pipeline = $this->multi(self::PIPELINE);
+        $pipe = $this->multi(self::PIPELINE);
 
         foreach ($keys as $key) {
-            $pipeline->ttl($key);
-            $pipeline->type($key);
-            $pipeline->rawcommand('MEMORY', 'USAGE', $key);
-            $pipeline->rawcommand('SCARD', $key);
-            $pipeline->rawcommand('LLEN', $key);
-            $pipeline->rawcommand('ZCARD', $key);
-            $pipeline->rawcommand('HLEN', $key);
-            $pipeline->rawcommand('XLEN', $key);
+            $pipe->ttl($key);
+            $pipe->type($key);
+            $pipe->rawcommand('MEMORY', 'USAGE', $key);
+            $pipe->rawcommand('SCARD', $key);
+            $pipe->rawcommand('LLEN', $key);
+            $pipe->rawcommand('ZCARD', $key);
+            $pipe->rawcommand('HLEN', $key);
+            $pipe->rawcommand('XLEN', $key);
         }
 
-        $results = $pipeline->exec();
+        $results = $pipe->exec();
 
         $data = [];
 
         foreach ($keys as $i => $key) {
-            $index = $i * 8;
+            $index = $i * 8; // index + count of pipeline commands
             $type = $this->getType($results[$index + 1]);
 
             $count = match ($type) {

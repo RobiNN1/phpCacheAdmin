@@ -131,44 +131,38 @@ class Predis extends Client implements RedisCompatibilityInterface {
      * @return array<string, mixed>
      */
     public function pipelineKeys(array $keys): array {
-        $results = $this->pipeline(function ($pipe) use ($keys): void {
+        $lua_memory = 'return redis.call("MEMORY", "USAGE", KEYS[1])';
+        $lua_type = /* @lang Lua */
+            <<<LUA
+            local type = redis.call("TYPE", KEYS[1])["ok"]
+            if type == "set" then return redis.call("SCARD", KEYS[1])
+            elseif type == "list" then return redis.call("LLEN", KEYS[1])
+            elseif type == "zset" then return redis.call("ZCARD", KEYS[1])
+            elseif type == "hash" then return redis.call("HLEN", KEYS[1])
+            elseif type == "stream" then return redis.call("XLEN", KEYS[1])
+            else return nil end
+        LUA;
+
+        $results = $this->pipeline(function ($pipe) use ($keys, $lua_memory, $lua_type): void {
             foreach ($keys as $key) {
                 $pipe->ttl($key);
                 $pipe->type($key);
-                $pipe->eval('return redis.call("MEMORY", "USAGE", KEYS[1])', 1, $key);
+                $pipe->eval($lua_memory, 1, $key);
+                $pipe->eval($lua_type, 1, $key);
             }
         });
 
         $data = [];
 
         foreach ($keys as $i => $key) {
-            $index = $i * 3;
+            $index = $i * 4;
+
             $data[$key] = [
                 'ttl'   => $results[$index],
                 'type'  => (string) $results[$index + 1],
-                'size'  => is_int($results[$index + 2]) ? $results[$index + 2] : 0,
-                'count' => null,
+                'size'  => $results[$index + 2] ?? 0,
+                'count' => is_int($results[$index + 3]) ? $results[$index + 3] : null,
             ];
-        }
-
-        $count_results = $this->pipeline(function ($pipe) use ($keys, $data): void {
-            foreach ($keys as $key) {
-                $lua = match ($data[$key]['type']) {
-                    'set' => 'return redis.call("SCARD", KEYS[1])',
-                    'list' => 'return redis.call("LLEN", KEYS[1])',
-                    'zset' => 'return redis.call("ZCARD", KEYS[1])',
-                    'hash' => 'return redis.call("HLEN", KEYS[1])',
-                    'stream' => 'return redis.call("XLEN", KEYS[1])',
-                    default => 'return nil',
-                };
-
-                $pipe->eval($lua, 1, $key);
-            }
-        });
-
-        foreach ($keys as $i => $key) {
-            $count = $count_results[$i] ?? null;
-            $data[$key]['count'] = $data[$key]['type'] !== 'none' && is_int($count) ? $count : null;
         }
 
         return $data;

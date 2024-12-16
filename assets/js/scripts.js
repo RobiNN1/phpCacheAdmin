@@ -174,16 +174,6 @@ select_and_redirect('server_select', 'server');
 select_and_redirect('db_select', 'db');
 
 /**
- * Import form
- */
-const import_btn = document.getElementById('import_btn');
-if (import_btn) {
-    import_btn.addEventListener('click', () => {
-        document.getElementById('import_form').classList.toggle('hidden');
-    });
-}
-
-/**
  * Search form
  */
 const search_form = document.getElementById('search_form');
@@ -277,3 +267,49 @@ const init_theme_switcher = () => {
 
 update_theme();
 init_theme_switcher();
+
+/**
+ * Modal
+ */
+class Modal {
+    constructor(element) {
+        this.element = element;
+        this.open_buttons = document.querySelectorAll(`[data-modal-target='#${element.id}']`);
+        this.close_buttons = element.querySelectorAll('[data-modal-dismiss]');
+        this.backdrop = element.querySelector('.modal-backdrop');
+
+        this.init();
+    }
+
+    init() {
+        this.open_buttons.forEach(btn => {
+            btn.addEventListener('click', () => this.open());
+        });
+
+        this.close_buttons.forEach(btn => {
+            btn.addEventListener('click', () => this.close());
+        });
+
+        this.backdrop.addEventListener('click', (event) => {
+            if (event.target === this.backdrop) this.close();
+        });
+    }
+
+    open() {
+        this.element.classList.remove('pointer-events-none', 'opacity-0');
+        document.addEventListener('keydown', this.escapeHandler);
+    }
+
+    close() {
+        this.element.classList.add('pointer-events-none', 'opacity-0');
+        document.removeEventListener('keydown', this.escapeHandler);
+    }
+
+    escapeHandler = (event) => {
+        if (event.key === 'Escape') this.close();
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.modal').forEach(modal => new Modal(modal));
+});

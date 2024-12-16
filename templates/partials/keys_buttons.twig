@@ -1,11 +1,6 @@
 <div class="md:flex gap-1">
     {% if import_btn %}
-        {{ include('components/button.twig', {
-            text: 'Import',
-            icon: 'import',
-            id: 'import_btn',
-            btn_green: true,
-        }) }}
+        {{ include('partials/import_form.twig') }}
     {% endif %}
 
     {% if export_btn and all_keys != 0 %}

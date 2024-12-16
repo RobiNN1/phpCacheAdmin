@@ -16,7 +16,19 @@
         {{ text }}
     </a>
 {% else %}
-    <button type="{{ submit ? 'submit' : 'button' }}" id="{{ id }}" name="{{ id }}" class="{{ classes ~ class|space }}">
+    {% macro attr(attributes) %}
+        {% for name, value in attributes %}
+            {% if value is not empty %}
+                {{ name }}="{{ value|e }}"
+            {% else %}
+                {{ name }}
+            {% endif %}
+        {% endfor %}
+    {% endmacro %}
+
+    {% set id = id is not empty ? 'id="'~id~'" name="'~id~'" ' : '' %}
+
+    <button type="{{ submit ? 'submit' : 'button' }}" {{ id|raw }}class="{{ classes ~ class|space }}"{{ _self.attr(attributes) }}>
         {% if icon %}
             {{ svg(icon, 16, (text ? 'mr-1' : '')) }}
         {% endif %}

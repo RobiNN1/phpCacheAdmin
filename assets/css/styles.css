@@ -492,8 +492,20 @@ video {
   --link-active-dark: #0f172a;
 }
 
+.pointer-events-none {
+  pointer-events: none;
+}
+
 .fixed {
   position: fixed;
+}
+
+.relative {
+  position: relative;
+}
+
+.inset-0 {
+  inset: 0px;
 }
 
 .right-5 {
@@ -802,6 +814,10 @@ video {
   background-color: #f9fafb;
 }
 
+.bg-gray-500\/75 {
+  background-color: rgb(107 114 128 / 0.75);
+}
+
 .bg-green-500 {
   background-color: #22c55e;
 }
@@ -856,10 +872,6 @@ video {
 
 .bg-white {
   background-color: #fff;
-}
-
-.p-3 {
-  padding: 0.75rem;
 }
 
 .p-4 {
@@ -1019,6 +1031,10 @@ video {
   color: #fff;
 }
 
+.opacity-0 {
+  opacity: 0;
+}
+
 .opacity-30 {
   opacity: 0.3;
 }
@@ -1033,6 +1049,16 @@ video {
   --tw-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
   --tw-shadow-colored: 0 10px 15px -3px var(--tw-shadow-color), 0 4px 6px -4px var(--tw-shadow-color);
   box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+}
+
+.transition-opacity {
+  transition-property: opacity;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+.duration-300 {
+  transition-duration: 300ms;
 }
 
 .dark {
@@ -1339,6 +1365,10 @@ video {
   background-color: #111827;
 }
 
+.dark\:bg-gray-900\/75:is(.dark *) {
+  background-color: rgb(17 24 39 / 0.75);
+}
+
 .dark\:bg-green-700:is(.dark *) {
   background-color: #15803d;
 }
@@ -1407,8 +1437,8 @@ video {
   color: #9ca3af;
 }
 
-.dark\:file\:bg-slate-700:is(.dark *)::file-selector-button {
-  background-color: #334155;
+.dark\:file\:bg-slate-900:is(.dark *)::file-selector-button {
+  background-color: #0f172a;
 }
 
 .dark\:checked\:border-primary-800:checked:is(.dark *) {
@@ -1463,8 +1493,8 @@ video {
   color: #fff;
 }
 
-.dark\:file\:hover\:bg-slate-600:hover:is(.dark *)::file-selector-button {
-  background-color: #475569;
+.dark\:file\:hover\:bg-slate-800:hover:is(.dark *)::file-selector-button {
+  background-color: #1e293b;
 }
 
 .dark\:focus\:border-primary-400:focus:is(.dark *) {
@@ -1526,6 +1556,10 @@ video {
 
   .md\:grid {
     display: grid;
+  }
+
+  .md\:min-w-\[35rem\] {
+    min-width: 35rem;
   }
 
   .md\:max-w-md {

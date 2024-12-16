@@ -1,17 +1,31 @@
-<form method="post" enctype="multipart/form-data" id="import_form" class="hidden">
-    <div class="mb-4 rounded bg-white p-3 border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+{% macro form() %}
+    <form method="post" enctype="multipart/form-data" id="import_form">
         <div class="mb-4">
             <label for="import" class="mb-2 block text-sm font-semibold dark:text-gray-300">JSON file</label>
             <input id="import" name="import" type="file" accept="application/json"
-                   class="w-full text-base file:border file:border-transparent file:rounded file:py-1.5 file:px-2 file:mr-3 file:text-base file:font-semibold file:text-white file:bg-slate-500 file:hover:bg-slate-600 dark:file:bg-slate-700 dark:file:hover:bg-slate-600">
+                   class="w-full text-base file:border file:border-transparent file:rounded file:py-1.5 file:px-2 file:mr-3 file:text-base file:font-semibold file:text-white file:bg-slate-500 file:hover:bg-slate-600 dark:file:bg-slate-900 dark:file:hover:bg-slate-800">
         </div>
 
-        {{ include('components/button.twig', {
-            text: 'Import',
-            icon: 'import',
-            id: 'submit_import_key',
-            btn_green: true,
-            submit: true,
-        }) }}
-    </div>
-</form>
+        <div class="text-right">
+            {{ include('components/button.twig', {
+                text: 'Import',
+                icon: 'import',
+                id: 'submit_import_key',
+                btn_green: true,
+                submit: true,
+            }) }}
+        </div>
+    </form>
+{% endmacro %}
+
+{{ include('components/modal.twig', {
+    modal_id: 'importkeys',
+    title: 'Import keys',
+    content: _self.form(),
+    open_btn: {
+        text: 'Import',
+        icon: 'import',
+        id: 'submit_import_key',
+        btn_green: true,
+    },
+}) }}

@@ -20,7 +20,7 @@ class Template {
     /**
      * @var array<string, int|string>
      */
-    private array $globals = [];
+    private array $globals = ['modals' => ''];
 
     /**
      * @var array<string, string>
@@ -31,7 +31,11 @@ class Template {
      * Add global Twig variable.
      */
     public function addGlobal(string $name, mixed $value): void {
-        $this->globals[$name] = $value;
+        if ($name === 'modals') {
+            $this->globals[$name] .= $value;
+        } else {
+            $this->globals[$name] = $value;
+        }
     }
 
     /**
@@ -65,6 +69,7 @@ class Template {
         }
 
         $twig->addFunction(new TwigFunction('svg', Helpers::svg(...), ['is_safe' => ['html']]));
+        $twig->addFunction(new TwigFunction('add_global', $this->addGlobal(...), ['is_safe' => ['html']]));
 
         $twig->addFilter(new TwigFilter('space', static function (?string $value, bool $right = false): string {
             $right_side = $right ? $value.' ' : ' '.$value;

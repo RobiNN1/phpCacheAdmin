@@ -114,6 +114,8 @@ if (delete_all) {
                 keys.forEach(key => {
                     key.remove();
                 });
+
+                document.getElementById('table-no-keys').classList.remove('hidden');
             }
         });
     });

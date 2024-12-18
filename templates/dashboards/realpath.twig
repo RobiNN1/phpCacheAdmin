@@ -1,20 +1,7 @@
-{{ panels|raw }}
-
-<div class="mb-4 lg:grid lg:grid-cols-2 lg:gap-4">
-    <div class="mb-4 md:grid md:grid-cols-2 md:gap-2 lg:mb-0">
-        {% if all_keys != 0 %}
-            <div>{{ include('components/search_input.twig') }}</div>
-        {% endif %}
-    </div>
-
-    <div class="lg:flex lg:justify-end">
-        {{ include('partials/keys_buttons.twig', {
-            delete_selected_btn: false,
-        }) }}
-    </div>
-</div>
-
 {{ include('partials/keys_table.twig', {
+    buttons: {
+        delete_selected_btn: false,
+    },
     head_items: [
         {'title': 'Path', 'sort': 'title'},
         {'title': 'Realpath', 'sort': 'realpath'},

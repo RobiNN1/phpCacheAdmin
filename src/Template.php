@@ -70,6 +70,7 @@ class Template {
 
         $twig->addFunction(new TwigFunction('svg', Helpers::svg(...), ['is_safe' => ['html']]));
         $twig->addFunction(new TwigFunction('add_global', $this->addGlobal(...), ['is_safe' => ['html']]));
+        $twig->addFunction(new TwigFunction('link', Http::queryString(...), ['is_safe' => ['html']]));
 
         $twig->addFilter(new TwigFilter('space', static function (?string $value, bool $right = false): string {
             $right_side = $right ? $value.' ' : ' '.$value;

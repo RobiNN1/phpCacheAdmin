@@ -429,18 +429,17 @@ trait RedisTrait {
             );
         }
 
-        if (isset($_POST['export_btn'])) {
+        if (isset($_GET['export_btn'])) {
             Helpers::export($keys, 'redis_backup', fn (string $key): string => bin2hex($this->redis->dump($key)));
         }
 
         $paginator = new Paginator($this->template, $keys, [['db', 's', 'pp'], ['p' => '']]);
 
         return $this->template->render('dashboards/redis/redis', [
-            'keys'        => $paginator->getPaginated(),
-            'all_keys'    => $this->redis->dbSize(),
-            'new_key_url' => Http::queryString(['db'], ['form' => 'new']),
-            'paginator'   => $paginator->render(),
-            'view_key'    => Http::queryString(['db', 's'], ['view' => 'key', 'key' => '__key__']),
+            'keys'      => $paginator->getPaginated(),
+            'all_keys'  => $this->redis->dbSize(),
+            'paginator' => $paginator->render(),
+            'view_key'  => Http::queryString(['db', 's'], ['view' => 'key', 'key' => '__key__']),
         ]);
     }
 }

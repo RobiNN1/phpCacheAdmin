@@ -1,9 +1,80 @@
 {% set show_actions = hide_actions is not defined or hide_actions == false %}
 <div class="mb-4 rounded bg-white border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+    <div class="px-6 py-4 md:flex justify-between">
+        <div>
+            {% if all_keys != 0 %}
+                <div class="flex" id="search_form">
+                    <input type="text" id="search_key" value="{{ search_value }}" placeholder="( / ) Search..." aria-label="( / ) Search..."
+                           class="w-full md:w-72 rounded-l border border-gray-300 bg-white py-1.5 px-3 text-sm
+                           focus:outline-none focus:ring focus:ring-primary-200 focus:border-primary-300
+                            dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:placeholder-gray-400
+                            dark:focus:ring-primary-500 dark:focus:border-primary-400">
+                    {{ include('components/button.twig', {
+                        text: '',
+                        icon: 'search',
+                        id: 'submit_search',
+                        class: 'rounded-l-none',
+                        small: true,
+                    }) }}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="md:flex gap-1">
+            {% for button in custom_buttons %}
+                {{ button|raw }}
+            {% endfor %}
+
+            {% if buttons.import_btn %}
+                {{ include('partials/import_form.twig') }}
+            {% endif %}
+
+            {% if buttons.export_btn and all_keys != 0 %}
+                {{ include('components/button.twig', {
+                    text: 'Export',
+                    icon: 'export',
+                    link: link([], {'export_btn': '1'}),
+                    btn_green: true,
+                    small: true,
+                }) }}
+            {% endif %}
+
+            {% if buttons.add_new_btn %}
+                {{ include('components/button.twig', {
+                    text: 'Add new',
+                    icon: 'plus',
+                    link: link([], {'form': 'new'}),
+                    btn_green: true,
+                    small: true,
+                }) }}
+            {% endif %}
+
+            {% if all_keys != 0 %}
+                {{ include('components/button.twig', {
+                    text: 'Delete all',
+                    icon: 'trash',
+                    id: 'delete_all',
+                    btn_red: true,
+                    small: true,
+                }) }}
+
+                {% if buttons.delete_selected_btn is not defined or buttons.delete_selected_btn == true %}
+                    {{ include('components/button.twig', {
+                        text: 'Delete selected',
+                        icon: 'trash',
+                        id: 'delete_selected',
+                        btn_red: true,
+                        small: true,
+                    }) }}
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+
     <div class="overflow-hidden overflow-x-auto">
         <table class="w-full table-auto text-left dark:text-gray-300">
             <thead>
-            <tr class="text-primary-900 border-b border-gray-200 dark:border-gray-700 dark:text-primary-400">
+            <tr class="text-primary-900 border-t border-b border-gray-200 dark:border-gray-700 dark:text-primary-400">
                 {% if show_actions %}
                     <th class="pl-6 px-3 py-2 w-4">{{ include('components/checkbox.twig', {disabled: keys|length == 0, class: 'check-all'}) }}</th>
                 {% endif %}
@@ -27,12 +98,13 @@
             </thead>
             <tbody>
             {% for key in keys %}
-                <tr class="[&:last-child>*]:border-b-0 hover:bg-gray-50 dark:hover:bg-white/5 dark:border-gray-700" data-key="{{ key.base64 ? key.key|base64 : key.key }}">
+                <tr class="hover:bg-gray-50 dark:hover:bg-white/5" data-key="{{ key.base64 ? key.key|base64 : key.key }}">
                     {% if show_actions %}
                         <td class="pl-6 px-3 py-2 border-b border-gray-200 dark:border-gray-700">{{ include('components/checkbox.twig', {class: 'check-key'}) }}</td>
                     {% endif %}
                     {% for item_key, item in key.items %}
-                        {% set td_class = item_key == 'title' or (item_key == 'link_title' and view_key) ? ' max-w-xs md:max-w-md truncate hover:text-clip hover:break-all hover:whitespace-normal' : '' %}
+                        {% set is_title = item_key == 'title' or (item_key == 'link_title' and view_key) %}
+                        {% set td_class = is_title ? ' max-w-xs md:max-w-md truncate hover:text-clip hover:break-all hover:whitespace-normal' : '' %}
                         <td class="px-3 py-2 border-b border-gray-200 text-sm{{ td_class }}{{ classes[loop.index]|space }} dark:border-gray-700 dark:text-gray-300">
                             {% if item_key == 'link_title' and view_key %}
                                 {% set link = view_key|replace({'__key__': key.key}) %}
@@ -61,17 +133,12 @@
                         </td>
                     {% endif %}
                 </tr>
-            {% else %}
-                <tr>
-                    <td colspan="{{ head_items|length + (show_actions ? 2 : 0) }}" class="p-4 text-center dark:text-gray-400">No keys.</td>
-                </tr>
             {% endfor %}
             </tbody>
-            <tfoot>
-                <tr class="border-t border-gray-200 dark:border-gray-700">
-                    <td colspan="{{ head_items|length + (show_actions ? 2 : 0) }}" class="px-6 py-4">{{ paginator|raw }}</td>
-                </tr>
-            </tfoot>
         </table>
     </div>
+    <div id="table-no-keys" class="{{ keys|length > 0 ? 'hidden ' : '' }}p-4 border-b border-gray-200 dark:border-gray-700 text-center dark:text-gray-400">
+        No keys.
+    </div>
+    <div class="px-6 py-4">{{ paginator|raw }}</div>
 </div>

@@ -224,7 +224,7 @@ trait APCuTrait {
             );
         }
 
-        if (isset($_POST['export_btn'])) {
+        if (isset($_GET['export_btn'])) {
             Helpers::export($keys, 'apcu_backup', static fn (string $key): string => base64_encode(serialize(apcu_fetch($key))));
         }
 
@@ -233,11 +233,10 @@ trait APCuTrait {
         $info = apcu_cache_info(true);
 
         return $this->template->render('dashboards/apcu', [
-            'keys'        => $paginator->getPaginated(),
-            'all_keys'    => (int) $info['num_entries'],
-            'new_key_url' => Http::queryString([], ['form' => 'new']),
-            'paginator'   => $paginator->render(),
-            'view_key'    => Http::queryString([], ['view' => 'key', 'key' => '__key__']),
+            'keys'      => $paginator->getPaginated(),
+            'all_keys'  => (int) $info['num_entries'],
+            'paginator' => $paginator->render(),
+            'view_key'  => Http::queryString([], ['view' => 'key', 'key' => '__key__']),
         ]);
     }
 }

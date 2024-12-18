@@ -6,12 +6,15 @@
     {% set btn_color = 'bg-primary-500 hover:bg-primary-600 focus:ring-primary-200 disabled:bg-primary-300 dark:bg-primary-700 dark:hover:bg-primary-800 dark:focus:ring-primary-400 dark:disabled:bg-primary-400' %}
 {% endif %}
 
-{% set classes = 'inline-flex items-center border border-transparent rounded py-1.5 px-3 text-base font-semibold text-white align-middle shadow focus:ring dark:text-white ' ~ btn_color %}
+{% set size = small ? 'text-sm' : 'text-base' %}
+{% set icon_size = small ? 12 : 16 %}
+
+{% set classes = size ~ ' inline-flex items-center border border-transparent rounded py-1.5 px-3 font-semibold text-white align-middle shadow focus:ring dark:text-white ' ~ btn_color %}
 
 {% if link %}
     <a href="{{ link }}" class="{{ classes ~ class|space }}">
         {% if icon %}
-            {{ svg(icon, 16, (text ? 'mr-1' : '')) }}
+            {{ svg(icon, icon_size, (text ? 'mr-1' : '')) }}
         {% endif %}
         {{ text }}
     </a>
@@ -26,11 +29,11 @@
         {% endfor %}
     {% endmacro %}
 
-    {% set id = id is not empty ? 'id="'~id~'" name="'~id~'" ' : '' %}
+    {% set id = id is not empty ? 'id="' ~ id ~ '" name="' ~ id ~ '" ' : '' %}
 
     <button type="{{ submit ? 'submit' : 'button' }}" {{ id|raw }}class="{{ classes ~ class|space }}"{{ _self.attr(attributes) }}>
         {% if icon %}
-            {{ svg(icon, 16, (text ? 'mr-1' : '')) }}
+            {{ svg(icon, icon_size, (text ? 'mr-1' : '')) }}
         {% endif %}
         {{ text }}
     </button>

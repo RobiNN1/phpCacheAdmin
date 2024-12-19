@@ -1,16 +1,94 @@
-{{ include('partials/keys_table.twig', {
-    buttons: {
-        import_btn: true,
-        export_btn: true,
-        add_new_btn: true,
-    },
-    head_items: [
-        {'title': 'Key', 'sort': 'link_title'},
-        {'title': 'Size', 'class': 'w-24', 'sort': 'bytes_size'},
-        {'title': 'Type', 'class': 'w-24 hidden md:table-cell', 'sort': 'type'},
-        {'title': 'TTL', 'class': 'w-32', 'sort': 'ttl'},
-    ],
-    classes: {
-        2: 'hidden md:table-cell',
+{{ include('components/tabs.twig', {
+    links: {
+        'keys': 'Keys',
+        'slowlog': 'Slow Log',
     },
 }) }}
+
+{% if get('tab', 'keys') == 'keys' %}
+    {{ include('partials/keys_table.twig', {
+        tabs: true,
+        buttons: {
+            import_btn: true,
+            export_btn: true,
+            add_new_btn: true,
+        },
+        head_items: [
+            {'title': 'Key', 'sort': 'link_title'},
+            {'title': 'Size', 'class': 'w-24', 'sort': 'bytes_size'},
+            {'title': 'Type', 'class': 'w-24 hidden md:table-cell', 'sort': 'type'},
+            {'title': 'TTL', 'class': 'w-32', 'sort': 'ttl'},
+        ],
+        classes: {
+            2: 'hidden md:table-cell',
+        },
+    }) }}
+{% endif %}
+
+{% if get('tab') == 'slowlog' %}
+    <div class="rounded-b bg-white border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+        <div class="px-6 py-4 md:flex justify-between">
+            <form method="post" class="md:flex gap-1">
+                {{ include('components/input.twig', {
+                    id: 'slowlog_max_items',
+                    label: 'Display&nbsp;items',
+                    value: slowlog.max_items,
+                    small: true,
+                    inline_input: true,
+                }) }}
+
+                {{ include('components/input.twig', {
+                    id: 'slowlog_slower_than',
+                    label: 'Slower&nbsp;than&nbsp;(μs)',
+                    value: slowlog.slower_than,
+                    small: true,
+                    inline_input: true,
+                }) }}
+
+                {{ include('components/button.twig', {
+                    id: 'save',
+                    text: 'Save',
+                    btn_green: true,
+                    submit: true,
+                    small: true,
+                }) }}
+            </form>
+
+            <div class="md:flex gap-1">
+                {{ include('components/button.twig', {
+                    text: 'Reset',
+                    link: link(['tab'], {'resetlog': '1'}),
+                    btn_green: true,
+                    small: true,
+                }) }}
+            </div>
+        </div>
+
+        <div class="overflow-hidden overflow-x-auto">
+            <table class="w-full table-auto text-left dark:text-gray-300">
+                <thead>
+                <tr class="text-primary-900 border-t border-b border-gray-200 dark:border-gray-700 dark:text-primary-400">
+                    <th class="px-6 py-2 text-xs font-bold uppercase">ID</th>
+                    <th class="px-6 py-2 text-xs font-bold uppercase">Timestamp</th>
+                    <th class="px-6 py-2 text-xs font-bold uppercase">Duration (μs)</th>
+                    <th class="px-6 py-2 text-xs font-bold uppercase">Command</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for item in slowlog.items %}
+                    <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
+                        <td class="px-6 py-2 border-t border-gray-200 text-sm dark:border-gray-700 dark:text-gray-300">{{ item[0] }}</td>
+                        <td class="px-6 py-2 border-t border-gray-200 text-sm dark:border-gray-700 dark:text-gray-300">{{ item[1]|time }}</td>
+                        <td class="px-6 py-2 border-t border-gray-200 text-sm dark:border-gray-700 dark:text-gray-300">{{ item[2] }}ms</td>
+                        <td class="px-6 py-2 border-t border-gray-200 text-sm dark:border-gray-700 dark:text-gray-300">{{ item[3]|join(' ') }}</td>
+                    </tr>
+                {% else %}
+                    <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
+                        <td colspan="4" class="px-6 py-2 border-t border-gray-200 text-sm dark:border-gray-700 dark:text-gray-300 text-center">No items.</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endif %}

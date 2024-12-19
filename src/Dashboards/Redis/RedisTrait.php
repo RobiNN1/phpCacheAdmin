@@ -373,8 +373,7 @@ trait RedisTrait {
         if (isset($this->servers[$this->current_server]['databases'])) {
             $db_count = (int) $this->servers[$this->current_server]['databases'];
         } else {
-            $dbs = (array) $this->redis->config('GET', 'databases');
-            $db_count = $dbs['databases'] ?? 1;
+            $db_count = (int) $this->redis->config('GET', 'databases')['databases'];
         }
 
         for ($d = 0; $d < $db_count; $d++) {
@@ -429,6 +428,23 @@ trait RedisTrait {
             );
         }
 
+        if (Http::get('tab') === 'slowlog') {
+            if (isset($_GET['resetlog'])) {
+                $this->redis->rawCommand('SLOWLOG', 'RESET');
+                Http::redirect(['tab']);
+            }
+
+            if (isset($_POST['save'])) {
+                $this->redis->config('SET', 'slowlog-max-len', Http::post('slowlog_max_items', '50'));
+                $this->redis->config('SET', 'slowlog-log-slower-than', Http::post('slowlog_slower_than', '1000'));
+                Http::redirect(['tab']);
+            }
+
+            $slowlog_max_items = $this->redis->config('GET', 'slowlog-max-len')['slowlog-max-len'];
+            $slowlog_items = $this->redis->rawCommand('SLOWLOG', 'GET', $slowlog_max_items);
+            $slowlog_slower_than = $this->redis->config('GET', 'slowlog-log-slower-than')['slowlog-log-slower-than'];
+        }
+
         if (isset($_GET['export_btn'])) {
             Helpers::export($keys, 'redis_backup', fn (string $key): string => bin2hex($this->redis->dump($key)));
         }
@@ -440,6 +456,11 @@ trait RedisTrait {
             'all_keys'  => $this->redis->dbSize(),
             'paginator' => $paginator->render(),
             'view_key'  => Http::queryString(['db', 's'], ['view' => 'key', 'key' => '__key__']),
+            'slowlog'   => [
+                'items'       => $slowlog_items ?? [],
+                'max_items'   => $slowlog_max_items ?? '',
+                'slower_than' => $slowlog_slower_than ?? '',
+            ],
         ]);
     }
 }

@@ -70,7 +70,7 @@
                 <tr class="text-primary-900 border-t border-b border-gray-200 dark:border-gray-700 dark:text-primary-400">
                     <th class="px-6 py-2 text-xs font-bold uppercase">ID</th>
                     <th class="px-6 py-2 text-xs font-bold uppercase">Timestamp</th>
-                    <th class="px-6 py-2 text-xs font-bold uppercase">Duration (μs)</th>
+                    <th class="px-6 py-2 text-xs font-bold uppercase">Duration</th>
                     <th class="px-6 py-2 text-xs font-bold uppercase">Command</th>
                 </tr>
                 </thead>
@@ -79,7 +79,7 @@
                     <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
                         <td class="px-6 py-2 border-t border-gray-200 text-sm dark:border-gray-700 dark:text-gray-300">{{ item[0] }}</td>
                         <td class="px-6 py-2 border-t border-gray-200 text-sm dark:border-gray-700 dark:text-gray-300">{{ item[1]|time }}</td>
-                        <td class="px-6 py-2 border-t border-gray-200 text-sm dark:border-gray-700 dark:text-gray-300">{{ item[2] }}ms</td>
+                        <td class="px-6 py-2 border-t border-gray-200 text-sm dark:border-gray-700 dark:text-gray-300">{{ item[2] }}μs</td>
                         <td class="px-6 py-2 border-t border-gray-200 text-sm dark:border-gray-700 dark:text-gray-300">{{ item[3]|join(' ') }}</td>
                     </tr>
                 {% else %}

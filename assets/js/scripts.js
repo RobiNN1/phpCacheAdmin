@@ -15,14 +15,12 @@ const ajax = (endpoint, callback, data = null) => {
     request.send(data);
 }
 
-const query_params = (...args) => {
+const query_params = (params) => {
     const url = new URL(location.href);
     const search_params = new URLSearchParams(url.search);
 
-    if (args.length === 2 && typeof args[0] === 'string') {
-        search_params.set(args[0], String(args[1]));
-    } else if (args.length === 1 && typeof args[0] === 'object') {
-        Object.entries(args[0]).forEach(([key, value]) => {
+    if (typeof params === 'object') {
+        Object.entries(params).forEach(([key, value]) => {
             if (value === null) {
                 search_params.delete(key);
             } else {
@@ -40,7 +38,7 @@ const select_and_redirect = (id, param) => {
 
     if (select) {
         select.addEventListener('change', e => {
-            query_params(param, e.target.value);
+            query_params({[param]: e.target.value});
         });
     }
 }
@@ -182,7 +180,7 @@ const search_form = document.getElementById('search_form');
 if (search_form) {
     const submit_search = document.getElementById('submit_search');
     submit_search.addEventListener('click', () => {
-        query_params('s', document.getElementById('search_key').value)
+        query_params({p: null, s: document.getElementById('search_key').value});
     });
 
     const search_key = document.getElementById('search_key');

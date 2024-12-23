@@ -23,18 +23,20 @@ class Http {
      */
     public static function queryString(array $preserve = [], array $additional = []): string {
         $keep = ['dashboard', 'server', 'db', 's', 'sortdir', 'sortcol'];
-        $preserve = array_flip(array_merge($keep, $preserve));
+        $preserve = array_fill_keys(array_merge($keep, $preserve), true);
         $query = [];
 
-        if ($url = parse_url($_SERVER['REQUEST_URI'])) {
-            parse_str($url['query'] ?? '', $query);
-
-            $query = array_intersect_key($query, $preserve);
+        if (!empty($_SERVER['REQUEST_URI'])) {
+            $url_parts = parse_url($_SERVER['REQUEST_URI']);
+            if (!empty($url_parts['query'])) {
+                parse_str($url_parts['query'], $query);
+                $query = array_intersect_key($query, $preserve);
+            }
         }
 
         $query += $additional;
 
-        return ($query !== [] ? '?' : '').http_build_query($query);
+        return $query ? '?'.http_build_query($query) : '';
     }
 
     /**

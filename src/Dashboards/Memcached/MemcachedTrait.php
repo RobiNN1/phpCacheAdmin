@@ -33,10 +33,9 @@ trait MemcachedTrait {
 
             $panels = [
                 [
-                    'title'     => $title ?? null,
-                    'moreinfo'  => true,
-                    'server_id' => $this->current_server,
-                    'data'      => [
+                    'title'    => $title ?? null,
+                    'moreinfo' => true,
+                    'data'     => [
                         'Version'          => $info['version'],
                         'Open connections' => $info['curr_connections'],
                         'Uptime'           => Format::seconds((int) $info['uptime']),
@@ -71,7 +70,7 @@ trait MemcachedTrait {
             $panels = ['error' => $e->getMessage()];
         }
 
-        return $this->template->render('partials/info', ['panels' => $panels, 'left' => true]);
+        return $this->template->render('partials/info', ['panels' => $panels]);
     }
 
     /**

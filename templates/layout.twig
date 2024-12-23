@@ -21,12 +21,6 @@
 <header class="grid md:grid-cols-3 p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
     <div class="flex">
         <a class="block w-72 md:me-4" href="/">{{ svg('logo', null) }}</a>
-
-        {% if back_url %}
-            <a class="hidden md:inline-flex self-center text-lg text-primary-500 font-semibold items-center hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-500" href="{{ back_url }}">
-                {{ svg('back', 16, 'mr-1') }} Back
-            </a>
-        {% endif %}
     </div>
 
     <div class="flex items-center justify-center gap-4">

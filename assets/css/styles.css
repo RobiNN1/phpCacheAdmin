@@ -27,7 +27,7 @@
 }
 
 /*
-! tailwindcss v3.4.15 | MIT License | https://tailwindcss.com
+! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com
 */
 
 /*
@@ -721,10 +721,6 @@ video {
   margin-left: calc(-1px * calc(1 - var(--tw-space-x-reverse)));
 }
 
-.self-center {
-  align-self: center;
-}
-
 .overflow-hidden {
   overflow: hidden;
 }
@@ -1226,8 +1222,9 @@ video {
   margin-right: 0.75rem;
 }
 
-.file\:rounded::file-selector-button {
-  border-radius: 0.25rem;
+.file\:rounded-l::file-selector-button {
+  border-top-left-radius: 0.25rem;
+  border-bottom-left-radius: 0.25rem;
 }
 
 .file\:border::file-selector-button {
@@ -1599,10 +1596,6 @@ video {
 
   .md\:flex {
     display: flex;
-  }
-
-  .md\:inline-flex {
-    display: inline-flex;
   }
 
   .md\:table-cell {

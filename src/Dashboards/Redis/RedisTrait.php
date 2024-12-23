@@ -52,10 +52,9 @@ trait RedisTrait {
 
             $panels = [
                 [
-                    'title'     => $title ?? null,
-                    'moreinfo'  => true,
-                    'server_id' => $this->current_server,
-                    'data'      => [
+                    'title'    => $title ?? null,
+                    'moreinfo' => true,
+                    'data'     => [
                         'Version' => $info['server']['redis_version'].', '.$info['server']['redis_mode'].' mode',
                         'Cluster' => $info['cluster']['cluster_enabled'] ? 'Enabled' : 'Disabled',
                         'Uptime'  => Format::seconds((int) $info['server']['uptime_in_seconds']),
@@ -89,7 +88,7 @@ trait RedisTrait {
             $panels = ['error' => $e->getMessage()];
         }
 
-        return $this->template->render('partials/info', ['panels' => $panels, 'left' => true]);
+        return $this->template->render('partials/info', ['panels' => $panels]);
     }
 
     /**
@@ -166,7 +165,7 @@ trait RedisTrait {
         $key = Http::get('key', '');
 
         if (!$this->redis->exists($key)) {
-            Http::redirect(['db']);
+            Http::redirect();
         }
 
         try {
@@ -187,12 +186,12 @@ trait RedisTrait {
 
             $this->deleteSubKey($type, $key, $subkey);
 
-            Http::redirect(['db', 'key', 'view', 'p']);
+            Http::redirect(['key', 'view', 'p']);
         }
 
         if (isset($_GET['delete'])) {
             $this->redis->del($key);
-            Http::redirect(['db']);
+            Http::redirect();
         }
 
         $ttl = $this->redis->ttl($key);
@@ -213,7 +212,7 @@ trait RedisTrait {
 
         if (is_array($value)) {
             $items = $this->formatViewItems($key, $value, $type);
-            $paginator = new Paginator($this->template, $items, [['db', 'view', 'key', 'pp'], ['p' => '']]);
+            $paginator = new Paginator($this->template, $items, [['view', 'key', 'pp'], ['p' => '']]);
             $value = $paginator->getPaginated();
             $paginator = $paginator->render();
         } else {
@@ -228,11 +227,11 @@ trait RedisTrait {
             'size'           => Format::bytes($this->redis->size($key)),
             'encode_fn'      => $encode_fn,
             'formatted'      => $is_formatted,
-            'add_subkey_url' => Http::queryString(['db'], ['form' => 'new', 'key' => $key]),
-            'deletesub_url'  => Http::queryString(['db', 'view', 'p'], ['deletesub' => 'key', 'key' => $key]),
-            'edit_url'       => Http::queryString(['db'], ['form' => 'edit', 'key' => $key]),
-            'export_url'     => Http::queryString(['db', 'view', 'p', 'key'], ['export' => 'key']),
-            'delete_url'     => Http::queryString(['db', 'view'], ['delete' => 'key', 'key' => $key]),
+            'add_subkey_url' => Http::queryString([], ['form' => 'new', 'key' => $key]),
+            'deletesub_url'  => Http::queryString(['view', 'p'], ['deletesub' => 'key', 'key' => $key]),
+            'edit_url'       => Http::queryString([], ['form' => 'edit', 'key' => $key]),
+            'export_url'     => Http::queryString(['view', 'p', 'key'], ['export' => 'key']),
+            'delete_url'     => Http::queryString(['view'], ['delete' => 'key', 'key' => $key]),
             'paginator'      => $paginator,
             'types'          => $this->typesTplOptions(),
         ]);
@@ -268,7 +267,7 @@ trait RedisTrait {
             $this->redis->expire($key, $expire);
         }
 
-        Http::redirect(['db'], ['view' => 'key', 'key' => $key]);
+        Http::redirect([], ['view' => 'key', 'key' => $key]);
     }
 
     /**
@@ -461,13 +460,13 @@ trait RedisTrait {
             Helpers::export($keys, 'redis_backup', fn (string $key): string => bin2hex($this->redis->dump($key)));
         }
 
-        $paginator = new Paginator($this->template, $keys, [['db', 's', 'pp'], ['p' => '']]);
+        $paginator = new Paginator($this->template, $keys, [['s', 'pp'], ['p' => '']]);
 
         return $this->template->render('dashboards/redis/redis', [
             'keys'      => $paginator->getPaginated(),
             'all_keys'  => $this->redis->dbSize(),
             'paginator' => $paginator->render(),
-            'view_key'  => Http::queryString(['db', 's'], ['view' => 'key', 'key' => '__key__']),
+            'view_key'  => Http::queryString(['s'], ['view' => 'key', 'key' => '__key__']),
         ]);
     }
 }

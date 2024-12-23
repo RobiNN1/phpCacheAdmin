@@ -1,33 +1,11 @@
-{% if panels %}
-    {% if left %}
-        {% for panel in panels %}
-            {% if panel.data %}
-                {% if not panel.error %}
-                    {{ include('partials/panel.twig', {
-                        server_id: panel.server_id,
-                        panel_title: panel.title,
-                        array: panel.data,
-                        moreinfo: panel.moreinfo,
-                    }) }}
-                {% else %}
-                    {{ panel.error }}
-                {% endif %}
-            {% endif %}
-        {% endfor %}
+{% for panel in panels %}
+    {% if not panel.error %}
+        {{ include('partials/panel.twig', {
+            panel_title: panel.title,
+            array: panel.data,
+            moreinfo: panel.moreinfo,
+        }) }}
     {% else %}
-        <div class="md:grid {{ panels|length >= 3 ? 'md:grid-cols-3' : 'md:grid-cols-2' }} md:gap-4">
-            {% for panel in panels %}
-                {% if not panel.error %}
-                    {{ include('partials/info_table.twig', {
-                        server_id: panel.server_id,
-                        panel_title: panel.title,
-                        array: panel.data,
-                        moreinfo: panel.moreinfo,
-                    }) }}
-                {% else %}
-                    {{ panel.error }}
-                {% endif %}
-            {% endfor %}
-        </div>
+        {{ panel.error }}
     {% endif %}
-{% endif %}
+{% endfor %}

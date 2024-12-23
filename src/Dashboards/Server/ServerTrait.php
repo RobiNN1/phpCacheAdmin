@@ -21,29 +21,33 @@ trait ServerTrait {
         return $disabled_functions;
     }
 
-    private function panels(): string {
-        $panels = [
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function panels(): array {
+        return [
             [
-                'title'    => 'PHP Info',
-                'moreinfo' => true,
-                'data'     => [
-                    'PHP Version'        => PHP_VERSION,
-                    'PHP Interface'      => PHP_SAPI,
-                    'Disabled functions' => $this->getDisabledFunctions(),
-                    'Xdebug'             => extension_loaded('xdebug') ? 'Enabled - v'.phpversion('xdebug') : 'Disabled',
+                'title' => 'PHP Info',
+                'data'  => [
+                    'PHP Version'         => PHP_VERSION,
+                    'Disabled functions'  => $this->getDisabledFunctions(),
+                    'Loaded php.ini file' => php_ini_loaded_file(),
+                    'Memory limit'        => ini_get('memory_limit'),
+                    'Max execution time'  => ini_get('max_execution_time').'s',
+                    'Xdebug'              => extension_loaded('xdebug') ? 'Enabled - v'.phpversion('xdebug') : 'Disabled',
                 ],
             ],
             [
                 'title' => 'Server Info',
                 'data'  => [
+                    'OS'         => PHP_OS,
                     'Server'     => php_uname(),
                     'Web Server' => $_SERVER['SERVER_SOFTWARE'],
+                    'Server API' => PHP_SAPI,
                     'User Agent' => $_SERVER['HTTP_USER_AGENT'],
                 ],
             ],
         ];
-
-        return $this->template->render('partials/info', ['panels' => $panels]);
     }
 
     private function phpInfo(): string {

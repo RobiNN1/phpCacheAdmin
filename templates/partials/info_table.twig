@@ -1,30 +1,24 @@
 <div class="mb-4 rounded bg-white border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
-    <div class="border-b border-gray-200 px-4 py-1.5 text-primary-700 dark:border-gray-700 dark:text-primary-400">
-        <div class="flex flex-wrap items-center">
-            <div class="w-full max-w-full flex-1 flex-grow">
-                <h2 class="font-semibold">{{ panel_title }}</h2>
-            </div>
-        </div>
+    <div class="border-b border-gray-200 px-4 py-1.5 font-semibold text-primary-700 dark:border-gray-700 dark:text-primary-400">
+        {{ panel_title }}
     </div>
     <div class="w-full overflow-x-auto">
         <table class="w-full table-auto text-left dark:border-gray-700 dark:text-gray-300">
             <tbody>
             {% for name, value in array %}
-                {% if value is iterable %}
-                    {% if value|length > 0 %}
-                        <tr class="border-b border-gray-200 text-primary-700 dark:border-gray-700 dark:text-primary-400">
-                            <td colspan="2" class="px-4 py-2 text-xs font-bold uppercase whitespace-nowrap">{{ name|replace({'_': ' '}) }}</td>
-                        </tr>
-                        {% for sub_name, sub_value in value %}
-                            {% if sub_value is not iterable %}
-                                <tr class="[&:last-child>*]:border-b-0">
-                                    <td class="border-b border-gray-200 px-4 py-1 text-sm font-semibold whitespace-nowrap dark:border-gray-700 dark:text-gray-300">{{ sub_name }}</td>
-                                    <td class="border-b border-gray-200 px-4 py-1 text-sm dark:border-gray-700 dark:text-gray-300">{{ sub_value|raw }}</td>
-                                </tr>
-                            {% endif %}
-                        {% endfor %}
-                    {% endif %}
-                {% else %}
+                {% if value is iterable and value|length > 0 %}
+                    <tr class="border-b border-gray-200 text-primary-700 dark:border-gray-700 dark:text-primary-400">
+                        <td colspan="2" class="px-4 py-2 text-xs font-bold uppercase whitespace-nowrap">{{ name|replace({'_': ' '}) }}</td>
+                    </tr>
+                    {% for sub_name, sub_value in value %}
+                        {% if sub_value is not iterable %}
+                            <tr class="[&:last-child>*]:border-b-0">
+                                <td class="border-b border-gray-200 px-4 py-1 text-sm font-semibold whitespace-nowrap dark:border-gray-700 dark:text-gray-300">{{ sub_name }}</td>
+                                <td class="border-b border-gray-200 px-4 py-1 text-sm dark:border-gray-700 dark:text-gray-300">{{ sub_value|raw }}</td>
+                            </tr>
+                        {% endif %}
+                    {% endfor %}
+                {% elseif not value is iterable %}
                     <tr class="[&:last-child>*]:border-b-0">
                         <td class="border-b border-gray-200 px-4 py-1 text-sm font-semibold whitespace-nowrap dark:border-gray-700 dark:text-gray-300">{{ name }}</td>
                         <td class="border-b border-gray-200 px-4 py-1 text-sm dark:border-gray-700 dark:text-gray-300">{{ value|raw }}</td>
@@ -38,10 +32,4 @@
             </tbody>
         </table>
     </div>
-    {% if moreinfo %}
-        <div class="border-t border-gray-200 px-4 py-1 text-right dark:border-gray-700">
-            {% set id = server_id is not null ? '&server=' ~ server_id : '' %}
-            <a class="text-primary-500 hover:text-primary-700 font-semibold dark:text-primary-400 dark:hover:text-primary-300" href="?dashboard={{ current }}&moreinfo{{ id|raw }}">Show more info</a>
-        </div>
-    {% endif %}
 </div>

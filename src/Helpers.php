@@ -151,7 +151,7 @@ class Helpers {
                 //
             }
 
-            Http::redirect(['db']);
+            Http::redirect();
         }
     }
 

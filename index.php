@@ -56,10 +56,6 @@ $tpl->addGlobal('current', $current);
 if (isset($_GET['ajax'])) {
     echo $dashboard->ajax();
 } else {
-    if (isset($_GET['moreinfo']) || isset($_GET['form']) || isset($_GET['view'], $_GET['key'])) {
-        $back_url = Http::queryString(['db', 's']);
-    }
-
     if (isset($info['colors'])) {
         $colors = '';
 
@@ -75,7 +71,6 @@ if (isset($_GET['ajax'])) {
         'logout_url' => isset($auth) ? Http::queryString([], ['logout' => 'yes']) : null,
         'version'    => Admin::VERSION,
         'repo'       => 'https://github.com/RobiNN1/phpCacheAdmin',
-        'back_url'   => $back_url ?? null,
         'dashboard'  => $dashboard->dashboard(),
     ]);
 }

@@ -1,9 +1,24 @@
-{{ panels|raw }}
+<div class="md:grid md:grid-cols-2 md:gap-4">
+    {% for panel in panels %}
+        {{ include('partials/info_table.twig', {
+            panel_title: panel.title,
+            array: panel.data,
+        }) }}
+    {% endfor %}
+</div>
+
+{{ include('components/button.twig', {
+    text: 'PHP Info',
+    link: link([], {'moreinfo': 1}),
+    small: true,
+    class: 'mb-4',
+}) }}
+
 <div class="mb-4 text-lg font-semibold">Loaded PHP extensions ({{ extensions|length }})</div>
 
 <div>
     {% for extension in extensions %}
-        <a href="{{ ext_link ~ '#module_' ~ extension|replace({' ': '+'})|lower }}">
+        <a href="{{ link([''], {'moreinfo': 1}) ~ '#module_' ~ extension|replace({' ': '+'})|lower }}">
             {{ include('components/badge.twig', {
                 text: extension,
                 txt: 'font-semibold',

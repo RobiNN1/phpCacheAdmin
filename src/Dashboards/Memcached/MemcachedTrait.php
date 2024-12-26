@@ -24,12 +24,7 @@ trait MemcachedTrait {
         try {
             $info = $this->memcached->getServerStats();
 
-            $bytes = (int) $info['bytes'];
-            $max_bytes = (int) $info['limit_maxbytes'];
-            $get_hits = (int) $info['get_hits'];
-            $get_misses = (int) $info['get_misses'];
-            $memory_usage = round(($bytes / $max_bytes) * 100, 2);
-            $hit_rate = $get_hits !== 0 ? round(($get_hits / ($get_hits + $get_misses)) * 100, 2) : 0;
+            $memory_usage = round(($info['bytes'] / $info['limit_maxbytes']) * 100, 2);
 
             $panels = [
                 [
@@ -38,31 +33,34 @@ trait MemcachedTrait {
                     'data'     => [
                         'Version'          => $info['version'],
                         'Open connections' => $info['curr_connections'],
-                        'Uptime'           => Format::seconds((int) $info['uptime']),
+                        'Uptime'           => Format::seconds($info['uptime']),
                     ],
                 ],
                 [
                     'title' => 'Memory',
                     'data'  => [
-                        'Total' => Format::bytes($max_bytes, 0),
-                        ['Used', Format::bytes($bytes).' ('.$memory_usage.'%)', $memory_usage],
-                        'Free'  => Format::bytes($max_bytes - $bytes),
+                        'Total' => Format::bytes($info['limit_maxbytes'], 0),
+                        ['Used', Format::bytes($info['bytes']).' ('.$memory_usage.'%)', $memory_usage],
+                        'Free'  => Format::bytes($info['limit_maxbytes'] - $info['bytes']),
                     ],
                 ],
                 [
-                    'title' => 'Stats',
+                    'title' => 'Keys',
                     'data'  => [
-                        'Keys'      => Format::number(count($this->all_keys)),
-                        ['Hits / Misses', Format::number($get_hits).' / '.Format::number($get_misses).' (Rate '.$hit_rate.'%)', $hit_rate, 'higher'],
-                        'Evictions' => Format::number((int) $info['evictions']),
+                        'Current'             => Format::number($info['curr_items']),
+                        'Total (since start)' => Format::number($info['total_items']),
+                        'Evictions'           => Format::number($info['evictions']),
+                        'Reclaimed'           => Format::number($info['reclaimed']),
+                        'Expired Unfetched'   => Format::number($info['expired_unfetched']),
+                        'Evicted Unfetched'   => Format::number($info['evicted_unfetched']),
                     ],
                 ],
                 [
                     'title' => 'Connections',
                     'data'  => [
-                        'Current'  => Format::number((int) $info['curr_connections']).' / '.Format::number((int) $info['max_connections']),
-                        'Total'    => Format::number((int) $info['total_connections']),
-                        'Rejected' => Format::number((int) $info['rejected_connections']),
+                        'Current'  => Format::number($info['curr_connections']).' / '.Format::number($info['max_connections']).' max',
+                        'Total'    => Format::number($info['total_connections']),
+                        'Rejected' => Format::number($info['rejected_connections']),
                     ],
                 ],
             ];
@@ -87,6 +85,10 @@ trait MemcachedTrait {
     private function moreInfo(): string {
         try {
             $info = $this->memcached->getServerStats();
+
+            foreach (['settings', 'sizes', 'conns'] as $type) {
+                $info += [$type => $this->memcached->getServerStats($type)];
+            }
 
             if (extension_loaded('memcached') || extension_loaded('memcache')) {
                 $memcached = extension_loaded('memcached') ? 'd' : '';
@@ -199,6 +201,7 @@ trait MemcachedTrait {
 
     /**
      * @return array<int, array<string, string|int>>
+     * @throws MemcachedException
      */
     private function getAllKeys(): array {
         static $keys = [];
@@ -208,7 +211,9 @@ trait MemcachedTrait {
 
         $time = time();
 
-        foreach ($this->all_keys as $key_data) {
+        $all_keys = $this->memcached->getKeys();
+
+        foreach ($all_keys as $key_data) {
             $key_data = $this->memcached->parseLine($key_data);
 
             $key = $key_data['key'];
@@ -233,18 +238,107 @@ trait MemcachedTrait {
         return $keys;
     }
 
+    private function commandsStats(): string {
+        try {
+            $info = $this->memcached->getServerStats();
+
+            $rate = static function (int $hits, int $total): float {
+                return $hits !== 0 ? round(($hits / $total) * 100, 2) : 0;
+            };
+
+            $get_hit_rate = $rate($info['get_hits'], $info['cmd_get']);
+            $delete_hit_rate = $rate($info['delete_hits'], $info['delete_hits'] + $info['delete_misses']);
+            $incr_hit_rate = $rate($info['incr_hits'], $info['incr_hits'] + $info['incr_misses']);
+            $decr_hit_rate = $rate($info['decr_hits'], $info['decr_hits'] + $info['decr_misses']);
+            $cas_hit_rate = $rate($info['cas_hits'], $info['cas_hits'] + $info['cas_misses']);
+            $touch_hit_rate = $rate($info['touch_hits'], $info['cmd_touch']);
+
+            $commands = [
+                [
+                    'title' => 'get',
+                    'data'  => [
+                        'Hits'   => Format::number($info['get_hits']),
+                        'Misses' => Format::number($info['get_misses']),
+                        ['Hit Rate', $get_hit_rate.'%', $get_hit_rate, 'higher'],
+                    ],
+                ],
+                [
+                    'title' => 'delete',
+                    'data'  => [
+                        'Hits'   => Format::number($info['delete_hits']),
+                        'Misses' => Format::number($info['delete_misses']),
+                        ['Hit Rate', $delete_hit_rate.'%', $delete_hit_rate, 'higher'],
+                    ],
+                ],
+                [
+                    'title' => 'incr',
+                    'data'  => [
+                        'Hits'   => Format::number($info['incr_hits']),
+                        'Misses' => Format::number($info['incr_misses']),
+                        ['Hit Rate', $incr_hit_rate.'%', $incr_hit_rate, 'higher'],
+                    ],
+                ],
+                [
+                    'title' => 'decr',
+                    'data'  => [
+                        'Hits'   => Format::number($info['decr_hits']),
+                        'Misses' => Format::number($info['decr_misses']),
+                        ['Hit Rate', $decr_hit_rate.'%', $decr_hit_rate, 'higher'],
+                    ],
+                ],
+                [
+                    'title' => 'touch',
+                    'data'  => [
+                        'Hits'   => Format::number($info['touch_hits']),
+                        'Misses' => Format::number($info['touch_misses']),
+                        ['Hit Rate', $touch_hit_rate.'%', $touch_hit_rate, 'higher'],
+                    ],
+                ],
+                [
+                    'title' => 'cas',
+                    'data'  => [
+                        'Hits'      => Format::number($info['cas_hits']),
+                        'Misses'    => Format::number($info['cas_misses']),
+                        ['Hit Rate', $cas_hit_rate.'%', $cas_hit_rate, 'higher'],
+                        'Bad Value' => $info['cas_badval'],
+                    ],
+                ],
+                [
+                    'title' => 'set',
+                    'data'  => [
+                        'Total' => Format::number($info['cmd_set']),
+                    ],
+                ],
+                [
+                    'title' => 'flush',
+                    'data'  => [
+                        'Total' => Format::number($info['cmd_flush']),
+                    ],
+                ],
+            ];
+        } catch (MemcachedException $e) {
+            $commands = ['error' => $e->getMessage()];
+        }
+
+        return $this->template->render('dashboards/memcached', ['commands' => $commands]);
+    }
+
     /**
      * @throws MemcachedException
      */
     private function mainDashboard(): string {
-        $keys = $this->getAllKeys();
-
         if (isset($_POST['submit_import_key'])) {
             Helpers::import(
                 fn (string $key): bool => $this->memcached->exists($key),
                 fn (string $key, string $value, int $ttl): bool => $this->memcached->set($key, base64_decode($value), $ttl)
             );
         }
+
+        if (Http::get('tab') === 'commands_stats') {
+            return $this->commandsStats();
+        }
+
+        $keys = $this->getAllKeys();
 
         if (isset($_GET['export_btn'])) {
             Helpers::export($keys, 'memcached_backup', fn (string $key): string => base64_encode($this->memcached->getKey($key)));
@@ -254,7 +348,7 @@ trait MemcachedTrait {
 
         return $this->template->render('dashboards/memcached', [
             'keys'      => $paginator->getPaginated(),
-            'all_keys'  => count($this->all_keys),
+            'all_keys'  => count($keys),
             'paginator' => $paginator->render(),
             'view_key'  => Http::queryString([], ['view' => 'key', 'key' => '__key__']),
         ]);

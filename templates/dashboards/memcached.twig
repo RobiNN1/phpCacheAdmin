@@ -1,13 +1,36 @@
-{{ include('partials/keys_table.twig', {
-    buttons: {
-        import_btn: true,
-        export_btn: true,
-        add_new_btn: true,
+{{ include('components/tabs.twig', {
+    links: {
+        'keys': 'Keys',
+        'commands_stats': 'Commands Stats',
     },
-    head_items: [
-        {'title': 'Key', 'sort': 'link_title'},
-        {'title': 'Size', 'class': 'w-24', 'sort': 'bytes_size'},
-        {'title': 'Last used', 'class': 'w-32', 'sort': 'timediff_last_access'},
-        {'title': 'TTL', 'class': 'w-32', 'sort': 'ttl'},
-    ],
 }) }}
+
+{% if get('tab', 'keys') == 'keys' %}
+    {{ include('partials/keys_table.twig', {
+        tabs: true,
+        buttons: {
+            import_btn: true,
+            export_btn: true,
+            add_new_btn: true,
+        },
+        head_items: [
+            {'title': 'Key', 'sort': 'link_title'},
+            {'title': 'Size', 'class': 'w-24', 'sort': 'bytes_size'},
+            {'title': 'Last used', 'class': 'w-32', 'sort': 'timediff_last_access'},
+            {'title': 'TTL', 'class': 'w-32', 'sort': 'ttl'},
+        ],
+    }) }}
+{% endif %}
+
+{% if get('tab') == 'commands_stats' %}
+    <div class="px-6 py-4 rounded-b bg-white border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+        <div class="md:grid md:grid-cols-3 md:gap-4">
+            {% for command in commands %}
+                {{ include('partials/panel.twig', {
+                    panel_title: command.title,
+                    array: command.data,
+                }) }}
+            {% endfor %}
+        </div>
+    </div>
+{% endif %}

@@ -80,14 +80,15 @@ class PHPMem {
      *
      * @throws MemcachedException
      */
-    public function getServerStats(): array {
-        $raw = $this->runCommand('stats');
+    public function getServerStats(?string $type = null): array {
+        $type = in_array($type, ['settings', 'items', 'sizes', 'slabs', 'conns'], true) ? ' '.$type : '';
+        $raw = $this->runCommand('stats'.$type);
         $stats = [];
 
         foreach (explode("\r\n", $raw) as $line) {
             if (str_starts_with($line, 'STAT')) {
                 [, $key, $value] = explode(' ', $line, 3);
-                $stats[$key] = $value;
+                $stats[$key] = is_numeric($value) ? (int) $value : $value;
             }
         }
 
@@ -194,7 +195,8 @@ class PHPMem {
      * touch <key> <ttl>
      * delete <key>
      * incr|decr <key> <value>
-     * stats [items|slabs|sizes|cachedump <slab_id> <limit>|reset|conns]
+     * stats <settings|items|sizes|slabs|conns>
+     * stats cachedump <slab_id> <limit>\r\n
      * flush_all
      * version
      * lru <tune|mode|temp_ttl> <option list>

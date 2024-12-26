@@ -50,6 +50,10 @@ trait RedisTrait {
                 $used_memory_formatted = ['Used', Format::bytes($used_memory)];
             }
 
+            $hits = $info['stats']['keyspace_hits'];
+            $misses = $info['stats']['keyspace_misses'];
+            $hit_rate = $hits + $misses > 0 ? round(($hits / ($hits + $misses)) * 100, 2) : 0;
+
             $panels = [
                 [
                     'title'    => $title ?? null,
@@ -60,6 +64,7 @@ trait RedisTrait {
                         'Uptime'  => Format::seconds((int) $info['server']['uptime_in_seconds']),
                         'Role'    => $info['replication']['role'].', connected slaves '.$info['replication']['connected_slaves'],
                         'Keys'    => Format::number($count_of_all_keys).' (all databases)',
+                        ['Hits / Misses', Format::number($hits).' / '.Format::number($misses).' (Rate '.$hit_rate.'%)', $hit_rate, 'higher'],
                     ],
                 ],
                 [

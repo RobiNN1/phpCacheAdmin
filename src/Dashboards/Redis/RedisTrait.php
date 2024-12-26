@@ -64,7 +64,7 @@ trait RedisTrait {
                         'Uptime'  => Format::seconds((int) $info['server']['uptime_in_seconds']),
                         'Role'    => $info['replication']['role'].', connected slaves '.$info['replication']['connected_slaves'],
                         'Keys'    => Format::number($count_of_all_keys).' (all databases)',
-                        ['Hits / Misses', Format::number($hits).' / '.Format::number($misses).' (Rate '.$hit_rate.'%)', $hit_rate, 'higher'],
+                        ['Hits / Misses', Format::number($hits).' / '.Format::number($misses).' ('.$hit_rate.'%)', $hit_rate, 'higher'],
                     ],
                 ],
                 [

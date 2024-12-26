@@ -52,7 +52,7 @@ trait RedisTrait {
 
             $hits = $info['stats']['keyspace_hits'];
             $misses = $info['stats']['keyspace_misses'];
-            $hit_rate = $hits + $misses > 0 ? round(($hits / ($hits + $misses)) * 100, 2) : 0;
+            $hit_rate = $hits !== 0 ? round(($hits / ($hits + $misses)) * 100, 2) : 0;
 
             $panels = [
                 [

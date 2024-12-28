@@ -140,8 +140,12 @@ final class MemcachedTest extends TestCase {
         yield 'test ms' => ['HD', 'ms pu-test-rc-ms 1\r\n4'];
         yield 'test mg' => ['VA 1', 'mg pu-test-rc-ms v'];
         yield 'test ma' => ['HD', 'ma pu-test-rc-ms'];
+        yield 'test md' => ['HD', 'md pu-test-rc-ms'];
         yield 'test cache_memlimit' => ['OK', 'cache_memlimit 100'];
+        yield 'test verbosity' => ['OK', 'verbosity 1'];
         yield 'test flush_all' => ['OK', 'flush_all'];
+        yield 'test mn' => ['MN', 'mn'];
+        yield 'test quit' => ['', 'quit'];
     }
 
     /**

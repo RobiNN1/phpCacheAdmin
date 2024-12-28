@@ -12,18 +12,6 @@ class PHPMem {
     public const VERSION = '2.0.0';
 
     /**
-     * Unknown or incorrect commands can cause an infinite loop,
-     * so only tested commands are allowed.
-     *
-     * @var array<int, string>
-     */
-    private array $allowed_commands = [
-        'set', 'add', 'replace', 'append', 'prepend', 'cas', 'get', 'gets', 'gat', 'gats',
-        'touch', 'delete', 'incr', 'decr', 'stats', 'flush_all', 'version', 'lru_crawler',
-        'lru', 'slabs', 'me', 'mg', 'ms', 'md', 'ma', 'cache_memlimit', 'verbosity', 'quit',
-    ];
-
-    /**
      * @param array<string, int|string> $server
      */
     public function __construct(protected array $server = []) {
@@ -188,27 +176,37 @@ class PHPMem {
      *
      * These commands should work but not guaranteed to work on any server:
      *
-     * set|add|replace|append|prepend <key> <flags> <ttl> <bytes>\r\n<value>
-     * cas <key> <flags> <ttl> <bytes> <cas unique>\r\n<value>
-     * get|gets <key|keys>
-     * gat|gats <ttl> <key|keys>
-     * touch <key> <ttl>
-     * delete <key>
-     * incr|decr <key> <value>
-     * stats <settings|items|sizes|slabs|conns>
+     * set|add|replace|append|prepend  <key> <flags> <ttl> <bytes>\r\n<value>\r\n
+     * cas <key> <flags> <exptime> <bytes> <cas unique>\r\n
+     * get|gets <key>*\r\n
+     * gat|gats <exptime> <key>*\r\n
+     * delete <key>\r\n
+     * incr|decr <key> <value>\r\n
+     * touch <key> <exptime>\r\n
+     * me <key> <flag>\r\n
+     * mg <key> <flags>*\r\n
+     * ms <key> <datalen> <flags>*\r\n
+     * md <key> <flags>*\r\n
+     * ma <key> <flags>*\r\n
+     * mn\r\n
+     * slabs reassign <source class> <dest class>\r\n
+     * slabs automove <0|1|2>\r\n
+     * lru <tune|mode|temp_ttl> <option list>\r\n
+     * lru_crawler <enable|disable>\r\n
+     * lru_crawler sleep <microseconds>\r\n
+     * lru_crawler tocrawl <32u>\r\n
+     * lru_crawler crawl <classid,classid,classid|all>\r\n
+     * lru_crawler metadump <classid,classid,classid|all|hash>\r\n
+     * lru_crawler mgdump <classid,classid,classid|all|hash>\r\n
+     * watch <arg1> <arg2> <arg3>\r\n
+     * stats <settings|items|sizes|slabs|conns>\r\n
      * stats cachedump <slab_id> <limit>\r\n
-     * flush_all
-     * version
-     * lru <tune|mode|temp_ttl> <option list>
-     * lru_crawler <<enable|disable>|sleep <microseconds>|tocrawl <limit>|crawl|mgdump <...classid|all>|metadump <...classid|all|hash>>
-     * slabs <reassign <source class> <dest class>|automove <0|1|2>>
-     * me <key> <flag>
-     * mg <key> <flags>*
-     * ms <key> <datalen> <flags>*\r\n<value>
-     * md <key> <flags>*
-     * ma <key> <flags>*
-     * cache_memlimit <megabytes>
-     * verbosity <level>
+     * flush_all\r\n
+     * cache_memlimit <limit>\r\n
+     * shutdown\r\n
+     * version\r\n
+     * verbosity <level>\r\n
+     * quit\r\n
      *
      * Note: \r\n is added automatically to the end
      * and \r\n (as a plain string) is converted to a real end of line.
@@ -219,11 +217,6 @@ class PHPMem {
      */
     public function runCommand(string $command): string {
         $command_name = strtolower(strtok($command, ' '));
-
-        if (!in_array($command_name, $this->allowed_commands, true)) {
-            throw new MemcachedException('Unknown or not allowed command "'.$command.'".');
-        }
-
         $command = strtr($command, ['\r\n' => "\r\n"])."\r\n";
         $data = $this->streamConnection($command, $command_name);
 
@@ -258,8 +251,8 @@ class PHPMem {
             // Commands without a specific end string.
             if ($command_name === 'incr' || $command_name === 'decr' || $command_name === 'version' ||
                 $command_name === 'me' || $command_name === 'mg' || $command_name === 'ms' ||
-                $command_name === 'md' || $command_name === 'ma' || $command_name === 'cache_memlimit' ||
-                $command_name === 'quit') {
+                $command_name === 'md' || $command_name === 'ma' || $command_name === 'mn' ||
+                $command_name === 'cache_memlimit' || $command_name === 'quit') {
                 break;
             }
 

@@ -85,10 +85,7 @@ trait MemcachedTrait {
     private function moreInfo(): string {
         try {
             $info = $this->memcached->getServerStats();
-
-            foreach (['settings', 'sizes', 'conns'] as $type) {
-                $info += [$type => $this->memcached->getServerStats($type)];
-            }
+            $info += ['settings' => $this->memcached->getServerStats('settings')];
 
             if (extension_loaded('memcached') || extension_loaded('memcache')) {
                 $memcached = extension_loaded('memcached') ? 'd' : '';

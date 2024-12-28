@@ -28,7 +28,8 @@ class Http {
 
         if (!empty($_SERVER['REQUEST_URI'])) {
             $url_parts = parse_url($_SERVER['REQUEST_URI']);
-            if (!empty($url_parts['query'])) {
+
+            if (isset($url_parts['query']) && ($url_parts['query'] !== '')) {
                 parse_str($url_parts['query'], $query);
                 $query = array_intersect_key($query, $preserve);
             }
@@ -36,7 +37,7 @@ class Http {
 
         $query += $additional;
 
-        return $query ? '?'.http_build_query($query) : '';
+        return $query !== [] ? '?'.http_build_query($query) : '';
     }
 
     /**

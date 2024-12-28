@@ -14,7 +14,7 @@ use RobiNN\Pca\Http;
 final class HttpTest extends TestCase {
     public function testQueryString(): void {
         $_SERVER['REQUEST_URI'] = '/?dashboard=server';
-        $this->assertSame('?dashboard=server&param1=yes', Http::queryString([], ['param1' => 'yes']));
+        $this->assertSame('?dashboard=server&param1=yes&param2=0', Http::queryString([], ['param1' => 'yes', 'param2' => 0]));
 
         $_SERVER['REQUEST_URI'] = '/?dashboard=redis&server=6&p=3';
         $this->assertSame('?dashboard=redis&server=6', Http::queryString(['server']));

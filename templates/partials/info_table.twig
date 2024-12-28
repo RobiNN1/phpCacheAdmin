@@ -12,14 +12,14 @@
                     </tr>
                     {% for sub_name, sub_value in value %}
                         {% if sub_value is not iterable %}
-                            <tr class="[&:last-child>*]:border-b-0">
+                            <tr class="[&:last-child>*]:border-b-0 hover:bg-gray-50 dark:hover:bg-white/5">
                                 <td class="border-b border-gray-200 px-4 py-1 text-sm font-semibold whitespace-nowrap dark:border-gray-700 dark:text-gray-300">{{ sub_name }}</td>
                                 <td class="border-b border-gray-200 px-4 py-1 text-sm dark:border-gray-700 dark:text-gray-300">{{ sub_value|raw }}</td>
                             </tr>
                         {% endif %}
                     {% endfor %}
                 {% elseif not value is iterable %}
-                    <tr class="[&:last-child>*]:border-b-0">
+                    <tr class="[&:last-child>*]:border-b-0 hover:bg-gray-50 dark:hover:bg-white/5">
                         <td class="border-b border-gray-200 px-4 py-1 text-sm font-semibold whitespace-nowrap dark:border-gray-700 dark:text-gray-300">{{ name }}</td>
                         <td class="border-b border-gray-200 px-4 py-1 text-sm dark:border-gray-700 dark:text-gray-300">{{ value|raw }}</td>
                     </tr>

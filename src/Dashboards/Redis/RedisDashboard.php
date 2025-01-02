@@ -120,10 +120,12 @@ class RedisDashboard implements DashboardInterface {
             return 'No servers';
         }
 
+        $this->template->addGlobal('servers', Helpers::serverSelector($this->template, $this->servers, $this->current_server));
+
         try {
             $this->redis = $this->connect($this->servers[$this->current_server]);
 
-            $this->template->addGlobal('side', $this->select().$this->panels());
+            $this->template->addGlobal('side', $this->dbSelect().$this->panels());
 
             if (isset($_GET['moreinfo'])) {
                 return $this->moreInfo();

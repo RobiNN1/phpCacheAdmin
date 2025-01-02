@@ -208,7 +208,7 @@ class Helpers {
             'id'       => 'server_select',
             'options'  => $options,
             'selected' => $selected,
-            'class'    => 'mb-4',
+            'small'    => true,
         ]);
     }
 

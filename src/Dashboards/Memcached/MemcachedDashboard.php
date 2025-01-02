@@ -108,11 +108,12 @@ class MemcachedDashboard implements DashboardInterface {
             return 'No servers';
         }
 
+        $this->template->addGlobal('servers', Helpers::serverSelector($this->template, $this->servers, $this->current_server));
+
         try {
             $this->memcached = $this->connect($this->servers[$this->current_server]);
-            $select = Helpers::serverSelector($this->template, $this->servers, $this->current_server);
 
-            $this->template->addGlobal('side', $select.$this->panels());
+            $this->template->addGlobal('side', $this->panels());
 
             if (isset($_GET['moreinfo'])) {
                 return $this->moreInfo();

@@ -396,9 +396,7 @@ trait RedisTrait {
         return $databases;
     }
 
-    private function select(): string {
-        $servers = Helpers::serverSelector($this->template, $this->servers, $this->current_server);
-
+    private function dbSelect(): string {
         try {
             $databases = $this->template->render('components/select', [
                 'id'       => 'db_select',
@@ -410,7 +408,7 @@ trait RedisTrait {
             $databases = '';
         }
 
-        return $servers.$databases;
+        return $databases;
     }
 
     private function slowlog(): string {

@@ -12,10 +12,6 @@ use RobiNN\Pca\Config;
 use RobiNN\Pca\Http;
 use RobiNN\Pca\Template;
 
-if (PHP_VERSION_ID < 80200) {
-    exit('<strong>PHP >= 8.2 is required.</strong><br>The current version of php is: '.PHP_VERSION);
-}
-
 // Always display errors
 ini_set('display_errors', 'On');
 ini_set('display_startup_errors', 'On');
@@ -45,7 +41,7 @@ if (is_callable(Config::get('auth'))) {
 $tpl = new Template();
 $admin = new Admin($tpl);
 
-$nav = array_map(static fn ($d_dashboard) => $d_dashboard->dashboardInfo(), $admin->dashboards);
+$nav = array_map(static fn ($d_dashboard): array => $d_dashboard->dashboardInfo(), $admin->dashboards);
 
 $current = $admin->currentDashboard();
 $dashboard = $admin->getDashboard($current);

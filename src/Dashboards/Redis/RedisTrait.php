@@ -70,11 +70,11 @@ trait RedisTrait {
                 [
                     'title' => 'Memory',
                     'data'  => [
-                        'Total'                => $max_memory > 0 ? Format::bytes($max_memory, 0) : '&infin;',
+                        'Total'               => $max_memory > 0 ? Format::bytes($max_memory, 0) : '&infin;',
                         $used_memory_formatted,
-                        'Free'                 => $max_memory > 0 ? Format::bytes($max_memory - $used_memory) : '&infin;',
-                        'Fragmentation ratio'  => $info['memory']['mem_fragmentation_ratio'],
-                        'Used peak percentage' => $info['memory']['used_memory_peak_perc'],
+                        'Free'                => $max_memory > 0 ? Format::bytes($max_memory - $used_memory) : '&infin;',
+                        'Peak memory usage'   => Format::bytes($info['memory']['used_memory_peak']),
+                        'Fragmentation ratio' => $info['memory']['mem_fragmentation_ratio'],
                     ],
                 ],
                 [

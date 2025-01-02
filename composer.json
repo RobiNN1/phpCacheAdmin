@@ -25,11 +25,11 @@
   ],
   "require": {
     "php": ">=8.2",
-    "twig/twig": "^3.17"
+    "twig/twig": "^3.18"
   },
   "require-dev": {
     "clue/phar-composer": "^1.4",
-    "phpstan/phpstan": "^2.0",
+    "phpstan/phpstan": "^2.1",
     "phpunit/phpunit": "^11.5"
   },
   "suggest": {

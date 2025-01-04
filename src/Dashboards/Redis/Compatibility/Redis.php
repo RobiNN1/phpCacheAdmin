@@ -49,11 +49,7 @@ class Redis extends \Redis implements RedisCompatibilityInterface {
             }
 
             if (isset($server['password'])) {
-                if (isset($server['username'])) {
-                    $credentials = [$server['username'], $server['password']];
-                } else {
-                    $credentials = $server['password'];
-                }
+                $credentials = isset($server['username']) ? [$server['username'], $server['password']] : $server['password'];
 
                 $this->auth($credentials);
             }

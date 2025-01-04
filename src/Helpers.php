@@ -202,6 +202,10 @@ class Helpers {
      * @param array<int, array<string, int|string>> $servers
      */
     public static function serverSelector(Template $template, array $servers, int $selected): string {
+        if (count($servers) === 1) {
+            return '';
+        }
+
         $options = array_map(static fn ($server): string => self::getServerTitle($server), $servers);
 
         return $template->render('components/select', [

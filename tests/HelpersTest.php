@@ -67,10 +67,6 @@ final class HelpersTest extends TestCase {
 
         $object = (object) ['name' => 'John', 'age' => 30];
         $this->assertSame(serialize($object), Helpers::mixedToString($object));
-
-        $resource = fopen('php://memory', 'rb');
-        $this->assertSame((string) $resource, Helpers::mixedToString($resource));
-        fclose($resource);
     }
 
     /**

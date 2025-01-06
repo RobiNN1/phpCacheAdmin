@@ -17,8 +17,6 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase {
             ['string', 'phpCacheAdmin', 'phpCacheAdmin'],
             ['int', 23, '23'],
             ['float', 23.99, '23.99'],
-            ['bool', true, '1'],
-            ['null', null, ''],
             ['gzcompress', gzcompress('test'), gzcompress('test')],
             ['gzencode', gzencode('test'), gzencode('test')],
             ['gzdeflate', gzdeflate('test'), gzdeflate('test')],

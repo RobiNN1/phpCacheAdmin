@@ -48,7 +48,7 @@ trait RealpathTrait {
         $this->template->addGlobal('search_value', $search);
 
         foreach ($this->all_keys as $key_name => $key_data) {
-            if ($search === '' || stripos($key_name, $search) !== false) {
+            if (stripos($key_name, $search) !== false) {
                 $keys[] = [
                     'key'   => $key_name,
                     'items' => [

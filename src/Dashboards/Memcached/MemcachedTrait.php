@@ -212,7 +212,6 @@ trait MemcachedTrait {
 
         foreach ($all_keys as $key_data) {
             $key_data = $this->memcached->parseLine($key_data);
-
             $key = $key_data['key'];
 
             if (stripos($key, $search) !== false) {
@@ -239,9 +238,7 @@ trait MemcachedTrait {
         try {
             $info = $this->memcached->getServerStats();
 
-            $rate = static function (int $hits, int $total): float {
-                return $hits !== 0 ? round(($hits / $total) * 100, 2) : 0;
-            };
+            $rate = (static fn (int $hits, int $total): float => $hits !== 0 ? round(($hits / $total) * 100, 2) : 0);
 
             $get_hit_rate = $rate($info['get_hits'], $info['cmd_get']);
             $delete_hit_rate = $rate($info['delete_hits'], $info['delete_hits'] + $info['delete_misses']);

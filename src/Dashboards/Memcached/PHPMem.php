@@ -8,6 +8,11 @@ declare(strict_types=1);
 
 namespace RobiNN\Pca\Dashboards\Memcached;
 
+use function explode;
+use function fgets;
+use function is_numeric;
+use function str_ends_with;
+
 class PHPMem {
     public const VERSION = '2.0.0';
 
@@ -123,10 +128,10 @@ class PHPMem {
     public function parseLine(string $line): array {
         $data = [];
 
-        foreach (\explode(' ', $line) as $part) {
+        foreach (explode(' ', $line) as $part) {
             if ($part !== '') {
-                [$key, $val] = \explode('=', $part);
-                $data[$key] = \is_numeric($val) ? (int) $val : $val;
+                [$key, $val] = explode('=', $part);
+                $data[$key] = is_numeric($val) ? (int) $val : $val;
             }
         }
 
@@ -240,7 +245,7 @@ class PHPMem {
         $buffer = '';
 
         while (!feof($stream)) {
-            $line = \fgets($stream, 4096);
+            $line = fgets($stream, 4096);
 
             if ($line === false) {
                 break;
@@ -269,24 +274,24 @@ class PHPMem {
 
     private function checkCommandEnd(string $buffer): bool {
         return
-            \str_ends_with($buffer, "ERROR\r\n") ||
-            \str_ends_with($buffer, "CLIENT_ERROR\r\n") ||
-            \str_ends_with($buffer, "SERVER_ERROR\r\n") ||
-            \str_ends_with($buffer, "STORED\r\n") ||
-            \str_ends_with($buffer, "NOT_STORED\r\n") ||
-            \str_ends_with($buffer, "EXISTS\r\n") ||
-            \str_ends_with($buffer, "NOT_FOUND\r\n") ||
-            \str_ends_with($buffer, "TOUCHED\r\n") ||
-            \str_ends_with($buffer, "DELETED\r\n") ||
-            \str_ends_with($buffer, "OK\r\n") ||
-            \str_ends_with($buffer, "END\r\n") ||
-            \str_ends_with($buffer, "BUSY\r\n") ||
-            \str_ends_with($buffer, "BADCLASS\r\n") ||
-            \str_ends_with($buffer, "NOSPARE\r\n") ||
-            \str_ends_with($buffer, "NOTFULL\r\n") ||
-            \str_ends_with($buffer, "UNSAFE\r\n") ||
-            \str_ends_with($buffer, "SAME\r\n") ||
-            \str_ends_with($buffer, "RESET\r\n") ||
-            \str_ends_with($buffer, "EN\r\n");
+            str_ends_with($buffer, "ERROR\r\n") ||
+            str_ends_with($buffer, "CLIENT_ERROR\r\n") ||
+            str_ends_with($buffer, "SERVER_ERROR\r\n") ||
+            str_ends_with($buffer, "STORED\r\n") ||
+            str_ends_with($buffer, "NOT_STORED\r\n") ||
+            str_ends_with($buffer, "EXISTS\r\n") ||
+            str_ends_with($buffer, "NOT_FOUND\r\n") ||
+            str_ends_with($buffer, "TOUCHED\r\n") ||
+            str_ends_with($buffer, "DELETED\r\n") ||
+            str_ends_with($buffer, "OK\r\n") ||
+            str_ends_with($buffer, "END\r\n") ||
+            str_ends_with($buffer, "BUSY\r\n") ||
+            str_ends_with($buffer, "BADCLASS\r\n") ||
+            str_ends_with($buffer, "NOSPARE\r\n") ||
+            str_ends_with($buffer, "NOTFULL\r\n") ||
+            str_ends_with($buffer, "UNSAFE\r\n") ||
+            str_ends_with($buffer, "SAME\r\n") ||
+            str_ends_with($buffer, "RESET\r\n") ||
+            str_ends_with($buffer, "EN\r\n");
     }
 }

@@ -54,18 +54,13 @@ abstract class RedisTestCase extends TestCase {
 
     /**
      * @param array<int, string>|string $keys
-     *
-     * @throws Exception
      */
-    private function deleteKeys(array|string $keys): void {
-        $this->assertSame(
-            Helpers::alert($this->template, (is_array($keys) ? 'Keys' : 'Key "'.$keys.'"').' has been deleted.', 'success'),
-            Helpers::deleteKey($this->template, function (string $key): bool {
-                $delete_key = $this->redis->del($key);
+    private function deleteRedisKeys(array|string $keys): void {
+        $this->deleteKeysHelper($this->template, $keys, function (string $key): bool {
+            $delete_key = $this->redis->del($key);
 
-                return is_int($delete_key) && $delete_key > 0;
-            }, true, $keys)
-        );
+            return is_int($delete_key) && $delete_key > 0;
+        }, true);
     }
 
     /**
@@ -75,7 +70,7 @@ abstract class RedisTestCase extends TestCase {
         $key = 'pu-test-delete-key';
 
         $this->redis->set($key, 'data');
-        $this->deleteKeys($key);
+        $this->deleteRedisKeys($key);
         $this->assertSame(0, $this->redis->exists($key));
     }
 
@@ -91,7 +86,7 @@ abstract class RedisTestCase extends TestCase {
         $this->redis->set($key2, 'data2');
         $this->redis->set($key3, 'data3');
 
-        $this->deleteKeys([$key1, $key2, $key3]);
+        $this->deleteRedisKeys([$key1, $key2, $key3]);
 
         $this->assertSame(0, $this->redis->exists($key1));
         $this->assertSame(0, $this->redis->exists($key2));

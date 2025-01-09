@@ -87,38 +87,18 @@ class Helpers {
         return $info;
     }
 
-    /**
-     * Return key(s) as JSON.
-     *
-     * @param array<int, string>|string|null $keys
-     *
-     * @throws JsonException
-     */
-    private static function keysJson(array|string|null $keys = null, bool $base64 = false): string {
-        if ($keys === null) {
-            return Http::post('delete', '');
-        }
-
-        if ($base64) {
-            $keys = is_array($keys) ? array_map(static fn (string $key): string => base64_encode($key), $keys) : base64_encode($keys);
-        }
-
-        return json_encode($keys, JSON_THROW_ON_ERROR);
-    }
-
-    /**
-     * Delete key or selected keys.
-     *
-     * @param array<int, string>|string|null $keys_for_json
-     */
-    public static function deleteKey(Template $template, callable $delete_key, bool $base64 = false, array|string|null $keys_for_json = null): string {
+    public static function deleteKey(Template $template, callable $delete_key, bool $base64 = false): string {
         try {
-            $keys = json_decode(self::keysJson($keys_for_json, $base64), false, 512, JSON_THROW_ON_ERROR);
+            $keys = json_decode(Http::post('delete', ''), false, 512, JSON_THROW_ON_ERROR);
         } catch (JsonException) {
             $keys = [];
         }
 
         $b64_decode = static fn ($key): string => $base64 ? base64_decode($key) : $key;
+
+        if (is_string($keys) && $delete_key($b64_decode($keys))) {
+            return self::alert($template, sprintf('Key "%s" has been deleted.', $b64_decode($keys)), 'success');
+        }
 
         if (is_array($keys) && count($keys)) {
             foreach ($keys as $key) {
@@ -126,10 +106,6 @@ class Helpers {
             }
 
             return self::alert($template, 'Keys has been deleted.', 'success');
-        }
-
-        if (is_string($keys) && $delete_key($b64_decode($keys))) {
-            return self::alert($template, sprintf('Key "%s" has been deleted.', $b64_decode($keys)), 'success');
         }
 
         return self::alert($template, 'No keys are selected.');

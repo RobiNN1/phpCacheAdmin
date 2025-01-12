@@ -223,8 +223,11 @@ document.querySelectorAll('[data-sortcol]').forEach(element => {
 /**
  * Light / Dark mode
  */
+if (!('theme' in localStorage)) {
+    localStorage.theme = 'system';
+}
 const update_theme = () => {
-    const theme = localStorage.getItem('theme') || 'system';
+    const theme = localStorage.getItem('theme');
     let current_theme = theme;
 
     if (theme === 'system') {
@@ -237,7 +240,7 @@ const update_theme = () => {
     document.documentElement.classList.toggle('dark', current_theme === 'dark');
 
     const theme_colors = {light: '#fff', dark: '#1f2937'};
-    document.querySelector("meta[name='theme-color']").content = theme_colors[current_theme]
+    document.querySelector("meta[name='theme-color']").content = theme_colors[current_theme];
 };
 
 const init_theme_switcher = () => {

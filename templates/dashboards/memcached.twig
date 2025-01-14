@@ -7,7 +7,6 @@
 
 {% if get('tab', 'keys') == 'keys' %}
     {{ include('partials/keys_table.twig', {
-        tabs: true,
         buttons: {
             import_btn: true,
             export_btn: true,
@@ -23,7 +22,7 @@
 {% endif %}
 
 {% if get('tab') == 'commands_stats' %}
-    <div class="px-6 py-4 rounded-b bg-white border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+    <div class="px-6 py-4 rounded bg-white border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
         <div class="md:grid md:grid-cols-3 md:gap-4">
             {% for command in commands %}
                 {{ include('partials/panel.twig', {

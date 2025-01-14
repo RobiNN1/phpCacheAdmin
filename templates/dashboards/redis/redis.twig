@@ -7,7 +7,6 @@
 
 {% if get('tab', 'keys') == 'keys' %}
     {{ include('partials/keys_table.twig', {
-        tabs: true,
         buttons: {
             import_btn: true,
             export_btn: true,
@@ -26,7 +25,7 @@
 {% endif %}
 
 {% if get('tab') == 'slowlog' %}
-    <div class="rounded-b bg-white border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+    <div class="rounded bg-white border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
         <div class="px-6 py-4 md:flex justify-between">
             <form method="post" class="md:flex gap-1">
                 {{ include('components/input.twig', {

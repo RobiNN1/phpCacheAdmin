@@ -1,14 +1,10 @@
-<div class="rounded rounded-b-none bg-white border border-b-0 border-gray-200 dark:bg-gray-800 dark:border-gray-700">
-    <div class="text-sm font-semibold text-center border-b border-gray-200 -mb-px text-gray-500 dark:text-gray-400 dark:border-gray-700">
-        <ul class="flex flex-wrap -mb-px gap-2">
-            {% for link, title in links %}
-                {% set active = get('tab', links|keys|first) == link ? ' text-primary-600 border-primary-600 dark:text-primary-500 dark:border-primary-500' : ' border-transparent' %}
-                <li>
-                    <a href="{{ link([], {'tab': link}) }}" class="inline-block px-6 py-4 border-b-2 hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300 dark:hover:border-gray-500{{ active }}">
-                        {{ title }}
-                    </a>
-                </li>
-            {% endfor %}
-        </ul>
-    </div>
-</div>
+<ul class="flex flex-wrap gap-3 mb-5">
+    {% for link, title in links %}
+        {% set active = get('tab', links|keys|first) == link ? ' shadow bg-white dark:bg-gray-700' : ' hover:text-gray-600 dark:hover:text-gray-300' %}
+        <li>
+            <a href="{{ link([], {'tab': link}) }}" class="text-sm inline-flex rounded py-1.5 px-3 border border-transparent{{ active }}">
+                {{ title }}
+            </a>
+        </li>
+    {% endfor %}
+</ul>

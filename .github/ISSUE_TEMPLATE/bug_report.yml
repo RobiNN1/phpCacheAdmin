@@ -8,7 +8,8 @@ body:
     id: pca_version
     attributes:
       label: What version of phpCacheAdmin are you using?
-      placeholder: "e.g. v1.0.0"
+      description: Don't write "latest" or anything like that! There is a version number at the bottom of the page.
+      placeholder: "e.g. v2.0.0"
     validations:
       required: true
   - type: input
@@ -16,13 +17,13 @@ body:
     attributes:
       label: Cache system and version
       description: You can find it in every dashboard. Leave blank if the issue is not related to a particular cache system.
-      placeholder: "e.g. Redis 7.0.2"
+      placeholder: "e.g. Redis 7.2.6"
   - type: input
     id: extension
     attributes:
       label: Extension or client and version
       description: You can find it in every dashboard. Leave blank if the issue is not related to a particular cache system.
-      placeholder: "e.g. PHP Redis extension v6.0.0-dev"
+      placeholder: "e.g. PHP Redis extension v6.1.0 or Predis v2.3.0"
   - type: input
     id: php_version
     attributes:

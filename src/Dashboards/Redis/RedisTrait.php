@@ -50,9 +50,10 @@ trait RedisTrait {
                 $used_memory_formatted = ['Used', Format::bytes($used_memory)];
             }
 
-            $hits = $info['stats']['keyspace_hits'];
-            $misses = $info['stats']['keyspace_misses'];
-            $hit_rate = $hits !== 0 ? round(($hits / ($hits + $misses)) * 100, 2) : 0;
+            $hits = (int) $info['stats']['keyspace_hits'];
+            $misses = (int) $info['stats']['keyspace_misses'];
+            $total = $hits + $misses;
+            $hit_rate = $total !== 0 ? round(($hits / $total) * 100, 2) : 0;
 
             $panels = [
                 [

@@ -7,7 +7,7 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /var/www/html
 
-RUN rm -rf tests composer.json package.json phpstan.neon phpunit.xml README.md tailwind.config.js docker-compose.yml Dockerfile
+RUN rm -rf tests composer.json package.json phpstan.neon phpunit.xml README.md docker-compose.yml Dockerfile
 
 RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
 

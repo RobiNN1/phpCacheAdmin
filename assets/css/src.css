@@ -1,4 +1,4 @@
-@import "tailwindcss" source(none);
+@import 'tailwindcss' source(none);
 @import 'tailwindcss/theme' theme(inline reference);
 @source '../../templates/';
 @variant dark (&:where(.dark, .dark *));

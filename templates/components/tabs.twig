@@ -1,8 +1,8 @@
 <ul class="flex flex-wrap gap-3 mb-5">
     {% for link, title in links %}
-        {% set active = get('tab', links|keys|first) == link ? ' shadow bg-white dark:bg-gray-700' : ' hover:text-gray-600 dark:hover:text-gray-300' %}
+        {% set active = get('tab', links|keys|first) == link ? ' shadow-sm bg-white dark:bg-gray-700' : ' hover:text-gray-600 dark:hover:text-gray-300' %}
         <li>
-            <a href="{{ link([], {'tab': link}) }}" class="text-sm inline-flex rounded py-1.5 px-3 border border-transparent{{ active }}">
+            <a href="{{ link([], {'tab': link}) }}" class="text-sm inline-flex rounded-sm py-1.5 px-3 border border-transparent{{ active }}">
                 {{ title }}
             </a>
         </li>

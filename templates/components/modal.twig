@@ -4,11 +4,11 @@
     <div id="{{ modal_id }}" class="modal fixed inset-0 z-50 transition-opacity duration-300 pointer-events-none opacity-0 flex items-center justify-center">
         <div class="modal-backdrop fixed inset-0 bg-gray-500/75 dark:bg-gray-900/75"></div>
 
-        <div class="relative bg-white rounded shadow dark:bg-gray-700">
-            <div class="flex items-center justify-between p-4 md:min-w-[35rem] border-b dark:border-gray-600">
+        <div class="relative bg-white rounded-sm shadow-sm dark:bg-gray-700">
+            <div class="flex items-center justify-between p-4 md:min-w-[35rem] border-b border-gray-200 dark:border-gray-600">
                 <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ title }}</h3>
 
-                <button data-modal-dismiss type="button" class="text-gray-400 hover:text-gray-900 rounded text-sm inline-flex justify-center items-center dark:hover:text-white">
+                <button data-modal-dismiss type="button" class="text-gray-400 hover:text-gray-900 rounded-sm text-sm inline-flex justify-center items-center dark:hover:text-white">
                     {{ svg('close', 13) }}
                 </button>
             </div>

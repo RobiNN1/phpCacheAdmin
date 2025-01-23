@@ -15,5 +15,4 @@ phpstan.neon export-ignore
 phpunit.xml export-ignore
 assets/css/src.css export-ignore
 package.json export-ignore
-tailwind.config.js export-ignore
 tests export-ignore

@@ -56,7 +56,7 @@ if (isset($_GET['ajax'])) {
         $colors = '';
 
         foreach ((array) $info['colors'] as $key => $color) {
-            $colors .= '--primary-color-'.$key.':'.$color.';';
+            $colors .= '--color-primary-'.$key.':'.$color.';';
         }
     }
 

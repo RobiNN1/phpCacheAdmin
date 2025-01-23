@@ -9,7 +9,7 @@
 {% set size = small ? 'text-sm' : 'text-base' %}
 {% set icon_size = small ? 12 : 16 %}
 
-{% set classes = size ~ ' inline-flex items-center border border-transparent rounded py-1.5 px-3 font-semibold text-white align-middle shadow focus:ring dark:text-white ' ~ btn_color %}
+{% set classes = size ~ ' inline-flex items-center border border-transparent rounded-sm py-1.5 px-3 font-semibold text-white align-middle shadow-sm focus:ring-3 dark:text-white ' ~ btn_color %}
 
 {% if link %}
     <a href="{{ link }}" class="{{ classes ~ class|space }}">

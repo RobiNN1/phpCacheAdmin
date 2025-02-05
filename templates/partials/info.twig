@@ -1,11 +1,13 @@
 {% for panel in panels %}
-    {% if not panel.error %}
-        {{ include('partials/panel.twig', {
-            panel_title: panel.title,
-            array: panel.data,
-            moreinfo: panel.moreinfo,
-        }) }}
-    {% else %}
-        {{ panel.error }}
+    {% if panel %}
+        {% if not panel.error %}
+            {{ include('partials/panel.twig', {
+                panel_title: panel.title,
+                array: panel.data,
+                moreinfo: panel.moreinfo,
+            }) }}
+        {% else %}
+            {{ panel.error }}
+        {% endif %}
     {% endif %}
 {% endfor %}

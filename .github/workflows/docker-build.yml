@@ -32,4 +32,4 @@ jobs:
           platforms: linux/amd64,linux/arm64
           tags: |
             robinn/phpcacheadmin:${{ github.ref_name }}
-#            robinn/phpcacheadmin:latest
+            robinn/phpcacheadmin:latest

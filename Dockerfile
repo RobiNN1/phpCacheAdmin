@@ -1,8 +1,8 @@
 FROM php:8.4-apache
 
-RUN apt-get update && apt-get install -y git libz-dev libssl-dev libmemcached-dev \
-    && pecl install redis memcached apcu \
-    && docker-php-ext-enable redis memcached opcache apcu \
+RUN apt-get update && apt-get install -y git libz-dev libssl-dev \
+    && pecl install redis apcu \
+    && docker-php-ext-enable redis opcache apcu \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 WORKDIR /var/www/html

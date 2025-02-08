@@ -55,12 +55,14 @@ trait RedisTrait {
             $total = $hits + $misses;
             $hit_rate = $total !== 0 ? round(($hits / $total) * 100, 2) : 0;
 
+            $redis_mode = isset($info['server']['redis_mode']) ? ', '.$info['server']['redis_mode'].' mode' : '';
+
             $panels = [
                 [
                     'title'    => $title ?? null,
                     'moreinfo' => true,
                     'data'     => [
-                        'Version' => $info['server']['redis_version'].', '.$info['server']['redis_mode'].' mode',
+                        'Version' => $info['server']['redis_version'].$redis_mode,
                         'Cluster' => $info['cluster']['cluster_enabled'] ? 'Enabled' : 'Disabled',
                         'Uptime'  => Format::seconds((int) $info['server']['uptime_in_seconds']),
                         'Role'    => $info['replication']['role'].', connected slaves '.$info['replication']['connected_slaves'],

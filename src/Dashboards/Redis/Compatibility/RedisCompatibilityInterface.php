@@ -31,11 +31,6 @@ interface RedisCompatibilityInterface {
     public function getInfo(?string $option = null): array;
 
     /**
-     * Execute any Redis command.
-     */
-    public function rawcommand(string $command, mixed ...$args): mixed;
-
-    /**
      * Alias to a scan().
      *
      * @return array<int, string>

@@ -6,9 +6,7 @@
 
 declare(strict_types=1);
 
-namespace Dashboards\Redis;
-
-use Tests\Dashboards\Redis\RedisTestCase;
+namespace Tests\Dashboards\Redis;
 
 class PredisTest extends RedisTestCase {
     protected string $client = 'predis';

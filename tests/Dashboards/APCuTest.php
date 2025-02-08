@@ -22,7 +22,7 @@ final class APCuTest extends TestCase {
 
     public static function setUpBeforeClass(): void {
         if (ini_get('apc.enable_cli') !== '1') {
-            self::markTestSkipped('APC CLI is not enabled. Skipping all tests.');
+            self::markTestSkipped('APC CLI is not enabled. Skipping tests.');
         }
     }
 

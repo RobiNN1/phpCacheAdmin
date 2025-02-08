@@ -1,9 +1,9 @@
-FROM php:8.4-apache
+FROM php:8.3-apache
 
-RUN apt-get update && apt-get install -y git libz-dev libssl-dev \
-    && pecl install redis apcu \
-    && docker-php-ext-enable redis opcache apcu \
-    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+RUN apt-get update && apt-get install -y git
+RUN pecl install -o -f redis && docker-php-ext-enable redis
+RUN pecl install -o -f apcu && docker-php-ext-enable apcu
+RUN docker-php-ext-enable opcache
 
 WORKDIR /var/www/html
 

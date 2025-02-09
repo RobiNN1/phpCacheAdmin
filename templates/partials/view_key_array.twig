@@ -10,7 +10,7 @@
 
 {% for item in value %}
     <div class="mb-4 rounded-sm bg-white border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
-        <div class="flex justify-between overflow-y-auto border-b px-4 py-1.5 dark:border-gray-700">
+        <div class="flex justify-between overflow-y-auto border-b border-gray-200 px-4 py-1.5 dark:border-gray-700">
             <span class="dark:text-gray-300">
                 {% if type not in types.extra.hide_title %}
                     {{ types[type].title }} {{ include('components/badge.twig', {text: item.sub_key, class: 'font-bold', bg: 'bg-slate-400 dark:bg-slate-600'}) }}

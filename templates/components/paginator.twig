@@ -7,13 +7,13 @@
     </div>
 
     <div class="mb-4 flex items-center gap-2 md:mb-0 md:justify-center">
-        {{ include('components/select.twig', {id: 'per_page', options: select, selected: per_page, width: 'w-24'}) }}
+        {{ include('components/select.twig', {id: 'per_page', options: select, selected: per_page, width: 'w-24', wrapper_class: false}) }}
         <label class="-mt-1.5" for="per_page">per page</label>
     </div>
 
     {% if pages and pages|length > 1 %}
         <div class="flex items-center md:justify-end">
-            <ul class="inline-flex -space-x-px">
+            <ul class="inline-flex -space-x-px text-sm">
                 {% for page in pages %}
                     {% if page == current_page %}
                         {% set class = 'border-primary-400 bg-primary-500 text-white hover:bg-primary-600 dark:bg-primary-900 dark:hover:bg-primary-800 dark:border-primary-700' %}

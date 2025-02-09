@@ -2,15 +2,13 @@
     <input type="hidden" name="old_key" value="{{ key }}">
     <input type="hidden" name="old_value" value="{{ value }}">
 
-    <div class="mb-4">
-        <label for="redis_type" class="mb-2 block text-sm font-semibold">Type</label>
-        {{ include('components/select.twig', {
-            id: 'redis_type',
-            options: types,
-            class: 'w-full',
-            selected: type,
-        }) }}
-    </div>
+    {{ include('components/select.twig', {
+        id: 'redis_type',
+        label: 'Type',
+        options: types,
+        class: 'w-full',
+        selected: type,
+    }) }}
 
     <div class="md:grid md:grid-cols-2 md:gap-2">
         {{ include('components/input.twig', {
@@ -55,15 +53,13 @@
     }) }}
 
     {% if encoders %}
-        <div class="mb-4">
-            <label for="encoder" class="mb-2 block text-sm font-semibold">Encode function</label>
-            {{ include('components/select.twig', {
-                id: 'encoder',
-                options: encoders,
-                class: 'w-full',
-                selected: encoder,
-            }) }}
-        </div>
+        {{ include('components/select.twig', {
+            id: 'encoder',
+            label: 'Encode function',
+            options: encoders,
+            class: 'w-full',
+            selected: encoder,
+        }) }}
     {% endif %}
 
     {{ include('components/textarea.twig', {

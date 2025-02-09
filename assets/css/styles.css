@@ -209,9 +209,6 @@
   .mb-4 {
     margin-bottom: calc(0.25rem * 4);
   }
-  .mb-5 {
-    margin-bottom: calc(0.25rem * 5);
-  }
   .block {
     display: block;
   }
@@ -490,10 +487,6 @@
   .align-middle {
     vertical-align: middle;
   }
-  .text-base {
-    font-size: 1rem;
-    line-height: var(--tw-leading, calc(1.5 / 1));
-  }
   .text-lg {
     font-size: 1.125rem;
     line-height: var(--tw-leading, calc(1.75 / 1.125));
@@ -614,10 +607,10 @@
       padding-block: calc(0.25rem * 1.5);
     }
   }
-  .file\:text-base {
+  .file\:text-sm {
     &::file-selector-button {
-      font-size: 1rem;
-      line-height: var(--tw-leading, calc(1.5 / 1));
+      font-size: 0.875rem;
+      line-height: var(--tw-leading, calc(1.25 / 0.875));
     }
   }
   .file\:font-semibold {

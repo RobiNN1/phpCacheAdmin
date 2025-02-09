@@ -1,8 +1,12 @@
-{% set size = small ? 'text-sm' : 'text-base' %}
-<select id="{{ id }}" name="{{ id }}"
-        class="select {{ width ? width : 'w-full' }} {{ size }} appearance-none rounded border border-gray-300 bg-white py-1.5 px-3 focus:outline-hidden focus:ring-3 focus:ring-primary-200 focus:border-primary-300
+<div{{ (wrapper_class is not defined ? ' class="mb-4"' : '')|raw }}>
+    {% if label %}
+        <label for="{{ id }}" class="mb-2 block text-sm font-semibold">{{ label|raw }}</label>
+    {% endif %}
+    <select id="{{ id }}" name="{{ id }}"
+            class="select {{ width ? width : 'w-full' }} text-sm appearance-none rounded border border-gray-300 bg-white py-1.5 px-3 focus:outline-hidden focus:ring-3 focus:ring-primary-200 focus:border-primary-300
         dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-400{{ class|space }}" aria-label="">
         {% for value, name in options %}
-                <option value="{{ value }}"{{ value == selected ? ' selected' : '' }}>{{ name }}</option>
+            <option value="{{ value }}"{{ value == selected ? ' selected' : '' }}>{{ name }}</option>
         {% endfor %}
-</select>
+    </select>
+</div>

@@ -405,7 +405,6 @@ trait RedisTrait {
                 'id'       => 'db_select',
                 'options'  => $this->getDatabases(),
                 'selected' => Http::get('db', $this->servers[$this->current_server]['database'] ?? 0),
-                'class'    => 'mb-4',
             ]);
         } catch (DashboardException|Exception) {
             $databases = '';

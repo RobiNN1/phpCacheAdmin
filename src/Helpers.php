@@ -185,10 +185,10 @@ class Helpers {
         $options = array_map(static fn ($server): string => self::getServerTitle($server), $servers);
 
         return $template->render('components/select', [
-            'id'       => 'server_select',
-            'options'  => $options,
-            'selected' => $selected,
-            'small'    => true,
+            'id'            => 'server_select',
+            'options'       => $options,
+            'selected'      => $selected,
+            'wrapper_class' => false,
         ]);
     }
 

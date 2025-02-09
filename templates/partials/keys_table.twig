@@ -1,4 +1,3 @@
-{% set show_actions = hide_actions is not defined or hide_actions == false %}
 <div class="mb-4 rounded-sm bg-white border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
     <div class="px-6 py-4 md:flex justify-between">
         <div>
@@ -14,7 +13,6 @@
                         icon: 'search',
                         id: 'submit_search',
                         class: 'rounded-l-none',
-                        small: true,
                     }) }}
                 </div>
             {% endif %}
@@ -35,7 +33,6 @@
                     icon: 'export',
                     link: link([], {'export_btn': 1}),
                     btn_green: true,
-                    small: true,
                 }) }}
             {% endif %}
 
@@ -45,7 +42,6 @@
                     icon: 'plus',
                     link: link([], {'form': 'new'}),
                     btn_green: true,
-                    small: true,
                 }) }}
             {% endif %}
 
@@ -55,7 +51,6 @@
                     icon: 'trash',
                     id: 'delete_all',
                     btn_red: true,
-                    small: true,
                 }) }}
 
                 {% if buttons.delete_selected_btn is not defined or buttons.delete_selected_btn == true %}
@@ -64,79 +59,14 @@
                         icon: 'trash',
                         id: 'delete_selected',
                         btn_red: true,
-                        small: true,
                     }) }}
                 {% endif %}
             {% endif %}
         </div>
     </div>
 
-    <div class="overflow-hidden overflow-x-auto">
-        <table class="w-full table-auto text-left dark:text-gray-300">
-            <thead>
-            <tr class="text-primary-900 border-t border-b border-gray-200 dark:border-gray-700 dark:text-primary-400">
-                {% if show_actions %}
-                    <th class="pl-6 px-3 py-2 w-4">{{ include('components/checkbox.twig', {disabled: keys|length == 0, class: 'check-all'}) }}</th>
-                {% endif %}
-                {% for item in head_items %}
-                    {% set is_active = sortcol == item.sort %}
-                    {% set data_sort = item.sort ? ' data-sortdir="' ~ sortdir ~ '" data-sortcol="' ~ item.sort ~ '"' : '' %}
+    {{ include('partials/table_view.twig') }}
 
-                    <th class="px-3 py-2 text-xs font-bold uppercase whitespace-nowrap{{ item.class|space }}">
-                        <span class="inline-flex gap-1 items-center{{ item.sort ? ' cursor-pointer' : '' }}"{{ data_sort|raw }}>
-                            {{ item.title }}
-                            {% if item.sort %}
-                                {{ svg('down', 10, (is_active ? '' : 'opacity-30') ~ (is_active and sortdir == 'asc' ? ' rotate-180' : '')) }}
-                            {% endif %}
-                        </span>
-                    </th>
-                {% endfor %}
-                {% if show_actions %}
-                    <th class="px-3 py-2 text-xs font-bold uppercase whitespace-nowrap w-24">Actions</th>
-                {% endif %}
-            </tr>
-            </thead>
-            <tbody>
-            {% for key in keys %}
-                <tr class="hover:bg-gray-50 dark:hover:bg-white/5" data-key="{{ key.base64 ? key.key|base64 : key.key }}">
-                    {% if show_actions %}
-                        <td class="pl-6 px-3 py-2 border-b border-gray-200 dark:border-gray-700">{{ include('components/checkbox.twig', {class: 'check-key'}) }}</td>
-                    {% endif %}
-                    {% for item_key, item in key.items %}
-                        {% set is_title = item_key == 'title' or (item_key == 'link_title' and view_key) %}
-                        {% set td_class = is_title ? ' max-w-xs md:max-w-md truncate hover:text-clip hover:break-all hover:whitespace-normal' : '' %}
-                        <td class="px-3 py-2 border-b border-gray-200 text-sm{{ td_class }}{{ classes[loop.index]|space }} dark:border-gray-700 dark:text-gray-300">
-                            {% if item_key == 'link_title' and view_key %}
-                                {% set link = view_key|replace({'__key__': key.key}) %}
-                                <a class="text-primary-500 hover:text-primary-700 font-semibold dark:text-primary-400 dark:hover:text-primary-300" href="{{ link }}">{{ item }}</a>
-                            {% elseif item_key == 'type' %}
-                                {% import 'partials/key_type_badge.twig' as key_badge %}
-                                {{- key_badge.key_type(item) -}}
-                            {% elseif item_key starts with 'number_' %}
-                                {{- item|number -}}
-                            {% elseif item_key starts with 'time_' %}
-                                {{- item|time -}}
-                            {% elseif item_key starts with 'timediff_' %}
-                                <span title="{{ item|time }}">{{- item|timediff -}}</span>
-                            {% elseif item_key starts with 'bytes_' %}
-                                {{- item|bytes -}}
-                            {% else %}
-                                {{- item -}}
-                            {% endif %}
-                        </td>
-                    {% endfor %}
-                    {% if show_actions %}
-                        <td class="px-3 py-2 border-b border-gray-200 text-sm whitespace-nowrap dark:border-gray-700">
-                            <button class="delete-key text-red-500 hover:text-red-700 font-semibold inline-flex items-center" type="button" title="Delete">
-                                {{ svg('trash', 16, 'mr-1') }} Delete
-                            </button>
-                        </td>
-                    {% endif %}
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-    </div>
     <div id="table-no-keys" class="{{ keys|length > 0 ? 'hidden ' : '' }}p-4 border-b border-gray-200 dark:border-gray-700 text-center dark:text-gray-400">
         No keys.
     </div>

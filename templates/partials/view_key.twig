@@ -38,15 +38,15 @@
 
     <span>
         {% if export_url %}
-            <a href="{{ export_url }}" class="inline-flex items-center font-semibold text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
-                {{ svg('export', 16, 'mr-1') }} Export
+            <a href="{{ export_url }}" class="inline-flex items-center gap-1 font-semibold text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
+                {{ svg('export', 16) }} Export
             </a>
         {% endif %}
 
         {% if delete_url %}
-            <a href="{{ delete_url }}" class="inline-flex items-center font-semibold text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+            <a href="{{ delete_url }}" class="inline-flex items-center gap-1 font-semibold text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
                onclick="return confirm('Are you sure you want to remove this item?');">
-                {{ svg('trash', 16, 'mr-1') }} Delete
+                {{ svg('trash', 16) }} Delete
             </a>
         {% endif %}
     </span>
@@ -56,8 +56,8 @@
     {{ include('partials/view_key_array.twig') }}
 {% else %}
     {% if edit_url %}
-        <a href="{{ edit_url ~ encode_url }}" class="mr-3 mb-4 inline-flex items-center font-semibold text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
-            {{ svg('edit', 16, 'mr-1') }} Edit
+        <a href="{{ edit_url ~ encode_url }}" class="mr-3 mb-4 inline-flex items-center gap-1 font-semibold text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
+            {{ svg('edit', 16) }} Edit
         </a>
     {% endif %}
     <div class="rounded-sm bg-white border border-gray-200 dark:bg-gray-800 dark:border-gray-700">

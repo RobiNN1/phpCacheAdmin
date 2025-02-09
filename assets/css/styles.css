@@ -194,9 +194,6 @@
   .-mt-1\.5 {
     margin-top: calc(0.25rem * -1.5);
   }
-  .mr-1 {
-    margin-right: calc(0.25rem * 1);
-  }
   .mr-3 {
     margin-right: calc(0.25rem * 3);
   }

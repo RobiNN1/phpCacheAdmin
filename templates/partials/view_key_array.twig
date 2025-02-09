@@ -32,13 +32,13 @@
 
             <div>
                 {% if type not in types.extra.hide_edit %}
-                    <a href="{{ edit_url }}&{{ types[type].param }}={{ item.key ~ item_encode_url }}" class="text-gray-500 hover:text-gray-700 font-semibold inline-flex items-center mr-3 dark:text-gray-400 dark:hover:text-gray-300">
-                        {{ svg('edit', 16, 'mr-1') }} Edit
+                    <a href="{{ edit_url }}&{{ types[type].param }}={{ item.key ~ item_encode_url }}" class="text-gray-500 hover:text-gray-700 font-semibold inline-flex items-center gap-1 mr-3 dark:text-gray-400 dark:hover:text-gray-300">
+                        {{ svg('edit', 16) }} Edit
                     </a>
                 {% endif %}
-                <a href="{{ deletesub_url }}&{{ types[type].param }}={{ item.key }}" class="text-red-500 hover:text-red-700 font-semibold inline-flex items-center dark:text-red-400 dark:hover:text-red-300"
+                <a href="{{ deletesub_url }}&{{ types[type].param }}={{ item.key }}" class="text-red-500 hover:text-red-700 font-semibold inline-flex items-center gap-1 dark:text-red-400 dark:hover:text-red-300"
                    onclick="return confirm('Are you sure you want to remove this item?');">
-                    {{ svg('trash', 16, 'mr-1') }} Delete
+                    {{ svg('trash', 16) }} Delete
                 </a>
             </div>
         </div>

@@ -6,15 +6,10 @@
     {% set btn_color = 'bg-primary-500 hover:bg-primary-600 focus:ring-primary-200 disabled:bg-primary-300 dark:bg-primary-700 dark:hover:bg-primary-800 dark:focus:ring-primary-400 dark:disabled:bg-primary-400' %}
 {% endif %}
 
-{% set classes = 'text-sm inline-flex items-center border border-transparent rounded-sm py-1.5 px-3 font-semibold text-white align-middle shadow-sm focus:ring-3 dark:text-white ' ~ btn_color %}
+{% set classes = 'text-sm inline-flex items-center gap-1 border border-transparent rounded-sm py-1.5 px-3 font-semibold text-white align-middle shadow-sm focus:ring-3 dark:text-white ' ~ btn_color %}
 
 {% if link %}
-    <a href="{{ link }}" class="{{ classes ~ class|space }}">
-        {% if icon %}
-            {{ svg(icon, 12, (text ? 'mr-1' : '')) }}
-        {% endif %}
-        {{ text }}
-    </a>
+    <a href="{{ link }}" class="{{ classes ~ class|space }}">{{ icon ? svg(icon, 12) : '' }}{{ text }}</a>
 {% else %}
     {% macro attr(attributes) %}
         {% for name, value in attributes %}
@@ -29,9 +24,6 @@
     {% set id = id is not empty ? 'id="' ~ id ~ '" name="' ~ id ~ '" ' : '' %}
 
     <button type="{{ submit ? 'submit' : 'button' }}" {{ id|raw }}class="{{ classes ~ class|space }}"{{ _self.attr(attributes) }}>
-        {% if icon %}
-            {{ svg(icon, 12, (text ? 'mr-1' : '')) }}
-        {% endif %}
-        {{ text }}
+        {{ icon ? svg(icon, 12) : '' }}{{ text }}
     </button>
 {% endif %}

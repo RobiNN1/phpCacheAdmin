@@ -220,7 +220,7 @@ trait MemcachedTrait {
                 $keys[] = [
                     'key'   => $key,
                     'items' => [
-                        'link_title'           => $key,
+                        'link_title'           => urldecode($key),
                         'bytes_size'           => $key_data['size'],
                         'timediff_last_access' => $key_data['la'],
                         'ttl'                  => $ttl === -1 ? 'Doesn\'t expire' : $ttl - $time,
@@ -324,7 +324,7 @@ trait MemcachedTrait {
         if (isset($_POST['submit_import_key'])) {
             Helpers::import(
                 fn (string $key): bool => $this->memcached->exists($key),
-                fn (string $key, string $value, int $ttl): bool => $this->memcached->set($key, base64_decode($value), $ttl)
+                fn (string $key, string $value, int $ttl): bool => $this->memcached->set(urldecode($key), base64_decode($value), $ttl)
             );
         }
 
@@ -335,7 +335,7 @@ trait MemcachedTrait {
         $keys = $this->getAllKeys();
 
         if (isset($_GET['export_btn'])) {
-            Helpers::export($keys, 'memcached_backup', fn (string $key): string => base64_encode($this->memcached->getKey($key)));
+            Helpers::export($keys, 'memcached_backup', fn (string $key): string => base64_encode($this->memcached->getKey(urldecode($key))));
         }
 
         $paginator = new Paginator($this->template, $keys);

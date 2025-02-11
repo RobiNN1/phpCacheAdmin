@@ -342,7 +342,7 @@ trait MemcachedTrait {
 
         return $this->template->render('dashboards/memcached', [
             'keys'      => $paginator->getPaginated(),
-            'all_keys'  => count($keys),
+            'all_keys'  => $this->memcached->getServerStats()['curr_items'],
             'paginator' => $paginator->render(),
             'view_key'  => Http::queryString([], ['view' => 'key', 'key' => '__key__']),
         ]);

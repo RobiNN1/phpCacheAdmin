@@ -335,9 +335,7 @@ trait RedisTrait {
      * @throws Exception
      */
     private function getAllKeys(): array {
-        static $keys = [];
         $filter = Http::get('s', '*');
-
         $this->template->addGlobal('search_value', $filter);
 
         if (isset($this->servers[$this->current_server]['scansize'])) {
@@ -346,6 +344,23 @@ trait RedisTrait {
             $keys_array = $this->redis->keys($filter);
         }
 
+        return array_map(static fn ($key): array => ['key' => $key], $keys_array);
+    }
+
+    /**
+     * @param array<int|string, mixed> $paginated_keys
+     *
+     * @return array<int, array<string, string|int>>
+     *
+     * @throws Exception
+     */
+    private function formatTableKeys(array $paginated_keys): array {
+        if ($paginated_keys === []) {
+            return [];
+        }
+
+        $keys = [];
+        $keys_array = array_column($paginated_keys, 'key');
         $pipeline = $this->redis->pipelineKeys($keys_array);
 
         foreach ($keys_array as $key) {
@@ -364,9 +379,7 @@ trait RedisTrait {
             ];
         }
 
-        $keys = Helpers::sortKeys($this->template, $keys);
-
-        return $keys;
+        return Helpers::sortKeys($this->template, $keys);
     }
 
     /**
@@ -466,9 +479,11 @@ trait RedisTrait {
         }
 
         $paginator = new Paginator($this->template, $keys, [['s', 'pp'], ['p' => '']]);
+        $paginated_keys = $paginator->getPaginated();
+        $paginated = $this->formatTableKeys($paginated_keys);
 
         return $this->template->render('dashboards/redis/redis', [
-            'keys'      => $paginator->getPaginated(),
+            'keys'      => $paginated,
             'all_keys'  => $this->redis->dbSize(),
             'paginator' => $paginator->render(),
             'view_key'  => Http::queryString(['s'], ['view' => 'key', 'key' => '__key__']),

@@ -75,8 +75,9 @@ if (delete_selected) {
 
 const keys = document.querySelectorAll('[data-key]');
 keys.forEach(key => {
-    if (delete_selected) {
-        key.querySelector('.check-key').addEventListener('change', () => {
+    const check_key = key.querySelector('.check-key');
+    if (check_key && delete_selected) {
+        check_key.addEventListener('change', () => {
             delete_selected.disabled = document.querySelectorAll('.check-key:checked').length < 1;
         });
     }

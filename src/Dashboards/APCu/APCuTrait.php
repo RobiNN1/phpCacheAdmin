@@ -180,7 +180,7 @@ trait APCuTrait {
     /**
      * @return array<int, array<string, string|int>>
      */
-    private function getAllKeys(): array {
+    public function getAllKeys(): array {
         $search = Http::get('s', '');
         $this->template->addGlobal('search_value', $search);
 

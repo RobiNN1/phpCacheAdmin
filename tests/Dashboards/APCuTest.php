@@ -83,4 +83,93 @@ final class APCuTest extends TestCase {
 
         apcu_delete($key);
     }
+
+    public function testGetAllKeysTableView(): void {
+        apcu_store('pu-test-table1', 'value1');
+        apcu_store('pu-test-table2', 'value2');
+        $_GET['s'] = 'pu-test-table';
+        $_GET['view'] = 'table';
+
+        $result = $this->dashboard->getAllKeys();
+
+        $info = [
+            'bytes_size'         => 0,
+            'number_hits'        => 0,
+            'timediff_last_used' => 0,
+            'time_created'       => 0,
+            'ttl'                => 'Doesn\'t expire',
+        ];
+
+        $expected = [
+            [
+                'key'    => 'pu-test-table1',
+                'base64' => true,
+                'info'   => array_merge(['link_title' => 'pu-test-table1'], $info),
+            ],
+            [
+                'key'    => 'pu-test-table2',
+                'base64' => true,
+                'info'   => array_merge(['link_title' => 'pu-test-table2'], $info),
+            ],
+        ];
+
+        $result = $this->normalizeInfoFields($result, ['bytes_size', 'number_hits', 'timediff_last_used', 'time_created']);
+
+        $this->assertEquals($this->sortKeys($expected), $this->sortKeys($result));
+    }
+
+    public function testGetAllKeysTreeView(): void {
+        apcu_store('pu-test-tree1:sub1', 'value1');
+        apcu_store('pu-test-tree1:sub2', 'value2');
+        apcu_store('pu-test-tree2', 'value3');
+        $_GET['s'] = 'pu-test-tree';
+        $_GET['view'] = 'tree';
+
+        $result = $this->dashboard->getAllKeys();
+
+        $info = [
+            'bytes_size'         => 0,
+            'number_hits'        => 0,
+            'timediff_last_used' => 0,
+            'time_created'       => 0,
+            'ttl'                => 'Doesn\'t expire',
+        ];
+
+        $expected = [
+            'pu-test-tree1' => [
+                'type'     => 'folder',
+                'name'     => 'pu-test-tree1',
+                'path'     => 'pu-test-tree1',
+                'children' => [
+                    [
+                        'type'   => 'key',
+                        'name'   => 'sub1',
+                        'key'    => 'pu-test-tree1:sub1',
+                        'base64' => true,
+                        'info'   => $info,
+                    ],
+                    [
+                        'type'   => 'key',
+                        'name'   => 'sub2',
+                        'key'    => 'pu-test-tree1:sub2',
+                        'base64' => true,
+                        'info'   => $info,
+                    ],
+                ],
+                'expanded' => false,
+                'count'    => 2,
+            ],
+            [
+                'type'   => 'key',
+                'name'   => 'pu-test-tree2',
+                'key'    => 'pu-test-tree2',
+                'base64' => true,
+                'info'   => $info,
+            ],
+        ];
+
+        $result = $this->normalizeInfoFields($result, ['bytes_size', 'number_hits', 'timediff_last_used', 'time_created']);
+
+        $this->assertEquals($this->sortTreeKeys($expected), $this->sortTreeKeys($result));
+    }
 }

@@ -201,7 +201,7 @@ trait MemcachedTrait {
      *
      * @throws MemcachedException
      */
-    private function getAllKeys(): array {
+    public function getAllKeys(): array {
         $search = Http::get('s', '');
         $this->template->addGlobal('search_value', $search);
 

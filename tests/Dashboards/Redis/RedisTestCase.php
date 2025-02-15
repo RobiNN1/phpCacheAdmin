@@ -47,9 +47,7 @@ abstract class RedisTestCase extends TestCase {
      * @throws Exception
      */
     protected function tearDown(): void {
-        foreach (['string', 'set', 'list', 'zset', 'hash', 'stream'] as $key) {
-            $this->redis->del('pu-test-type-'.$key);
-        }
+        $this->redis->flushDB();
     }
 
     /**
@@ -248,5 +246,96 @@ abstract class RedisTestCase extends TestCase {
             ['1670541476219-1' => ['field3' => 'stvalue3']],
             $this->dashboard->getAllKeyValues('stream', 'pu-test-type-stream')
         );
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testGetAllKeysTableView(): void {
+        $this->redis->set('pu-test-table1', 'value1');
+        $this->redis->set('pu-test-table2', 'value2');
+        $_GET['s'] = 'pu-test-table*';
+        $_GET['view'] = 'table';
+
+        $result = $this->dashboard->getAllKeys();
+
+        $info = [
+            'bytes_size' => 0,
+            'type'       => 'string',
+            'ttl'        => 'Doesn\'t expire',
+        ];
+
+        $expected = [
+            [
+                'key'    => 'pu-test-table1',
+                'base64' => true,
+                'info'   => array_merge(['link_title' => 'pu-test-table1'], $info),
+            ],
+            [
+                'key'    => 'pu-test-table2',
+                'base64' => true,
+                'info'   => array_merge(['link_title' => 'pu-test-table2'], $info),
+            ],
+        ];
+
+        $result = $this->normalizeInfoFields($result, ['bytes_size']);
+
+        $this->assertEquals($this->sortKeys($expected), $this->sortKeys($result));
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testGetAllKeysTreeView(): void {
+        $this->redis->set('pu-test-tree1:sub1', 'value1');
+        $this->redis->set('pu-test-tree1:sub2', 'value2');
+        $this->redis->set('pu-test-tree2', 'value3');
+        $_GET['s'] = 'pu-test-tree*';
+        $_GET['view'] = 'tree';
+
+        $result = $this->dashboard->getAllKeys();
+
+        $info = [
+            'bytes_size' => 0,
+            'type'       => 'string',
+            'ttl'        => 'Doesn\'t expire',
+        ];
+
+        $expected = [
+            'pu-test-tree1' => [
+                'type'     => 'folder',
+                'name'     => 'pu-test-tree1',
+                'path'     => 'pu-test-tree1',
+                'children' => [
+                    [
+                        'type'   => 'key',
+                        'name'   => 'sub1',
+                        'key'    => 'pu-test-tree1:sub1',
+                        'base64' => true,
+                        'info'   => $info,
+                    ],
+                    [
+                        'type'   => 'key',
+                        'name'   => 'sub2',
+                        'key'    => 'pu-test-tree1:sub2',
+                        'base64' => true,
+                        'info'   => $info,
+                    ],
+                ],
+                'expanded' => false,
+                'count'    => 2,
+            ],
+            [
+                'type'   => 'key',
+                'name'   => 'pu-test-tree2',
+                'key'    => 'pu-test-tree2',
+                'base64' => true,
+                'info'   => $info,
+            ],
+        ];
+
+        $result = $this->normalizeInfoFields($result, ['bytes_size']);
+
+        $this->assertEquals($this->sortTreeKeys($expected), $this->sortTreeKeys($result));
     }
 }

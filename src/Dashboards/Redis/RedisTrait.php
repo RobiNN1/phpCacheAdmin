@@ -334,7 +334,7 @@ trait RedisTrait {
      *
      * @throws Exception
      */
-    private function getAllKeys(): array {
+    public function getAllKeys(): array {
         $filter = Http::get('s', '*');
         $this->template->addGlobal('search_value', $filter);
 

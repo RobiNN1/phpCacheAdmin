@@ -3,3 +3,4 @@ parameters:
   treatPhpDocTypesAsCertain: false
   paths:
     - src
+    - tests

@@ -366,17 +366,14 @@ trait RedisTrait {
         $pipeline = $this->redis->pipelineKeys($keys_array);
 
         foreach ($keys_array as $key) {
-            $ttl = $pipeline[$key]['ttl'];
-            $total = $pipeline[$key]['count'];
-
             $formatted_keys[] = [
                 'key'    => $key,
                 'base64' => true,
                 'info'   => [
-                    'link_title' => ($total !== null ? '('.$total.' items) ' : '').$key,
+                    'link_title' => ($pipeline[$key]['count'] !== null ? '('.$pipeline[$key]['count'].' items) ' : '').$key,
                     'bytes_size' => $pipeline[$key]['size'],
                     'type'       => $pipeline[$key]['type'],
-                    'ttl'        => $ttl === -1 ? 'Doesn\'t expire' : $ttl,
+                    'ttl'        => $pipeline[$key]['ttl'] === -1 ? 'Doesn\'t expire' : $pipeline[$key]['ttl'],
                 ],
             ];
         }
@@ -405,23 +402,19 @@ trait RedisTrait {
             $current = &$tree;
             $path = '';
 
-            foreach ($parts as $i => $p_value) {
-                $part = $p_value;
+            foreach ($parts as $i => $part) {
                 $path = $path ? $path.$separator.$part : $part;
 
-                if ($i === count($parts) - 1) {
-                    $ttl = $pipeline[$key]['ttl'];
-                    $total = $pipeline[$key]['count'];
-
+                if ($i === count($parts) - 1) { // check last part
                     $current[] = [
                         'type'   => 'key',
-                        'name'   => ($total !== null ? '('.$total.' items) ' : '').$part,
+                        'name'   => ($pipeline[$key]['count'] !== null ? '('.$pipeline[$key]['count'].' items) ' : '').$part,
                         'key'    => $key,
                         'base64' => true,
                         'info'   => [
                             'bytes_size' => $pipeline[$key]['size'],
                             'type'       => $pipeline[$key]['type'],
-                            'ttl'        => $ttl === -1 ? 'Doesn\'t expire' : $ttl,
+                            'ttl'        => $pipeline[$key]['ttl'] === -1 ? 'Doesn\'t expire' : $pipeline[$key]['ttl'],
                         ],
                     ];
                 } else {

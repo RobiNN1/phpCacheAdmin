@@ -198,40 +198,111 @@ trait MemcachedTrait {
 
     /**
      * @return array<int, array<string, string|int>>
+     *
      * @throws MemcachedException
      */
     private function getAllKeys(): array {
-        static $keys = [];
         $search = Http::get('s', '');
-
         $this->template->addGlobal('search_value', $search);
 
-        $time = time();
-
         $all_keys = $this->memcached->getKeys();
+        $keys = [];
+        $time = time();
 
         foreach ($all_keys as $key_data) {
             $key_data = $this->memcached->parseLine($key_data);
-            $key = $key_data['key'];
+            $ttl = $key_data['exp'] ?? null;
 
-            if (stripos($key, $search) !== false) {
-                $ttl = $key_data['exp'] ?? null;
-
+            if (stripos($key_data['key'], $search) !== false) {
                 $keys[] = [
-                    'key'  => $key,
-                    'info' => [
-                        'link_title'           => urldecode($key),
-                        'bytes_size'           => $key_data['size'],
-                        'timediff_last_access' => $key_data['la'],
-                        'ttl'                  => $ttl === -1 ? 'Doesn\'t expire' : $ttl - $time,
-                    ],
+                    'key'  => $key_data['key'],
+                    'size' => $key_data['size'],
+                    'la'   => $key_data['la'] ?? 0,
+                    'ttl'  => $ttl === -1 ? 'Doesn\'t expire' : $ttl - $time,
                 ];
             }
         }
 
-        $keys = Helpers::sortKeys($this->template, $keys);
+        if (Http::get('view', 'table') === 'tree') {
+            return $this->keysTreeView($keys);
+        }
 
-        return $keys;
+        return $this->keysTableView($keys);
+    }
+
+    /**
+     * @param array<int|string, mixed> $keys
+     *
+     * @return array<int, array<string, string|int>>
+     */
+    private function keysTableView(array $keys): array {
+        $formatted_keys = [];
+
+        foreach ($keys as $key_data) {
+            $formatted_keys[] = [
+                'key'  => $key_data['key'],
+                'info' => [
+                    'link_title'           => urldecode($key_data['key']),
+                    'bytes_size'           => $key_data['size'],
+                    'timediff_last_access' => $key_data['la'],
+                    'ttl'                  => $key_data['ttl'],
+                ],
+            ];
+        }
+
+        return Helpers::sortKeys($this->template, $formatted_keys);
+    }
+
+    /**
+     * @param array<int|string, mixed> $keys
+     *
+     * @return array<int, array<string, string|int>>
+     */
+    private function keysTreeView(array $keys): array {
+        $separator = urlencode($this->servers[$this->current_server]['separator'] ?? ':');
+        $this->template->addGlobal('separator', urldecode($separator));
+
+        $tree = [];
+
+        foreach ($keys as $key_data) {
+            $parts = explode($separator, $key_data['key']);
+
+            /** @var array<int|string, mixed> $current */
+            $current = &$tree;
+            $path = '';
+
+            foreach ($parts as $i => $part) {
+                $path = $path ? $path.$separator.$part : $part;
+
+                if ($i === count($parts) - 1) { // check last part
+                    $current[] = [
+                        'type' => 'key',
+                        'name' => urldecode($part),
+                        'key'  => $key_data['key'],
+                        'info' => [
+                            'bytes_size'           => $key_data['size'],
+                            'timediff_last_access' => $key_data['la'],
+                            'ttl'                  => $key_data['ttl'],
+                        ],
+                    ];
+                } else {
+                    if (!isset($current[$part])) {
+                        $current[$part] = [
+                            'type'     => 'folder',
+                            'name'     => $part,
+                            'path'     => $path,
+                            'children' => [],
+                            'expanded' => false,
+                        ];
+                    }
+                    $current = &$current[$part]['children'];
+                }
+            }
+        }
+
+        Helpers::countChildren($tree);
+
+        return $tree;
     }
 
     private function commandsStats(): string {

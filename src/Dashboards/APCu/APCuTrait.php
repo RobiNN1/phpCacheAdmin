@@ -181,35 +181,115 @@ trait APCuTrait {
      * @return array<int, array<string, string|int>>
      */
     private function getAllKeys(): array {
-        static $keys = [];
         $search = Http::get('s', '');
-
         $this->template->addGlobal('search_value', $search);
 
         $info = apcu_cache_info();
+        $keys = [];
+        $time = time();
 
         foreach ($info['cache_list'] as $key_data) {
             $key = $key_data['info'];
 
             if (stripos($key, $search) !== false) {
                 $keys[] = [
-                    'key'    => $key,
-                    'base64' => true,
-                    'info'   => [
-                        'link_title'         => $key,
-                        'bytes_size'         => $key_data['mem_size'],
-                        'number_hits'        => $key_data['num_hits'],
-                        'timediff_last_used' => $key_data['access_time'],
-                        'time_created'       => $key_data['creation_time'],
-                        'ttl'                => $key_data['ttl'] === 0 ? 'Doesn\'t expire' : $key_data['creation_time'] + $key_data['ttl'] - time(),
-                    ],
+                    'key'           => $key,
+                    'mem_size'      => $key_data['mem_size'],
+                    'num_hits'      => $key_data['num_hits'],
+                    'access_time'   => $key_data['access_time'],
+                    'creation_time' => $key_data['creation_time'],
+                    'ttl'           => $key_data['ttl'] === 0 ? 'Doesn\'t expire' : $key_data['creation_time'] + $key_data['ttl'] - $time,
                 ];
             }
         }
 
-        $keys = Helpers::sortKeys($this->template, $keys);
+        if (Http::get('view', 'table') === 'tree') {
+            return $this->keysTreeView($keys);
+        }
 
-        return $keys;
+        return $this->keysTableView($keys);
+    }
+
+    /**
+     * @param array<int|string, mixed> $keys
+     *
+     * @return array<int, array<string, string|int>>
+     */
+    private function keysTableView(array $keys): array {
+        $formatted_keys = [];
+
+        foreach ($keys as $key_data) {
+            $formatted_keys[] = [
+                'key'    => $key_data['key'],
+                'base64' => true,
+                'info'   => [
+                    'link_title'         => $key_data['key'],
+                    'bytes_size'         => $key_data['mem_size'],
+                    'number_hits'        => $key_data['num_hits'],
+                    'timediff_last_used' => $key_data['access_time'],
+                    'time_created'       => $key_data['creation_time'],
+                    'ttl'                => $key_data['ttl'],
+                ],
+            ];
+        }
+
+        return Helpers::sortKeys($this->template, $formatted_keys);
+    }
+
+    /**
+     * @param array<int|string, mixed> $keys
+     *
+     * @return array<int, array<string, string|int>>
+     */
+    private function keysTreeView(array $keys): array {
+        $separator = Config::get('apcu-separator', ':');
+        $this->template->addGlobal('separator', $separator);
+
+        $tree = [];
+
+        foreach ($keys as $key_data) {
+            $key = $key_data['key'];
+            $parts = explode($separator, $key);
+
+            /** @var array<int|string, mixed> $current */
+            $current = &$tree;
+            $path = '';
+
+            foreach ($parts as $i => $part) {
+                $path = $path ? $path.$separator.$part : $part;
+
+                if ($i === count($parts) - 1) { // check last part
+                    $current[] = [
+                        'type'   => 'key',
+                        'name'   => $part,
+                        'key'    => $key,
+                        'base64' => true,
+                        'info'   => [
+                            'bytes_size'         => $key_data['mem_size'],
+                            'number_hits'        => $key_data['num_hits'],
+                            'timediff_last_used' => $key_data['access_time'],
+                            'time_created'       => $key_data['creation_time'],
+                            'ttl'                => $key_data['ttl'],
+                        ],
+                    ];
+                } else {
+                    if (!isset($current[$part])) {
+                        $current[$part] = [
+                            'type'     => 'folder',
+                            'name'     => $part,
+                            'path'     => $path,
+                            'children' => [],
+                            'expanded' => false,
+                        ];
+                    }
+                    $current = &$current[$part]['children'];
+                }
+            }
+        }
+
+        Helpers::countChildren($tree);
+
+        return $tree;
     }
 
     private function mainDashboard(): string {

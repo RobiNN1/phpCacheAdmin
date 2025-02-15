@@ -52,8 +52,10 @@ return [
             'host' => '127.0.0.1', // Optional when a path is specified.
             'port' => 11211, // Optional when the default port is used.
             //'path' => '/var/run/memcached/memcached.sock', // Unix domain socket (optional).
+            //'separator' => ':', // Separator for tree view (optional)
         ],
     ],
+    //'apcu-separator' => ':', // Separator for tree view (optional)
     // Example of authentication with http auth.
     /*'auth'          => static function (): void {
         $username = 'admin';

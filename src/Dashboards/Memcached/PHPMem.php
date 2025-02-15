@@ -158,6 +158,7 @@ class PHPMem {
      * Get key meta-data.
      *
      * @return array<string, string|int>
+     *
      * @throws MemcachedException
      */
     public function getKeyMeta(string $key): array {

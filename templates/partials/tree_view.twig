@@ -6,7 +6,7 @@
                 <div class="flex items-center gap-1 py-1 px-6 hover:bg-gray-50 dark:hover:bg-white/5" style="padding-left: calc({{ level }} * 20px + 1.5rem)">
                     <button class="tree-toggle flex gap-1 items-center" data-path="{{ item.path }}">
                         {{ svg('down', 10, '-rotate-90') }}
-                        <span class="tree">{{ item.name }}:*</span>
+                        <span class="tree">{{ item.name }}{{ separator }}*</span>
                     </button>
                     <span class="items-count text-gray-500 dark:text-gray-400 text-xs">({{ item.count }})</span>
                 </div>

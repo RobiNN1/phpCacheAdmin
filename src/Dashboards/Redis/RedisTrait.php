@@ -394,18 +394,20 @@ trait RedisTrait {
     private function keysTreeView(array $keys): array {
         $keys_array = array_column($keys, 'key');
         $pipeline = $this->redis->pipelineKeys($keys_array);
+        $separator = $this->servers[$this->current_server]['separator'] ?? ':';
+        $this->template->addGlobal('separator', $separator);
 
         $tree = [];
 
         foreach ($keys_array as $key) {
-            $parts = explode(':', $key);
+            $parts = explode($separator, $key);
             /** @var array<int|string, mixed> $current */
             $current = &$tree;
             $path = '';
 
             foreach ($parts as $i => $p_value) {
                 $part = $p_value;
-                $path = $path ? $path.':'.$part : $part;
+                $path = $path ? $path.$separator.$part : $part;
 
                 if ($i === count($parts) - 1) {
                     $ttl = $pipeline[$key]['ttl'];

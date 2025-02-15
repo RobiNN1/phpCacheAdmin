@@ -481,9 +481,6 @@
   .py-\[0\.54rem\] {
     padding-block: 0.54rem;
   }
-  .pb-2 {
-    padding-bottom: calc(0.25rem * 2);
-  }
   .pl-6 {
     padding-left: calc(0.25rem * 6);
   }

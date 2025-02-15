@@ -60,8 +60,8 @@
     {% endfor %}
 {% endmacro %}
 
-<div class="treeview border-b border-gray-200 dark:border-gray-700">
-    <div class="flex gap-2 px-6 pb-2">
+<div class="treeview border-b border-t border-gray-200 dark:border-gray-700">
+    <div class="flex gap-2 px-6 py-2">
         <div title="Check all">{{ include('components/checkbox.twig', {disabled: keys|length == 0, class: 'check-all'}) }}</div>
         <button class="expand-toggle text-xs px-2 py-1 rounded text-gray-900 bg-gray-100 hover:bg-gray-300 dark:text-gray-100 dark:bg-gray-900 dark:hover:bg-gray-700">
             Expand all

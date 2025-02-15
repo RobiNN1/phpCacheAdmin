@@ -124,15 +124,14 @@ if (delete_all) {
             if (this.status >= 200 && this.status < 400) {
                 document.getElementById('alerts').innerHTML = request.currentTarget.response;
 
-                keys.forEach(key => {
-                    const treeview = document.querySelector('.treeview');
-                    if (treeview) {
-                        key.closest('.keywrapper').remove();
-                        update_folder_counts();
-                    } else {
+                const treeview = document.querySelector('.treeview');
+                if (treeview) {
+                    document.querySelector('.tree-content').remove();
+                } else {
+                    keys.forEach(key => {
                         key.remove();
-                    }
-                });
+                    });
+                }
 
                 document.getElementById('table-no-keys').classList.remove('hidden');
             }

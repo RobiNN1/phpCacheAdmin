@@ -127,7 +127,7 @@ class Helpers {
                 //
             }
 
-            Http::redirect();
+            Http::redirect(['view']);
         }
     }
 

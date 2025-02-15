@@ -61,8 +61,6 @@ trait RealpathTrait {
             }
         }
 
-        $keys = Helpers::sortKeys($this->template, $keys);
-
-        return $keys;
+        return Helpers::sortKeys($this->template, $keys);
     }
 }

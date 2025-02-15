@@ -282,6 +282,7 @@ trait APCuTrait {
                             'expanded' => false,
                         ];
                     }
+
                     $current = &$current[$part]['children'];
                 }
             }

@@ -55,7 +55,7 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase {
      * @return array<int|string, mixed>
      */
     public function sortKeys(array $keys): array {
-        usort($keys, static fn ($a, $b) => strcmp($a['key'], $b['key']));
+        usort($keys, static fn ($a, $b): int => strcmp((string) $a['key'], (string) $b['key']));
 
         return $keys;
     }
@@ -68,8 +68,8 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase {
     public function sortTreeKeys(array $tree): array {
         foreach ($tree as &$item) {
             if (isset($item['children'])) {
-                usort($item['children'], static fn ($a, $b) => strcmp($a['key'], $b['key']));
-                $item['children'] = self::sortTreeKeys($item['children']);
+                usort($item['children'], static fn ($a, $b): int => strcmp((string) $a['key'], (string) $b['key']));
+                $item['children'] = $this->sortTreeKeys($item['children']);
             }
         }
 
@@ -91,7 +91,7 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase {
             }
 
             if (isset($item['children']) && is_array($item['children'])) {
-                $item['children'] = array_map(static function (array $child) use ($fields) {
+                $item['children'] = array_map(static function (array $child) use ($fields): array {
                     foreach ($fields as $field) {
                         if (isset($child['info'][$field])) {
                             $child['info'][$field] = 0;

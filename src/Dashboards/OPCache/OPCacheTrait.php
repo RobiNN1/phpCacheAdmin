@@ -148,9 +148,7 @@ trait OPCacheTrait {
             }
         }
 
-        $cached_scripts = Helpers::sortKeys($this->template, $cached_scripts);
-
-        return $cached_scripts;
+        return Helpers::sortKeys($this->template, $cached_scripts);
     }
 
     private function mainDashboard(): string {

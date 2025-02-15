@@ -295,6 +295,7 @@ trait MemcachedTrait {
                             'expanded' => false,
                         ];
                     }
+
                     $current = &$current[$part]['children'];
                 }
             }

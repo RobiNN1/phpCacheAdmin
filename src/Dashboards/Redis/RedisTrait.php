@@ -427,6 +427,7 @@ trait RedisTrait {
                             'expanded' => false,
                         ];
                     }
+
                     $current = &$current[$part]['children'];
                 }
             }

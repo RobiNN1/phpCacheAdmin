@@ -182,6 +182,8 @@ final class MemcachedTest extends TestCase {
         $result = $this->normalizeInfoFields($result, ['bytes_size', 'timediff_last_access']);
 
         $this->assertEquals($this->sortKeys($expected), $this->sortKeys($result));
+
+        $this->memcached->flush();
     }
 
     /**
@@ -235,5 +237,7 @@ final class MemcachedTest extends TestCase {
         $result = $this->normalizeInfoFields($result, ['bytes_size', 'timediff_last_access']);
 
         $this->assertEquals($this->sortTreeKeys($expected), $this->sortTreeKeys($result));
+
+        $this->memcached->flush();
     }
 }

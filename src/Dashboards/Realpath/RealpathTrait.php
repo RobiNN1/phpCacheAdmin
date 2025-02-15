@@ -50,8 +50,8 @@ trait RealpathTrait {
         foreach ($this->all_keys as $key_name => $key_data) {
             if (stripos($key_name, $search) !== false) {
                 $keys[] = [
-                    'key'   => $key_name,
-                    'items' => [
+                    'key'  => $key_name,
+                    'info' => [
                         'title'    => $key_name,
                         'realpath' => $key_data['realpath'],
                         'is_dir'   => $key_data['is_dir'] ? 'true' : 'false',

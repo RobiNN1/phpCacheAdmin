@@ -218,8 +218,8 @@ trait MemcachedTrait {
                 $ttl = $key_data['exp'] ?? null;
 
                 $keys[] = [
-                    'key'   => $key,
-                    'items' => [
+                    'key'  => $key,
+                    'info' => [
                         'link_title'           => urldecode($key),
                         'bytes_size'           => $key_data['size'],
                         'timediff_last_access' => $key_data['la'],

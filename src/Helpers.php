@@ -138,7 +138,7 @@ class Helpers {
         $json = [];
 
         foreach ($keys as $key) {
-            $ttl = isset($key['items']['ttl']) && is_int($key['items']['ttl']) ? $key['items']['ttl'] : 0;
+            $ttl = isset($key['info']['ttl']) && is_int($key['info']['ttl']) ? $key['info']['ttl'] : 0;
 
             $json[] = [
                 'key'   => $key['key'],
@@ -209,13 +209,31 @@ class Helpers {
         }
 
         usort($keys, static function (array $a, array $b) use ($dir, $column): int {
-            $a_val = (string) $a['items'][$column];
-            $b_val = (string) $b['items'][$column];
+            $a_val = (string) $a['info'][$column];
+            $b_val = (string) $b['info'][$column];
             $comparison = strnatcmp($a_val, $b_val);
 
             return strtolower($dir) === 'desc' ? -$comparison : $comparison;
         });
 
         return $keys;
+    }
+
+    /**
+     * @param array<int|string, mixed> &$tree
+     */
+    public static function countChildren(array &$tree): int {
+        $count = 0;
+
+        foreach ($tree as &$item) {
+            if (isset($item['type']) && $item['type'] === 'folder') {
+                $item['count'] = self::countChildren($item['children']);
+                $count += $item['count'];
+            } else {
+                $count++;
+            }
+        }
+
+        return $count;
     }
 }

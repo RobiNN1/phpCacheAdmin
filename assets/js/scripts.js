@@ -60,7 +60,14 @@ if (delete_selected) {
         document.querySelectorAll('.check-key:checked').forEach(checkbox => {
             let parent = checkbox.parentElement.parentElement;
             selected_keys.push(parent.dataset.key);
-            parent.remove();
+
+            const treeview = document.querySelector('.treeview');
+            if (treeview) {
+                parent.closest('.keywrapper').remove();
+                update_folder_counts();
+            } else {
+                parent.remove();
+            }
         });
 
         ajax('delete', function (request) {
@@ -92,7 +99,14 @@ keys.forEach(key => {
             ajax('delete', function (request) {
                 if (this.status >= 200 && this.status < 400) {
                     document.getElementById('alerts').innerHTML = request.currentTarget.response;
-                    key.remove();
+
+                    const treeview = document.querySelector('.treeview');
+                    if (treeview) {
+                        key.closest('.keywrapper').remove();
+                        update_folder_counts();
+                    } else {
+                        key.remove();
+                    }
                 }
             }, key.dataset.key);
         });
@@ -111,7 +125,13 @@ if (delete_all) {
                 document.getElementById('alerts').innerHTML = request.currentTarget.response;
 
                 keys.forEach(key => {
-                    key.remove();
+                    const treeview = document.querySelector('.treeview');
+                    if (treeview) {
+                        key.closest('.keywrapper').remove();
+                        update_folder_counts();
+                    } else {
+                        key.remove();
+                    }
                 });
 
                 document.getElementById('table-no-keys').classList.remove('hidden');
@@ -220,6 +240,95 @@ document.querySelectorAll('[data-sortcol]').forEach(element => {
         }
     });
 });
+
+/**
+ * Tree view
+ */
+const treeview = document.querySelector('.treeview');
+if (treeview) {
+    let is_expanded = false;
+    const expand_toggle = treeview.querySelector('.expand-toggle');
+
+    expand_toggle.addEventListener('click', function () {
+        is_expanded = !is_expanded;
+        expand_toggle.textContent = is_expanded ? 'Collapse all' : 'Expand all';
+
+        const folders = treeview.querySelectorAll('.tree-toggle');
+        folders.forEach(button => toggle_folder(button, is_expanded));
+
+        const paths = [...folders].map(f => f.dataset.path).filter(Boolean);
+        localStorage.setItem('open_folders', is_expanded ? JSON.stringify(paths) : '[]');
+    });
+
+    function toggle_folder(button, show = null) {
+        // Find the next sibling that contains the children
+        const children = button.closest('div').parentElement.querySelector('.tree-children');
+        if (!children) return false;
+
+        const chevron = button.querySelector('svg');
+        const will_show = show !== null ? show : children.classList.contains('hidden');
+
+        children.classList.toggle('hidden', !will_show);
+        chevron.style.transform = will_show ? 'rotate(90deg)' : '';
+
+        return will_show;
+    }
+
+    // Handle folder toggling
+    treeview.addEventListener('click', function (e) {
+        const toggle_btn = e.target.closest('.tree-toggle');
+        if (toggle_btn) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const is_open = toggle_folder(toggle_btn);
+            const path = toggle_btn.dataset.path;
+
+            if (path) {
+                const open_folders = JSON.parse(localStorage.getItem('open_folders') || '[]');
+
+                if (is_open) {
+                    if (!open_folders.includes(path)) open_folders.push(path);
+                } else {
+                    const index = open_folders.indexOf(path);
+                    if (index > -1) open_folders.splice(index, 1);
+                }
+
+                localStorage.setItem('open_folders', JSON.stringify(open_folders));
+            }
+        }
+    });
+
+    function init_expand_state() {
+        const open_folders = JSON.parse(localStorage.getItem('open_folders') || '[]');
+        if (open_folders.length > 0) {
+            is_expanded = true;
+            expand_toggle.textContent = 'Collapse all';
+        }
+
+        open_folders.forEach(path => {
+            const button = treeview.querySelector(`.tree-toggle[data-path="${path}"]`);
+            if (button) toggle_folder(button, true);
+        });
+    }
+
+    init_expand_state();
+}
+
+function update_folder_counts() {
+    const folders = document.querySelectorAll('.tree-toggle[data-path]');
+
+    folders.forEach(folder => {
+        const path = folder.getAttribute('data-path');
+        const tree_children = document.querySelector(`.tree-children[data-path="${path}"]`);
+        const children_count = tree_children ? tree_children.querySelectorAll('.keywrapper').length : 0;
+        const items_count = folder.parentElement.querySelector('.items-count');
+
+        if (items_count) {
+            items_count.textContent = `(${children_count})`;
+        }
+    });
+}
 
 /**
  * Light / Dark mode

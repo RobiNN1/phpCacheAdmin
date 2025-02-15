@@ -4,7 +4,7 @@
         <thead>
         <tr class="text-primary-900 border-t border-b border-gray-200 dark:border-gray-700 dark:text-primary-400">
             {% if show_actions %}
-                <th class="pl-6 px-3 py-2 w-4">{{ include('components/checkbox.twig', {disabled: keys|length == 0, class: 'check-all'}) }}</th>
+                <th class="pl-6 px-3 py-2 w-4" title="Check all">{{ include('components/checkbox.twig', {disabled: keys|length == 0, class: 'check-all'}) }}</th>
             {% endif %}
             {% for item in head_items %}
                 {% set is_active = sortcol == item.sort %}
@@ -30,7 +30,7 @@
                 {% if show_actions %}
                     <td class="pl-6 px-3 py-2 border-b border-gray-200 dark:border-gray-700">{{ include('components/checkbox.twig', {class: 'check-key'}) }}</td>
                 {% endif %}
-                {% for item_key, item in key.items %}
+                {% for item_key, item in key.info %}
                     {% set is_title = item_key == 'title' or (item_key == 'link_title' and view_key) %}
                     {% set td_class = is_title ? ' max-w-xs md:max-w-md truncate hover:text-clip hover:break-all hover:whitespace-normal' : '' %}
                     <td class="px-3 py-2 border-b border-gray-200 text-sm{{ td_class }}{{ classes[loop.index]|space }} dark:border-gray-700 dark:text-gray-300">

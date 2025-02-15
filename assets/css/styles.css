@@ -1,7 +1,9 @@
-/*! tailwindcss v4.0.5 | MIT License | https://tailwindcss.com */
+/*! tailwindcss v4.0.6 | MIT License | https://tailwindcss.com */
 @layer theme, base, components, utilities;
 @layer theme {
   :root, :host {
+    --color-primary-50: #f8fafc;
+    --color-primary-100: #f1f5f9;
     --color-primary-200: #e2e8f0;
     --color-primary-300: #cbd5e1;
     --color-primary-400: #94a3b8;
@@ -10,6 +12,7 @@
     --color-primary-700: #334155;
     --color-primary-800: #1e293b;
     --color-primary-900: #0f172a;
+    --color-primary-950: #020617;
     --link-bg: #64748b;
     --link-bg-hover: #334155;
     --link-active: #cbd5e1;
@@ -194,6 +197,9 @@
   .-mt-1\.5 {
     margin-top: calc(0.25rem * -1.5);
   }
+  .mt-0 {
+    margin-top: calc(0.25rem * 0);
+  }
   .mr-3 {
     margin-right: calc(0.25rem * 3);
   }
@@ -275,6 +281,9 @@
   }
   .table-auto {
     table-layout: auto;
+  }
+  .-rotate-90 {
+    rotate: calc(90deg * -1);
   }
   .rotate-180 {
     rotate: 180deg;
@@ -442,6 +451,9 @@
   .p-4 {
     padding: calc(0.25rem * 4);
   }
+  .px-2 {
+    padding-inline: calc(0.25rem * 2);
+  }
   .px-3 {
     padding-inline: calc(0.25rem * 3);
   }
@@ -468,6 +480,9 @@
   }
   .py-\[0\.54rem\] {
     padding-block: 0.54rem;
+  }
+  .pb-2 {
+    padding-bottom: calc(0.25rem * 2);
   }
   .pl-6 {
     padding-left: calc(0.25rem * 6);
@@ -642,6 +657,13 @@
     &:hover {
       @media (hover: hover) {
         background-color: oklch(0.967 0.003 264.542);
+      }
+    }
+  }
+  .hover\:bg-gray-300 {
+    &:hover {
+      @media (hover: hover) {
+        background-color: oklch(0.872 0.01 258.338);
       }
     }
   }
@@ -1359,6 +1381,32 @@
 }
 .dark #phpinfo .v i {
   color: #c2c2c2;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes ping {
+  75%, 100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+@keyframes pulse {
+  50% {
+    opacity: 0.5;
+  }
+}
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(-25%);
+    animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+  }
+  50% {
+    transform: none;
+    animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+  }
 }
 @property --tw-space-x-reverse {
   syntax: "*";

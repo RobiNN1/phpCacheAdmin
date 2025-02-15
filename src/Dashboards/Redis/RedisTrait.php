@@ -346,33 +346,33 @@ trait RedisTrait {
 
         $keys = array_map(static fn ($key): array => ['key' => $key], $keys_array);
 
-        return $this->formatTableKeys($keys);
+        if (Http::get('view', 'table') === 'tree') {
+            return $this->keysTreeView($keys);
+        }
+
+        return $this->keysTableView($keys);
     }
 
     /**
-     * @param array<int|string, mixed> $paginated_keys
+     * @param array<int|string, mixed> $keys
      *
      * @return array<int, array<string, string|int>>
      *
      * @throws Exception
      */
-    private function formatTableKeys(array $paginated_keys): array {
-        if ($paginated_keys === []) {
-            return [];
-        }
-
-        $keys = [];
-        $keys_array = array_column($paginated_keys, 'key');
+    private function keysTableView(array $keys): array {
+        $formatted_keys = [];
+        $keys_array = array_column($keys, 'key');
         $pipeline = $this->redis->pipelineKeys($keys_array);
 
         foreach ($keys_array as $key) {
             $ttl = $pipeline[$key]['ttl'];
             $total = $pipeline[$key]['count'];
 
-            $keys[] = [
+            $formatted_keys[] = [
                 'key'    => $key,
                 'base64' => true,
-                'items'  => [
+                'info'   => [
                     'link_title' => ($total !== null ? '('.$total.' items) ' : '').$key,
                     'bytes_size' => $pipeline[$key]['size'],
                     'type'       => $pipeline[$key]['type'],
@@ -381,7 +381,65 @@ trait RedisTrait {
             ];
         }
 
-        return Helpers::sortKeys($this->template, $keys);
+        return Helpers::sortKeys($this->template, $formatted_keys);
+    }
+
+    /**
+     * @param array<int|string, mixed> $keys
+     *
+     * @return array<int, array<string, string|int>>
+     *
+     * @throws Exception
+     */
+    private function keysTreeView(array $keys): array {
+        $keys_array = array_column($keys, 'key');
+        $pipeline = $this->redis->pipelineKeys($keys_array);
+
+        $tree = [];
+
+        foreach ($keys_array as $key) {
+            $parts = explode(':', $key);
+            /** @var array<int|string, mixed> $current */
+            $current = &$tree;
+            $path = '';
+
+            foreach ($parts as $i => $p_value) {
+                $part = $p_value;
+                $path = $path ? $path.':'.$part : $part;
+
+                if ($i === count($parts) - 1) {
+                    $ttl = $pipeline[$key]['ttl'];
+                    $total = $pipeline[$key]['count'];
+
+                    $current[] = [
+                        'type'   => 'key',
+                        'name'   => ($total !== null ? '('.$total.' items) ' : '').$part,
+                        'key'    => $key,
+                        'base64' => true,
+                        'info'   => [
+                            'bytes_size' => $pipeline[$key]['size'],
+                            'type'       => $pipeline[$key]['type'],
+                            'ttl'        => $ttl === -1 ? 'Doesn\'t expire' : $ttl,
+                        ],
+                    ];
+                } else {
+                    if (!isset($current[$part])) {
+                        $current[$part] = [
+                            'type'     => 'folder',
+                            'name'     => $part,
+                            'path'     => $path,
+                            'children' => [],
+                            'expanded' => false,
+                        ];
+                    }
+                    $current = &$current[$part]['children'];
+                }
+            }
+        }
+
+        Helpers::countChildren($tree);
+
+        return $tree;
     }
 
     /**

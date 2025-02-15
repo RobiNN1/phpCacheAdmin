@@ -195,7 +195,7 @@ trait APCuTrait {
                 $keys[] = [
                     'key'    => $key,
                     'base64' => true,
-                    'items'  => [
+                    'info'   => [
                         'link_title'         => $key,
                         'bytes_size'         => $key_data['mem_size'],
                         'number_hits'        => $key_data['num_hits'],

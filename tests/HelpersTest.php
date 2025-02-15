@@ -109,8 +109,8 @@ final class HelpersTest extends TestCase {
      */
     public function testExport(): void {
         $keys = [
-            ['key' => 'testkey1', 'items' => ['ttl' => 3600]],
-            ['key' => 'testkey2', 'items' => ['ttl' => -1]],
+            ['key' => 'testkey1', 'info' => ['ttl' => 3600]],
+            ['key' => 'testkey2', 'info' => ['ttl' => -1]],
         ];
 
         $output = Helpers::export($keys, 'export_test', static fn ($key) => $key, true);
@@ -139,32 +139,90 @@ final class HelpersTest extends TestCase {
         yield 'no sorting' => [
             'sortdir'  => 'none',
             'sortcol'  => 'column1',
-            'keys'     => [['items' => ['column1' => 'value1']], ['items' => ['column1' => 'value2']], ['items' => ['column1' => 'value3']],],
-            'expected' => [['items' => ['column1' => 'value1']], ['items' => ['column1' => 'value2']], ['items' => ['column1' => 'value3']],],
+            'keys'     => [['info' => ['column1' => 'value1']], ['info' => ['column1' => 'value2']], ['info' => ['column1' => 'value3']],],
+            'expected' => [['info' => ['column1' => 'value1']], ['info' => ['column1' => 'value2']], ['info' => ['column1' => 'value3']],],
         ];
         yield 'ascending sort' => [
             'sortdir'  => 'asc',
             'sortcol'  => 'column1',
-            'keys'     => [['items' => ['column1' => 'value3']], ['items' => ['column1' => 'value1']], ['items' => ['column1' => 'value2']],],
-            'expected' => [['items' => ['column1' => 'value1']], ['items' => ['column1' => 'value2']], ['items' => ['column1' => 'value3']],],
+            'keys'     => [['info' => ['column1' => 'value3']], ['info' => ['column1' => 'value1']], ['info' => ['column1' => 'value2']],],
+            'expected' => [['info' => ['column1' => 'value1']], ['info' => ['column1' => 'value2']], ['info' => ['column1' => 'value3']],],
         ];
         yield 'descending sort' => [
             'sortdir'  => 'desc',
             'sortcol'  => 'column1',
-            'keys'     => [['items' => ['column1' => 'value1']], ['items' => ['column1' => 'value2']], ['items' => ['column1' => 'value3']],],
-            'expected' => [['items' => ['column1' => 'value3']], ['items' => ['column1' => 'value2']], ['items' => ['column1' => 'value1']],],
+            'keys'     => [['info' => ['column1' => 'value1']], ['info' => ['column1' => 'value2']], ['info' => ['column1' => 'value3']],],
+            'expected' => [['info' => ['column1' => 'value3']], ['info' => ['column1' => 'value2']], ['info' => ['column1' => 'value1']],],
         ];
         yield 'ascending sort with integers' => [
             'sortdir'  => 'asc',
             'sortcol'  => 'column1',
-            'keys'     => [['items' => ['column1' => 3]], ['items' => ['column1' => 1]], ['items' => ['column1' => 2]],],
-            'expected' => [['items' => ['column1' => 1]], ['items' => ['column1' => 2]], ['items' => ['column1' => 3]],],
+            'keys'     => [['info' => ['column1' => 3]], ['info' => ['column1' => 1]], ['info' => ['column1' => 2]],],
+            'expected' => [['info' => ['column1' => 1]], ['info' => ['column1' => 2]], ['info' => ['column1' => 3]],],
         ];
         yield 'descending sort with integers' => [
             'sortdir'  => 'desc',
             'sortcol'  => 'column1',
-            'keys'     => [['items' => ['column1' => 1]], ['items' => ['column1' => 2]], ['items' => ['column1' => 3]],],
-            'expected' => [['items' => ['column1' => 3]], ['items' => ['column1' => 2]], ['items' => ['column1' => 1]],],
+            'keys'     => [['info' => ['column1' => 1]], ['info' => ['column1' => 2]], ['info' => ['column1' => 3]],],
+            'expected' => [['info' => ['column1' => 3]], ['info' => ['column1' => 2]], ['info' => ['column1' => 1]],],
         ];
+    }
+
+    public function testCountChildren(): void {
+        $tree = [
+            [
+                'type'     => 'folder',
+                'children' => [
+                    ['type' => 'file'],
+                    ['type' => 'file'],
+                    [
+                        'type'     => 'folder',
+                        'children' => [
+                            ['type' => 'file'],
+                            ['type' => 'file'],
+                        ],
+                    ],
+                ],
+            ],
+            ['type' => 'file'],
+            ['type' => 'file'],
+        ];
+
+        $expected = [
+            [
+                'type'     => 'folder',
+                'count'    => 4,
+                'children' => [
+                    ['type' => 'file'],
+                    ['type' => 'file'],
+                    [
+                        'type'     => 'folder',
+                        'count'    => 2,
+                        'children' => [
+                            ['type' => 'file'],
+                            ['type' => 'file'],
+                        ],
+                    ],
+                ],
+            ],
+            ['type' => 'file'],
+            ['type' => 'file'],
+        ];
+
+        $count = Helpers::countChildren($tree);
+        $this->assertEquals(6, $count);
+        $this->assertEquals($expected, $tree);
+    }
+
+    public function testCountChildrenEmpty(): void {
+        $tree = [];
+        $count = Helpers::countChildren($tree);
+        $this->assertEquals(0, $count);
+    }
+
+    public function testCountChildrenNoFolders(): void {
+        $tree = [['type' => 'file'], ['type' => 'file'], ['type' => 'file'],];
+        $count = Helpers::countChildren($tree);
+        $this->assertEquals(3, $count);
     }
 }

@@ -3,6 +3,7 @@
 <p align="center"><img alt="Preview" src=".github/img/preview.png" width="500px"></p>
 
 ![Visitor Badge](https://visitor-badge.laobi.icu/badge?page_id=RobiNN1.phpCacheAdmin)
+![Docker Pulls](https://img.shields.io/docker/pulls/robinn/phpcacheadmin)
 
 ## Installation
 

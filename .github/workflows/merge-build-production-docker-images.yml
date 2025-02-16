@@ -60,8 +60,8 @@ jobs:
           build-args: |
             BUILD_DATE=${{ steps.build-metadata.outputs.TIMESTAMP_TZ_UTC }}
           tags: |
-            ghcr.io/RobiNN1/phpcacheadmin:v2
-            ghcr.io/RobiNN1/phpcacheadmin:latest
+            ghcr.io/robinn1/phpcacheadmin:v2
+            ghcr.io/robinn1/phpcacheadmin:latest
 #            robinn/phpcacheadmin:${{ github.ref_name }}
 #            robinn/phpcacheadmin:latest
           push: false

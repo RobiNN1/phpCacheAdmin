@@ -38,6 +38,19 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GH_TOKEN }}
 
+
+      - name: Retrieve current workflow URL
+        id: build-metadata
+        run: |
+          # Fail on errors and undefined variables
+          set -euo pipefail
+          TIMESTAMP_TZ_UTC=$(date -u +'%Y-%m-%d %H:%M:%S (%Z)')
+          echo "TIMESTAMP_TZ_UTC=${TIMESTAMP_TZ_UTC}" >> ${GITHUB_OUTPUT}
+          
+          # Log metadata for debugging
+          echo -e "\nGenerated execution metadata:"
+          echo "  - TIMESTAMP_TZ_UTC=${TIMESTAMP_TZ_UTC}"
+
       - name: Build and push multi-arch image
         uses: docker/build-push-action@v6
         with:
@@ -47,7 +60,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-args: |
-            BUILD_DATE=${{ steps.prepare-build-env-variables.outputs.BUILD_DATE }}
+            BUILD_DATE=${{ steps.build-metadata.outputs.TIMESTAMP_TZ_UTC }}
           tags: |
 #            robinn/phpcacheadmin:${{ github.ref_name }}
 #            robinn/phpcacheadmin:latest

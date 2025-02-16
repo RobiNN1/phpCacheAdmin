@@ -69,6 +69,11 @@ RUN set -eux \
     # Cleanup unnecessary files
     && rm -rf ./docker/
 
+#These params meant to be set by CI
+ARG BUILD_DATE=Undefined
+ENV BUILD_DATE=$BUILD_DATE
+RUN echo $BUILD_DATE
+
 # Switch to the non-root user
 USER ${APP_USER}
 

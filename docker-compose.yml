@@ -3,6 +3,9 @@ services:
     build:
       dockerfile: ./docker/Dockerfile
       context: ./
+#    volumes:
+#      # If you want to use config.php instead of ENV variables
+#      - "./config.php:/app/config.php"
     environment:
       - PCA_REDIS_0_HOST=redis
       - PCA_REDIS_0_PORT=6379

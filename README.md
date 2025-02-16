@@ -64,27 +64,26 @@ docker run -p 8080:80 -d --name phpcacheadmin -e "PCA_REDIS_0_HOST=redis_host" -
 Or use it in **docker-compose.yml**
 
 ```yaml
-version: '3'
 services:
   phpcacheadmin:
-    image: robinn/phpcacheadmin
-    ports:
-      - "8080:80"
-    #volumes:
-    # If you want to use config.php instead of ENV variables
-    #  - "./config.php:/var/www/html/config.php"
+    build:
+      dockerfile: ./docker/Dockerfile
+      context: ./
+    #    volumes:
+    #      # If you want to use config.php instead of ENV variables
+    #      - "./config.php:/app/config.php"
     environment:
       - PCA_REDIS_0_HOST=redis
       - PCA_REDIS_0_PORT=6379
       - PCA_MEMCACHED_0_HOST=memcached
       - PCA_MEMCACHED_0_PORT=11211
-    links:
-      - redis
-      - memcached
+    ports:
+      - "8080:80"
+
   redis:
-    image: redis
+    image: redis:7-alpine
   memcached:
-    image: memcached
+    image: memcached:1-alpine
 ```
 
 ## Requirements

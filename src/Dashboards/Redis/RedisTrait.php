@@ -56,6 +56,7 @@ trait RedisTrait {
             $hit_rate = $total !== 0 ? round(($hits / $total) * 100, 2) : 0;
 
             $redis_mode = isset($info['server']['redis_mode']) ? ', '.$info['server']['redis_mode'].' mode' : '';
+            $maxclients = isset($info['clients']['maxclients']) ? ' / '.Format::number((int) $info['clients']['maxclients']) : '';
 
             $panels = [
                 [
@@ -83,8 +84,7 @@ trait RedisTrait {
                 [
                     'title' => 'Stats',
                     'data'  => [
-                        'Connected clients'            => Format::number((int) $info['clients']['connected_clients']).' / '.
-                            Format::number((int) $info['clients']['maxclients']),
+                        'Connected clients'            => Format::number((int) $info['clients']['connected_clients']).$maxclients,
                         'Blocked clients'              => Format::number((int) $info['clients']['blocked_clients']),
                         'Total connections received'   => Format::number((int) $info['stats']['total_connections_received']),
                         'Total commands processed'     => Format::number((int) $info['stats']['total_commands_processed']),

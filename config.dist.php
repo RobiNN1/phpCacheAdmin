@@ -84,25 +84,29 @@ return [
     // Decoding / Encoding functions
     'converters'    => [
         'gzcompress' => [
-            'view' => static fn (string $value): ?string => extension_loaded('zlib') && @gzuncompress($value) !== false ? gzuncompress($value) : null,
-            'save' => static fn (string $value): string => extension_loaded('zlib') ? gzcompress($value) : $value,
+            'view' => static fn (string $value): ?string => @gzuncompress($value) !== false ? gzuncompress($value) : null,
+            'save' => static fn (string $value): string => gzcompress($value),
         ],
         'gzencode'   => [
-            'view' => static fn (string $value): ?string => extension_loaded('zlib') && @gzdecode($value) !== false ? gzdecode($value) : null,
-            'save' => static fn (string $value): string => extension_loaded('zlib') ? gzencode($value) : $value,
+            'view' => static fn (string $value): ?string => @gzdecode($value) !== false ? gzdecode($value) : null,
+            'save' => static fn (string $value): string => gzencode($value),
         ],
         'gzdeflate'  => [
-            'view' => static fn (string $value): ?string => extension_loaded('zlib') && @gzinflate($value) !== false ? gzinflate($value) : null,
-            'save' => static fn (string $value): string => extension_loaded('zlib') ? gzdeflate($value) : $value,
+            'view' => static fn (string $value): ?string => @gzinflate($value) !== false ? gzinflate($value) : null,
+            'save' => static fn (string $value): string => gzdeflate($value),
+        ],
+        'zlib'       => [
+            'view' => static fn (string $value): ?string => @zlib_decode($value) !== false ? zlib_decode($value) : null,
+            'save' => static fn (string $value): string => zlib_encode($value, ZLIB_ENCODING_DEFLATE),
         ],
         /*'gz_magento' => [
             'view' => static function (string $value): ?string {
                 // https://github.com/colinmollenhour/Cm_Cache_Backend_Redis/blob/master/Cm/Cache/Backend/Redis.php (_encodeData method)
-                $value = str_starts_with($value, "gz:\x1f\x8b") ? substr($value, 5) : $value;
+                $value = str_starts_with($value, "gz:\x1f\x8b") ? substr($value, 5);
 
-                return extension_loaded('zlib') && @gzuncompress($value) !== false ? gzuncompress($value) : null;
+                return @gzuncompress($value) !== false ? gzuncompress($value) : null;
             },
-            'save' => static fn (string $value): string => extension_loaded('zlib') ? "gz:\x1f\x8b".gzcompress($value) : $value,
+            'save' => static fn (string $value): string => "gz:\x1f\x8b".gzcompress($value),
         ],*/
     ],
     // Formatting functions, it runs after decoding

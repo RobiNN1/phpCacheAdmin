@@ -244,7 +244,7 @@ trait MemcachedTrait {
                 'info' => [
                     'link_title'           => urldecode($key_data['key']),
                     'bytes_size'           => $key_data['size'],
-                    'timediff_last_access' => $key_data['la'],
+                    'timediff_last_access' => $key_data['la'] !== 0 ? $key_data['la'] : null,
                     'ttl'                  => $key_data['ttl'],
                 ],
             ];
@@ -257,9 +257,16 @@ trait MemcachedTrait {
      * @param array<int|string, mixed> $keys
      *
      * @return array<int, array<string, string|int>>
+     *
+     * @throws MemcachedException
      */
     private function keysTreeView(array $keys): array {
-        $separator = urlencode($this->servers[$this->current_server]['separator'] ?? ':');
+        $separator = $this->servers[$this->current_server]['separator'] ?? ':';
+
+        if (version_compare($this->memcached->version(), '1.5.19', '>=')) {
+            $separator = urlencode($separator);
+        }
+
         $this->template->addGlobal('separator', urldecode($separator));
 
         $tree = [];
@@ -281,7 +288,7 @@ trait MemcachedTrait {
                         'key'  => $key_data['key'],
                         'info' => [
                             'bytes_size'           => $key_data['size'],
-                            'timediff_last_access' => $key_data['la'],
+                            'timediff_last_access' => $key_data['la'] !== 0 ? $key_data['la'] : null,
                             'ttl'                  => $key_data['ttl'],
                         ],
                     ];

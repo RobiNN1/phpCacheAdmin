@@ -113,11 +113,40 @@ class PHPMem {
      * @throws MemcachedException
      */
     public function getKeys(): array {
-        $raw = $this->runCommand('lru_crawler metadump all');
-        $lines = explode("\n", $raw);
-        array_pop($lines);
+        if (version_compare($this->version(), '1.5.19', '>=')) {
+            $raw = $this->runCommand('lru_crawler metadump all');
+            $lines = explode("\n", $raw);
+            array_pop($lines);
 
-        return $lines;
+            return $lines;
+        }
+
+        $slabs = $this->runCommand('stats items');
+        $lines = explode("\n", $slabs);
+        $slab_ids = [];
+
+        foreach ($lines as $line) {
+            if (preg_match('/STAT items:(\d+):/', $line, $matches)) {
+                $slab_ids[] = $matches[1];
+            }
+        }
+
+        $keys = [];
+
+        foreach (array_unique($slab_ids) as $slab_id) {
+            $dump = $this->runCommand('stats cachedump '.$slab_id.' 0');
+            $dump_lines = explode("\n", $dump);
+
+            foreach ($dump_lines as $line) {
+                if (preg_match('/ITEM (\S+) \[(\d+) b; (\d+) s\]/', $line, $matches)) {
+                    $exp = (int) $matches[3] === 0 ? -1 : (int) $matches[3];
+                    // Intentionally formatted as lru_crawler output
+                    $keys[] = 'key='.$matches[1].' exp='.$exp.' la=0 cas=0 fetch=no cls=1 size='.$matches[2];
+                }
+            }
+        }
+
+        return $keys;
     }
 
     /**
@@ -166,15 +195,27 @@ class PHPMem {
      * @throws MemcachedException
      */
     public function getKeyMeta(string $key): array {
-        $raw = $this->runCommand('me '.$key);
+        if (version_compare($this->version(), '1.5.19', '>=')) {
+            $raw = $this->runCommand('me '.$key);
 
-        if ($raw === 'ERROR') {
-            return [];
+            if ($raw === 'ERROR') {
+                return [];
+            }
+
+            $raw = preg_replace('/^ME\s+\S+\s+/', '', $raw); // Remove `ME keyname`
+
+            return $this->parseLine($raw);
         }
 
-        $raw = preg_replace('/^ME\s+\S+\s+/', '', $raw); // Remove `ME keyname`
+        foreach ($this->getKeys() as $line) {
+            $data = $this->parseLine($line);
 
-        return $this->parseLine($raw);
+            if ($data['key'] === $key) {
+                return $data;
+            }
+        }
+
+        return [];
     }
 
     /**
@@ -184,6 +225,13 @@ class PHPMem {
      */
     public function exists(string $key): bool {
         return $this->getKey($key) !== false;
+    }
+
+    /**
+     * @throws MemcachedException
+     */
+    public function version(): string {
+        return str_replace('VERSION ', '', $this->runCommand('version'));
     }
 
     /**

@@ -39,7 +39,7 @@
                                 {{- kitem|number -}}
                             {% elseif item_key starts with 'time_' %}
                                 {{- kitem|time -}}
-                            {% elseif item_key starts with 'timediff_' %}
+                            {% elseif item_key starts with 'timediff_' and kitem is not empty %}
                                 <span title="{{ kitem|time }}">{{- kitem|timediff -}}</span>
                             {% elseif item_key starts with 'bytes_' %}
                                 {{- kitem|bytes -}}

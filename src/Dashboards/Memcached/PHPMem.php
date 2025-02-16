@@ -157,12 +157,21 @@ class PHPMem {
     /**
      * Get key meta-data.
      *
+     * This command requires Memcached server >= 1.5.19
+     *
+     * @link https://github.com/memcached/memcached/wiki/ReleaseNotes1519
+     *
      * @return array<string, string|int>
      *
      * @throws MemcachedException
      */
     public function getKeyMeta(string $key): array {
         $raw = $this->runCommand('me '.$key);
+
+        if ($raw === 'ERROR') {
+            return [];
+        }
+
         $raw = preg_replace('/^ME\s+\S+\s+/', '', $raw); // Remove `ME keyname`
 
         return $this->parseLine($raw);

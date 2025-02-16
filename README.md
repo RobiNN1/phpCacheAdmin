@@ -91,7 +91,7 @@ services:
 
 - PHP >= 8.2 (Use [v1 branch](https://github.com/RobiNN1/phpCacheAdmin/tree/v1.x) if you need support for >=7.4)
 - Redis server >= 3.0.0
-- Memcached server >= 1.4.31. If you do not see the keys, you need to enable `lru_crawler`. SASL is not supported because there is no way to get the keys.
+- Memcached server >= 1.4.31 (ideally >= 1.5.19 to see more data). If you do not see the keys, you need to enable `lru_crawler`. SASL is not supported because there is no way to get the keys.
 
 > It is not necessary to have all dashboards enabled.
 

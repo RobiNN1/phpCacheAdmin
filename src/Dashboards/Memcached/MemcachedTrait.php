@@ -112,7 +112,7 @@ trait MemcachedTrait {
         }
 
         $info = $this->memcached->getKeyMeta($key);
-        $ttl = $info['exp'];
+        $ttl = $info['exp'] ?? null;
         $ttl = $ttl === 0 ? -1 : $ttl;
 
         if (isset($_GET['export'])) {
@@ -135,8 +135,8 @@ trait MemcachedTrait {
         return $this->template->render('partials/view_key', [
             'key'        => $key,
             'value'      => $formatted_value,
-            'ttl'        => Format::seconds($ttl),
-            'size'       => Format::bytes($info['size']),
+            'ttl'        => $ttl ? Format::seconds($ttl) : null,
+            'size'       => isset($info['size']) ? Format::bytes($info['size']) : null,
             'encode_fn'  => $encode_fn,
             'formatted'  => $is_formatted,
             'edit_url'   => Http::queryString(['ttl'], ['form' => 'edit', 'key' => $key]),

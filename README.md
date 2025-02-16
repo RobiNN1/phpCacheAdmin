@@ -5,6 +5,8 @@
 ![Visitor Badge](https://visitor-badge.laobi.icu/badge?page_id=RobiNN1.phpCacheAdmin)
 ![Docker Pulls](https://img.shields.io/docker/pulls/robinn/phpcacheadmin)
 
+A web GUI for managing Redis, Memcached, APCu, OPCache, and Realpath, with data management and statistics viewing capabilities - similar to phpMyAdmin, but for caching systems.
+
 ## Installation
 
 Unzip the archive and launch index.php in a web browser. No installation is required.

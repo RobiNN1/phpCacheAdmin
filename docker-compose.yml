@@ -1,19 +1,17 @@
 services:
   phpcacheadmin:
-    build: .
-    ports:
-      - "8080:80"
-    volumes:
-      - "./:/var/www/html/"
+    build:
+      dockerfile: ./docker/Dockerfile
+      context: ./
     environment:
       - PCA_REDIS_0_HOST=redis
       - PCA_REDIS_0_PORT=6379
       - PCA_MEMCACHED_0_HOST=memcached
       - PCA_MEMCACHED_0_PORT=11211
-    links:
-      - redis
-      - memcached
+    ports:
+      - "8080:80"
+
   redis:
-    image: redis
+    image: redis:7-alpine
   memcached:
-    image: memcached
+    image: memcached:1-alpine

@@ -1,0 +1,46 @@
+{
+    auto_https off
+    admin off
+    log {
+        level INFO
+        # format json
+    }
+    servers {
+        trusted_proxies static private_ranges
+    }
+}
+
+:80 {
+    log
+
+    root * /app/
+
+    php_fastcgi localhost:9000 {
+        health_uri /php-fpm-ping
+    }
+
+    file_server
+    encode zstd gzip
+
+    header /* {
+        #-Server
+        Server "Pumpkin 2.00.7 (Atari 2600)"
+    }
+}
+
+# Internal healthcheck
+:9999 {
+    handle /webserver-health {
+        respond "OK" 200
+    }
+
+    # Handle the /status URL specifically, which has been configured following
+    # https://www.php.net/manual/en/fpm.status.php
+    reverse_proxy /php-fpm-status localhost:9000 {
+        transport fastcgi {
+            env SCRIPT_NAME /php-fpm-status
+        }
+    }
+
+    log_skip
+}

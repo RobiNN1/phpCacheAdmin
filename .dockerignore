@@ -1,0 +1,13 @@
+/.git/
+/.github/
+/.idea/
+/.vscode/
+/.tmp/
+
+/node_modules/
+/phpstan.neon
+/phpunit.xml
+/README.md
+/docker-compose.yml
+/predis.phar
+/twig.phar

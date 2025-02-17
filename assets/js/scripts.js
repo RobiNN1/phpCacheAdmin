@@ -377,9 +377,6 @@ const init_theme_switcher = () => {
     });
 };
 
-update_theme();
-init_theme_switcher();
-
 /**
  * Modal
  */
@@ -424,4 +421,6 @@ class Modal {
 
 document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.modal').forEach(modal => new Modal(modal));
+    update_theme();
+    init_theme_switcher();
 });

@@ -1,5 +1,5 @@
 <p align="center"><img src=".github/img/logo.svg" width="400" alt="Logo"></p>
-<p align="center">A web GUI for managing Redis, Memcached, APCu, OPCache, and Realpath,<br> with data management and statistics viewing capabilities - similar to phpMyAdmin, but for caching systems.</p>
+<p align="center">Web GUI for managing Redis, Memcached, APCu, OPCache and Realpath with data management.</p>
 <p align="center"><img alt="Preview" src=".github/img/preview.png" width="500px"></p>
 
 ![Visitor Badge](https://visitor-badge.laobi.icu/badge?page_id=RobiNN1.phpCacheAdmin)

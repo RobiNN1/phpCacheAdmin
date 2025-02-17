@@ -1,19 +1,43 @@
-FROM php:8.3-apache
+# Build stage
+FROM php:8.3-cli-alpine as builder
 
-RUN apt-get update && apt-get install -y git
-RUN pecl install -o -f redis && docker-php-ext-enable redis
-RUN pecl install -o -f apcu && docker-php-ext-enable apcu
-RUN docker-php-ext-enable opcache
+RUN apk add --no-cache --virtual .build-deps autoconf build-base git \
+    && pecl install -o -f redis apcu \
+    && docker-php-ext-enable redis apcu opcache \
+    && rm -rf /tmp/pear
 
-WORKDIR /var/www/html
-
+WORKDIR /app
 RUN git clone --depth=1 https://github.com/RobiNN1/phpCacheAdmin.git . \
-    && rm -r .git tests composer.json package.json phpstan.neon phpunit.xml README.md docker-compose.yml Dockerfile
+    && rm -rf .git tests composer.json package.json phpstan.neon phpunit.xml README.md docker-compose.yml Dockerfile \
+    && apk del .build-deps
 
-RUN chown -R www-data:www-data /var/www/html && chmod -R 755 /var/www/html
+# Final stage
+FROM php:8.3-fpm-alpine
 
-RUN apt-get remove --purge git -y && apt-get autoremove -y && apt-get clean
+COPY --from=builder /usr/local/lib/php/extensions /usr/local/lib/php/extensions
+COPY --from=builder /usr/local/etc/php/conf.d /usr/local/etc/php/conf.d
+COPY --from=builder /app /var/www/html
 
-RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
+RUN apk add --no-cache nginx \
+    && mkdir -p /var/www/html/tmp \
+    && chown -R nobody:nobody /var/www/html \
+    && chmod -R 777 /var/www/html \
+    && mkdir -p /run/nginx \
+    && echo 'server { \
+    listen 80; \
+    root /var/www/html; \
+    index index.php; \
+    location / { \
+        try_files $uri $uri/ /index.php?$query_string; \
+    } \
+    location ~ \.php$ { \
+        fastcgi_pass 127.0.0.1:9000; \
+        fastcgi_index index.php; \
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name; \
+        include fastcgi_params; \
+    } \
+}' > /etc/nginx/http.d/default.conf
 
-CMD ["apache2-foreground"]
+EXPOSE 80
+
+CMD php-fpm -D && nginx -g 'daemon off;'

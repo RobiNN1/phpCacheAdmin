@@ -99,4 +99,12 @@ services:
 
 - [FileCache](https://github.com/RobiNN1/FileCache-Dashboard) ([`robinn/cache`](https://github.com/RobiNN1/Cache)) dashboard.
 
+## Contributing
+
+Thank you for your interest in contributing! However, this project is not accepting pull requests as I prefer to maintain the codebase myself.
+
+If you encounter any issues or have suggestions for improvements, please create an issue instead. This allows us to discuss the problem or idea before any changes are made.
+
+I appreciate your understanding and look forward to hearing your feedback!
+
 <!-- Font used in logo Arial Rounded MT Bold -->

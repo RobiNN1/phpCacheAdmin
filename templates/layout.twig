@@ -15,7 +15,19 @@
             }
         </style>
     {%- endif %}
+    <script>
+        const theme = localStorage.getItem('theme') || 'system';
+        let current_theme = theme;
 
+        if (theme === 'system') {
+            current_theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            document.documentElement.setAttribute('color-theme', 'system');
+        } else {
+            document.documentElement.setAttribute('color-theme', theme);
+        }
+
+        document.documentElement.classList.toggle('dark', current_theme === 'dark');
+    </script>
 </head>
 <body class="bg-gray-100 text-gray-900 dark:text-gray-200 dark:bg-gray-900" data-dashboard="{{ current }}">
 <header class="grid md:grid-cols-3 p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">

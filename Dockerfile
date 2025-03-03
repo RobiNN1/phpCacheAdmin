@@ -2,8 +2,8 @@
 FROM php:8.3-cli-alpine as builder
 
 RUN apk add --no-cache --virtual .build-deps autoconf build-base git \
-    && pecl install -o -f redis apcu \
-    && docker-php-ext-enable redis apcu opcache \
+    && pecl install -o -f redis \
+    && docker-php-ext-enable redis \
     && rm -rf /tmp/pear
 
 WORKDIR /app

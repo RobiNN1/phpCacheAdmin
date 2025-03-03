@@ -1,5 +1,5 @@
 # Build stage
-FROM php:8.3-cli-alpine as builder
+FROM php:8.4-cli-alpine AS builder
 
 RUN apk add --no-cache --virtual .build-deps autoconf build-base git \
     && pecl install -o -f redis \
@@ -12,12 +12,13 @@ RUN git clone --depth=1 https://github.com/RobiNN1/phpCacheAdmin.git . \
     && apk del .build-deps
 
 # Final stage
-FROM php:8.3-fpm-alpine
+FROM php:8.4-fpm-alpine
 
 COPY --from=builder /usr/local/lib/php/extensions /usr/local/lib/php/extensions
 COPY --from=builder /usr/local/etc/php/conf.d /usr/local/etc/php/conf.d
 COPY --from=builder /app /var/www/html
 
+# NGINX configuration is here intentionally
 RUN apk add --no-cache nginx \
     && mkdir -p /var/www/html/tmp \
     && chown -R nobody:nobody /var/www/html \

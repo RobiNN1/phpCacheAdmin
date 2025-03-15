@@ -129,4 +129,5 @@ return [
     'time-format'   => 'd. m. Y H:i:s',
     'decimal-sep'   => ',',
     'thousands-sep' => ' ',
+    'list-view'     => 'table', // table/tree - default key list view
 ];

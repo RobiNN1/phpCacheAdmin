@@ -82,8 +82,7 @@ class RedisDashboard implements DashboardInterface {
         }
 
         if ($this->clinet === 'redis') {
-            $redis = new Compatibility\Redis();
-            $redis->connection($server);
+            $redis = new Compatibility\Redis($server);
         } elseif ($this->clinet === 'predis') {
             $redis = new Compatibility\Predis($server);
         } else {

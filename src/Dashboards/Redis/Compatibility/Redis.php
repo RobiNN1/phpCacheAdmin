@@ -34,7 +34,9 @@ class Redis extends \Redis implements RedisCompatibilityInterface {
      *
      * @throws DashboardException
      */
-    public function connection(array $server): self {
+    public function __construct(array $server) {
+        parent::__construct();
+
         $server['port'] ??= 6379;
 
         try {
@@ -59,8 +61,6 @@ class Redis extends \Redis implements RedisCompatibilityInterface {
             $connection = $server['path'] ?? $server['host'].':'.$server['port'];
             throw new DashboardException($e->getMessage().' ['.$connection.']');
         }
-
-        return $this;
     }
 
     public function getType(string|int $type): string {

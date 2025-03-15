@@ -223,7 +223,7 @@ trait MemcachedTrait {
             }
         }
 
-        if (Http::get('view', 'table') === 'tree') {
+        if (Http::get('view', Config::get('list-view', 'table')) === 'tree') {
             return $this->keysTreeView($keys);
         }
 

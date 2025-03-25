@@ -1,4 +1,4 @@
-/*! tailwindcss v4.0.14 | MIT License | https://tailwindcss.com */
+/*! tailwindcss v4.0.16 | MIT License | https://tailwindcss.com */
 @layer theme, base, components, utilities;
 @layer theme {
   :root, :host {
@@ -261,20 +261,11 @@
   .w-full {
     width: 100%;
   }
-  .max-w-full {
-    max-width: 100%;
-  }
   .max-w-lg {
     max-width: 32rem;
   }
   .max-w-xs {
     max-width: 20rem;
-  }
-  .flex-1 {
-    flex: 1;
-  }
-  .grow {
-    flex-grow: 1;
   }
   .table-auto {
     table-layout: auto;
@@ -290,9 +281,6 @@
   }
   .appearance-none {
     appearance: none;
-  }
-  .flex-col {
-    flex-direction: column;
   }
   .flex-wrap {
     flex-wrap: wrap;
@@ -326,6 +314,20 @@
       --tw-space-x-reverse: 0;
       margin-inline-start: calc(-1px * var(--tw-space-x-reverse));
       margin-inline-end: calc(-1px * calc(1 - var(--tw-space-x-reverse)));
+    }
+  }
+  .divide-y {
+    :where(& > :not(:last-child)) {
+      --tw-divide-y-reverse: 0;
+      border-bottom-style: var(--tw-border-style);
+      border-top-style: var(--tw-border-style);
+      border-top-width: calc(1px * var(--tw-divide-y-reverse));
+      border-bottom-width: calc(1px * calc(1 - var(--tw-divide-y-reverse)));
+    }
+  }
+  .divide-gray-900\/5 {
+    :where(& > :not(:last-child)) {
+      border-color: color-mix(in oklab, oklch(0.21 0.034 264.665) 5%, transparent);
     }
   }
   .truncate {
@@ -393,6 +395,9 @@
   }
   .bg-blue-500 {
     background-color: oklch(0.623 0.214 259.815);
+  }
+  .bg-gray-50 {
+    background-color: oklch(0.985 0.002 247.839);
   }
   .bg-gray-100 {
     background-color: oklch(0.967 0.003 264.542);
@@ -525,6 +530,9 @@
   .text-gray-500 {
     color: oklch(0.551 0.027 264.364);
   }
+  .text-gray-600 {
+    color: oklch(0.446 0.03 256.802);
+  }
   .text-gray-700 {
     color: oklch(0.373 0.034 259.733);
   }
@@ -534,8 +542,8 @@
   .text-primary-500 {
     color: var(--color-primary-500);
   }
-  .text-primary-700 {
-    color: var(--color-primary-700);
+  .text-primary-600 {
+    color: var(--color-primary-600);
   }
   .text-primary-900 {
     color: var(--color-primary-900);
@@ -895,6 +903,13 @@
       gap: calc(0.25rem * 2);
     }
   }
+  .dark\:divide-white\/5 {
+    &:where(.dark, .dark *) {
+      :where(& > :not(:last-child)) {
+        border-color: color-mix(in oklab, #fff 5%, transparent);
+      }
+    }
+  }
   .dark\:border-gray-600 {
     &:where(.dark, .dark *) {
       border-color: oklch(0.446 0.03 256.802);
@@ -973,6 +988,11 @@
   .dark\:bg-slate-700 {
     &:where(.dark, .dark *) {
       background-color: oklch(0.372 0.044 257.287);
+    }
+  }
+  .dark\:bg-white\/5 {
+    &:where(.dark, .dark *) {
+      background-color: color-mix(in oklab, #fff 5%, transparent);
     }
   }
   .dark\:text-gray-100 {
@@ -1216,12 +1236,6 @@
       }
     }
   }
-  .\[\&\:last-child\>\*\]\:border-b-0 {
-    &:last-child>* {
-      border-bottom-style: var(--tw-border-style);
-      border-bottom-width: 0px;
-    }
-  }
   .\[\&\>\.active\]\:bg-gray-200 {
     &>.active {
       background-color: oklch(0.928 0.006 264.531);
@@ -1244,12 +1258,6 @@
       &>.active {
         color: oklch(0.872 0.01 258.338);
       }
-    }
-  }
-  .\[\&\>\:last-child\]\:border-b-0 {
-    &>:last-child {
-      border-bottom-style: var(--tw-border-style);
-      border-bottom-width: 0px;
     }
   }
 }
@@ -1378,6 +1386,11 @@
   color: #c2c2c2;
 }
 @property --tw-space-x-reverse {
+  syntax: "*";
+  inherits: false;
+  initial-value: 0;
+}
+@property --tw-divide-y-reverse {
   syntax: "*";
   inherits: false;
   initial-value: 0;

@@ -1,4 +1,4 @@
-/*! tailwindcss v4.0.16 | MIT License | https://tailwindcss.com */
+/*! tailwindcss v4.0.17 | MIT License | https://tailwindcss.com */
 @layer theme, base, components, utilities;
 @layer theme {
   :root, :host {
@@ -480,8 +480,8 @@
   .py-4 {
     padding-block: calc(0.25rem * 4);
   }
-  .py-\[0\.54rem\] {
-    padding-block: 0.54rem;
+  .py-\[0\.4rem\] {
+    padding-block: 0.4rem;
   }
   .pl-6 {
     padding-left: calc(0.25rem * 6);
@@ -818,11 +818,6 @@
       margin-inline-end: calc(0.25rem * 4);
     }
   }
-  .md\:mb-0 {
-    @media (width >= 48rem) {
-      margin-bottom: calc(0.25rem * 0);
-    }
-  }
   .md\:flex {
     @media (width >= 48rem) {
       display: flex;
@@ -866,16 +861,6 @@
   .md\:grid-cols-10 {
     @media (width >= 48rem) {
       grid-template-columns: repeat(10, minmax(0, 1fr));
-    }
-  }
-  .md\:justify-center {
-    @media (width >= 48rem) {
-      justify-content: center;
-    }
-  }
-  .md\:justify-end {
-    @media (width >= 48rem) {
-      justify-content: flex-end;
     }
   }
   .md\:gap-2 {

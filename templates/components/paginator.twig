@@ -1,4 +1,4 @@
-<div class="md:grid md:grid-cols-3">
+<div class="flex gap-4 flex-wrap items-center justify-between">
     <div class="flex items-center gap-1">
         Showing
         <span class="font-semibold">{{ first_on_page }}</span> to
@@ -6,33 +6,29 @@
         <span class="font-semibold">{{ total }}</span> items
     </div>
 
-    <div class="mb-4 flex items-center gap-2 md:mb-0 md:justify-center">
+    <div class="flex items-center gap-2">
         {{ include('components/select.twig', {id: 'per_page', options: select, selected: per_page, width: 'w-24', wrapper_class: false}) }}
         <label class="-mt-1.5" for="per_page">per page</label>
     </div>
 
     {% if pages and pages|length > 1 %}
-        <div class="flex items-center md:justify-end">
-            <ul class="inline-flex -space-x-px text-sm">
-                {% for page in pages %}
-                    {% if page == current_page %}
-                        {% set class = 'border-primary-400 bg-primary-500 text-white hover:bg-primary-600 dark:bg-primary-900 dark:hover:bg-primary-800 dark:border-primary-700' %}
-                    {% else %}
-                        {% set class = 'border-gray-300 bg-white hover:bg-gray-100 hover:text-gray-700 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white' %}
-                    {% endif %}
+        <nav class="flex -space-x-px">
+            {% for page in pages %}
+                {% if page == current_page %}
+                    {% set class = 'border-primary-400 bg-primary-500 text-white dark:bg-primary-900 dark:border-primary-700' %}
+                {% else %}
+                    {% set class = 'border-gray-300 bg-white hover:bg-gray-100 hover:text-gray-700 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white' %}
+                {% endif %}
 
-                    {% set first_item = loop.first ? ' rounded-l' : '' %}
-                    {% set last_item = loop.last ? ' rounded-r' : '' %}
+                {% set first_item = loop.first ? ' rounded-l' : '' %}
+                {% set last_item = loop.last ? ' rounded-r' : '' %}
 
-                    <li>
-                        {% if page == '...' %}
-                            <span class="py-[0.54rem] px-3 border border-gray-300 bg-white dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300">{{ page }}</span>
-                        {% else %}
-                            <a href="{{ url ~ page }}" class="py-[0.54rem] px-3 border {{ class }}{{ first_item ~ last_item }}">{{ page }}</a>
-                        {% endif %}
-                    </li>
-                {% endfor %}
-            </ul>
-        </div>
+                {% if page == '...' %}
+                    <div><span class="py-[0.4rem] px-3 border border-gray-300 bg-white dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300">{{ page }}</span></div>
+                {% else %}
+                    <div><a href="{{ url ~ page }}" class="py-[0.4rem] px-3 border {{ class }}{{ first_item ~ last_item }}">{{ page }}</a></div>
+                {% endif %}
+            {% endfor %}
+        </nav>
     {% endif %}
 </div>

@@ -30,12 +30,10 @@
   "require-dev": {
     "clue/phar-composer": "^1.4",
     "phpstan/phpstan": "^2.1",
-    "phpunit/phpunit": "^11|^12.0"
+    "phpunit/phpunit": "^11|^12.1"
   },
   "suggest": {
     "ext-apcu": "Required for the APCu dashboard.",
-    "ext-memcache": "Required for the Memcache dashboard.",
-    "ext-memcached": "Required for the Memcached dashboard.",
     "ext-zend-opcache": "Required for use the OPCache dashboard.",
     "ext-redis": "Required for use the Redis dashboard.",
     "ext-zlib": "Required for encoding/decoding with gz* functions.",

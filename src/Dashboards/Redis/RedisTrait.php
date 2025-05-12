@@ -23,9 +23,9 @@ trait RedisTrait {
     use RedisTypes;
 
     private function panels(): string {
-        if ($this->clinet === 'redis') {
+        if ($this->client === 'redis') {
             $title = 'PHP Redis extension v'.phpversion('redis');
-        } elseif ($this->clinet === 'predis') {
+        } elseif ($this->client === 'predis') {
             $title = 'Predis v'.Predis::VERSION;
         }
 

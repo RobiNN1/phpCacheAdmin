@@ -14,12 +14,18 @@
                         </td>
                     </tr>
                     {% for sub_name, sub_value in value %}
-                        {% if sub_value is not iterable %}
-                            <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
-                                <td class="whitespace-nowrap px-4 py-1.5 text-gray-900 dark:text-white">{{ sub_name }}</td>
-                                <td class="px-4 py-1.5 font-semibold text-gray-700 dark:text-gray-300">{{ sub_value|raw }}</td>
-                            </tr>
-                        {% endif %}
+                        <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
+                            <td class="whitespace-nowrap px-4 py-1.5 text-gray-900 dark:text-white">{{ sub_name }}</td>
+                            <td class="px-4 py-1.5 font-semibold text-gray-700 dark:text-gray-300">
+                                {% if sub_value is not iterable %}
+                                    {{ sub_value|raw }}
+                                {% else %}
+                                    {% for node, node_value in sub_value %}
+                                        Node {{ node }}: {{ node_value|raw }}<br>
+                                    {% endfor %}
+                                {% endif %}
+                            </td>
+                        </tr>
                     {% endfor %}
                 {% elseif not value is iterable %}
                     <tr class="hover:bg-gray-50 dark:hover:bg-white/5">

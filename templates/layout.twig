@@ -39,7 +39,8 @@
     <div class="flex items-center justify-center gap-4">
         {% for link, item in nav %}
             {% set link_bg = item.colors ? ' style="--link-bg:' ~ item.colors.500 ~ ';--link-bg-hover:' ~ item.colors.700 ~ ';--link-active:' ~ item.colors.300 ~ ';--link-active-dark:' ~ item.colors.900 ~ ';"' : '' %}
-            <a class="sblink{{ current == link ? ' active' : '' }} flex size-9 items-center justify-center rounded-sm text-white" {{ link_bg|raw }} href="?dashboard={{ link }}" title="{{ item.title }}">
+            {% set server = get('server') and get('dashboard') == link ? '&server=' ~ get('server') : '' %}
+            <a class="sblink{{ current == link ? ' active' : '' }} flex size-9 items-center justify-center rounded-sm text-white" {{ link_bg|raw }} href="?dashboard={{ link ~ server }}" title="{{ item.title }}">
                 {{ svg(item.icon ?? ('dashboards/' ~ item.key), 16) }}
             </a>
         {% endfor %}

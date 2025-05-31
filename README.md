@@ -28,7 +28,8 @@ Or you can even use JSON (e.g. Redis SSL option).
 Redis:
 
 - `PCA_REDIS_0_NAME` The server name (optional).
-- `PCA_REDIS_0_HOST` Optional when a path is specified.
+- `PCA_REDIS_0_HOST` Optional when a path or nodes is specified.
+- `PCA_REDIS_0_NODES` List of cluster nodes. You can set value as JSON `["127.0.0.1:7000","127.0.0.1:7001","127.0.0.1:7002"]`.
 - `PCA_REDIS_0_PORT` Optional when the default port is used.
 - `PCA_REDIS_0_SCHEME` Connection scheme (optional). If you need a TLS connection, set it to `tls`.
 - `PCA_REDIS_0_SSL` [SSL options](https://www.php.net/manual/en/context.ssl.php) for TLS. Requires Redis >= 6.0 (optional). You can set value as JSON `{"cafile":"private.pem","verify_peer":true}`.

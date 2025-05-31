@@ -12,6 +12,7 @@ use Exception;
 use PHPUnit\Framework\Attributes\DataProvider;
 use RobiNN\Pca\Config;
 use RobiNN\Pca\Dashboards\DashboardException;
+use RobiNN\Pca\Dashboards\Redis\Compatibility\Cluster\RedisCluster;
 use RobiNN\Pca\Dashboards\Redis\Compatibility\Predis;
 use RobiNN\Pca\Dashboards\Redis\Compatibility\Redis;
 use RobiNN\Pca\Dashboards\Redis\RedisDashboard;
@@ -25,9 +26,11 @@ abstract class RedisTestCase extends TestCase {
 
     private RedisDashboard $dashboard;
 
-    private Predis|Redis $redis;
+    private Redis|Predis|RedisCluster $redis;
 
     protected string $client;
+
+    protected bool $is_cluster = false;
 
     /**
      * @throws DashboardException
@@ -35,11 +38,20 @@ abstract class RedisTestCase extends TestCase {
     protected function setUp(): void {
         $this->template = new Template();
         $this->dashboard = new RedisDashboard($this->template, $this->client);
-        $this->redis = $this->dashboard->connect([
-            'host'     => Config::get('redis')[0]['host'],
-            'port'     => Config::get('redis')[0]['port'],
-            'database' => 10,
-        ]);
+
+        $this->is_cluster = !empty(getenv('CLUSTER'));
+
+        if ($this->is_cluster) {
+            $config = ['nodes' => ['127.0.0.1:6380', '127.0.0.1:6381', '127.0.0.1:6382']];
+        } else {
+            $config = [
+                'host'     => Config::get('redis')[0]['host'],
+                'port'     => Config::get('redis')[0]['port'],
+                'database' => 10,
+            ];
+        }
+
+        $this->redis = $this->dashboard->connect($config);
         $this->dashboard->redis = $this->redis;
     }
 
@@ -47,7 +59,11 @@ abstract class RedisTestCase extends TestCase {
      * @throws Exception
      */
     protected function tearDown(): void {
-        $this->redis->flushDB();
+        if ($this->is_cluster) {
+            $this->redis->flushAllClusterDBs();
+        } else {
+            $this->redis->flushDB();
+        }
     }
 
     /**

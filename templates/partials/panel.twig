@@ -34,16 +34,18 @@
 
     <div class="divide-y divide-gray-900/5 dark:divide-white/5">
         {% for name, value in array %}
-            <div class="px-4 py-1.5">
-                <div class="flex items-center justify-between gap-4">
-                    <div class="text-xs font-semibold text-gray-600 dark:text-gray-300">{{ value is iterable ? value[0] : name }}</div>
-                    <div class="text-sm font-semibold text-gray-900 dark:text-white">{{ (value is iterable ? value[1] : value)|raw }}</div>
-                </div>
+            {% if name %}
+                <div class="px-4 py-1.5">
+                    <div class="flex items-center justify-between gap-4">
+                        <div class="text-xs font-semibold text-gray-600 dark:text-gray-300">{{ value is iterable ? value[0] : name }}</div>
+                        <div class="text-sm font-semibold text-gray-900 dark:text-white">{{ (value is iterable ? value[1] : value)|raw }}</div>
+                    </div>
 
-                {% if value[2] is not null %}
-                    {{ _self.progress(value[2], (value[3] ?? 'lower')) }}
-                {% endif %}
-            </div>
+                    {% if value[2] is not null %}
+                        {{ _self.progress(value[2], (value[3] ?? 'lower')) }}
+                    {% endif %}
+                </div>
+            {% endif %}
         {% endfor %}
     </div>
 </div>

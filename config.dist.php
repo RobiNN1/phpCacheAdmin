@@ -28,7 +28,13 @@ return [
     'redis'         => [
         [
             'name' => 'Localhost', // The server name (optional).
-            'host' => '127.0.0.1', // Optional when a path is specified.
+            'host' => '127.0.0.1', // Optional when a path or nodes is specified.
+            /*'nodes' => [
+                // List of cluster nodes.
+                '127.0.0.1:7000',
+                '127.0.0.1:7001',
+                '127.0.0.1:7002',
+            ],*/
             'port' => 6379, // Optional when the default port is used.
             //'scheme'    => 'tls', // Connection scheme (optional).
             /*'ssl'       => [

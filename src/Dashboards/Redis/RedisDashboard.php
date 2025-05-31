@@ -27,9 +27,11 @@ class RedisDashboard implements DashboardInterface {
 
     private int $current_server;
 
-    public Compatibility\Redis|Compatibility\Predis $redis;
+    public Compatibility\Redis|Compatibility\Predis|Compatibility\Cluster\RedisCluster $redis;
 
     public string $client = '';
+
+    public bool $is_cluster = false;
 
     public function __construct(private readonly Template $template, ?string $client = null) {
         $this->client = $client ?? (extension_loaded('redis') ? 'redis' : 'predis');
@@ -70,20 +72,26 @@ class RedisDashboard implements DashboardInterface {
     /**
      * Connect to the server.
      *
-     * @param array<string, int|string> $server
+     * @param array<string, mixed> $server
      *
      * @throws DashboardException
      */
-    public function connect(array $server): Compatibility\Redis|Compatibility\Predis {
+    public function connect(array $server): Compatibility\Redis|Compatibility\Predis|Compatibility\Cluster\RedisCluster {
         $server['database'] = Http::get('db', $server['database'] ?? 0);
 
-        if (isset($server['authfile'])) {
+        if (!empty($server['authfile'])) {
             $server['password'] = trim(file_get_contents($server['authfile']));
         }
 
+        $this->is_cluster = !empty($server['nodes']) && is_array($server['nodes']);
+
         if ($this->client === 'redis') {
-            $redis = new Compatibility\Redis($server);
+            $redis = $this->is_cluster ? new Compatibility\Cluster\RedisCluster($server) : new Compatibility\Redis($server);
         } elseif ($this->client === 'predis') {
+            if ($this->is_cluster) {
+                throw new DashboardException('There is currently no support for clusters with Predis.');
+            }
+
             $redis = new Compatibility\Predis($server);
         } else {
             throw new DashboardException('Redis extension or Predis is not installed.');

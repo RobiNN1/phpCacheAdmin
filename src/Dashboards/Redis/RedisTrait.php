@@ -34,10 +34,18 @@ trait RedisTrait {
 
             $count_of_all_keys = 0;
 
-            foreach ($info['keyspace'] as $value) {
-                [$keys] = explode(',', $value);
-                [, $key_count] = explode('=', $keys);
-                $count_of_all_keys += (int) $key_count;
+            if (isset($info['keyspace'])) {
+                foreach ($info['keyspace'] as $entries) {
+                    if (!is_array($entries)) {
+                        $entries = [$entries];
+                    }
+
+                    foreach ($entries as $entry) {
+                        [$keysPart] = explode(',', $entry);
+                        [, $keyCount] = explode('=', $keysPart);
+                        $count_of_all_keys += (int) $keyCount;
+                    }
+                }
             }
 
             $used_memory = (int) $info['memory']['used_memory'];
@@ -58,6 +66,10 @@ trait RedisTrait {
             $redis_mode = isset($info['server']['redis_mode']) ? ', '.$info['server']['redis_mode'].' mode' : '';
             $maxclients = isset($info['clients']['maxclients']) ? ' / '.Format::number((int) $info['clients']['maxclients']) : '';
 
+            if (!$this->is_cluster) {
+                $role = ['Role', $info['replication']['role'].', connected slaves '.$info['replication']['connected_slaves']];
+            }
+
             $panels = [
                 [
                     'title'    => $title ?? null,
@@ -66,7 +78,7 @@ trait RedisTrait {
                         'Version' => $info['server']['redis_version'].$redis_mode,
                         'Cluster' => $info['cluster']['cluster_enabled'] ? 'Enabled' : 'Disabled',
                         'Uptime'  => Format::seconds((int) $info['server']['uptime_in_seconds']),
-                        'Role'    => $info['replication']['role'].', connected slaves '.$info['replication']['connected_slaves'],
+                        $role ?? null,
                         'Keys'    => Format::number($count_of_all_keys).' (all databases)',
                         ['Hits / Misses', Format::number($hits).' / '.Format::number($misses).' ('.$hit_rate.'%)', $hit_rate, 'higher'],
                     ],
@@ -103,7 +115,7 @@ trait RedisTrait {
      * @throws Exception
      */
     private function deleteAllKeys(): string {
-        if ($this->redis->flushDB()) {
+        if ($this->is_cluster ? $this->redis->flushAllClusterDBs() : $this->redis->flushAll()) {
             return Helpers::alert($this->template, 'All keys from the current database have been removed.', 'success');
         }
 
@@ -469,6 +481,10 @@ trait RedisTrait {
     }
 
     private function dbSelect(): string {
+        if ($this->is_cluster) {
+            return '';
+        }
+
         try {
             $databases = $this->template->render('components/select', [
                 'id'       => 'db_select',
@@ -483,6 +499,11 @@ trait RedisTrait {
     }
 
     private function slowlog(): string {
+        if ($this->is_cluster) {
+            return $this->template->render('components/tabs', ['links' => ['keys' => 'Keys', 'slowlog' => 'Slow Log',],]).
+                'Unsupported in cluster.';
+        }
+
         if (isset($_GET['resetlog'])) {
             $this->redis->rawCommand('SLOWLOG', 'RESET');
             Http::redirect(['tab']);
@@ -538,7 +559,7 @@ trait RedisTrait {
 
         return $this->template->render('dashboards/redis/redis', [
             'keys'      => $paginator->getPaginated(),
-            'all_keys'  => $this->redis->dbSize(),
+            'all_keys'  => $this->is_cluster ? $this->redis->clusterDbSize() : $this->redis->dbSize(),
             'paginator' => $paginator->render(),
             'view_key'  => Http::queryString(['s'], ['view' => 'key', 'key' => '__key__']),
         ]);

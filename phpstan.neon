@@ -4,3 +4,5 @@ parameters:
   paths:
     - src
     - tests
+  excludePaths:
+    - 'src/Dashboards/Redis/Compatibility/Cluster/RedisCluster.php' # phpstan doesn't have updated stubs for RedisCluster

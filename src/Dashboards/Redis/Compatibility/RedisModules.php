@@ -23,7 +23,7 @@ trait RedisModules {
             return [];
         }
 
-        if (count($list) === 0) {
+        if (!is_array($list) || count($list) === 0) {
             return [];
         }
 

@@ -414,7 +414,11 @@ trait MemcachedTrait {
         $keys = $this->getAllKeys();
 
         if (isset($_GET['export_btn'])) {
-            Helpers::export($keys, 'memcached_backup', fn (string $key): string => base64_encode($this->memcached->getKey(urldecode($key))));
+            Helpers::export($keys, 'memcached_backup', function (string $key): ?string {
+                $value = $this->memcached->getKey(urldecode($key));
+
+                return $value !== false ? base64_encode($value) : null;
+            });
         }
 
         $paginator = new Paginator($this->template, $keys);

@@ -138,12 +138,17 @@ class Helpers {
         $json = [];
 
         foreach ($keys as $key) {
+            $val = $value($key['key']);
+            if ($val === null) {
+                continue;
+            }
+
             $ttl = isset($key['info']['ttl']) && is_int($key['info']['ttl']) ? $key['info']['ttl'] : 0;
 
             $json[] = [
                 'key'   => $key['key'],
                 'ttl'   => $ttl === -1 ? 0 : $ttl,
-                'value' => $value($key['key']),
+                'value' => $val,
             ];
         }
 

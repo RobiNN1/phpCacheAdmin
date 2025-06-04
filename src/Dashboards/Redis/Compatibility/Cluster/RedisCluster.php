@@ -56,13 +56,15 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
         return $this->data_types[$type] ?? 'unknown';
     }
 
-
+    /**
+     * @throws RedisClusterException
+     */
     public function getKeyType(string $key): string {
         $type = $this->type($key);
 
         if ($type === Redis::REDIS_NOT_FOUND) {
             $this->setOption(Redis::OPT_REPLY_LITERAL, true);
-            $type = $this->rawCommand($key, 'TYPE', $key);
+            $type = $this->rawcommand($key, 'TYPE', $key);
         }
 
         return $this->getType($type);
@@ -70,6 +72,8 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
 
     /**
      * @return array<int|string, mixed>
+     *
+     * @throws RedisClusterException
      */
     public function getInfo(?string $option = null): array {
         static $info = [];
@@ -101,6 +105,7 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
 
     /**
      * @return array<int, string>
+     * @throws RedisClusterException
      */
     public function scanKeys(string $pattern, int $count): array {
         $keys = [];
@@ -123,8 +128,11 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
         return $keys;
     }
 
+    /**
+     * @throws RedisClusterException
+     */
     public function listRem(string $key, string $value, int $count): int {
-        return $this->lRem($key, $value, $count);
+        return $this->lrem($key, $value, $count);
     }
 
     /**
@@ -147,12 +155,12 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
         foreach ($keys as $key) {
             $ttl = $this->ttl($key);
             $type = $this->type($key);
-            $size = $this->rawCommand($key, 'MEMORY', 'USAGE', $key);
-            $scard = $this->rawCommand($key, 'SCARD', $key);
-            $llen = $this->rawCommand($key, 'LLEN', $key);
-            $zcard = $this->rawCommand($key, 'ZCARD', $key);
-            $hlen = $this->rawCommand($key, 'HLEN', $key);
-            $xlen = $this->rawCommand($key, 'XLEN', $key);
+            $size = $this->rawcommand($key, 'MEMORY', 'USAGE', $key);
+            $scard = $this->rawcommand($key, 'SCARD', $key);
+            $llen = $this->rawcommand($key, 'LLEN', $key);
+            $zcard = $this->rawcommand($key, 'ZCARD', $key);
+            $hlen = $this->rawcommand($key, 'HLEN', $key);
+            $xlen = $this->rawcommand($key, 'XLEN', $key);
 
             $results = [$ttl, $type, $size, $scard, $llen, $zcard, $hlen, $xlen];
 
@@ -178,12 +186,18 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
         return $data;
     }
 
+    /**
+     * @throws RedisClusterException
+     */
     public function size(string $key): int {
-        $size = $this->rawCommand($key, 'MEMORY', 'USAGE', $key);
+        $size = $this->rawcommand($key, 'MEMORY', 'USAGE', $key);
 
         return is_int($size) ? $size : 0;
     }
 
+    /**
+     * @throws RedisClusterException
+     */
     public function flushAllClusterDBs(): bool {
         $nodes = $this->_masters();
 
@@ -194,6 +208,9 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
         return true;
     }
 
+    /**
+     * @throws RedisClusterException
+     */
     public function clusterDbSize(): int {
         $nodes = $this->_masters();
         $total = 0;

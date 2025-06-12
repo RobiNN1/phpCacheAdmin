@@ -17,6 +17,10 @@ ini_set('display_errors', 'On');
 ini_set('display_startup_errors', 'On');
 error_reporting(E_ALL);
 
+if (getenv('PCA_PHP_MEMORY_LIMIT')) {
+    ini_set('memory_limit', getenv('PCA_PHP_MEMORY_LIMIT'));
+}
+
 $path = __DIR__.'/';
 
 if (is_file(__DIR__.'/vendor/autoload.php')) {

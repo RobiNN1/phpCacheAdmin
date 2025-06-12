@@ -191,4 +191,12 @@ class Redis extends \Redis implements RedisCompatibilityInterface {
 
         return is_int($size) ? $size : 0;
     }
+
+    public function flushDatabase(): bool {
+        return $this->flushDB();
+    }
+
+    public function databaseSize(): int {
+        return $this->dbSize();
+    }
 }

@@ -8,11 +8,14 @@ declare(strict_types=1);
 
 namespace RobiNN\Pca\Dashboards\Redis\Compatibility;
 
+use Exception;
 use RedisException;
 
 trait RedisModules {
     /**
      * @return array<int, array<string, int|string>>
+     *
+     * @throws Exception
      */
     public function getModules(): array {
         static $modules = [];
@@ -37,6 +40,9 @@ trait RedisModules {
         return $modules;
     }
 
+    /**
+     * @throws Exception
+     */
     public function checkModule(string $module): bool {
         return in_array($module, array_column($this->getModules(), 'name'), true);
     }

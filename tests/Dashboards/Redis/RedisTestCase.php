@@ -59,11 +59,7 @@ abstract class RedisTestCase extends TestCase {
      * @throws Exception
      */
     protected function tearDown(): void {
-        if ($this->is_cluster) {
-            $this->redis->flushAllClusterDBs();
-        } else {
-            $this->redis->flushDB();
-        }
+        $this->redis->flushDatabase();
     }
 
     /**

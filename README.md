@@ -48,6 +48,9 @@ Memcached:
 - `PCA_MEMCACHED_0_PORT` Optional when the default port is used.
 - `PCA_MEMCACHED_0_PATH` Unix domain socket (optional).
 
+PHP:
+- `PCA_PHP_MEMORY_LIMIT` In case you need to increase the PHP memory limit in Docker.
+
 Open [config](https://github.com/RobiNN1/phpCacheAdmin/blob/master/config.dist.php) file for more info.
 
 > To add another server, add the same environment variables, but change `0` to `1` (`2` for third server and so on).

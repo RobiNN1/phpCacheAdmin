@@ -19,6 +19,8 @@ trait RedisTypes {
      * Used in form.
      *
      * @return array<string, string>
+     *
+     * @throws Exception
      */
     public function getAllTypes(): array {
         static $types = [];

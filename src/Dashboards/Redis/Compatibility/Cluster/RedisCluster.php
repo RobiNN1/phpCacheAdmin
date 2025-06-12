@@ -150,36 +150,33 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
      * @throws RedisClusterException
      */
     public function pipelineKeys(array $keys): array {
+        $lua_type = /* @lang Lua */
+            <<<LUA
+            local type = redis.call("TYPE", KEYS[1])["ok"]
+            if type == "set" then return redis.call("SCARD", KEYS[1])
+            elseif type == "list" then return redis.call("LLEN", KEYS[1])
+            elseif type == "zset" then return redis.call("ZCARD", KEYS[1])
+            elseif type == "hash" then return redis.call("HLEN", KEYS[1])
+            elseif type == "stream" then return redis.call("XLEN", KEYS[1])
+            else return nil end
+        LUA;
+
         $data = [];
 
         foreach ($keys as $key) {
-            $ttl = $this->ttl($key);
-            $type = $this->type($key);
-            $size = $this->rawcommand($key, 'MEMORY', 'USAGE', $key);
-            $scard = $this->rawcommand($key, 'SCARD', $key);
-            $llen = $this->rawcommand($key, 'LLEN', $key);
-            $zcard = $this->rawcommand($key, 'ZCARD', $key);
-            $hlen = $this->rawcommand($key, 'HLEN', $key);
-            $xlen = $this->rawcommand($key, 'XLEN', $key);
-
-            $results = [$ttl, $type, $size, $scard, $llen, $zcard, $hlen, $xlen];
-
-            $type = $this->getType($results[1]);
-
-            $count = match ($type) {
-                'set' => $results[3] ?? null,
-                'list' => $results[4] ?? null,
-                'zset' => $results[5] ?? null,
-                'hash' => $results[6] ?? null,
-                'stream' => $results[7] ?? null,
-                default => null,
-            };
+            // This must be per key because Redis Cluster doesn't support a pipeline.
+            $pipe = $this->multi();
+            $pipe->ttl($key);
+            $pipe->type($key);
+            $pipe->eval('return redis.call("MEMORY", "USAGE", KEYS[1])', [$key], 1);
+            $pipe->eval($lua_type, [$key], 1);
+            $results = $pipe->exec();
 
             $data[$key] = [
                 'ttl'   => $results[0],
-                'type'  => $type,
+                'type'  => $this->getType($results[1]),
                 'size'  => $results[2] ?? 0,
-                'count' => is_numeric($count) ? (int) $count : null,
+                'count' => is_int($results[3]) ? $results[3] : null,
             ];
         }
 
@@ -198,7 +195,7 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
     /**
      * @throws RedisClusterException
      */
-    public function flushAllClusterDBs(): bool {
+    public function flushDatabase(): bool {
         $nodes = $this->_masters();
 
         foreach ($nodes as $node) {
@@ -211,7 +208,7 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
     /**
      * @throws RedisClusterException
      */
-    public function clusterDbSize(): int {
+    public function databaseSize(): int {
         $nodes = $this->_masters();
         $total = 0;
 

@@ -115,7 +115,7 @@ trait RedisTrait {
      * @throws Exception
      */
     private function deleteAllKeys(): string {
-        if ($this->is_cluster ? $this->redis->flushAllClusterDBs() : $this->redis->flushAll()) {
+        if ($this->redis->flushDatabase()) {
             return Helpers::alert($this->template, 'All keys from the current database have been removed.', 'success');
         }
 
@@ -498,6 +498,9 @@ trait RedisTrait {
         return $databases;
     }
 
+    /**
+     * @throws Exception
+     */
     private function slowlog(): string {
         if ($this->is_cluster) {
             return $this->template->render('components/tabs', ['links' => ['keys' => 'Keys', 'slowlog' => 'Slow Log',],]).
@@ -559,7 +562,7 @@ trait RedisTrait {
 
         return $this->template->render('dashboards/redis/redis', [
             'keys'      => $paginator->getPaginated(),
-            'all_keys'  => $this->is_cluster ? $this->redis->clusterDbSize() : $this->redis->dbSize(),
+            'all_keys'  => $this->redis->databaseSize(),
             'paginator' => $paginator->render(),
             'view_key'  => Http::queryString(['s'], ['view' => 'key', 'key' => '__key__']),
         ]);

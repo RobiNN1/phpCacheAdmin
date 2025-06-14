@@ -30,7 +30,13 @@ abstract class RedisTestCase extends TestCase {
 
     protected string $client;
 
-    protected bool $is_cluster = false;
+    protected static bool $is_cluster = false;
+
+    public static function setUpBeforeClass(): void {
+        parent::setUpBeforeClass();
+
+        self::$is_cluster = !empty(Config::get('redis')[0]['nodes']);
+    }
 
     /**
      * @throws DashboardException
@@ -39,10 +45,8 @@ abstract class RedisTestCase extends TestCase {
         $this->template = new Template();
         $this->dashboard = new RedisDashboard($this->template, $this->client);
 
-        $this->is_cluster = !empty(getenv('CLUSTER'));
-
-        if ($this->is_cluster) {
-            $config = ['nodes' => ['127.0.0.1:6380', '127.0.0.1:6381', '127.0.0.1:6382']];
+        if (self::$is_cluster) {
+            $config = ['nodes' => Config::get('redis')[0]['nodes']];
         } else {
             $config = [
                 'host'     => Config::get('redis')[0]['host'],

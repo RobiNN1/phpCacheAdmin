@@ -8,18 +8,18 @@ declare(strict_types=1);
 
 namespace RobiNN\Pca\Dashboards\Redis\Compatibility;
 
-use RedisException;
+use Exception;
 
 trait RedisJson {
     /**
-     * @throws RedisException
+     * @throws Exception
      */
     public function jsonGet(string $key): string {
         return $this->rawCommand('JSON.GET', $key);
     }
 
     /**
-     * @throws RedisException
+     * @throws Exception
      */
     public function jsonSet(string $key, mixed $value): bool {
         $raw = $this->rawCommand('JSON.SET', $key, '$', $value);

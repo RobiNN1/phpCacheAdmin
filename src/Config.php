@@ -62,7 +62,7 @@ class Config {
     }
 
     /**
-     * Convert ENV variable to an array.
+     * Convert an ENV variable to an array.
      *
      * It allows the app to use ENV variables and config.php together.
      *

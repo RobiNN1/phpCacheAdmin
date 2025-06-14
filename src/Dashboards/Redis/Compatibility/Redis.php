@@ -30,7 +30,7 @@ class Redis extends \Redis implements RedisCompatibilityInterface {
     ];
 
     /**
-     * @param array<string, int|string> $server
+     * @param array<string, mixed> $server
      *
      * @throws DashboardException
      */

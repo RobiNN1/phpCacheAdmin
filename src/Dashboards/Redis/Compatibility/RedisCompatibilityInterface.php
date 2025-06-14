@@ -68,7 +68,7 @@ interface RedisCompatibilityInterface {
     /**
      * Alias to a flushDB().
      */
-    public function flushDatabase(): mixed;
+    public function flushDatabase(): bool;
 
     /**
      * Alias to a dbSize().

@@ -195,7 +195,7 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
     /**
      * @throws RedisClusterException
      */
-    public function flushDatabase(): mixed {
+    public function flushDatabase(): bool {
         $nodes = $this->_masters();
 
         foreach ($nodes as $node) {

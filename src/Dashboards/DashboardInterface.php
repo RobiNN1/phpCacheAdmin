@@ -15,7 +15,7 @@ interface DashboardInterface {
     public static function check(): bool;
 
     /**
-     * Array that contains key, name, and optionally an icon or colors.
+     * Array that contains a key, name, and optionally an icon or colors.
      *
      * @return array<string, array<int, string>|string>
      */

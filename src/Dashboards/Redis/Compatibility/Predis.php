@@ -174,8 +174,8 @@ class Predis extends Client implements RedisCompatibilityInterface {
         return is_int($size) ? $size : 0;
     }
 
-    public function flushDatabase(): mixed {
-        return $this->flushdb();
+    public function flushDatabase(): bool {
+        return (string) $this->flushdb() === 'OK';
     }
 
     public function databaseSize(): int {

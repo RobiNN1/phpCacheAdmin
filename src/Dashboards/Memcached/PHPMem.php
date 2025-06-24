@@ -69,6 +69,8 @@ class PHPMem {
     }
 
     /**
+     * @param 'settings'|'items'|'sizes'|'slabs'|'conns'|null $type
+     *
      * @return array<string, mixed>
      *
      * @throws MemcachedException
@@ -86,6 +88,30 @@ class PHPMem {
         }
 
         return $stats;
+    }
+
+    /**
+     * @return array<string, mixed>
+     *
+     * @throws MemcachedException
+     */
+    public function getSlabsStats(): array {
+        $stats = $this->getServerStats('slabs');
+        $result = [
+            'slabs' => [],
+            'meta'  => [],
+        ];
+
+        foreach ($stats as $key => $value) {
+            if (str_contains($key, ':')) {
+                [$slab_id, $field] = explode(':', $key, 2);
+                $result['slabs'][$slab_id][$field] = $value;
+            } else {
+                $result['meta'][$key] = $value;
+            }
+        }
+
+        return $result;
     }
 
     public function isConnected(): bool {
@@ -150,7 +176,7 @@ class PHPMem {
     }
 
     /**
-     * Convert raw key line to an array.
+     * Convert a raw key line to an array.
      *
      * @return array<string, string|int>
      */
@@ -237,7 +263,7 @@ class PHPMem {
     /**
      * Run command.
      *
-     * These commands should work but not guaranteed to work on any server:
+     * These commands should work but are not guaranteed to work on any server:
      *
      * set|add|replace|append|prepend  <key> <flags> <ttl> <bytes>\r\n<value>\r\n
      * cas <key> <flags> <exptime> <bytes> <cas unique>\r\n
@@ -271,8 +297,8 @@ class PHPMem {
      * verbosity <level>\r\n
      * quit\r\n
      *
-     * Note: \r\n is added automatically to the end
-     * and \r\n (as a plain string) is converted to a real end of line.
+     * Note: \r\n is added automatically to the end,
+     * and \r\n (as a plain string) is converted to a real end of the line.
      *
      * @link https://github.com/memcached/memcached/blob/master/doc/protocol.txt
      *

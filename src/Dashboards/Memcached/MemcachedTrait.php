@@ -31,9 +31,8 @@ trait MemcachedTrait {
                     'title'    => $title ?? null,
                     'moreinfo' => true,
                     'data'     => [
-                        'Version'          => $info['version'],
-                        'Open connections' => $info['curr_connections'],
-                        'Uptime'           => Format::seconds($info['uptime']),
+                        'Version' => $info['version'],
+                        'Uptime'  => Format::seconds($info['uptime']),
                     ],
                 ],
                 [
@@ -399,6 +398,38 @@ trait MemcachedTrait {
     /**
      * @throws MemcachedException
      */
+    private function slabs(): string {
+        $slabs_stats = $this->memcached->getSlabsStats();
+
+        $slabs = array_map(static function ($slab) {
+            return [
+                'Chunk Size'        => Format::bytes($slab['chunk_size']),
+                'Chunks per Page'   => Format::number($slab['chunks_per_page']),
+                'Total Pages'       => Format::number($slab['total_pages']),
+                'Total Chunks'      => Format::number($slab['total_chunks']),
+                'Used Chunks'       => Format::number($slab['used_chunks']),
+                'Free Chunks'       => Format::number($slab['free_chunks']),
+                'Free Chunks (End)' => Format::number($slab['free_chunks_end']),
+                'GET Hits'          => Format::number($slab['get_hits']),
+                'SET Commands'      => Format::number($slab['cmd_set']),
+                'DELETE Hits'       => Format::number($slab['delete_hits']),
+                'INCREMENT Hits'    => Format::number($slab['incr_hits']),
+                'DECREMENT Hits'    => Format::number($slab['decr_hits']),
+                'CAS Hits'          => Format::number($slab['cas_hits']),
+                'CAS Bad Value'     => Format::number($slab['cas_badval']),
+                'TOUCH Hits'        => Format::number($slab['touch_hits']),
+            ];
+        }, $slabs_stats['slabs']);
+
+        return $this->template->render('dashboards/memcached', [
+            'slabs' => $slabs,
+            'meta'  => $slabs_stats['meta'],
+        ]);
+    }
+
+    /**
+     * @throws MemcachedException
+     */
     private function mainDashboard(): string {
         if (isset($_POST['submit_import_key'])) {
             Helpers::import(
@@ -409,6 +440,10 @@ trait MemcachedTrait {
 
         if (Http::get('tab') === 'commands_stats') {
             return $this->commandsStats();
+        }
+
+        if (Http::get('tab') === 'slabs') {
+            return $this->slabs();
         }
 
         $keys = $this->getAllKeys();

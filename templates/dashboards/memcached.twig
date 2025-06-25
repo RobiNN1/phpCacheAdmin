@@ -3,6 +3,7 @@
         'keys': 'Keys',
         'commands_stats': 'Commands Stats',
         'slabs': 'Slabs',
+        'items': 'Items',
     },
 }) }}
 
@@ -47,6 +48,19 @@
             {% for slab, data in slabs %}
                 {{ include('partials/panel.twig', {
                     panel_title: 'Slab ' ~ slab,
+                    array: data,
+                }) }}
+            {% endfor %}
+        </div>
+    </div>
+{% endif %}
+
+{% if get('tab') == 'items' %}
+    <div class="px-6 py-4 rounded-sm bg-white border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+        <div class="md:grid md:grid-cols-4 md:gap-4">
+            {% for item, data in items %}
+                {{ include('partials/panel.twig', {
+                    panel_title: 'Item ' ~ item,
                     array: data,
                 }) }}
             {% endfor %}

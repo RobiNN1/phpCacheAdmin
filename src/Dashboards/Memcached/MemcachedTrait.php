@@ -401,30 +401,95 @@ trait MemcachedTrait {
     private function slabs(): string {
         $slabs_stats = $this->memcached->getSlabsStats();
 
-        $slabs = array_map(static function ($slab) {
-            return [
-                'Chunk Size'        => Format::bytes($slab['chunk_size']),
-                'Chunks per Page'   => Format::number($slab['chunks_per_page']),
-                'Total Pages'       => Format::number($slab['total_pages']),
-                'Total Chunks'      => Format::number($slab['total_chunks']),
-                'Used Chunks'       => Format::number($slab['used_chunks']),
-                'Free Chunks'       => Format::number($slab['free_chunks']),
-                'Free Chunks (End)' => Format::number($slab['free_chunks_end']),
-                'GET Hits'          => Format::number($slab['get_hits']),
-                'SET Commands'      => Format::number($slab['cmd_set']),
-                'DELETE Hits'       => Format::number($slab['delete_hits']),
-                'INCREMENT Hits'    => Format::number($slab['incr_hits']),
-                'DECREMENT Hits'    => Format::number($slab['decr_hits']),
-                'CAS Hits'          => Format::number($slab['cas_hits']),
-                'CAS Bad Value'     => Format::number($slab['cas_badval']),
-                'TOUCH Hits'        => Format::number($slab['touch_hits']),
+        $slabs = array_map(function (array $slab): array {
+            $fields = [
+                'chunk_size'      => ['Chunk Size', 'bytes'],
+                'chunks_per_page' => ['Chunks per Page', 'number'],
+                'total_pages'     => ['Total Pages', 'number'],
+                'total_chunks'    => ['Total Chunks', 'number'],
+                'used_chunks'     => ['Used Chunks', 'number'],
+                'free_chunks'     => ['Free Chunks', 'number'],
+                'free_chunks_end' => ['Free Chunks (End)', 'number'],
+                'get_hits'        => ['GET Hits', 'number'],
+                'cmd_set'         => ['SET Commands', 'number'],
+                'delete_hits'     => ['DELETE Hits', 'number'],
+                'incr_hits'       => ['INCREMENT Hits', 'number'],
+                'decr_hits'       => ['DECREMENT Hits', 'number'],
+                'cas_hits'        => ['CAS Hits', 'number'],
+                'cas_badval'      => ['CAS Bad Value', 'number'],
+                'touch_hits'      => ['TOUCH Hits', 'number'],
             ];
+
+            return $this->formatField($fields, $slab);
         }, $slabs_stats['slabs']);
 
         return $this->template->render('dashboards/memcached', [
             'slabs' => $slabs,
             'meta'  => $slabs_stats['meta'],
         ]);
+    }
+
+    /**
+     * @throws MemcachedException
+     */
+    private function items(): string {
+        $stats = $this->memcached->getItemsStats();
+
+        $items = array_map(function (array $item): array {
+            $fields = [
+                'number'                => ['Items', 'number'],
+                'number_hot'            => ['HOT LRU', 'number'],
+                'number_warm'           => ['WARM LRU', 'number'],
+                'number_cold'           => ['COLD LRU', 'number'],
+                'number_temp'           => ['TEMP LRU', 'number'],
+                'age_hot'               => ['Age (HOT)', 'seconds'],
+                'age_warm'              => ['Age (WARM)', 'seconds'],
+                'age'                   => ['Age (LRU)', 'seconds'],
+                'mem_requested'         => ['Memory Requested', 'bytes'],
+                'evicted'               => ['Evicted', 'number'],
+                'evicted_nonzero'       => ['Evicted Non-Zero', 'number'],
+                'evicted_time'          => ['Evicted Time', 'number'],
+                'outofmemory'           => ['Out of Memory', 'number'],
+                'tailrepairs'           => ['Tail Repairs', 'number'],
+                'reclaimed'             => ['Reclaimed', 'number'],
+                'expired_unfetched'     => ['Expired Unfetched', 'number'],
+                'evicted_unfetched'     => ['Evicted Unfetched', 'number'],
+                'evicted_active'        => ['Evicted Active', 'number'],
+                'crawler_reclaimed'     => ['Crawler Reclaimed', 'number'],
+                'crawler_items_checked' => ['Crawler Items Checked', 'number'],
+                'lrutail_reflocked'     => ['LRU Tail Reflocked', 'number'],
+                'moves_to_cold'         => ['Moves to COLD', 'number'],
+                'moves_to_warm'         => ['Moves to WARM', 'number'],
+                'moves_within_lru'      => ['Moves within LRU', 'number'],
+                'direct_reclaims'       => ['Direct Reclaims', 'number'],
+                'hits_to_hot'           => ['Hits to HOT', 'number'],
+                'hits_to_warm'          => ['Hits to WARM', 'number'],
+                'hits_to_cold'          => ['Hits to COLD', 'number'],
+                'hits_to_temp'          => ['Hits to TEMP', 'number'],
+            ];
+
+            return $this->formatField($fields, $item);
+        }, $stats);
+
+        return $this->template->render('dashboards/memcached', ['items' => $items]);
+    }
+
+    /**
+     * @param array<string, mixed> $fields
+     * @param array<string, mixed> $item
+     *
+     * @return array<string, mixed>
+     */
+    private function formatField(array $fields, array $item): array {
+        $formatted = [];
+
+        foreach ($fields as $key => [$label, $type]) {
+            $value = $item[$key] ?? 0;
+            jdump([$label, $value, $type]);
+            $formatted[$label] = Format::{$type}($value);
+        }
+
+        return $formatted;
     }
 
     /**
@@ -444,6 +509,10 @@ trait MemcachedTrait {
 
         if (Http::get('tab') === 'slabs') {
             return $this->slabs();
+        }
+
+        if (Http::get('tab') === 'items') {
+            return $this->items();
         }
 
         $keys = $this->getAllKeys();

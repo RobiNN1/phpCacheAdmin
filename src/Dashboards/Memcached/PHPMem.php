@@ -114,6 +114,25 @@ class PHPMem {
         return $result;
     }
 
+    /**
+     * @return array<string, mixed>
+     *
+     * @throws MemcachedException
+     */
+    public function getItemsStats(): array {
+        $stats = $this->getServerStats('items');
+        $result = [];
+
+        foreach ($stats as $key => $value) {
+            if (str_starts_with($key, 'items:') && substr_count($key, ':') === 2) {
+                [, $slab_id, $field] = explode(':', $key, 3);
+                $result[$slab_id][$field] = $value;
+            }
+        }
+
+        return $result;
+    }
+
     public function isConnected(): bool {
         try {
             $stats = $this->getServerStats();

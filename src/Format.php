@@ -84,7 +84,7 @@ class Format {
             }
         }
 
-        return implode(' ', $time_parts);
+        return $time_parts ? implode(' ', $time_parts) : '0 seconds';
     }
 
     public static function time(int $time): string {

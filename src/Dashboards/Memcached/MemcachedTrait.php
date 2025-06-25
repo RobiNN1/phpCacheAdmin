@@ -485,7 +485,6 @@ trait MemcachedTrait {
 
         foreach ($fields as $key => [$label, $type]) {
             $value = $item[$key] ?? 0;
-            jdump([$label, $value, $type]);
             $formatted[$label] = Format::{$type}($value);
         }
 

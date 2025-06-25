@@ -137,34 +137,34 @@ final class HelpersTest extends TestCase {
 
     public static function sortKeysProvider(): Iterator {
         yield 'no sorting' => [
-            'sortdir'  => 'none',
-            'sortcol'  => 'column1',
-            'keys'     => [['info' => ['column1' => 'value1']], ['info' => ['column1' => 'value2']], ['info' => ['column1' => 'value3']],],
-            'expected' => [['info' => ['column1' => 'value1']], ['info' => ['column1' => 'value2']], ['info' => ['column1' => 'value3']],],
+            'none',
+            'column1',
+            [['info' => ['column1' => 'value1']], ['info' => ['column1' => 'value2']], ['info' => ['column1' => 'value3']],],
+            [['info' => ['column1' => 'value1']], ['info' => ['column1' => 'value2']], ['info' => ['column1' => 'value3']],],
         ];
         yield 'ascending sort' => [
-            'sortdir'  => 'asc',
-            'sortcol'  => 'column1',
-            'keys'     => [['info' => ['column1' => 'value3']], ['info' => ['column1' => 'value1']], ['info' => ['column1' => 'value2']],],
-            'expected' => [['info' => ['column1' => 'value1']], ['info' => ['column1' => 'value2']], ['info' => ['column1' => 'value3']],],
+            'asc',
+            'column1',
+            [['info' => ['column1' => 'value3']], ['info' => ['column1' => 'value1']], ['info' => ['column1' => 'value2']],],
+            [['info' => ['column1' => 'value1']], ['info' => ['column1' => 'value2']], ['info' => ['column1' => 'value3']],],
         ];
         yield 'descending sort' => [
-            'sortdir'  => 'desc',
-            'sortcol'  => 'column1',
-            'keys'     => [['info' => ['column1' => 'value1']], ['info' => ['column1' => 'value2']], ['info' => ['column1' => 'value3']],],
-            'expected' => [['info' => ['column1' => 'value3']], ['info' => ['column1' => 'value2']], ['info' => ['column1' => 'value1']],],
+            'desc',
+            'column1',
+            [['info' => ['column1' => 'value1']], ['info' => ['column1' => 'value2']], ['info' => ['column1' => 'value3']],],
+            [['info' => ['column1' => 'value3']], ['info' => ['column1' => 'value2']], ['info' => ['column1' => 'value1']],],
         ];
         yield 'ascending sort with integers' => [
-            'sortdir'  => 'asc',
-            'sortcol'  => 'column1',
-            'keys'     => [['info' => ['column1' => 3]], ['info' => ['column1' => 1]], ['info' => ['column1' => 2]],],
-            'expected' => [['info' => ['column1' => 1]], ['info' => ['column1' => 2]], ['info' => ['column1' => 3]],],
+            'asc',
+            'column1',
+            [['info' => ['column1' => 3]], ['info' => ['column1' => 1]], ['info' => ['column1' => 2]],],
+            [['info' => ['column1' => 1]], ['info' => ['column1' => 2]], ['info' => ['column1' => 3]],],
         ];
         yield 'descending sort with integers' => [
-            'sortdir'  => 'desc',
-            'sortcol'  => 'column1',
-            'keys'     => [['info' => ['column1' => 1]], ['info' => ['column1' => 2]], ['info' => ['column1' => 3]],],
-            'expected' => [['info' => ['column1' => 3]], ['info' => ['column1' => 2]], ['info' => ['column1' => 1]],],
+            'desc',
+            'column1',
+            [['info' => ['column1' => 1]], ['info' => ['column1' => 2]], ['info' => ['column1' => 3]],],
+            [['info' => ['column1' => 3]], ['info' => ['column1' => 2]], ['info' => ['column1' => 1]],],
         ];
     }
 

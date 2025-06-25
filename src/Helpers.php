@@ -241,4 +241,22 @@ class Helpers {
 
         return $count;
     }
+
+    /**
+     * @param array<string, mixed> $fields
+     * @param array<string, mixed> $item
+     *
+     * @return array<string, mixed>
+     */
+    public static function formatFields(array $fields, array $item): array {
+        $formatted = [];
+
+        // key_name => [label, formatting (number, bytes, seconds, time)]
+        foreach ($fields as $key => [$label, $type]) {
+            $value = $item[$key] ?? 0;
+            $formatted[$label] = $type !== '' ? Format::{$type}($value) : $value;
+        }
+
+        return $formatted;
+    }
 }

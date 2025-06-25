@@ -401,7 +401,7 @@ trait MemcachedTrait {
     private function slabs(): string {
         $slabs_stats = $this->memcached->getSlabsStats();
 
-        $slabs = array_map(function (array $slab): array {
+        $slabs = array_map(static function (array $slab): array {
             $fields = [
                 'chunk_size'      => ['Chunk Size', 'bytes'],
                 'chunks_per_page' => ['Chunks per Page', 'number'],
@@ -420,7 +420,7 @@ trait MemcachedTrait {
                 'touch_hits'      => ['TOUCH Hits', 'number'],
             ];
 
-            return $this->formatField($fields, $slab);
+            return Helpers::formatFields($fields, $slab);
         }, $slabs_stats['slabs']);
 
         return $this->template->render('dashboards/memcached', [
@@ -435,7 +435,7 @@ trait MemcachedTrait {
     private function items(): string {
         $stats = $this->memcached->getItemsStats();
 
-        $items = array_map(function (array $item): array {
+        $items = array_map(static function (array $item): array {
             $fields = [
                 'number'                => ['Items', 'number'],
                 'number_hot'            => ['HOT LRU', 'number'],
@@ -468,27 +468,10 @@ trait MemcachedTrait {
                 'hits_to_temp'          => ['Hits to TEMP', 'number'],
             ];
 
-            return $this->formatField($fields, $item);
+            return Helpers::formatFields($fields, $item);
         }, $stats);
 
         return $this->template->render('dashboards/memcached', ['items' => $items]);
-    }
-
-    /**
-     * @param array<string, mixed> $fields
-     * @param array<string, mixed> $item
-     *
-     * @return array<string, mixed>
-     */
-    private function formatField(array $fields, array $item): array {
-        $formatted = [];
-
-        foreach ($fields as $key => [$label, $type]) {
-            $value = $item[$key] ?? 0;
-            $formatted[$label] = Format::{$type}($value);
-        }
-
-        return $formatted;
     }
 
     /**

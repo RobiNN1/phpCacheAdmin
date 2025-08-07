@@ -13,7 +13,7 @@ declare(strict_types=1);
 return [
     /**
      * The order of the items also changes the position of the
-     * sidebar links, first item is also the default dashboard.
+     * sidebar links, the first item is also the default dashboard.
      *
      * You can comment out (or delete) any dashboard.
      */
@@ -45,7 +45,7 @@ return [
             //'database'  => 0, // Default database (optional).
             //'username'  => '', // ACL - requires Redis >= 6.0 (optional).
             //'password'  => '', // Optional.
-            //'authfile'  => '/run/secrets/file_name', // File with a password, e.g. Docker secrets (optional).
+            //'authfile'  => '/run/secrets/file_name', // File with a password, e.g., Docker secrets (optional).
             //'path'      => '/var/run/redis/redis-server.sock', // Unix domain socket (optional).
             //'databases' => 16, // Number of databases, use this if the CONFIG command is disabled (optional).
             //'scansize'  => 1000, // Number of keys, the server will use the SCAN command instead of KEYS (optional).

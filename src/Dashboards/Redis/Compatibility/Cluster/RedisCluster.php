@@ -195,37 +195,40 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
      * @param array<int, string> $keys
      *
      * @return array<string, mixed>
-     *
-     * @throws RedisClusterException
      */
     public function pipelineKeys(array $keys): array {
-        $lua_type = /* @lang Lua */
+        $lua_get_key_info = /* @lang Lua */
             <<<LUA
-            local type = redis.call("TYPE", KEYS[1])["ok"]
-            if type == "set" then return redis.call("SCARD", KEYS[1])
-            elseif type == "list" then return redis.call("LLEN", KEYS[1])
-            elseif type == "zset" then return redis.call("ZCARD", KEYS[1])
-            elseif type == "hash" then return redis.call("HLEN", KEYS[1])
-            elseif type == "stream" then return redis.call("XLEN", KEYS[1])
-            else return nil end
+            local key = KEYS[1]
+            local ttl = redis.call("TTL", key)
+            local key_type = redis.call("TYPE", key)["ok"]
+            local memory_usage = redis.call("MEMORY", "USAGE", key)
+            local count = nil
+
+            if key_type == "set" then count = redis.call("SCARD", key)
+            elseif key_type == "list" then count = redis.call("LLEN", key)
+            elseif key_type == "zset" then count = redis.call("ZCARD", key)
+            elseif key_type == "hash" then count = redis.call("HLEN", key)
+            elseif key_type == "stream" then count = redis.call("XLEN", key)
+            end
+
+            return {ttl, key_type, memory_usage, count}
         LUA;
 
         $data = [];
 
         foreach ($keys as $key) {
-            // This must be per key because Redis Cluster doesn't support a pipeline.
-            $pipe = $this->multi();
-            $pipe->ttl($key);
-            $pipe->type($key);
-            $pipe->eval('return redis.call("MEMORY", "USAGE", KEYS[1])', [$key], 1);
-            $pipe->eval($lua_type, [$key], 1);
-            $results = $pipe->exec();
+            $results = $this->eval($lua_get_key_info, [$key], 1);
+
+            if (!is_array($results) || count($results) < 3) {
+                continue;
+            }
 
             $data[$key] = [
                 'ttl'   => $results[0],
-                'type'  => $this->getType($results[1]),
+                'type'  => $results[1],
                 'size'  => $results[2] ?? 0,
-                'count' => is_int($results[3]) ? $results[3] : null,
+                'count' => $results[3] ?? null,
             ];
         }
 

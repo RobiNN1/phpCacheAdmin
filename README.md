@@ -51,7 +51,7 @@ Memcached:
 PHP:
 - `PCA_PHP_MEMORY_LIMIT` In case you need to increase the PHP memory limit in Docker.
 
-Open [config](https://github.com/RobiNN1/phpCacheAdmin/blob/master/config.dist.php) file for more info.
+Open the [config](https://github.com/RobiNN1/phpCacheAdmin/blob/master/config.dist.php) file for more info.
 
 > To add another server, add the same environment variables, but change `0` to `1` (`2` for third server and so on).
 
@@ -59,7 +59,7 @@ Open [config](https://github.com/RobiNN1/phpCacheAdmin/blob/master/config.dist.p
 
 A Docker image is also available: https://hub.docker.com/r/robinn/phpcacheadmin
 
-Run with single command:
+Run with a single command:
 
 ```bash
 docker run -p 8080:80 -d --name phpcacheadmin -e "PCA_REDIS_0_HOST=redis_host" -e "PCA_REDIS_0_PORT=6379" -e "PCA_MEMCACHED_0_HOST=memcached_host" -e "PCA_MEMCACHED_0_PORT=11211" robinn/phpcacheadmin
@@ -68,7 +68,6 @@ docker run -p 8080:80 -d --name phpcacheadmin -e "PCA_REDIS_0_HOST=redis_host" -
 Or use it in **docker-compose.yml**
 
 ```yaml
-version: '3'
 services:
   phpcacheadmin:
     image: robinn/phpcacheadmin

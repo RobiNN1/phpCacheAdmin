@@ -154,7 +154,6 @@ trait RedisTypes {
                     $this->redis->sRem($key, $old_value);
                     $this->redis->sAdd($key, $value);
                 }
-
                 break;
             case 'list':
                 $size = $this->redis->lLen($key);
@@ -170,17 +169,12 @@ trait RedisTypes {
                     Http::stopRedirect();
                     Helpers::alert($this->template, 'Out of bounds index.', 'error');
                 }
-
                 break;
             case 'zset':
                 $this->redis->zRem($key, $old_value);
                 $this->redis->zAdd($key, $options['zset_score'], $value);
                 break;
             case 'hash':
-                if ($this->redis->hExists($key, Http::get('hash_key', ''))) {
-                    $this->redis->hDel($key, Http::get('hash_key', ''));
-                }
-
                 $this->redis->hSet($key, $options['hash_key'], $value);
                 break;
             case 'stream':
@@ -190,6 +184,16 @@ trait RedisTypes {
                 $this->redis->jsonSet($key, $value);
                 break;
             default:
+        }
+
+        if (isset($options['ttl']) && is_numeric($options['ttl'])) {
+            $ttl = (int) $options['ttl'];
+
+            if ($ttl > 0) {
+                $this->redis->expire($key, $ttl);
+            } elseif ($ttl === -1) {
+                $this->redis->persist($key);
+            }
         }
     }
 

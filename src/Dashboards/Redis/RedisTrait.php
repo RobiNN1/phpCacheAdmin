@@ -516,8 +516,8 @@ trait RedisTrait {
         }
 
         if (isset($_POST['save'])) {
-            $this->redis->execConfig('SET', 'slowlog-max-len', Http::post('slowlog_max_items', 50));
-            $this->redis->execConfig('SET', 'slowlog-log-slower-than', Http::post('slowlog_slower_than', 1000));
+            $this->redis->execConfig('SET', 'slowlog-max-len', Http::post('slowlog_max_items', '50'));
+            $this->redis->execConfig('SET', 'slowlog-log-slower-than', Http::post('slowlog_slower_than', '1000'));
             Http::redirect(['tab']);
         }
 

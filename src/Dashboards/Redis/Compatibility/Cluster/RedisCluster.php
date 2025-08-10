@@ -195,41 +195,41 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
      * @param array<int, string> $keys
      *
      * @return array<string, mixed>
+     *
+     * @throws RedisClusterException
      */
     public function pipelineKeys(array $keys): array {
-        $lua_get_key_info = /* @lang Lua */
-            <<<LUA
-            local key = KEYS[1]
-            local ttl = redis.call("TTL", key)
-            local key_type = redis.call("TYPE", key)["ok"]
-            local memory_usage = redis.call("MEMORY", "USAGE", key)
-            local count = nil
+        $lua_script = file_get_contents(__DIR__.'/../get_key_info.lua');
 
-            if key_type == "set" then count = redis.call("SCARD", key)
-            elseif key_type == "list" then count = redis.call("LLEN", key)
-            elseif key_type == "zset" then count = redis.call("ZCARD", key)
-            elseif key_type == "hash" then count = redis.call("HLEN", key)
-            elseif key_type == "stream" then count = redis.call("XLEN", key)
-            end
+        if ($lua_script === false) {
+            return [];
+        }
 
-            return {ttl, key_type, memory_usage, count}
-        LUA;
+        foreach ($this->nodes as $master) {
+            $sha = $this->script($master, 'load', $lua_script);
+
+            if ($sha) {
+                $script_sha = $sha;
+            }
+        }
+
+        if (empty($script_sha)) {
+            return [];
+        }
 
         $data = [];
 
         foreach ($keys as $key) {
-            $results = $this->eval($lua_get_key_info, [$key], 1);
+            $results = $this->evalsha($script_sha, [$key], 1);
 
-            if (!is_array($results) || count($results) < 3) {
-                continue;
+            if (is_array($results) && count($results) >= 3) {
+                $data[$key] = [
+                    'ttl'   => $results[0],
+                    'type'  => $results[1],
+                    'size'  => $results[2] ?? 0,
+                    'count' => isset($results[3]) && is_numeric($results[3]) ? (int) $results[3] : null,
+                ];
             }
-
-            $data[$key] = [
-                'ttl'   => $results[0],
-                'type'  => $results[1],
-                'size'  => $results[2] ?? 0,
-                'count' => $results[3] ?? null,
-            ];
         }
 
         return $data;

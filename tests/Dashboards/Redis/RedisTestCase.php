@@ -354,4 +354,50 @@ abstract class RedisTestCase extends TestCase {
 
         $this->assertEquals($this->sortTreeKeys($expected), $this->sortTreeKeys($result));
     }
+
+    /**
+     * @throws Exception
+     */
+    public function testPipelineKeys(): void {
+        $this->dashboard->store('string', 'pu-test-string', 'some-value');
+        $this->dashboard->store('string', 'pu-test-ttl', 'expires soon', '', ['ttl' => 60]);
+
+        foreach (['a', 'b', 'c'] as $value) {
+            $this->dashboard->store('list', 'pu-test-list', $value);
+        }
+        foreach (['m1', 'm2', 'm3', 'm4'] as $member) {
+            $this->dashboard->store('set', 'pu-test-set', $member);
+        }
+        foreach (['field1' => 'val1', 'field2' => 'val2'] as $field => $value) {
+            $this->dashboard->store('hash', 'pu-test-hash', $value, '', ['hash_key' => $field]);
+        }
+
+        $keys_to_test = ['pu-test-string', 'pu-test-list', 'pu-test-hash', 'pu-test-set', 'pu-test-ttl'];
+        $results = $this->redis->pipelineKeys($keys_to_test);
+
+        $expected_data = [
+            'pu-test-string' => ['type' => 'string', 'count' => null, 'ttl_check' => -1],
+            'pu-test-list'   => ['type' => 'list', 'count' => 3, 'ttl_check' => -1],
+            'pu-test-hash'   => ['type' => 'hash', 'count' => 2, 'ttl_check' => -1],
+            'pu-test-set'    => ['type' => 'set', 'count' => 4, 'ttl_check' => -1],
+            'pu-test-ttl'    => ['type' => 'string', 'count' => null, 'ttl_check' => 'positive'],
+        ];
+
+        $this->assertCount(count($expected_data), $results);
+
+        foreach ($expected_data as $key => $expected) {
+            $this->assertArrayHasKey($key, $results);
+            $actual = $results[$key];
+
+            $this->assertSame($expected['type'], $actual['type']);
+            $this->assertSame($expected['count'], $actual['count']);
+            $this->assertGreaterThan(0, $actual['size']);
+
+            if ($expected['ttl_check'] === 'positive') {
+                $this->assertGreaterThan(0, $actual['ttl']);
+            } else {
+                $this->assertSame($expected['ttl_check'], $actual['ttl']);
+            }
+        }
+    }
 }

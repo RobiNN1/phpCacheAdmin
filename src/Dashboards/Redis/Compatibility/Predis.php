@@ -131,37 +131,38 @@ class Predis extends Client implements RedisCompatibilityInterface {
      * @return array<string, mixed>
      */
     public function pipelineKeys(array $keys): array {
-        $lua_memory = 'return redis.call("MEMORY", "USAGE", KEYS[1])';
-        $lua_type = /* @lang Lua */
-            <<<LUA
-            local type = redis.call("TYPE", KEYS[1])["ok"]
-            if type == "set" then return redis.call("SCARD", KEYS[1])
-            elseif type == "list" then return redis.call("LLEN", KEYS[1])
-            elseif type == "zset" then return redis.call("ZCARD", KEYS[1])
-            elseif type == "hash" then return redis.call("HLEN", KEYS[1])
-            elseif type == "stream" then return redis.call("XLEN", KEYS[1])
-            else return nil end
-        LUA;
+        $lua_script = file_get_contents(__DIR__.'/get_key_info.lua');
 
-        $results = $this->pipeline(function ($pipe) use ($keys, $lua_memory, $lua_type): void {
+        if ($lua_script === false) {
+            return [];
+        }
+
+        $script_sha = $this->script('load', $lua_script);
+
+        if (!$script_sha) {
+            return [];
+        }
+
+        $results = $this->pipeline(function ($pipe) use ($keys, $script_sha) {
             foreach ($keys as $key) {
-                $pipe->ttl($key);
-                $pipe->type($key);
-                $pipe->eval($lua_memory, 1, $key);
-                $pipe->eval($lua_type, 1, $key);
+                $pipe->evalsha($script_sha, 1, $key);
             }
         });
 
         $data = [];
 
         foreach ($keys as $i => $key) {
-            $index = $i * 4;
+            $result = $results[$i] ?? null;
+
+            if (!is_array($result) || count($result) < 3) {
+                continue;
+            }
 
             $data[$key] = [
-                'ttl'   => $results[$index],
-                'type'  => (string) $results[$index + 1],
-                'size'  => $results[$index + 2] ?? 0,
-                'count' => is_int($results[$index + 3]) ? $results[$index + 3] : null,
+                'ttl'   => $result[0],
+                'type'  => $result[1],
+                'size'  => $result[2] ?? 0,
+                'count' => isset($result[3]) && is_numeric($result[3]) ? (int) $result[3] : null,
             ];
         }
 
@@ -194,6 +195,6 @@ class Predis extends Client implements RedisCompatibilityInterface {
     }
 
     public function resetSlowlog(): bool {
-        return $this->rawcommand('SLOWLOG', 'RESET');
+        return $this->slowlog('RESET') === 'OK';
     }
 }

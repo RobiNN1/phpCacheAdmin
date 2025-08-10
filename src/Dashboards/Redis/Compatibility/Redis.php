@@ -145,17 +145,22 @@ class Redis extends \Redis implements RedisCompatibilityInterface {
      * @throws RedisException
      */
     public function pipelineKeys(array $keys): array {
-        $pipe = $this->multi(self::PIPELINE);
+        $lua_script = file_get_contents(__DIR__.'/get_key_info.lua');
+
+        if ($lua_script === false) {
+            return [];
+        }
+
+        $script_sha = $this->script('load', $lua_script);
+
+        if (!$script_sha) {
+            return [];
+        }
+
+        $pipe = $this->pipeline();
 
         foreach ($keys as $key) {
-            $pipe->ttl($key);
-            $pipe->type($key);
-            $pipe->rawcommand('MEMORY', 'USAGE', $key);
-            $pipe->rawcommand('SCARD', $key);
-            $pipe->rawcommand('LLEN', $key);
-            $pipe->rawcommand('ZCARD', $key);
-            $pipe->rawcommand('HLEN', $key);
-            $pipe->rawcommand('XLEN', $key);
+            $pipe->evalsha($script_sha, [$key], 1);
         }
 
         $results = $pipe->exec();
@@ -163,23 +168,17 @@ class Redis extends \Redis implements RedisCompatibilityInterface {
         $data = [];
 
         foreach ($keys as $i => $key) {
-            $index = $i * 8; // index + count of pipeline commands
-            $type = $this->getType($results[$index + 1]);
+            $result = $results[$i] ?? null;
 
-            $count = match ($type) {
-                'set' => $results[$index + 3] ?? null,
-                'list' => $results[$index + 4] ?? null,
-                'zset' => $results[$index + 5] ?? null,
-                'hash' => $results[$index + 6] ?? null,
-                'stream' => $results[$index + 7] ?? null,
-                default => null,
-            };
+            if (!is_array($result) || count($result) < 3) {
+                continue;
+            }
 
             $data[$key] = [
-                'ttl'   => $results[$index],
-                'type'  => $type,
-                'size'  => $results[$index + 2] ?? 0,
-                'count' => is_numeric($count) ? (int) $count : null,
+                'ttl'   => $result[0],
+                'type'  => $result[1],
+                'size'  => $result[2] ?? 0,
+                'count' => isset($result[3]) && is_numeric($result[3]) ? (int) $result[3] : null,
             ];
         }
 
@@ -208,10 +207,10 @@ class Redis extends \Redis implements RedisCompatibilityInterface {
      * @return null|array<int, mixed>
      */
     public function getSlowlog(int $count): ?array {
-        return $this->rawcommand('SLOWLOG', 'GET', $count);
+        return $this->slowlog('GET', $count);
     }
 
     public function resetSlowlog(): bool {
-        return $this->rawcommand('SLOWLOG', 'RESET');
+        return $this->slowlog('RESET');
     }
 }

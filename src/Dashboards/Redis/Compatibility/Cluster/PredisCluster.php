@@ -196,6 +196,10 @@ class PredisCluster extends PredisClient implements RedisCompatibilityInterface 
         return $this->xadd($key, $messages, $id);
     }
 
+    public function rawcommand(string $command, mixed ...$arguments): mixed {
+        return $this->executeRaw(func_get_args());
+    }
+
     /**
      * @param array<int, string> $keys
      *

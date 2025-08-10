@@ -272,7 +272,7 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
     public function execConfig(string $operation, mixed ...$args): mixed {
         switch (strtoupper($operation)) {
             case 'GET':
-                if (empty($args)) {
+                if ($args === []) {
                     throw new InvalidArgumentException('CONFIG GET requires a parameter name.');
                 }
 
@@ -312,14 +312,12 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
         foreach ($this->nodes as $node) {
             $logs = $this->rawcommand($node, 'SLOWLOG', 'GET', $count);
 
-            if (is_array($logs) && !empty($logs)) {
+            if (is_array($logs) && $logs !== []) {
                 array_push($all_logs, ...$logs);
             }
         }
 
-        usort($all_logs, static function ($a, $b) {
-            return $b[1] <=> $a[1];
-        });
+        usort($all_logs, static fn ($a, $b): int => $b[1] <=> $a[1]);
 
         return $all_logs;
     }

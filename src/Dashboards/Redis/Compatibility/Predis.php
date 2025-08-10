@@ -191,7 +191,7 @@ class Predis extends Client implements RedisCompatibilityInterface {
      * @return null|array<int, mixed>
      */
     public function getSlowlog(int $count): ?array {
-        return $this->rawcommand('SLOWLOG', 'GET', $count);
+        return $this->rawcommand('SLOWLOG', 'GET', (string) $count);
     }
 
     public function resetSlowlog(): bool {

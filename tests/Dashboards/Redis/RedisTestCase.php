@@ -402,4 +402,27 @@ abstract class RedisTestCase extends TestCase {
             }
         }
     }
+
+    /**
+     * @throws Exception
+     */
+    public function testSlowlog(): void {
+        $config_key = 'slowlog-log-slower-than';
+        $original_config_value = $this->redis->execConfig('GET', $config_key)[$config_key];
+
+        try {
+            $this->redis->resetSlowlog();
+            $this->redis->execConfig('SET', $config_key, '0');
+            $this->redis->set('pu-test-slowlog-key', 'some-slow-value');
+
+            $slowlog_entries = $this->redis->getSlowlog(10);
+            $this->assertIsInt($slowlog_entries[1][0]);
+            $this->assertIsInt($slowlog_entries[1][1]);
+            $this->assertIsInt($slowlog_entries[1][2]);
+            $this->assertIsArray($slowlog_entries[1][3]);
+        } finally {
+            $this->redis->execConfig('SET', $config_key, $original_config_value);
+            $this->redis->resetSlowlog();
+        }
+    }
 }

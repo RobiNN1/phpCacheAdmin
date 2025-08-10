@@ -5,6 +5,43 @@
 ![Visitor Badge](https://visitor-badge.laobi.icu/badge?page_id=RobiNN1.phpCacheAdmin)
 ![Docker Pulls](https://img.shields.io/docker/pulls/robinn/phpcacheadmin)
 
+## Features
+
+A modern, easy-to-use web GUI for your favorite cache systems, think of it as phpMyAdmin but for caching!
+
+### General
+- Clean, responsive interface with a **Dark Mode**.
+- Switch between multiple configured servers for Redis, Memcached.
+- Back up and restore your data.
+- Quickly find keys across your cache.
+- **No composer required to run**.
+- **Docker ready**.
+
+### Redis
+- Works with both **phpredis** and **Predis** clients.
+- View, add, edit, and delete keys. Supports all Redis data types.
+- **Cluster support**.
+- Supports ACL.
+- Detailed server statistics including memory usage, uptime, connected clients, and general info.
+- View the Redis slowlog to debug performance issues.
+
+### Memcached
+- Uses a custom client, so **no memcache(d) extension** is required.
+- View, add, edit, and delete keys.
+- Server Stats including uptime, memory usage, connections, and more.
+- Slabs & Items info.
+- Commands Stats.
+
+### PHP Caches
+- **APCu**:
+    - View, edit, and delete user-cached entries.
+    - View cache information and memory usage statistics.
+- **OPcache**:
+    - View and invalidate cached scripts.
+    - Get statistics on memory usage, hit rates, and cached keys.
+- **Realpath Cache**:
+    - View and clear PHP's realpath cache entries.
+
 ## Installation
 
 Unzip the archive and launch index.php in a web browser. No installation is required.

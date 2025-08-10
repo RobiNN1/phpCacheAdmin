@@ -183,7 +183,7 @@ class PHPMem {
             $dump_lines = explode("\n", $dump);
 
             foreach ($dump_lines as $line) {
-                if (preg_match('/ITEM (\S+) \[(\d+) b; (\d+) s\]/', $line, $matches)) {
+                if (preg_match('/ITEM (\S+) \[(\d+) b; (\d+) s]/', $line, $matches)) {
                     $exp = (int) $matches[3] === 0 ? -1 : (int) $matches[3];
                     // Intentionally formatted as lru_crawler output
                     $keys[] = 'key='.$matches[1].' exp='.$exp.' la=0 cas=0 fetch=no cls=1 size='.$matches[2];

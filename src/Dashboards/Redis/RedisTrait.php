@@ -42,7 +42,7 @@ trait RedisTrait {
 
             $count_of_all_keys = 0;
 
-            if (isset($info['keyspace'])) {
+            if (!$this->is_cluster && isset($info['keyspace'])) {
                 foreach ($info['keyspace'] as $entries) {
                     if (!is_array($entries)) {
                         $entries = [$entries];
@@ -54,6 +54,8 @@ trait RedisTrait {
                         $count_of_all_keys += (int) $keyCount;
                     }
                 }
+            } else {
+                $count_of_all_keys = $this->redis->databaseSize();
             }
 
             $used_memory = (int) $info['memory']['used_memory'];
@@ -87,7 +89,7 @@ trait RedisTrait {
                         'Cluster' => $info['cluster']['cluster_enabled'] ? 'Enabled' : 'Disabled',
                         'Uptime'  => Format::seconds((int) $info['server']['uptime_in_seconds']),
                         $role ?? null,
-                        'Keys'    => Format::number($count_of_all_keys).' (all databases)',
+                        'Keys'    => Format::number($count_of_all_keys).(!$this->is_cluster ? ' (all databases)' : ''),
                         ['Hits / Misses', Format::number($hits).' / '.Format::number($misses).' ('.$hit_rate.'%)', $hit_rate, 'higher'],
                     ],
                 ],

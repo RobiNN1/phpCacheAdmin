@@ -27,7 +27,7 @@ class RedisDashboard implements DashboardInterface {
 
     private int $current_server;
 
-    public Compatibility\Redis|Compatibility\Predis|Compatibility\Cluster\RedisCluster $redis;
+    public Compatibility\Redis|Compatibility\Predis|Compatibility\Cluster\RedisCluster|Compatibility\Cluster\PredisCluster $redis;
 
     public string $client = '';
 
@@ -76,7 +76,7 @@ class RedisDashboard implements DashboardInterface {
      *
      * @throws DashboardException
      */
-    public function connect(array $server): Compatibility\Redis|Compatibility\Predis|Compatibility\Cluster\RedisCluster {
+    public function connect(array $server): Compatibility\Redis|Compatibility\Predis|Compatibility\Cluster\RedisCluster|Compatibility\Cluster\PredisCluster {
         $server['database'] = Http::get('db', $server['database'] ?? 0);
 
         if (!empty($server['authfile'])) {
@@ -88,11 +88,7 @@ class RedisDashboard implements DashboardInterface {
         if ($this->client === 'redis') {
             $redis = $this->is_cluster ? new Compatibility\Cluster\RedisCluster($server) : new Compatibility\Redis($server);
         } elseif ($this->client === 'predis') {
-            if ($this->is_cluster) {
-                throw new DashboardException('There is currently no support for clusters with Predis.');
-            }
-
-            $redis = new Compatibility\Predis($server);
+            $redis = $this->is_cluster ? new Compatibility\Cluster\PredisCluster($server) : new Compatibility\Predis($server);
         } else {
             throw new DashboardException('Redis extension or Predis is not installed.');
         }

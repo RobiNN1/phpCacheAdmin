@@ -8,20 +8,21 @@ declare(strict_types=1);
 
 namespace RobiNN\Pca\Dashboards\Redis\Compatibility\Cluster;
 
+use Exception;
 use InvalidArgumentException;
-use Redis;
-use RedisClusterException;
+use Predis\Client as PredisClient;
+use Predis\Collection\Iterator\Keyspace;
 use RobiNN\Pca\Dashboards\DashboardException;
 use RobiNN\Pca\Dashboards\Redis\Compatibility\RedisCompatibilityInterface;
 use RobiNN\Pca\Dashboards\Redis\Compatibility\RedisJson;
 use RobiNN\Pca\Dashboards\Redis\Compatibility\RedisModules;
 
-class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface {
+class PredisCluster extends PredisClient implements RedisCompatibilityInterface {
     use RedisJson;
     use RedisModules;
 
     /**
-     * @var array<int, mixed>
+     * @var array<int, PredisClient>
      */
     private array $nodes;
 
@@ -29,14 +30,14 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
      * @var array<int|string, string>
      */
     public array $data_types = [
-        Redis::REDIS_NOT_FOUND => 'other',
-        Redis::REDIS_STRING    => 'string',
-        Redis::REDIS_SET       => 'set',
-        Redis::REDIS_LIST      => 'list',
-        Redis::REDIS_ZSET      => 'zset',
-        Redis::REDIS_HASH      => 'hash',
-        Redis::REDIS_STREAM    => 'stream',
-        'ReJSON-RL'            => 'rejson',
+        'none'      => 'other',
+        'string'    => 'string',
+        'set'       => 'set',
+        'list'      => 'list',
+        'zset'      => 'zset',
+        'hash'      => 'hash',
+        'stream'    => 'stream',
+        'ReJSON-RL' => 'rejson',
     ];
 
     /**
@@ -45,34 +46,33 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
      * @throws DashboardException
      */
     public function __construct(array $server) {
-        $auth = null;
+        $cluster_options = ['cluster' => 'redis'];
 
         if (isset($server['password'])) {
-            $auth = isset($server['username']) ? [$server['username'], $server['password']] : $server['password'];
+            $cluster_options['parameters']['password'] = $server['password'];
         }
 
         try {
-            parent::__construct($server['name'] ?? 'default', $server['nodes'], 3, 0, false, $auth);
-        } catch (RedisClusterException $e) {
-            throw new DashboardException($e->getMessage().' ['.implode(',', $server['nodes']).']');
-        }
+            parent::__construct($server['nodes'], $cluster_options);
+            $this->connect();
 
-        $this->nodes = $this->_masters();
+            foreach ($server['nodes'] as $node) {
+                $this->nodes[] = new PredisClient('tcp://'.$node, $cluster_options);
+            }
+        } catch (Exception $e) {
+            throw new DashboardException($e->getMessage().' ['.implode(', ', $server['nodes']).']');
+        }
     }
 
     public function getType(string|int $type): string {
         return $this->data_types[$type] ?? 'unknown';
     }
 
-    /**
-     * @throws RedisClusterException
-     */
     public function getKeyType(string $key): string {
         $type = $this->type($key);
 
-        if ($type === Redis::REDIS_NOT_FOUND) {
-            $this->setOption(Redis::OPT_REPLY_LITERAL, true);
-            $type = $this->rawcommand($key, 'TYPE', $key);
+        if ($type === 'none') {
+            $type = $this->executeRaw(['TYPE', $key]);
         }
 
         return $this->getType($type);
@@ -82,13 +82,11 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
      * @param list<string>|null $combine
      *
      * @return array<string, array<string, mixed>>
-     *
-     * @throws RedisClusterException
      */
     public function getInfo(?string $option = null, ?array $combine = null): array {
         static $info = [];
 
-        $options = ['SERVER', 'CLIENTS', 'MEMORY', 'PERSISTENCE', 'STATS', 'REPLICATION', 'CPU', 'CLUSTER', 'KEYSPACE'];
+        $options = ['Server', 'Clients', 'Memory', 'Persistence', 'Stats', 'Replication', 'CPU', 'Cluster', 'Keyspace'];
 
         foreach ($options as $option_name) {
             /**
@@ -100,7 +98,7 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
                 /**
                  * @var array<string, mixed> $node_info
                  */
-                $node_info = $this->info($node, $option_name);
+                $node_info = $node->info()[$option_name];
 
                 foreach ($node_info as $key => $value) {
                     if (is_array($value)) {
@@ -159,23 +157,13 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
 
     /**
      * @return array<int, string>
-     *
-     * @throws RedisClusterException
      */
-    public function scanKeys(string $pattern, int $count): array {
+    public function keys(string $pattern): array {
         $keys = [];
 
         foreach ($this->nodes as $node) {
-            $iterator = null;
-
-            while (false !== ($scan = $this->scan($iterator, $node, $pattern, $count))) {
-                foreach ($scan as $key) {
-                    $keys[] = $key;
-
-                    if (count($keys) >= $count) {
-                        return $keys;
-                    }
-                }
+            foreach ($node->keys($pattern) as $key) {
+                $keys[] = $key;
             }
         }
 
@@ -183,25 +171,39 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
     }
 
     /**
-     * @throws RedisClusterException
+     * @return array<int, string>
      */
+    public function scanKeys(string $pattern, int $count): array {
+        $keys = [];
+
+        foreach ($this->nodes as $node) {
+            foreach (new Keyspace($node, $pattern) as $item) {
+                $keys[] = $item;
+
+                if (count($keys) === $count) {
+                    break;
+                }
+            }
+        }
+
+        return $keys;
+    }
+
     public function listRem(string $key, string $value, int $count): int {
-        return $this->lrem($key, $value, $count);
+        return $this->lrem($key, $count, $value);
     }
 
     /**
      * @param array<string, string> $messages
      */
     public function streamAdd(string $key, string $id, array $messages): string {
-        return $this->xadd($key, $id, $messages);
+        return $this->xadd($key, $messages, $id);
     }
 
     /**
      * @param array<int, string> $keys
      *
      * @return array<string, mixed>
-     *
-     * @throws RedisClusterException
      */
     public function pipelineKeys(array $keys): array {
         $lua_script = file_get_contents(__DIR__.'/../get_key_info.lua');
@@ -210,12 +212,10 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
             return [];
         }
 
-        foreach ($this->nodes as $master) {
-            $sha = $this->script($master, 'load', $lua_script);
+        $script_sha = null;
 
-            if ($sha) {
-                $script_sha = $sha;
-            }
+        foreach ($this->nodes as $node) {
+            $script_sha = $node->script('load', $lua_script);
         }
 
         if (empty($script_sha)) {
@@ -225,13 +225,11 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
         $data = [];
 
         foreach ($keys as $key) {
-            $results = $this->evalsha($script_sha, [$key], 1);
+            $results = $this->evalsha($script_sha, 1, $key);
 
             if (is_array($results) && count($results) >= 3) {
                 $data[$key] = [
-                    'ttl'   => $results[0],
-                    'type'  => $results[1],
-                    'size'  => $results[2] ?? 0,
+                    'ttl'   => $results[0], 'type' => $results[1], 'size' => $results[2] ?? 0,
                     'count' => isset($results[3]) && is_numeric($results[3]) ? (int) $results[3] : null,
                 ];
             }
@@ -240,42 +238,37 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
         return $data;
     }
 
-    /**
-     * @throws RedisClusterException
-     */
     public function size(string $key): int {
-        $size = $this->rawcommand($key, 'MEMORY', 'USAGE', $key);
+        foreach ($this->nodes as $node) {
+            $size = $node->executeRaw(['MEMORY', 'USAGE', $key]);
+            if ($size !== false && $size !== null) {
+                return (int) $size;
+            }
+        }
 
-        return is_int($size) ? $size : 0;
+        return 0;
     }
 
-    /**
-     * @throws RedisClusterException
-     */
     public function flushDatabase(): bool {
         foreach ($this->nodes as $node) {
-            $this->flushDB($node);
+            $node->flushdb();
         }
 
         return true;
     }
 
-    /**
-     * @throws RedisClusterException
-     */
     public function databaseSize(): int {
-        $nodes = $this->_masters();
         $total = 0;
 
-        foreach ($nodes as $node) {
-            $total += $this->dbSize($node);
+        foreach ($this->nodes as $node) {
+            $total += $node->dbsize();
         }
 
         return $total;
     }
 
     /**
-     * @throws RedisClusterException|InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     public function execConfig(string $operation, mixed ...$args): mixed {
         switch (strtoupper($operation)) {
@@ -284,7 +277,7 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
                     throw new InvalidArgumentException('CONFIG GET requires a parameter name.');
                 }
 
-                $result = $this->rawcommand($this->nodes[0], 'CONFIG', 'GET', $args[0]);
+                $result = $this->nodes[0]->executeRaw(['CONFIG', 'GET', $args[0]]);
 
                 return isset($result[0], $result[1]) ? [$result[0] => $result[1]] : [];
             case 'SET':
@@ -293,14 +286,14 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
                 }
 
                 foreach ($this->nodes as $node) {
-                    $this->rawcommand($node, 'CONFIG', 'SET', $args[0], $args[1]);
+                    $node->executeRaw(['CONFIG', 'SET', $args[0], $args[1]]);
                 }
 
                 return true;
             case 'REWRITE':
             case 'RESETSTAT':
                 foreach ($this->nodes as $node) {
-                    $this->rawcommand($node, 'CONFIG', strtoupper($operation));
+                    $node->executeRaw(['CONFIG', strtoupper($operation)]);
                 }
 
                 return true;
@@ -311,16 +304,14 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
 
     /**
      * @return null|array<int, mixed>
-     *
-     * @throws RedisClusterException
      */
     public function getSlowlog(int $count): ?array {
         $all_logs = [];
 
         foreach ($this->nodes as $node) {
-            $logs = $this->rawcommand($node, 'SLOWLOG', 'GET', $count);
+            $logs = $node->executeRaw(['SLOWLOG', 'GET', (string) $count]);
 
-            if (is_array($logs) && $logs !== []) {
+            if (is_array($logs) && !empty($logs)) {
                 array_push($all_logs, ...$logs);
             }
         }
@@ -332,7 +323,7 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
 
     public function resetSlowlog(): bool {
         foreach ($this->nodes as $node) {
-            $this->rawcommand($node, 'SLOWLOG', 'RESET');
+            $node->slowlog('RESET');
         }
 
         return true;

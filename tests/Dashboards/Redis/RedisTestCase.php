@@ -12,6 +12,7 @@ use Exception;
 use PHPUnit\Framework\Attributes\DataProvider;
 use RobiNN\Pca\Config;
 use RobiNN\Pca\Dashboards\DashboardException;
+use RobiNN\Pca\Dashboards\Redis\Compatibility\Cluster\PredisCluster;
 use RobiNN\Pca\Dashboards\Redis\Compatibility\Cluster\RedisCluster;
 use RobiNN\Pca\Dashboards\Redis\Compatibility\Predis;
 use RobiNN\Pca\Dashboards\Redis\Compatibility\Redis;
@@ -26,7 +27,7 @@ abstract class RedisTestCase extends TestCase {
 
     private RedisDashboard $dashboard;
 
-    private Redis|Predis|RedisCluster $redis;
+    private Redis|Predis|RedisCluster|PredisCluster $redis;
 
     protected string $client;
 
@@ -240,6 +241,10 @@ abstract class RedisTestCase extends TestCase {
      * @throws Exception
      */
     public function testStreamType(): void {
+        if (self::$is_cluster && $this->client === 'predis') {
+            $this->markTestSkipped('Skipped Predis stream test');
+        }
+
         $this->dashboard->store('stream', 'pu-test-type-stream', '', '', [
             'stream_id'     => '1670541476219-0',
             'stream_fields' => ['field1' => 'stvalue1', 'field2' => 'stvalue2'],

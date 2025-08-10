@@ -17,10 +17,6 @@ class PredisTest extends RedisTestCase {
         if (!class_exists(Client::class)) {
             self::markTestSkipped('Predis is not installed. Skipping tests.');
         }
-
-        if (self::$is_cluster) {
-            self::markTestSkipped('There is currently no support for clusters with Predis. Skipping tests.');
-        }
     }
 
     protected string $client = 'predis';

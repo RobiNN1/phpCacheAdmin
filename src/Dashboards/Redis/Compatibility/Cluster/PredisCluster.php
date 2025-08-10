@@ -89,15 +89,11 @@ class PredisCluster extends PredisClient implements RedisCompatibilityInterface 
         $options = ['Server', 'Clients', 'Memory', 'Persistence', 'Stats', 'Replication', 'CPU', 'Cluster', 'Keyspace'];
 
         foreach ($options as $option_name) {
-            /**
-             * @var array<string, array<int, mixed>|array<string, array<int, mixed>>> $combined
-             */
+            /** @var array<string, array<int, mixed>|array<string, array<int, mixed>>> $combined */
             $combined = [];
 
             foreach ($this->nodes as $node) {
-                /**
-                 * @var array<string, mixed> $node_info
-                 */
+                /** @var array<string, mixed> $node_info */
                 $node_info = $node->info()[$option_name];
 
                 foreach ($node_info as $key => $value) {
@@ -311,7 +307,7 @@ class PredisCluster extends PredisClient implements RedisCompatibilityInterface 
         foreach ($this->nodes as $node) {
             $logs = $node->executeRaw(['SLOWLOG', 'GET', (string) $count]);
 
-            if (is_array($logs) && !empty($logs)) {
+            if (is_array($logs) && $logs !== []) {
                 array_push($all_logs, ...$logs);
             }
         }

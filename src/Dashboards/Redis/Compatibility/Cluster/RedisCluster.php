@@ -91,15 +91,11 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
         $options = ['SERVER', 'CLIENTS', 'MEMORY', 'PERSISTENCE', 'STATS', 'REPLICATION', 'CPU', 'CLUSTER', 'KEYSPACE'];
 
         foreach ($options as $option_name) {
-            /**
-             * @var array<string, array<int, mixed>|array<string, array<int, mixed>>> $combined
-             */
+            /** @var array<string, array<int, mixed>|array<string, array<int, mixed>>> $combined */
             $combined = [];
 
             foreach ($this->nodes as $node) {
-                /**
-                 * @var array<string, mixed> $node_info
-                 */
+                /** @var array<string, mixed> $node_info */
                 $node_info = $this->info($node, $option_name);
 
                 foreach ($node_info as $key => $value) {

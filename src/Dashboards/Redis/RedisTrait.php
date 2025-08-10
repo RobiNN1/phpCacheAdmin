@@ -89,7 +89,7 @@ trait RedisTrait {
                         'Cluster' => $info['cluster']['cluster_enabled'] ? 'Enabled' : 'Disabled',
                         'Uptime'  => Format::seconds((int) $info['server']['uptime_in_seconds']),
                         $role ?? null,
-                        'Keys'    => Format::number($count_of_all_keys).(!$this->is_cluster ? ' (all databases)' : ''),
+                        'Keys'    => Format::number($count_of_all_keys).($this->is_cluster ? '' : ' (all databases)'),
                         ['Hits / Misses', Format::number($hits).' / '.Format::number($misses).' ('.$hit_rate.'%)', $hit_rate, 'higher'],
                     ],
                 ],

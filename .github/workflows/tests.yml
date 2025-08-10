@@ -9,9 +9,8 @@ on:
       - '**.md'
 
 jobs:
-  tests:
+  tests-single-node:
     runs-on: ubuntu-latest
-
     services:
       memcached:
         image: memcached:1.6-alpine
@@ -29,7 +28,7 @@ jobs:
         php: [ '8.2', '8.3', '8.4' ]
         stability: [ prefer-stable ]
 
-    name: PHP ${{ matrix.php }} tests
+    name: PHP ${{ matrix.php }} (Single-Node Redis)
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -50,4 +49,76 @@ jobs:
       - name: Install Predis
         run: composer require predis/predis
       - name: Execute tests
+        run: vendor/bin/phpunit
+
+  tests-cluster:
+    runs-on: ubuntu-latest
+    services:
+      memcached:
+        image: memcached:1.6-alpine
+        ports:
+          - 11211:11211
+
+    strategy:
+      fail-fast: true
+      matrix:
+        php: [ '8.2', '8.3', '8.4' ]
+        stability: [ prefer-stable ]
+
+    name: PHP ${{ matrix.php }} (Redis Cluster)
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Redis Server for Cluster
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y redis-server
+
+      - name: Start 3-Node Redis Cluster
+        run: |
+          echo "Starting 3-node Redis cluster on ports 7000-7002..."
+          BASE_PORT=7000
+          NODE_COUNT=3
+          node_addresses=""
+          for i in $(seq 0 $((NODE_COUNT - 1))); do
+              port=$((BASE_PORT + i))
+              mkdir -p ./redis-cluster/node-$port
+              node_addresses+=" 127.0.0.1:$port"
+              cat > ./redis-cluster/node-$port/redis.conf <<EOF
+          port $port
+          cluster-enabled yes
+          cluster-config-file nodes.conf
+          cluster-node-timeout 5000
+          appendonly no
+          daemonize yes
+          bind 127.0.0.1
+          logfile "$(pwd)/redis-cluster/node-$port/redis.log"
+          dir "$(pwd)/redis-cluster/node-$port"
+          EOF
+              redis-server ./redis-cluster/node-$port/redis.conf
+          done
+          sleep 3
+          echo "yes" | redis-cli --cluster create $node_addresses --cluster-replicas 0
+          echo "Redis cluster is up and running."
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: apcu, redis
+          ini-values: apc.enable_cli=1
+          coverage: none
+        env:
+          REDIS_CONFIGURE_OPTS: --enable-redis --enable-redis-igbinary --enable-redis-msgpack --enable-redis-lzf --with-liblzf --enable-redis-zstd --with-libzstd --enable-redis-lz4 --with-liblz4
+          REDIS_LIBS: liblz4-dev, liblzf-dev, libzstd-dev
+
+      - name: Install dependencies
+        run: composer update --prefer-dist --no-interaction --no-progress
+      - name: Install Predis
+        run: composer require predis/predis
+
+      - name: Execute cluster tests
+        env:
+          PCA_REDIS_0_NODES: '["127.0.0.1:7000","127.0.0.1:7001","127.0.0.1:7002"]'
         run: vendor/bin/phpunit

@@ -423,7 +423,7 @@ trait RedisTrait {
             $path = '';
 
             foreach ($parts as $i => $part) {
-                $path = $path ? $path.$separator.$part : $part;
+                $path = $path !== '' && $path !== '0' ? $path.$separator.$part : $part;
 
                 if ($i === count($parts) - 1) { // check last part
                     $current[] = [

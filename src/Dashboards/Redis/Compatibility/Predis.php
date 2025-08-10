@@ -143,7 +143,7 @@ class Predis extends Client implements RedisCompatibilityInterface {
             return [];
         }
 
-        $results = $this->pipeline(function ($pipe) use ($keys, $script_sha) {
+        $results = $this->pipeline(function ($pipe) use ($keys, $script_sha): void {
             foreach ($keys as $key) {
                 $pipe->evalsha($script_sha, 1, $key);
             }

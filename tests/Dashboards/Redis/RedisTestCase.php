@@ -365,9 +365,11 @@ abstract class RedisTestCase extends TestCase {
         foreach (['a', 'b', 'c'] as $value) {
             $this->dashboard->store('list', 'pu-test-list', $value);
         }
+
         foreach (['m1', 'm2', 'm3', 'm4'] as $member) {
             $this->dashboard->store('set', 'pu-test-set', $member);
         }
+
         foreach (['field1' => 'val1', 'field2' => 'val2'] as $field => $value) {
             $this->dashboard->store('hash', 'pu-test-hash', $value, '', ['hash_key' => $field]);
         }

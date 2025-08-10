@@ -191,38 +191,39 @@ final class HelpersTest extends TestCase {
         $expected = [
             [
                 'type'     => 'folder',
-                'count'    => 4,
                 'children' => [
                     ['type' => 'file'],
                     ['type' => 'file'],
                     [
-                        'type'     => 'folder',
-                        'count'    => 2,
+                        'type' => 'folder',
+
                         'children' => [
                             ['type' => 'file'],
                             ['type' => 'file'],
                         ],
+                        'count'    => 2,
                     ],
                 ],
+                'count'    => 4,
             ],
             ['type' => 'file'],
             ['type' => 'file'],
         ];
 
         $count = Helpers::countChildren($tree);
-        $this->assertEquals(6, $count);
-        $this->assertEquals($expected, $tree);
+        $this->assertSame(6, $count);
+        $this->assertSame($expected, $tree);
     }
 
     public function testCountChildrenEmpty(): void {
         $tree = [];
         $count = Helpers::countChildren($tree);
-        $this->assertEquals(0, $count);
+        $this->assertSame(0, $count);
     }
 
     public function testCountChildrenNoFolders(): void {
         $tree = [['type' => 'file'], ['type' => 'file'], ['type' => 'file'],];
         $count = Helpers::countChildren($tree);
-        $this->assertEquals(3, $count);
+        $this->assertSame(3, $count);
     }
 }

@@ -154,6 +154,7 @@ trait RedisTypes {
                     $this->redis->sRem($key, $old_value);
                     $this->redis->sAdd($key, $value);
                 }
+
                 break;
             case 'list':
                 $size = $this->redis->lLen($key);
@@ -169,6 +170,7 @@ trait RedisTypes {
                     Http::stopRedirect();
                     Helpers::alert($this->template, 'Out of bounds index.', 'error');
                 }
+
                 break;
             case 'zset':
                 $this->redis->zRem($key, $old_value);

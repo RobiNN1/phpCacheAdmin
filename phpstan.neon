@@ -1,8 +1,13 @@
 parameters:
-  level: 6
-  treatPhpDocTypesAsCertain: false
-  paths:
-    - src
-    - tests
-  excludePaths:
-    - 'src/Dashboards/Redis/Compatibility/Cluster/RedisCluster.php' # phpstan doesn't have updated stubs for RedisCluster
+    level: 6
+    treatPhpDocTypesAsCertain: false
+    paths:
+        - src
+        - tests
+    ignoreErrors:
+        -
+            message: '~^Method RedisCluster::(info|scan|rawcommand)\(\) invoked with \d+ parameters, .* required\.$~'
+            path: src/Dashboards/Redis/Compatibility/Cluster/RedisCluster.php
+        -
+            message: '~^Parameter #3 \$pattern of method RedisCluster::scan\(\) expects int, string given\.$~'
+            path: src/Dashboards/Redis/Compatibility/Cluster/RedisCluster.php

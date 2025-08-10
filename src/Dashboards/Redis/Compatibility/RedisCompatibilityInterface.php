@@ -74,4 +74,21 @@ interface RedisCompatibilityInterface {
      * Alias to a dbSize().
      */
     public function databaseSize(): int;
+
+    /**
+     * Alias to a config().
+     */
+    public function execConfig(string $operation, mixed ...$args): mixed;
+
+    /**
+     * Get Slowlog entries.
+     *
+     * @return null|array<int, mixed>
+     */
+    public function getSlowlog(int $count): ?array;
+
+    /**
+     * Reset Slowlog.
+     */
+    public function resetSlowlog(): bool;
 }

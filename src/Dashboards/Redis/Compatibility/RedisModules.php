@@ -9,7 +9,6 @@ declare(strict_types=1);
 namespace RobiNN\Pca\Dashboards\Redis\Compatibility;
 
 use Exception;
-use RedisException;
 
 trait RedisModules {
     /**
@@ -22,7 +21,7 @@ trait RedisModules {
 
         try {
             $list = $this->rawCommand('MODULE', 'LIST'); // require Redis >= 4.0
-        } catch (RedisException) {
+        } catch (Exception) {
             return [];
         }
 

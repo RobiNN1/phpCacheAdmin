@@ -181,4 +181,19 @@ class Predis extends Client implements RedisCompatibilityInterface {
     public function databaseSize(): int {
         return $this->dbsize();
     }
+
+    public function execConfig(string $operation, mixed ...$args): mixed {
+        return $this->config($operation, ...$args);
+    }
+
+    /**
+     * @return null|array<int, mixed>
+     */
+    public function getSlowlog(int $count): ?array {
+        return $this->rawcommand('SLOWLOG', 'GET', $count);
+    }
+
+    public function resetSlowlog(): bool {
+        return $this->rawcommand('SLOWLOG', 'RESET');
+    }
 }

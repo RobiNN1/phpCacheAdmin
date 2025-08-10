@@ -30,7 +30,15 @@ trait RedisTrait {
         }
 
         try {
-            $info = $this->redis->getInfo();
+            $info = $this->redis->getInfo(null, [
+                'redis_version',
+                'used_memory',
+                'maxmemory',
+                'keyspace_hits',
+                'keyspace_misses',
+                'total_connections_received',
+                'total_commands_processed',
+            ]);
 
             $count_of_all_keys = 0;
 
@@ -502,31 +510,26 @@ trait RedisTrait {
      * @throws Exception
      */
     private function slowlog(): string {
-        if ($this->is_cluster) {
-            return $this->template->render('components/tabs', ['links' => ['keys' => 'Keys', 'slowlog' => 'Slow Log',],]).
-                'Unsupported in cluster.';
-        }
-
         if (isset($_GET['resetlog'])) {
-            $this->redis->rawCommand('SLOWLOG', 'RESET');
+            $this->redis->resetSlowlog();
             Http::redirect(['tab']);
         }
 
         if (isset($_POST['save'])) {
-            $this->redis->config('SET', 'slowlog-max-len', Http::post('slowlog_max_items', '50'));
-            $this->redis->config('SET', 'slowlog-log-slower-than', Http::post('slowlog_slower_than', '1000'));
+            $this->redis->execConfig('SET', 'slowlog-max-len', Http::post('slowlog_max_items', 50));
+            $this->redis->execConfig('SET', 'slowlog-log-slower-than', Http::post('slowlog_slower_than', 1000));
             Http::redirect(['tab']);
         }
 
-        $slowlog_max_items = $this->redis->config('GET', 'slowlog-max-len')['slowlog-max-len'];
-        $slowlog_items = $this->redis->rawCommand('SLOWLOG', 'GET', $slowlog_max_items);
-        $slowlog_slower_than = $this->redis->config('GET', 'slowlog-log-slower-than')['slowlog-log-slower-than'];
+        $slowlog_max_items = (int) $this->redis->execConfig('GET', 'slowlog-max-len')['slowlog-max-len'];
+        $slowlog_items = $this->redis->getSlowlog($slowlog_max_items);
+        $slowlog_slower_than = $this->redis->execConfig('GET', 'slowlog-log-slower-than')['slowlog-log-slower-than'];
 
         return $this->template->render('dashboards/redis/redis', [
             'slowlog' => [
                 'items'       => $slowlog_items ?? [],
-                'max_items'   => $slowlog_max_items ?? '',
-                'slower_than' => $slowlog_slower_than ?? '',
+                'max_items'   => $slowlog_max_items,
+                'slower_than' => $slowlog_slower_than ?? 1000,
             ],
         ]);
     }

@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace RobiNN\Pca\Dashboards\Redis\Compatibility\Cluster;
 
+use InvalidArgumentException;
 use Redis;
 use RedisClusterException;
 use RobiNN\Pca\Dashboards\DashboardException;
@@ -18,6 +19,11 @@ use RobiNN\Pca\Dashboards\Redis\Compatibility\RedisModules;
 class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface {
     use RedisJson;
     use RedisModules;
+
+    /**
+     * @var array<int, mixed>
+     */
+    private array $nodes;
 
     /**
      * @var array<int|string, string>
@@ -50,6 +56,8 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
         } catch (RedisClusterException $e) {
             throw new DashboardException($e->getMessage().' ['.implode(',', $server['nodes']).']');
         }
+
+        $this->nodes = $this->_masters();
     }
 
     public function getType(string|int $type): string {
@@ -71,30 +79,44 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
     }
 
     /**
-     * @return array<int|string, mixed>
+     * @param list<string>|null $combine
+     *
+     * @return array<string, array<string, mixed>>
      *
      * @throws RedisClusterException
      */
-    public function getInfo(?string $option = null): array {
+    public function getInfo(?string $option = null, ?array $combine = null): array {
         static $info = [];
 
         $options = ['SERVER', 'CLIENTS', 'MEMORY', 'PERSISTENCE', 'STATS', 'REPLICATION', 'CPU', 'CLUSTER', 'KEYSPACE'];
-        $nodes = $this->_masters();
 
         foreach ($options as $option_name) {
+            /** @var array<string, array<int, mixed>|array<string, array<int, mixed>>> $combined */
             $combined = [];
 
-            foreach ($nodes as $node) {
+            foreach ($this->nodes as $node) {
+                /** @var array<string, mixed> $node_info */
                 $node_info = $this->info($node, $option_name);
 
                 foreach ($node_info as $key => $value) {
-                    $combined[$key][] = $value;
+                    if (is_array($value)) {
+                        foreach ($value as $sub_key => $sub_val) {
+                            $combined[$key][$sub_key][] = $sub_val;
+                        }
+                    } else {
+                        $combined[$key][] = $value;
+                    }
                 }
             }
 
             foreach ($combined as $key => $values) {
-                $unique = array_unique($values);
-                $combined[$key] = count($unique) === 1 ? $unique[0] : $unique;
+                if (is_array(reset($values))) {
+                    foreach ($values as $sub_key => $sub_values) {
+                        $combined[$key][$sub_key] = $this->combineValues($sub_key, $sub_values, $combine);
+                    }
+                } else {
+                    $combined[$key] = $this->combineValues($key, $values, $combine);
+                }
             }
 
             $info[strtolower($option_name)] = $combined;
@@ -104,14 +126,41 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
     }
 
     /**
+     * @param list<mixed>       $values
+     * @param list<string>|null $combine
+     */
+    private function combineValues(string $key, array $values, ?array $combine): mixed {
+        $unique = array_unique($values);
+
+        if (count($unique) === 1) {
+            return $unique[0];
+        }
+
+        $numeric = array_filter($values, 'is_numeric');
+
+        if ($combine && in_array($key, $combine, true) && count($numeric) === count($values)) {
+            return array_sum($values);
+        }
+
+        if ($key === 'mem_fragmentation_ratio' && count($numeric) === count($values)) {
+            return round(array_sum($values) / count($values), 2);
+        }
+
+        if ($key === 'used_memory_peak' && count($numeric) === count($values)) {
+            return max($values);
+        }
+
+        return $values;
+    }
+
+    /**
      * @return array<int, string>
      * @throws RedisClusterException
      */
     public function scanKeys(string $pattern, int $count): array {
         $keys = [];
-        $nodes = $this->_masters();
 
-        foreach ($nodes as $node) {
+        foreach ($this->nodes as $node) {
             $iterator = null;
 
             while (false !== ($scan = $this->scan($iterator, $node, $pattern, $count))) {
@@ -196,9 +245,7 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
      * @throws RedisClusterException
      */
     public function flushDatabase(): bool {
-        $nodes = $this->_masters();
-
-        foreach ($nodes as $node) {
+        foreach ($this->nodes as $node) {
             $this->flushDB($node);
         }
 
@@ -217,5 +264,71 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
         }
 
         return $total;
+    }
+
+    /**
+     * @throws RedisClusterException|InvalidArgumentException
+     */
+    public function execConfig(string $operation, mixed ...$args): mixed {
+        switch (strtoupper($operation)) {
+            case 'GET':
+                if (empty($args)) {
+                    throw new InvalidArgumentException('CONFIG GET requires a parameter name.');
+                }
+
+                $result = $this->rawcommand($this->nodes[0], 'CONFIG', 'GET', $args[0]);
+
+                return isset($result[0], $result[1]) ? [$result[0] => $result[1]] : [];
+            case 'SET':
+                if (count($args) < 2) {
+                    throw new InvalidArgumentException('CONFIG SET requires a parameter name and a value.');
+                }
+
+                foreach ($this->nodes as $node) {
+                    $this->rawcommand($node, 'CONFIG', 'SET', $args[0], $args[1]);
+                }
+
+                return true;
+            case 'REWRITE':
+            case 'RESETSTAT':
+                foreach ($this->nodes as $node) {
+                    $this->rawcommand($node, 'CONFIG', strtoupper($operation));
+                }
+
+                return true;
+            default:
+                throw new InvalidArgumentException('Unsupported CONFIG operation: '.$operation);
+        }
+    }
+
+    /**
+     * @return null|array<int, mixed>
+     *
+     * @throws RedisClusterException
+     */
+    public function getSlowlog(int $count): ?array {
+        $all_logs = [];
+
+        foreach ($this->nodes as $node) {
+            $logs = $this->rawcommand($node, 'SLOWLOG', 'GET', $count);
+
+            if (is_array($logs) && !empty($logs)) {
+                array_push($all_logs, ...$logs);
+            }
+        }
+
+        usort($all_logs, static function ($a, $b) {
+            return $b[1] <=> $a[1];
+        });
+
+        return $all_logs;
+    }
+
+    public function resetSlowlog(): bool {
+        foreach ($this->nodes as $node) {
+            $this->rawcommand($node, 'SLOWLOG', 'RESET');
+        }
+
+        return true;
     }
 }

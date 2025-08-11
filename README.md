@@ -1,13 +1,11 @@
 <p align="center"><img src=".github/img/logo.svg" width="400" alt="Logo"></p>
-<p align="center">Web GUI for managing Redis, Memcached, APCu, OPCache and Realpath with data management.</p>
+<p align="center">Web GUI for managing Redis, Memcached, APCu, OPCache, and Realpath with data management.</p>
 <p align="center"><img alt="Preview" src=".github/img/preview.png" width="500px"></p>
 
 ![Visitor Badge](https://visitor-badge.laobi.icu/badge?page_id=RobiNN1.phpCacheAdmin)
 ![Docker Pulls](https://img.shields.io/docker/pulls/robinn/phpcacheadmin)
 
 ## Features
-
-A modern, easy-to-use web GUI for your favorite cache systems, think of it as phpMyAdmin but for caching!
 
 ### General
 - Clean, responsive interface with a **Dark Mode**.
@@ -24,6 +22,7 @@ A modern, easy-to-use web GUI for your favorite cache systems, think of it as ph
 - Supports ACL.
 - Detailed server statistics including memory usage, uptime, connected clients, and general info.
 - View the Redis slowlog to debug performance issues.
+- Supports both SCAN and KEYS commands for retrieving keys.
 
 ### Memcached
 - Uses a custom client, so **no memcache(d) extension** is required.
@@ -47,7 +46,7 @@ A modern, easy-to-use web GUI for your favorite cache systems, think of it as ph
 Unzip the archive and launch index.php in a web browser. No installation is required.
 However, it is highly recommended (although not required) to run `composer install`.
 
-If you use the defaults (e.g. Redis, Memcached servers), everything should work out of the box.
+If you use the defaults (e.g., Redis, Memcached servers), everything should work out of the box.
 To customize the configuration, do not edit `config.dist.php` directly, but copy it into `config.php`.
 
 ## Updating
@@ -60,7 +59,7 @@ All keys from the [config](https://github.com/RobiNN1/phpCacheAdmin/blob/master/
 they just must start with `PCA_` prefix.
 
 Options with an array can be set using "dot notation" but use `_` instead of a dot.
-Or you can even use JSON (e.g. Redis SSL option).
+Or you can even use JSON (e.g., Redis SSL option).
 
 Redis:
 
@@ -73,7 +72,7 @@ Redis:
 - `PCA_REDIS_0_DATABASE` Default database (optional).
 - `PCA_REDIS_0_USERNAME` ACL - requires Redis >= 6.0 (optional).
 - `PCA_REDIS_0_PASSWORD` Optional.
-- `PCA_REDIS_0_AUTHFILE` File with a password, e.g. Docker secrets (optional).
+- `PCA_REDIS_0_AUTHFILE` File with a password, e.g., Docker secrets (optional).
 - `PCA_REDIS_0_PATH` Unix domain socket (optional).
 - `PCA_REDIS_0_DATABASES` Number of databases, use this if the CONFIG command is disabled (optional).
 - `PCA_REDIS_0_SCANSIZE` Number of keys, the server will use the SCAN command instead of KEYS (optional).

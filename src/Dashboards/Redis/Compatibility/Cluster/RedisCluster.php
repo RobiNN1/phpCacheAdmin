@@ -82,47 +82,63 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
      * @param list<string>|null $combine
      *
      * @return array<string, array<string, mixed>>
-     *
-     * @throws RedisClusterException
      */
     public function getInfo(?string $option = null, ?array $combine = null): array {
-        static $info = [];
+        static $info = null;
 
-        $options = ['SERVER', 'CLIENTS', 'MEMORY', 'PERSISTENCE', 'STATS', 'REPLICATION', 'CPU', 'CLUSTER', 'KEYSPACE'];
-
-        foreach ($options as $option_name) {
-            /** @var array<string, array<int, mixed>|array<string, array<int, mixed>>> $combined */
-            $combined = [];
-
-            foreach ($this->nodes as $node) {
-                /** @var array<string, mixed> $node_info */
-                $node_info = $this->info($node, $option_name);
-
-                foreach ($node_info as $key => $value) {
-                    if (is_array($value)) {
-                        foreach ($value as $sub_key => $sub_val) {
-                            $combined[$key][$sub_key][] = $sub_val;
-                        }
-                    } else {
-                        $combined[$key][] = $value;
-                    }
-                }
-            }
-
-            foreach ($combined as $key => $values) {
-                if (is_array(reset($values))) {
-                    foreach ($values as $sub_key => $sub_values) {
-                        $combined[$key][$sub_key] = $this->combineValues($sub_key, $sub_values, $combine);
-                    }
-                } else {
-                    $combined[$key] = $this->combineValues($key, $values, $combine);
-                }
-            }
-
-            $info[strtolower($option_name)] = $combined;
+        if ($info !== null) {
+            return $option !== null ? ($info[strtolower($option)] ?? []) : $info;
         }
 
-        return $option !== null ? ($info[$option] ?? []) : $info;
+        $section_info = [];
+        $sections = ['SERVER', 'CLIENTS', 'MEMORY', 'PERSISTENCE', 'STATS', 'REPLICATION', 'CPU', 'CLUSTER', 'KEYSPACE',];
+
+        foreach ($sections as $section_name) {
+            $aggregated_values = [];
+
+            foreach ($this->nodes as $node) {
+                try {
+                    $node_section_info = $this->info($node, $section_name);
+
+                    if (!is_array($node_section_info)) {
+                        continue;
+                    }
+
+                    foreach ($node_section_info as $key => $value) {
+                        if (is_array($value)) {
+                            foreach ($value as $sub_key => $sub_val) {
+                                $aggregated_values[$key][$sub_key][] = $sub_val;
+                            }
+                        } else {
+                            $aggregated_values[$key][] = $value;
+                        }
+                    }
+                } catch (RedisClusterException) {
+                    continue;
+                }
+            }
+
+            if (empty($aggregated_values)) {
+                continue;
+            }
+
+            $combined_section = [];
+
+            foreach ($aggregated_values as $key => $values) {
+                if (is_array(reset($values))) {
+                    foreach ($values as $sub_key => $sub_values) {
+                        $combined_section[$key][$sub_key] = $this->combineValues($sub_key, $sub_values, $combine);
+                    }
+                } else {
+                    $combined_section[$key] = $this->combineValues($key, $values, $combine);
+                }
+            }
+            $section_info[strtolower($section_name)] = $combined_section;
+        }
+
+        $info = $section_info;
+
+        return $option !== null ? ($info[strtolower($option)] ?? []) : $info;
     }
 
     /**

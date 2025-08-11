@@ -87,15 +87,32 @@ class Redis extends \Redis implements RedisCompatibilityInterface {
      * @throws RedisException
      */
     public function getInfo(?string $option = null): array {
-        static $info = [];
+        static $info = null;
 
-        $options = ['SERVER', 'CLIENTS', 'MEMORY', 'PERSISTENCE', 'STATS', 'REPLICATION', 'CPU', 'CLUSTER', 'KEYSPACE'];
+        if ($info === null) {
+            $section_info = [];
+            $sections = ['SERVER', 'CLIENTS', 'MEMORY', 'PERSISTENCE', 'STATS', 'REPLICATION', 'CPU', 'CLUSTER', 'KEYSPACE'];
 
-        foreach ($options as $option_name) {
-            $info[strtolower($option_name)] = $this->info($option_name);
+            foreach ($sections as $section) {
+                try {
+                    $section_data = $this->info($section);
+
+                    if ($section_data) {
+                        $section_info[strtolower($section)] = $section_data;
+                    }
+                } catch (RedisException) {
+                    continue;
+                }
+            }
+
+            $info = $section_info;
         }
 
-        return $info[$option] ?? $info;
+        if ($option !== null) {
+            return $info[strtolower($option)] ?? [];
+        }
+
+        return $info;
     }
 
     /**

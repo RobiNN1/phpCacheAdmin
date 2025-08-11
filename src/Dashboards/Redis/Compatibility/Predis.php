@@ -69,28 +69,44 @@ class Predis extends Client implements RedisCompatibilityInterface {
      * @return array<int|string, mixed>
      */
     public function getInfo(?string $option = null): array {
-        static $array = [];
+        static $info = null;
 
-        $options = ['Server', 'Clients', 'Memory', 'Persistence', 'Stats', 'Replication', 'CPU', 'Cluster', 'Keyspace'];
-
-        foreach ($options as $option_name) {
-            $data = $this->info()[$option_name];
-
-            if ($option_name === 'Keyspace') {
-                foreach ($data as $db => $keys_data) {
-                    $keys = [];
-                    foreach ($keys_data as $key_name => $key_value) {
-                        $keys[] = $key_name.'='.$key_value;
-                    }
-
-                    $data[$db] = implode(',', $keys);
-                }
-            }
-
-            $array[strtolower($option_name)] = $data;
+        if ($info !== null) {
+            return $option !== null ? ($info[strtolower($option)] ?? []) : $info;
         }
 
-        return $array[$option] ?? $array;
+        $all_sections = $this->info();
+        $section_info = [];
+
+        foreach ($all_sections as $section_name => $section_data) {
+            $section_name_lower = strtolower((string) $section_name);
+
+            if ($section_name_lower === 'keyspace') {
+                $reformatted_keyspace = [];
+
+                if (is_array($section_data)) {
+                    foreach ($section_data as $db => $keys_data_array) {
+                        $key_value_pairs = [];
+
+                        if (is_array($keys_data_array)) {
+                            foreach ($keys_data_array as $key => $value) {
+                                $key_value_pairs[] = $key.'='.$value;
+                            }
+                        }
+
+                        $reformatted_keyspace[$db] = implode(',', $key_value_pairs);
+                    }
+                }
+
+                $section_data = $reformatted_keyspace;
+            }
+
+            $section_info[$section_name_lower] = $section_data;
+        }
+
+        $info = $section_info;
+
+        return $option !== null ? ($info[strtolower($option)] ?? []) : $info;
     }
 
     /**

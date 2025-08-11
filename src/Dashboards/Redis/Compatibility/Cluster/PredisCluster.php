@@ -84,43 +84,52 @@ class PredisCluster extends PredisClient implements RedisCompatibilityInterface 
      * @return array<string, array<string, mixed>>
      */
     public function getInfo(?string $option = null, ?array $combine = null): array {
-        static $info = [];
+        static $info = null;
 
-        $options = ['Server', 'Clients', 'Memory', 'Persistence', 'Stats', 'Replication', 'CPU', 'Cluster', 'Keyspace'];
-
-        foreach ($options as $option_name) {
-            /** @var array<string, array<int, mixed>|array<string, array<int, mixed>>> $combined */
-            $combined = [];
-
-            foreach ($this->nodes as $node) {
-                /** @var array<string, mixed> $node_info */
-                $node_info = $node->info()[$option_name];
-
-                foreach ($node_info as $key => $value) {
-                    if (is_array($value)) {
-                        foreach ($value as $sub_key => $sub_val) {
-                            $combined[$key][$sub_key][] = $sub_val;
-                        }
-                    } else {
-                        $combined[$key][] = $value;
-                    }
-                }
-            }
-
-            foreach ($combined as $key => $values) {
-                if (is_array(reset($values))) {
-                    foreach ($values as $sub_key => $sub_values) {
-                        $combined[$key][$sub_key] = $this->combineValues($sub_key, $sub_values, $combine);
-                    }
-                } else {
-                    $combined[$key] = $this->combineValues($key, $values, $combine);
-                }
-            }
-
-            $info[strtolower($option_name)] = $combined;
+        if ($info !== null) {
+            return $option !== null ? ($info[strtolower($option)] ?? []) : $info;
         }
 
-        return $option !== null ? ($info[$option] ?? []) : $info;
+        $aggregated = [];
+
+        foreach ($this->nodes as $node) {
+            try {
+                $node_section_info = $node->info();
+            } catch (Exception) {
+                continue;
+            }
+
+            foreach ($node_section_info as $section_name => $section_data) {
+                $section_name_lower = strtolower((string) $section_name);
+                foreach ($section_data as $key => $value) {
+                    if (is_array($value)) {
+                        foreach ($value as $sub_key => $sub_val) {
+                            $aggregated[$section_name_lower][$key][$sub_key][] = $sub_val;
+                        }
+                    } else {
+                        $aggregated[$section_name_lower][$key][] = $value;
+                    }
+                }
+            }
+        }
+
+        $combined_info = [];
+
+        foreach ($aggregated as $section_name => $section_data) {
+            foreach ($section_data as $key => $values) {
+                if (is_array(reset($values))) {
+                    foreach ($values as $sub_key => $sub_values) {
+                        $combined_info[$section_name][$key][$sub_key] = $this->combineValues($sub_key, $sub_values, $combine);
+                    }
+                } else {
+                    $combined_info[$section_name][$key] = $this->combineValues($key, $values, $combine);
+                }
+            }
+        }
+
+        $info = $combined_info;
+
+        return $option !== null ? ($info[strtolower($option)] ?? []) : $info;
     }
 
     /**

@@ -8,7 +8,6 @@ declare(strict_types=1);
 
 namespace RobiNN\Pca\Dashboards\Redis\Compatibility;
 
-use Exception;
 use Predis\Client;
 use Predis\Collection\Iterator\Keyspace;
 
@@ -199,15 +198,12 @@ class Predis extends Client implements RedisCompatibilityInterface {
         return $this->slowlog('RESET') === 'OK';
     }
 
-    public function isCommandSupported(string $command): bool {
-        try {
-            $commands = $this->rawcommand('COMMAND');
-            $command_names = array_column($commands, 0);
-            $is_supported = in_array(strtolower($command), $command_names, true);
-        } catch (Exception) {
-            $is_supported = false;
-        }
+    /**
+     * @return array<int, string>
+     */
+    public function getCommands(): array {
+        $commands = $this->rawcommand('COMMAND');
 
-        return $is_supported;
+        return array_column($commands, 0);
     }
 }

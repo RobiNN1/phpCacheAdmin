@@ -329,15 +329,12 @@ class PredisCluster extends PredisClient implements RedisCompatibilityInterface 
         return true;
     }
 
-    public function isCommandSupported(string $command): bool {
-        try {
-            $commands = $this->nodes[0]->executeRaw(['COMMAND']);
-            $command_names = array_column($commands, 0);
-            $is_supported = in_array(strtolower($command), $command_names, true);
-        } catch (Exception) {
-            $is_supported = false;
-        }
+    /**
+     * @return array<int, string>
+     */
+    public function getCommands(): array {
+        $commands = $this->nodes[0]->executeRaw(['COMMAND']);
 
-        return $is_supported;
+        return array_column($commands, 0);
     }
 }

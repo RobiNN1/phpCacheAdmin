@@ -93,7 +93,9 @@ interface RedisCompatibilityInterface {
     public function resetSlowlog(): bool;
 
     /**
-     * Check if a command is supported.
+     * Get a list of supported commands.
+     *
+     * @return array<int, string>
      */
-    public function isCommandSupported(string $command): bool;
+    public function getCommands(): array;
 }

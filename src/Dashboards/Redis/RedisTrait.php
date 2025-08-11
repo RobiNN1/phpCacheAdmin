@@ -360,7 +360,7 @@ trait RedisTrait {
         $filter = Http::get('s', '*');
         $this->template->addGlobal('search_value', $filter);
 
-        if (isset($this->servers[$this->current_server]['scansize']) || !$this->redis->isCommandSupported('KEYS')) {
+        if (isset($this->servers[$this->current_server]['scansize']) || !$this->isCommandSupported('KEYS')) {
             $scansize = (int) ($this->servers[$this->current_server]['scansize'] ?? 1000);
             $keys_array = $this->redis->scanKeys($filter, $scansize);
         } else {
@@ -374,6 +374,17 @@ trait RedisTrait {
         }
 
         return $this->keysTableView($keys);
+    }
+
+    public function isCommandSupported(string $command): bool {
+        try {
+            $commands = $this->redis->getCommands();
+            $is_supported = in_array(strtolower($command), $commands, true);
+        } catch (Exception) {
+            $is_supported = false;
+        }
+
+        return $is_supported;
     }
 
     /**
@@ -513,6 +524,11 @@ trait RedisTrait {
      * @throws Exception
      */
     private function slowlog(): string {
+        if (!$this->isCommandSupported('SLOWLOG')) {
+            return $this->template->render('components/tabs', ['links' => ['keys' => 'Keys', 'slowlog' => 'Slow Log',],]).
+                'Slowlog is disabled on your server.';
+        }
+
         if (isset($_GET['resetlog'])) {
             $this->redis->resetSlowlog();
             Http::redirect(['tab']);

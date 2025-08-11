@@ -91,7 +91,7 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
         }
 
         $section_info = [];
-        $sections = ['SERVER', 'CLIENTS', 'MEMORY', 'PERSISTENCE', 'STATS', 'REPLICATION', 'CPU', 'CLUSTER', 'KEYSPACE',];
+        $sections = ['SERVER', 'CLIENTS', 'MEMORY', 'PERSISTENCE', 'STATS', 'REPLICATION', 'CPU', 'CLUSTER', 'KEYSPACE'];
 
         foreach ($sections as $section_name) {
             $aggregated_values = [];
@@ -127,7 +127,7 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
             foreach ($aggregated_values as $key => $values) {
                 if (is_array(reset($values))) {
                     foreach ($values as $sub_key => $sub_values) {
-                        $combined_section[$key][$sub_key] = $this->combineValues($sub_key, $sub_values, $combine);
+                        $combined_section[$key][$sub_key] = $this->combineValues((string) $sub_key, $sub_values, $combine);
                     }
                 } else {
                     $combined_section[$key] = $this->combineValues($key, $values, $combine);

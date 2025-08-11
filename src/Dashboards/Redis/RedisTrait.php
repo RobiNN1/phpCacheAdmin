@@ -30,7 +30,15 @@ trait RedisTrait {
         }
 
         try {
-            $info = $this->redis->getInfo();
+            $info = $this->redis->getInfo(null, [
+                'redis_version',
+                'used_memory',
+                'maxmemory',
+                'keyspace_hits',
+                'keyspace_misses',
+                'total_connections_received',
+                'total_commands_processed',
+            ]);
 
             $panels = [
                 $this->mainPanel($info, $title ?? null),
@@ -77,7 +85,7 @@ trait RedisTrait {
             'Cluster' => ($cluster_info['cluster_enabled'] ?? 0) ? 'Enabled' : 'Disabled',
             'Uptime'  => Format::seconds((int) ($server_info['uptime_in_seconds'] ?? 0)),
             $role,
-            'Keys'    => Format::number($this->getKeysCountFromInfo($info)).($this->is_cluster ? '' : ' (all databases)'),
+            'Keys'    => Format::number($this->getKeysCountFromInfo($info)).' (all databases)',
             ['Hits / Misses', Format::number($hits).' / '.Format::number($misses).' ('.$hit_rate.'%)', $hit_rate, 'higher'],
         ];
 
@@ -94,10 +102,11 @@ trait RedisTrait {
      * @throws Exception
      */
     private function getKeysCountFromInfo(array $info): int {
-        $keyspace_info = $info['keyspace'] ?? [];
         $count_of_all_keys = 0;
 
-        if (!$this->is_cluster && $keyspace_info !== []) {
+        if (!$this->is_cluster) {
+            $keyspace_info = $info['keyspace'] ?? [];
+
             foreach ($keyspace_info as $entry) {
                 if (is_string($entry) && str_contains($entry, 'keys=')) {
                     parse_str(str_replace(',', '&', $entry), $parsed);

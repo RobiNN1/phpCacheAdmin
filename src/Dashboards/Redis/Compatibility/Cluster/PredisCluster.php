@@ -197,7 +197,7 @@ class PredisCluster extends PredisClient implements RedisCompatibilityInterface 
     }
 
     public function rawcommand(string $command, mixed ...$arguments): mixed {
-        return $this->executeRaw(func_get_args());
+        return $this->nodes[0]->executeRaw(func_get_args());
     }
 
     /**
@@ -327,5 +327,17 @@ class PredisCluster extends PredisClient implements RedisCompatibilityInterface 
         }
 
         return true;
+    }
+
+    public function isCommandSupported(string $command): bool {
+        try {
+            $commands = $this->nodes[0]->executeRaw(['COMMAND']);
+            $command_names = array_column($commands, 0);
+            $is_supported = in_array(strtolower($command), $command_names, true);
+        } catch (Exception) {
+            $is_supported = false;
+        }
+
+        return $is_supported;
     }
 }

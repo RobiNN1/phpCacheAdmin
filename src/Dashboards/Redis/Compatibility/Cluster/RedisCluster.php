@@ -333,4 +333,16 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
 
         return true;
     }
+
+    public function isCommandSupported(string $command): bool {
+        try {
+            $commands = $this->rawcommand($this->nodes[0], 'COMMAND');
+            $command_names = array_column($commands, 0);
+            $is_supported = in_array(strtolower($command), $command_names, true);
+        } catch (RedisClusterException) {
+            $is_supported = false;
+        }
+
+        return $is_supported;
+    }
 }

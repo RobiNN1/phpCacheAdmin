@@ -1,7 +1,12 @@
 local key = KEYS[1]
 local ttl = redis.call("TTL", key)
 local key_type = redis.call("TYPE", key)["ok"]
-local memory_usage = redis.call("MEMORY", "USAGE", key)
+
+local ok, mem = pcall(function()
+    return redis.call("MEMORY", "USAGE", key)
+end)
+local memory_usage = ok and mem or 0
+
 local count
 
 if key_type == "set" then

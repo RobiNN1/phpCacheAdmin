@@ -213,4 +213,16 @@ class Redis extends \Redis implements RedisCompatibilityInterface {
     public function resetSlowlog(): bool {
         return $this->slowlog('RESET');
     }
+
+    public function isCommandSupported(string $command): bool {
+        try {
+            $commands = $this->rawcommand('COMMAND');
+            $command_names = array_column($commands, 0);
+            $is_supported = in_array(strtolower($command), $command_names, true);
+        } catch (RedisException) {
+            $is_supported = false;
+        }
+
+        return $is_supported;
+    }
 }

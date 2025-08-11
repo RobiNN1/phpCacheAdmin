@@ -360,7 +360,7 @@ trait RedisTrait {
         $filter = Http::get('s', '*');
         $this->template->addGlobal('search_value', $filter);
 
-        if (isset($this->servers[$this->current_server]['scansize']) || !$this->isCommandSupported('KEYS')) {
+        if (isset($this->servers[$this->current_server]['scansize']) || !$this->redis->isCommandSupported('KEYS')) {
             $scansize = (int) ($this->servers[$this->current_server]['scansize'] ?? 1000);
             $keys_array = $this->redis->scanKeys($filter, $scansize);
         } else {
@@ -374,18 +374,6 @@ trait RedisTrait {
         }
 
         return $this->keysTableView($keys);
-    }
-
-    private function isCommandSupported(string $command): bool {
-        try {
-            $commands = $this->redis->rawCommand('COMMAND');
-            $command_names = array_column($commands, 0);
-            $is_supported = in_array(strtolower($command), $command_names, true);
-        } catch (Exception) {
-            $is_supported = false;
-        }
-
-        return $is_supported;
     }
 
     /**

@@ -91,4 +91,9 @@ interface RedisCompatibilityInterface {
      * Reset Slowlog.
      */
     public function resetSlowlog(): bool;
+
+    /**
+     * Check if a command is supported.
+     */
+    public function isCommandSupported(string $command): bool;
 }

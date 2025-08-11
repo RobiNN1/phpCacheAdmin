@@ -75,9 +75,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y redis-server
 
-      - name: Start 3-Node Redis Cluster
+      - name: Start Redis Cluster
         run: |
-          echo "Starting 3-node Redis cluster on ports 7000-7002..."
           BASE_PORT=7000
           NODE_COUNT=3
           node_addresses=""
@@ -93,7 +92,6 @@ jobs:
           appendonly no
           daemonize yes
           bind 127.0.0.1
-          logfile "$(pwd)/redis-cluster/node-$port/redis.log"
           dir "$(pwd)/redis-cluster/node-$port"
           EOF
               redis-server ./redis-cluster/node-$port/redis.conf

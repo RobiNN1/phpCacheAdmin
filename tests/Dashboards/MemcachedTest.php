@@ -240,4 +240,65 @@ final class MemcachedTest extends TestCase {
 
         $this->memcached->flush();
     }
+
+    /**
+     * @throws MemcachedException
+     */
+    public function testExportAndImport(): void {
+        $keys_to_test = [
+            'e2e:mem:key1' => ['value' => 'simple-value', 'ttl' => 120],
+            'e2e:mem:key2' => ['value' => 'no-expire-value', 'ttl' => 0],
+            'e2e:mem:key3' => ['value' => '{"json": "data"}', 'ttl' => 300],
+        ];
+
+        $export_keys_array = [];
+
+        foreach ($keys_to_test as $key => $data) {
+            $this->memcached->set($key, $data['value'], $data['ttl']);
+            $export_keys_array[] = ['key' => urlencode($key), 'info' => ['ttl' => $data['ttl']]];
+        }
+
+        $exported_json = Helpers::export(
+            $export_keys_array,
+            'memcached_backup',
+            function (string $key): ?string {
+                $value = $this->memcached->getKey(urldecode($key));
+
+                return $value !== false ? base64_encode($value) : null;
+            },
+            true
+        );
+
+        $this->memcached->flush();
+
+        foreach (array_keys($keys_to_test) as $key) {
+            $this->assertFalse($this->memcached->exists($key));
+        }
+
+        $tmp_file_path = tempnam(sys_get_temp_dir(), 'pu-');
+        file_put_contents($tmp_file_path, $exported_json);
+
+        $_FILES['import'] = [
+            'name'     => 'test_import.json',
+            'type'     => 'application/json',
+            'tmp_name' => $tmp_file_path,
+            'error'    => UPLOAD_ERR_OK,
+            'size'     => filesize($tmp_file_path),
+        ];
+
+        Http::stopRedirect();
+
+        Helpers::import(
+            fn (string $key): bool => $this->memcached->exists($key),
+            fn (string $key, string $value, int $ttl): bool => $this->memcached->set(urldecode($key), base64_decode($value), $ttl)
+        );
+
+        foreach ($keys_to_test as $key => $data) {
+            $this->assertTrue($this->memcached->exists($key));
+            $this->assertSame($data['value'], $this->memcached->getKey($key));
+        }
+
+        unlink($tmp_file_path);
+        unset($_FILES['import']);
+    }
 }

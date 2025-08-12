@@ -172,4 +172,60 @@ final class APCuTest extends TestCase {
 
         $this->assertEquals($this->sortTreeKeys($expected), $this->sortTreeKeys($result));
     }
+
+    public function testExportAndImport(): void {
+        $keys_to_test = [
+            'e2e:apcu:key1' => ['value' => 'simple-value', 'ttl' => 120],
+            'e2e:apcu:key2' => ['value' => 'no-expire-value', 'ttl' => 0],
+            'e2e:apcu:key3' => ['value' => ['json' => 'data'], 'ttl' => 300],
+        ];
+
+        $export_keys_array = [];
+
+        foreach ($keys_to_test as $key => $data) {
+            apcu_store($key, $data['value'], $data['ttl']);
+            $export_keys_array[] = ['key' => $key, 'info' => ['ttl' => $data['ttl']]];
+        }
+
+        $exported_json = Helpers::export(
+            $export_keys_array,
+            'apcu_backup',
+            static fn (string $key): string => base64_encode(serialize(apcu_fetch($key))),
+            true
+        );
+
+        apcu_clear_cache();
+
+        foreach (array_keys($keys_to_test) as $key) {
+            $this->assertFalse(apcu_exists($key));
+        }
+
+        $tmp_file_path = tempnam(sys_get_temp_dir(), 'pu-');
+        file_put_contents($tmp_file_path, $exported_json);
+
+        $_FILES['import'] = [
+            'name'     => 'test_import.json',
+            'type'     => 'application/json',
+            'tmp_name' => $tmp_file_path,
+            'error'    => UPLOAD_ERR_OK,
+            'size'     => filesize($tmp_file_path),
+        ];
+
+        Http::stopRedirect();
+
+        Helpers::import(
+            static fn (string $key): bool => apcu_exists($key),
+            static function (string $key, string $value, int $ttl): bool {
+                return apcu_store($key, unserialize(base64_decode($value), ['allowed_classes' => false]), $ttl);
+            }
+        );
+
+        foreach ($keys_to_test as $key => $data) {
+            $this->assertTrue(apcu_exists($key));
+            $this->assertSame($data['value'], apcu_fetch($key));
+        }
+
+        unlink($tmp_file_path);
+        unset($_FILES['import']);
+    }
 }

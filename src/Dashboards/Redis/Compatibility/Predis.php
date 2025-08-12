@@ -211,7 +211,9 @@ class Predis extends Client implements RedisCompatibilityInterface {
     }
 
     public function resetSlowlog(): bool {
-        return $this->slowlog('RESET') === 'OK';
+        $this->slowlog('RESET');
+
+        return true;
     }
 
     /**

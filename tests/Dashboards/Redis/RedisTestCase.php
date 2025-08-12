@@ -423,4 +423,76 @@ abstract class RedisTestCase extends TestCase {
         $this->redis->execConfig('SET', $config_key, $original_config_value);
         $this->assertTrue($this->redis->resetSlowlog());
     }
+
+    /**
+     * @throws Exception
+     */
+    public function testExportAndImport(): void {
+        $keys_to_test = [
+            'pu:test:key1' => ['value' => 'simple-value', 'ttl' => 120],
+            'pu:test:key2' => ['value' => 'no-expire-value', 'ttl' => -1],
+            'pu:test:key3' => ['value' => '{"json": "data"}', 'ttl' => 300],
+        ];
+
+        $export_keys_array = [];
+        foreach ($keys_to_test as $key => $data) {
+            $this->redis->set($key, $data['value']);
+            if ($data['ttl'] > 0) {
+                $this->redis->expire($key, $data['ttl']);
+            }
+            $export_keys_array[] = ['key' => $key, 'info' => ['ttl' => $this->redis->ttl($key)]];
+        }
+
+        $exported_json = Helpers::export(
+            $export_keys_array,
+            'redis_backup',
+            fn (string $key): string => bin2hex($this->redis->dump($key)),
+            true
+        );
+
+        $this->redis->flushDatabase();
+        foreach (array_keys($keys_to_test) as $key) {
+            $this->assertSame(0, $this->redis->exists($key));
+        }
+
+        $tmp_file_path = tempnam(sys_get_temp_dir(), 'pu-');
+        file_put_contents($tmp_file_path, $exported_json);
+
+        $_FILES['import'] = [
+            'name'     => 'test_import.json',
+            'type'     => 'application/json',
+            'tmp_name' => $tmp_file_path,
+            'error'    => UPLOAD_ERR_OK,
+            'size'     => filesize($tmp_file_path),
+        ];
+
+        Http::stopRedirect();
+
+        Helpers::import(
+            function (string $key): bool {
+                $exists = $this->redis->exists($key);
+
+                return is_int($exists) && $exists > 0;
+            },
+            function (string $key, string $value, int $ttl): bool {
+                return $this->redis->restoreKeys($key, $ttl * 1000, hex2bin($value));
+            }
+        );
+
+        foreach ($keys_to_test as $key => $data) {
+            $this->assertSame(1, $this->redis->exists($key));
+            $this->assertSame($data['value'], $this->redis->get($key));
+
+            $restored_ttl = $this->redis->ttl($key);
+            if ($data['ttl'] === -1) {
+                $this->assertSame(-1, $restored_ttl);
+            } else {
+                $this->assertGreaterThan(0, $restored_ttl);
+                $this->assertLessThanOrEqual($data['ttl'], $restored_ttl);
+            }
+        }
+
+        unlink($tmp_file_path);
+        unset($_FILES['import']);
+    }
 }

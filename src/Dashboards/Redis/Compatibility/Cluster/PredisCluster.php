@@ -18,6 +18,9 @@ use RobiNN\Pca\Dashboards\Redis\Compatibility\RedisJson;
 use RobiNN\Pca\Dashboards\Redis\Compatibility\RedisModules;
 use Throwable;
 
+/**
+ * @method bool restore(string $key, int $ttl, string $value)
+ */
 class PredisCluster extends PredisClient implements RedisCompatibilityInterface {
     use RedisJson;
     use RedisModules;

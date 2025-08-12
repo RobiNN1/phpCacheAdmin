@@ -11,6 +11,9 @@ namespace RobiNN\Pca\Dashboards\Redis\Compatibility;
 use Predis\Client;
 use Predis\Collection\Iterator\Keyspace;
 
+/**
+ * @method bool restore(string $key, int $ttl, string $value)
+ */
 class Predis extends Client implements RedisCompatibilityInterface {
     use RedisJson;
     use RedisModules;

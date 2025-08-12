@@ -435,11 +435,14 @@ abstract class RedisTestCase extends TestCase {
         ];
 
         $export_keys_array = [];
+
         foreach ($keys_to_test as $key => $data) {
             $this->redis->set($key, $data['value']);
+
             if ($data['ttl'] > 0) {
                 $this->redis->expire($key, $data['ttl']);
             }
+
             $export_keys_array[] = ['key' => $key, 'info' => ['ttl' => $this->redis->ttl($key)]];
         }
 
@@ -451,6 +454,7 @@ abstract class RedisTestCase extends TestCase {
         );
 
         $this->redis->flushDatabase();
+
         foreach (array_keys($keys_to_test) as $key) {
             $this->assertSame(0, $this->redis->exists($key));
         }
@@ -484,6 +488,7 @@ abstract class RedisTestCase extends TestCase {
             $this->assertSame($data['value'], $this->redis->get($key));
 
             $restored_ttl = $this->redis->ttl($key);
+
             if ($data['ttl'] === -1) {
                 $this->assertSame(-1, $restored_ttl);
             } else {

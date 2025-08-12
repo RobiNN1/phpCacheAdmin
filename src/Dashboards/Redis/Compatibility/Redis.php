@@ -239,4 +239,8 @@ class Redis extends \Redis implements RedisCompatibilityInterface {
 
         return array_column($commands, 0);
     }
+
+    public function restoreKeys(string $key, int $ttl, string $value): bool {
+        return $this->restore($key, $ttl, $value);
+    }
 }

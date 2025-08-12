@@ -98,4 +98,9 @@ interface RedisCompatibilityInterface {
      * @return array<int, string>
      */
     public function getCommands(): array;
+
+    /**
+     * Alias to a restore().
+     */
+    public function restoreKeys(string $key, int $ttl, string $value): bool;
 }

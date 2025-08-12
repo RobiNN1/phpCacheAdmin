@@ -622,7 +622,7 @@ trait RedisTrait {
                     return is_int($exists) && $exists > 0;
                 },
                 function (string $key, string $value, int $ttl): bool {
-                    return $this->redis->restore($key, ($ttl === -1 ? 0 : $ttl), hex2bin($value));
+                    return $this->redis->restoreKeys($key, ($ttl === -1 ? 0 : $ttl), hex2bin($value));
                 }
             );
         }

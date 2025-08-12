@@ -455,4 +455,8 @@ class PredisCluster extends PredisClient implements RedisCompatibilityInterface 
 
         return array_column($commands, 0);
     }
+
+    public function restoreKeys(string $key, int $ttl, string $value): bool {
+        return (string) $this->restore($key, $ttl, $value) === 'OK';
+    }
 }

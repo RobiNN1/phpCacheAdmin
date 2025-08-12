@@ -358,4 +358,11 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
 
         return array_column($commands, 0);
     }
+
+    /**
+     * @throws RedisClusterException
+     */
+    public function restoreKeys(string $key, int $ttl, string $value): bool {
+        return $this->restore($key, $ttl, $value);
+    }
 }

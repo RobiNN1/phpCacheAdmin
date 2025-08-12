@@ -285,7 +285,7 @@ class PredisCluster extends PredisClient implements RedisCompatibilityInterface 
         $result = [];
         foreach ($entries as [$id, $fields]) {
             $assoc = [];
-            for ($i = 0, $iMax = count($fields); $i < $iMax; $i += 2) {
+            for ($i = 0, $j = count($fields); $i < $j; $i += 2) {
                 $assoc[$fields[$i]] = $fields[$i + 1];
             }
 

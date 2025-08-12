@@ -241,10 +241,6 @@ abstract class RedisTestCase extends TestCase {
      * @throws Exception
      */
     public function testStreamType(): void {
-        if (self::$is_cluster && $this->client === 'predis') {
-            $this->markTestSkipped('Skipped Predis stream test');
-        }
-
         $this->dashboard->store('stream', 'pu-test-type-stream', '', '', [
             'stream_id'     => '1670541476219-0',
             'stream_fields' => ['field1' => 'stvalue1', 'field2' => 'stvalue2'],

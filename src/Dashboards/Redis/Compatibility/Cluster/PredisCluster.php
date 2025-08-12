@@ -16,6 +16,7 @@ use RobiNN\Pca\Dashboards\DashboardException;
 use RobiNN\Pca\Dashboards\Redis\Compatibility\RedisCompatibilityInterface;
 use RobiNN\Pca\Dashboards\Redis\Compatibility\RedisJson;
 use RobiNN\Pca\Dashboards\Redis\Compatibility\RedisModules;
+use Throwable;
 
 class PredisCluster extends PredisClient implements RedisCompatibilityInterface {
     use RedisJson;
@@ -198,11 +199,118 @@ class PredisCluster extends PredisClient implements RedisCompatibilityInterface 
         return $this->lrem($key, $count, $value);
     }
 
+    private function getKeyNode(string $key): ?PredisClient {
+        $cluster = $this->getConnection();
+
+        if (!method_exists($cluster, 'getClusterStrategy') || !method_exists($cluster, 'getConnectionBySlot')) {
+            return null;
+        }
+
+        $slot = $cluster->getClusterStrategy()->getSlotByKey($key);
+
+        if ($slot === null) {
+            return null;
+        }
+
+        try {
+            $connection = $cluster->getConnectionBySlot((string) $slot);
+        } catch (Throwable) {
+            return null;
+        }
+
+        foreach ($this->nodes as $node) {
+            $nodeConn = $node->getConnection();
+            if (
+                method_exists($nodeConn, 'getParameters') &&
+                $nodeConn->getParameters()->host === $connection->getParameters()->host &&
+                $nodeConn->getParameters()->port === $connection->getParameters()->port
+            ) {
+                return $node;
+            }
+        }
+
+        return null;
+    }
+
     /**
      * @param array<string, string> $messages
      */
     public function streamAdd(string $key, string $id, array $messages): string {
-        return $this->xadd($key, $messages, $id);
+        $args = [$key, $id];
+        foreach ($messages as $field => $value) {
+            $args[] = $field;
+            $args[] = $value;
+        }
+
+        $node = $this->getKeyNode($key);
+        if (!$node) {
+            return '';
+        }
+
+        $raw = $node->executeRaw(array_merge(['XADD'], $args));
+
+        return $raw !== false && $raw !== null ? (string) $raw : '';
+    }
+
+    /**
+     * @return array<string, array<string, string>>
+     */
+    public function xrange(string $key, string $start, string $end, ?int $count = null): array {
+        $args = [$key, $start, $end];
+        if ($count !== null) {
+            $args[] = 'COUNT';
+            $args[] = (string) $count;
+        }
+
+        $node = $this->getKeyNode($key);
+        if (!$node) {
+            return [];
+        }
+
+        $raw = $node->executeRaw(array_merge(['XRANGE'], $args));
+
+        if (!is_array($raw)) {
+            return [];
+        }
+
+        return $this->parseStreamEntries($raw);
+    }
+
+    /**
+     * @param list<array{string, list<string>}> $entries
+     *
+     * @return array<string, array<string, string>>
+     */
+    private function parseStreamEntries(array $entries): array {
+        $result = [];
+        foreach ($entries as [$id, $fields]) {
+            $assoc = [];
+            for ($i = 0, $iMax = count($fields); $i < $iMax; $i += 2) {
+                $assoc[$fields[$i]] = $fields[$i + 1];
+            }
+            $result[$id] = $assoc;
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param string|array<int, string> ...$id
+     */
+    public function xdel(string $key, string|array ...$id): int {
+        if (count($id) === 1 && is_array($id[0])) {
+            $id = $id[0];
+        }
+
+        $node = $this->getKeyNode($key);
+        if (!$node) {
+            return 0;
+        }
+
+        $args = array_merge([$key], $id);
+        $raw = $node->executeRaw(array_merge(['XDEL'], $args));
+
+        return is_int($raw) ? $raw : 0;
     }
 
     public function rawcommand(string $command, mixed ...$arguments): mixed {

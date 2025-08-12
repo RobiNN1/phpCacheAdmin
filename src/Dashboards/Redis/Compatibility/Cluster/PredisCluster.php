@@ -243,7 +243,7 @@ class PredisCluster extends PredisClient implements RedisCompatibilityInterface 
         }
 
         $node = $this->getKeyNode($key);
-        if (!$node) {
+        if (!$node instanceof PredisClient) {
             return '';
         }
 
@@ -263,7 +263,7 @@ class PredisCluster extends PredisClient implements RedisCompatibilityInterface 
         }
 
         $node = $this->getKeyNode($key);
-        if (!$node) {
+        if (!$node instanceof PredisClient) {
             return [];
         }
 
@@ -288,6 +288,7 @@ class PredisCluster extends PredisClient implements RedisCompatibilityInterface 
             for ($i = 0, $iMax = count($fields); $i < $iMax; $i += 2) {
                 $assoc[$fields[$i]] = $fields[$i + 1];
             }
+
             $result[$id] = $assoc;
         }
 
@@ -303,7 +304,7 @@ class PredisCluster extends PredisClient implements RedisCompatibilityInterface 
         }
 
         $node = $this->getKeyNode($key);
-        if (!$node) {
+        if (!$node instanceof PredisClient) {
             return 0;
         }
 

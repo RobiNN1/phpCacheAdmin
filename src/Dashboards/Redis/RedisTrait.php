@@ -382,7 +382,7 @@ trait RedisTrait {
         }
 
         if (isset($_GET['key']) && $_GET['form'] === 'edit' && $this->redis->exists($key)) {
-            [$value, $index, $score, $hash_key] = $this->getKeyValue($type, $key);
+            [$value, $index, $score, $hash_key, $stream_id] = $this->getKeyValue($type, $key);
         }
 
         $value = Value::converter($value, $encoder, 'view');

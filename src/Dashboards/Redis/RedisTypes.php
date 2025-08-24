@@ -72,6 +72,7 @@ trait RedisTypes {
         $index = null;
         $score = 0;
         $hash_key = '';
+        $stream_id = '*';
 
         switch ($type) {
             case 'string':
@@ -99,7 +100,8 @@ trait RedisTypes {
                 break;
             case 'stream':
                 $ranges = $this->redis->xRange($key, '-', '+');
-                $value = $ranges[Http::get('stream_id', '')] ?? [];
+                $stream_id = Http::get('stream_id', '');
+                $value = $ranges[$stream_id] ?? [];
                 $value = json_encode($value, JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
                 break;
             case 'rejson':
@@ -109,7 +111,7 @@ trait RedisTypes {
                 $value = '';
         }
 
-        return [$value, $index, $score, $hash_key];
+        return [$value, $index, $score, $hash_key, $stream_id];
     }
 
     /**
@@ -183,6 +185,11 @@ trait RedisTypes {
                 $this->redis->hSet($key, $options['hash_key'], $value);
                 break;
             case 'stream':
+                if ($options['stream_id'] === Http::get('stream_id', '')) {
+                    [$timestamp, $sequence] = array_pad(explode('-', Http::get('stream_id', '')), 2, 0);
+                    $options['stream_id'] = $timestamp.'-'.((int) $sequence + 1);
+                }
+
                 if (Http::get('stream_id', '') !== '') {
                     $this->redis->xDel($key, [Http::get('stream_id', '')]);
                 }

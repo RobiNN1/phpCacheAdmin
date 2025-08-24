@@ -24,8 +24,7 @@ trait RedisTypes {
      */
     public function getAllTypes(): array {
         static $types = [];
-
-        $exclude = ['none', 'other', 'stream'];
+        $exclude = ['none', 'other'];
 
         if (!$this->redis->checkModule('ReJSON')) {
             $exclude[] = 'rejson';
@@ -51,7 +50,6 @@ trait RedisTypes {
         return [
             'extra'  => [
                 'hide_title' => ['set'],
-                'hide_edit'  => ['stream'],
             ],
             'set'    => ['param' => 'member', 'title' => ''],
             'list'   => ['param' => 'index', 'title' => 'Index'],
@@ -101,7 +99,8 @@ trait RedisTypes {
                 break;
             case 'stream':
                 $ranges = $this->redis->xRange($key, '-', '+');
-                $value = $ranges[Http::get('stream_id', '')];
+                $value = $ranges[Http::get('stream_id', '')] ?? [];
+                $value = json_encode($value, JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
                 break;
             case 'rejson':
                 $value = $this->redis->jsonGet($key);
@@ -118,7 +117,7 @@ trait RedisTypes {
      *
      * Used in view page.
      *
-     * @return array<int, mixed>|string
+     * @return string|array<int|string, string>
      *
      * @throws Exception
      */
@@ -177,10 +176,24 @@ trait RedisTypes {
                 $this->redis->zAdd($key, $options['zset_score'], $value);
                 break;
             case 'hash':
+                if ($this->redis->hExists($key, Http::get('hash_key', ''))) {
+                    $this->redis->hDel($key, Http::get('hash_key', ''));
+                }
+
                 $this->redis->hSet($key, $options['hash_key'], $value);
                 break;
             case 'stream':
-                $this->redis->streamAdd($key, $options['stream_id'], $options['stream_fields'] ?? [$options['stream_field'] => $value]);
+                if (Http::get('stream_id', '') !== '') {
+                    $this->redis->xDel($key, [Http::get('stream_id', '')]);
+                }
+
+                $fields = [$value];
+
+                if (json_validate($value)) {
+                    $fields = json_decode($value, true, 512, JSON_THROW_ON_ERROR);
+                }
+
+                $this->redis->streamAdd($key, $options['stream_id'], $fields);
                 break;
             case 'rejson':
                 $this->redis->jsonSet($key, $value);

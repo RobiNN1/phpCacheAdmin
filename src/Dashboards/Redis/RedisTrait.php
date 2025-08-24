@@ -331,7 +331,7 @@ trait RedisTrait {
         $key = Http::post('key', '');
         $value = Value::converter(Http::post('value', ''), Http::post('encoder', ''), 'save');
         $old_value = Http::post('old_value', '');
-        $type = Http::post('redis_type', '');
+        $type = Http::post('rtype', '');
         $old_key = Http::post('old_key', '');
 
         if ($old_key !== '' && $old_key !== $key) { // @phpstan-ignore-line
@@ -339,20 +339,12 @@ trait RedisTrait {
         }
 
         $this->store($type, $key, $value, $old_value, [
-            'list_index'   => $_POST['index'] ?? '',
-            'zset_score'   => Http::post('score', 0),
-            'hash_key'     => Http::post('hash_key', ''),
-            'stream_id'    => Http::post('stream_id', '*'),
-            'stream_field' => Http::post('field', ''),
+            'list_index' => $_POST['index'] ?? '',
+            'zset_score' => Http::post('score', 0),
+            'hash_key'   => Http::post('hash_key', ''),
+            'stream_id'  => Http::post('stream_id', '*'),
+            'ttl'        => Http::post('expire', 0),
         ]);
-
-        $expire = Http::post('expire', 0);
-
-        if ($expire === -1) {
-            $this->redis->persist($key);
-        } else {
-            $this->redis->expire($key, $expire);
-        }
 
         Http::redirect([], ['view' => 'key', 'key' => $key]);
     }
@@ -364,13 +356,14 @@ trait RedisTrait {
      */
     private function form(): string {
         $key = (string) Http::get('key', Http::post('key', ''));
-        $type = Http::post('redis_type', 'string');
+        $type = Http::post('rtype', 'string');
         $index = $_POST['index'] ?? '';
         $score = Http::post('score', 0);
         $hash_key = Http::post('hash_key', '');
         $expire = Http::post('expire', -1);
         $encoder = Http::get('encoder', 'none');
         $value = Http::post('value', '');
+        $stream_id = Http::post('stream_id', '*');
 
         if (isset($_POST['submit'])) {
             $this->saveKey();
@@ -395,16 +388,17 @@ trait RedisTrait {
         $value = Value::converter($value, $encoder, 'view');
 
         return $this->template->render('dashboards/redis/form', [
-            'key'      => $key,
-            'value'    => $value,
-            'types'    => $this->getAllTypes(),
-            'type'     => $type,
-            'index'    => $index,
-            'score'    => $score,
-            'hash_key' => $hash_key,
-            'expire'   => $expire,
-            'encoders' => Config::getEncoders(),
-            'encoder'  => $encoder,
+            'key'       => $key,
+            'value'     => $value,
+            'types'     => $this->getAllTypes(),
+            'type'      => $type,
+            'index'     => $index,
+            'score'     => $score,
+            'hash_key'  => $hash_key,
+            'expire'    => $expire,
+            'encoders'  => Config::getEncoders(),
+            'encoder'   => $encoder,
+            'stream_id' => $stream_id,
         ]);
     }
 

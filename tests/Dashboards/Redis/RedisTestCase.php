@@ -68,6 +68,18 @@ abstract class RedisTestCase extends TestCase {
     }
 
     /**
+     * @param array<string, mixed> $post
+     *
+     * @throws Exception
+     */
+    private function saveData(array $post): void {
+        $_POST = array_merge(['encoder' => 'none', 'expire' => -1, 'old_value' => ''], $post);
+
+        Http::stopRedirect();
+        $this->dashboard->saveKey();
+    }
+
+    /**
      * @param array<int, string>|string $keys
      */
     private function deleteRedisKeys(array|string $keys): void {
@@ -123,26 +135,6 @@ abstract class RedisTestCase extends TestCase {
     /**
      * @throws Exception
      */
-    public function testSaveKey(): void {
-        $key = 'pu-test-save';
-
-        $_POST['redis_type'] = 'string';
-        $_POST['key'] = $key;
-        $_POST['value'] = 'test-value';
-        $_POST['expire'] = -1;
-        $_POST['encoder'] = 'none';
-
-        Http::stopRedirect();
-        $this->dashboard->saveKey();
-
-        $this->assertSame('test-value', $this->redis->get($key));
-
-        $this->redis->del($key);
-    }
-
-    /**
-     * @throws Exception
-     */
     public function testGetInfo(): void {
         $this->assertArrayHasKey('redis_version', $this->redis->getInfo('server'));
     }
@@ -151,118 +143,104 @@ abstract class RedisTestCase extends TestCase {
      * @throws Exception
      */
     public function testStringType(): void {
-        $this->dashboard->store('string', 'pu-test-type-string', 'svalue');
+        $key = 'pu-test-type-string';
 
-        $this->assertSame('svalue', $this->dashboard->getAllKeyValues('string', 'pu-test-type-string'));
+        $this->saveData(['rtype' => 'string', 'key' => $key, 'value' => 'initial_value']);
+        $this->assertSame('initial_value', $this->dashboard->getAllKeyValues('string', $key));
+
+        $this->saveData(['rtype' => 'string', 'key' => $key, 'value' => 'updated_value']);
+        $this->assertSame('updated_value', $this->dashboard->getAllKeyValues('string', $key));
     }
 
     /**
      * @throws Exception
      */
     public function testSetType(): void {
-        $this->dashboard->store('set', 'pu-test-type-set', 'svalue1');
-        $this->dashboard->store('set', 'pu-test-type-set', 'svalue2');
-        $this->dashboard->store('set', 'pu-test-type-set', 'svalue3');
+        $key = 'pu-test-type-set';
 
-        $this->assertEqualsCanonicalizing(
-            ['svalue1', 'svalue2', 'svalue3'],
-            $this->dashboard->getAllKeyValues('set', 'pu-test-type-set')
-        );
+        $this->saveData(['rtype' => 'set', 'key' => $key, 'value' => 'member1']);
+        $this->saveData(['rtype' => 'set', 'key' => $key, 'value' => 'member2']);
+        $this->assertEqualsCanonicalizing(['member1', 'member2'], $this->dashboard->getAllKeyValues('set', $key));
 
-        $subkey = array_search('svalue2', $this->redis->sMembers('pu-test-type-set'), true);
-        $this->dashboard->deleteSubKey('set', 'pu-test-type-set', $subkey);
-        $this->assertEqualsCanonicalizing(
-            ['svalue1', 'svalue3'],
-            $this->dashboard->getAllKeyValues('set', 'pu-test-type-set')
-        );
+        $this->saveData(['rtype' => 'set', 'key' => $key, 'value' => 'member2_updated', 'old_value' => 'member2']);
+        $this->assertEqualsCanonicalizing(['member1', 'member2_updated'], $this->dashboard->getAllKeyValues('set', $key));
     }
 
     /**
      * @throws Exception
      */
     public function testListType(): void {
-        $this->dashboard->store('list', 'pu-test-type-list', 'lvalue1');
-        $this->dashboard->store('list', 'pu-test-type-list', 'lvalue2');
-        $this->dashboard->store('list', 'pu-test-type-list', 'lvalue3');
+        $key = 'pu-test-type-list';
 
-        $this->assertEqualsCanonicalizing(
-            ['lvalue1', 'lvalue2', 'lvalue3'],
-            $this->dashboard->getAllKeyValues('list', 'pu-test-type-list')
-        );
+        $this->saveData(['rtype' => 'list', 'key' => $key, 'value' => 'lvalue1']);
+        $this->saveData(['rtype' => 'list', 'key' => $key, 'value' => 'lvalue2', 'index' => '1']);
+        $this->assertEquals(['lvalue1', 'lvalue2'], $this->dashboard->getAllKeyValues('list', $key));
 
-        $this->dashboard->deleteSubKey('list', 'pu-test-type-list', 1);
-        $this->assertEqualsCanonicalizing(
-            ['lvalue1', 'lvalue3'],
-            $this->dashboard->getAllKeyValues('list', 'pu-test-type-list')
-        );
+        $this->saveData(['rtype' => 'list', 'key' => $key, 'value' => 'lvalue1_updated', 'index' => '0']);
+        $this->assertEquals(['lvalue1_updated', 'lvalue2'], $this->dashboard->getAllKeyValues('list', $key));
     }
 
     /**
      * @throws Exception
      */
     public function testZSetType(): void {
-        $this->dashboard->store('zset', 'pu-test-type-zset', 'zvalue1', '', ['zset_score' => 0]);
-        $this->dashboard->store('zset', 'pu-test-type-zset', 'zvalue2', '', ['zset_score' => 1]);
-        $this->dashboard->store('zset', 'pu-test-type-zset', 'zvalue3', '', ['zset_score' => 77]);
+        $key = 'pu-test-type-zset';
 
-        $this->assertEqualsCanonicalizing(
-            ['zvalue1', 'zvalue2', 'zvalue3'],
-            $this->dashboard->getAllKeyValues('zset', 'pu-test-type-zset')
-        );
+        $this->saveData(['rtype' => 'zset', 'key' => $key, 'value' => 'zvalue1', 'score' => 10]);
+        $this->saveData(['rtype' => 'zset', 'key' => $key, 'value' => 'zvalue2', 'score' => 20]);
+        $this->assertEqualsCanonicalizing(['zvalue1', 'zvalue2'], $this->dashboard->getAllKeyValues('zset', $key));
+        $this->assertEquals(20.0, $this->redis->zScore($key, 'zvalue2'));
 
-        $this->dashboard->deleteSubKey('zset', 'pu-test-type-zset', 1);
-        $this->assertEqualsCanonicalizing(
-            ['zvalue1', 'zvalue3'],
-            $this->dashboard->getAllKeyValues('zset', 'pu-test-type-zset')
-        );
+        $this->saveData(['rtype' => 'zset', 'key' => $key, 'value' => 'zvalue2_updated', 'old_value' => 'zvalue2', 'score' => 30]);
+        $this->assertEqualsCanonicalizing(['zvalue1', 'zvalue2_updated'], $this->dashboard->getAllKeyValues('zset', $key));
+        $this->assertEquals(30.0, $this->redis->zScore($key, 'zvalue2_updated'));
+        $this->assertEmpty($this->redis->zScore($key, 'zvalue2'));
     }
 
     /**
      * @throws Exception
      */
     public function testHashType(): void {
-        $this->dashboard->store('hash', 'pu-test-type-hash', 'hvalue1', '', ['hash_key' => 'hashkey1']);
-        $this->dashboard->store('hash', 'pu-test-type-hash', 'hvalue2', '', ['hash_key' => 'hashkey2']);
-        $this->dashboard->store('hash', 'pu-test-type-hash', 'hvalue3', '', ['hash_key' => 'hashkey3']);
+        $key = 'pu-test-type-hash';
 
-        $this->assertEqualsCanonicalizing(
-            ['hashkey1' => 'hvalue1', 'hashkey2' => 'hvalue2', 'hashkey3' => 'hvalue3'],
-            $this->dashboard->getAllKeyValues('hash', 'pu-test-type-hash')
-        );
+        $this->saveData(['rtype' => 'hash', 'key' => $key, 'hash_key' => 'field1', 'value' => 'hvalue1']);
+        $this->saveData(['rtype' => 'hash', 'key' => $key, 'hash_key' => 'field2', 'value' => 'hvalue2']);
+        $this->assertEquals(['field1' => 'hvalue1', 'field2' => 'hvalue2'], $this->dashboard->getAllKeyValues('hash', $key));
 
-        $this->dashboard->deleteSubKey('hash', 'pu-test-type-hash', 'hashkey2');
-        $this->assertEqualsCanonicalizing(
-            ['hashkey1' => 'hvalue1', 'hashkey3' => 'hvalue3'],
-            $this->dashboard->getAllKeyValues('hash', 'pu-test-type-hash')
-        );
+        $this->saveData(['rtype' => 'hash', 'key' => $key, 'hash_key' => 'field1', 'value' => 'hvalue1_updated']);
+        $this->assertSame('hvalue1_updated', $this->dashboard->getAllKeyValues('hash', $key)['field1']);
     }
 
     /**
      * @throws Exception
      */
     public function testStreamType(): void {
-        $this->dashboard->store('stream', 'pu-test-type-stream', '', '', [
-            'stream_id'     => '1670541476219-0',
-            'stream_fields' => ['field1' => 'stvalue1', 'field2' => 'stvalue2'],
+        $key = 'pu-test-type-stream';
+
+        $this->saveData([
+            'rtype' => 'stream',
+            'key'   => $key,
+            'value' => json_encode(['field1' => 'v1', 'field2' => 'v2'], JSON_THROW_ON_ERROR),
         ]);
-        $this->dashboard->store('stream', 'pu-test-type-stream', 'stvalue3', '', [
-            'stream_id'    => '1670541476219-1',
-            'stream_field' => 'field3',
+        $this->saveData([
+            'rtype' => 'stream',
+            'key'   => $key,
+            'value' => json_encode(['field3' => 'v3'], JSON_THROW_ON_ERROR),
         ]);
 
-        $this->assertEqualsCanonicalizing(
-            [
-                '1670541476219-0' => ['field1' => 'stvalue1', 'field2' => 'stvalue2'],
-                '1670541476219-1' => ['field3' => 'stvalue3'],
-            ],
-            $this->dashboard->getAllKeyValues('stream', 'pu-test-type-stream')
-        );
+        $all_values = array_values($this->dashboard->getAllKeyValues('stream', $key));
+        $this->assertEquals(['field1' => 'v1', 'field2' => 'v2'], $all_values[0]);
+        $this->assertEquals(['field3' => 'v3'], $all_values[1]);
 
-        $this->dashboard->deleteSubKey('stream', 'pu-test-type-stream', '1670541476219-0');
-        $this->assertEqualsCanonicalizing(
-            ['1670541476219-1' => ['field3' => 'stvalue3']],
-            $this->dashboard->getAllKeyValues('stream', 'pu-test-type-stream')
-        );
+        $_GET['stream_id'] = array_key_last($this->redis->xRange($key, '-', '+'));
+        $this->saveData([
+            'rtype' => 'stream',
+            'key'   => $key,
+            'value' => json_encode(['field3' => 'edited'], JSON_THROW_ON_ERROR),
+        ]);
+
+        $all_values = array_values($this->dashboard->getAllKeyValues('stream', $key));
+        $this->assertEquals(['field3' => 'edited'], $all_values[1]);
     }
 
     /**

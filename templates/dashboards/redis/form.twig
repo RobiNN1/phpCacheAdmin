@@ -3,7 +3,7 @@
     <input type="hidden" name="old_value" value="{{ value }}">
 
     {{ include('components/select.twig', {
-        id: 'redis_type',
+        id: 'rtype',
         label: 'Type',
         options: types,
         class: 'w-full',
@@ -32,7 +32,7 @@
         id: 'index',
         label: 'List Index',
         type: 'number',
-        extra_attr: ' style="display: ' ~ (type == 'list' ? 'show' : 'none') ~ ';" id="redis_index"',
+        extra_attr: ' style="display: ' ~ (type == 'list' ? 'block' : 'none') ~ ';" id="redis_index"',
         help: 'Empty to append, -1 to prepend.',
         value: index,
     }) }}
@@ -41,15 +41,23 @@
         id: 'score',
         label: 'Zset Score',
         type: 'number',
-        extra_attr: ' style="display: ' ~ (type == 'zset' ? 'show' : 'none') ~ ';" id="redis_score"',
+        extra_attr: ' style="display: ' ~ (type == 'zset' ? 'block' : 'none') ~ ';" id="redis_score"',
         value: score,
     }) }}
 
     {{ include('components/input.twig', {
         id: 'hash_key',
         label: 'Hash Key',
-        extra_attr: ' style="display: ' ~ (type == 'hash' ? 'show' : 'none') ~ ';" id="redis_hash_key"',
+        extra_attr: ' style="display: ' ~ (type == 'hash' ? 'block' : 'none') ~ ';" id="redis_hash_key"',
         value: hash_key,
+    }) }}
+
+    {{ include('components/input.twig', {
+        id: 'stream_id',
+        label: 'Stream Entry ID',
+        extra_attr: ' style="display: ' ~ (type == 'stream' ? 'block' : 'none') ~ ';" id="redis_stream_id"',
+        help: 'Use * to let Redis generate the ID.',
+        value: stream_id,
     }) }}
 
     {% if encoders %}
@@ -78,11 +86,12 @@
 </form>
 
 <script>
-    document.getElementById('redis_type').addEventListener('change', e => {
+    document.getElementById('rtype').addEventListener('change', e => {
         document.getElementById('redis_index').style.display = e.target.value === 'list' ? 'block' : 'none';
         document.getElementById('redis_score').style.display = e.target.value === 'zset' ? 'block' : 'none';
         document.getElementById('score').required = e.target.value === 'zset';
         document.getElementById('redis_hash_key').style.display = e.target.value === 'hash' ? 'block' : 'none';
         document.getElementById('hash_key').required = e.target.value === 'hash';
+        document.getElementById('redis_stream_id').style.display = e.target.value === 'stream' ? 'block' : 'none';
     });
 </script>

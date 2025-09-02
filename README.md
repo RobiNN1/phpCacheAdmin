@@ -84,8 +84,10 @@ Memcached:
 - `PCA_MEMCACHED_0_PORT` Optional when the default port is used.
 - `PCA_MEMCACHED_0_PATH` Unix domain socket (optional).
 
-PHP:
+Other:
+
 - `PCA_PHP_MEMORY_LIMIT` In case you need to increase the PHP memory limit in Docker.
+- `PCA_NGINX_PORT` In case you need to change NGINX port in Docker.
 
 Open the [config](https://github.com/RobiNN1/phpCacheAdmin/blob/master/config.dist.php) file for more info.
 
@@ -98,7 +100,7 @@ A Docker image is also available: https://hub.docker.com/r/robinn/phpcacheadmin
 Run with a single command:
 
 ```bash
-docker run -p 8080:80 -d --name phpcacheadmin -e "PCA_REDIS_0_HOST=redis_host" -e "PCA_REDIS_0_PORT=6379" -e "PCA_MEMCACHED_0_HOST=memcached_host" -e "PCA_MEMCACHED_0_PORT=11211" robinn/phpcacheadmin
+docker run -p 8080:8080 -d --name phpcacheadmin -e "PCA_REDIS_0_HOST=redis_host" -e "PCA_REDIS_0_PORT=6379" -e "PCA_MEMCACHED_0_HOST=memcached_host" -e "PCA_MEMCACHED_0_PORT=11211" robinn/phpcacheadmin
 ```
 
 Or use it in **docker-compose.yml**
@@ -108,7 +110,7 @@ services:
   phpcacheadmin:
     image: robinn/phpcacheadmin
     ports:
-      - "8080:80"
+      - "8080:8080"
     #volumes:
     # If you want to use config.php instead of ENV variables
     #  - "./config.php:/var/www/html/config.php"

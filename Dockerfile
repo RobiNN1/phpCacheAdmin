@@ -18,27 +18,31 @@ COPY --from=builder /usr/local/lib/php/extensions /usr/local/lib/php/extensions
 COPY --from=builder /usr/local/etc/php/conf.d /usr/local/etc/php/conf.d
 COPY --from=builder /app /var/www/html
 
-# NGINX configuration is here intentionally
-RUN apk add --no-cache nginx \
-    && mkdir -p /var/www/html/tmp \
-    && chown -R nobody:nobody /var/www/html \
-    && chmod -R 777 /var/www/html \
-    && mkdir -p /run/nginx \
-    && echo 'server { \
-    listen 80; \
-    root /var/www/html; \
-    index index.php; \
-    location / { \
-        try_files $uri $uri/ /index.php?$query_string; \
-    } \
-    location ~ \.php$ { \
-        fastcgi_pass 127.0.0.1:9000; \
-        fastcgi_index index.php; \
-        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name; \
-        include fastcgi_params; \
-    } \
-}' > /etc/nginx/http.d/default.conf
+RUN apk add --no-cache nginx gettext \
+    && mkdir -p /var/www/html/tmp /run/nginx /var/cache/nginx /var/log/nginx \
+    && chmod -R 777 /var/www/html /run/nginx /var/cache/nginx /var/log/nginx \
+    && sed -i 's|^listen = .*|listen = 127.0.0.1:9000|' /usr/local/etc/php-fpm.d/www.conf
 
-EXPOSE 80
+ENV PCA_NGINX_PORT=8080
 
-CMD php-fpm -D && nginx -g 'daemon off;'
+# NGINX config template
+RUN printf 'server {\n\
+    listen ${PCA_NGINX_PORT};\n\
+    root /var/www/html;\n\
+    index index.php;\n\
+    location / {\n\
+        try_files $uri $uri/ /index.php$is_args$args;\n\
+    }\n\
+    location ~ \\.php$ {\n\
+        fastcgi_pass 127.0.0.1:9000;\n\
+        fastcgi_index index.php;\n\
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;\n\
+        include fastcgi_params;\n\
+    }\n\
+}\n' > /etc/nginx/http.d/default.conf.template
+
+EXPOSE 8080
+
+CMD envsubst '${PCA_NGINX_PORT}' < /etc/nginx/http.d/default.conf.template > /etc/nginx/http.d/default.conf \
+    && php-fpm -D \
+    && nginx -g 'daemon off;'

@@ -31,7 +31,7 @@ readonly class Paginator {
     ) {
         $this->total = count($items);
         $this->page = Http::get('p', 1);
-        $this->per_page = Http::get('pp', 50);
+        $this->per_page = min(500, max(1, Http::get('pp', 50)));
         $this->paginated = array_slice($items, $this->per_page * ($this->page - 1), $this->per_page, true);
     }
 

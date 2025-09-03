@@ -38,7 +38,7 @@
                 <div class="px-4 py-1.5">
                     <div class="flex items-center justify-between gap-4">
                         <div class="text-xs font-semibold text-gray-600 dark:text-gray-300">{{ value is iterable ? value[0] : name }}</div>
-                        <div class="text-sm font-semibold text-gray-900 dark:text-white">{{ (value is iterable ? value[1] : value)|raw }}</div>
+                        <div class="text-sm font-semibold text-gray-900 dark:text-white">{{ value is iterable ? value[1] : value }}</div>
                     </div>
 
                     {% if value[2] is not null %}

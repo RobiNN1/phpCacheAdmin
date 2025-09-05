@@ -23,7 +23,7 @@ RUN apk add --no-cache nginx gettext \
     && chmod -R 777 /var/www/html /run/nginx /var/cache/nginx /var/log/nginx \
     && sed -i 's|^listen = .*|listen = 127.0.0.1:9000|' /usr/local/etc/php-fpm.d/www.conf
 
-ENV PCA_NGINX_PORT=8080
+ENV PCA_NGINX_PORT=80
 
 # NGINX config template
 RUN printf 'server {\n\
@@ -40,8 +40,6 @@ RUN printf 'server {\n\
         include fastcgi_params;\n\
     }\n\
 }\n' > /etc/nginx/http.d/default.conf.template
-
-EXPOSE 8080
 
 CMD envsubst '${PCA_NGINX_PORT}' < /etc/nginx/http.d/default.conf.template > /etc/nginx/http.d/default.conf \
     && php-fpm -D \

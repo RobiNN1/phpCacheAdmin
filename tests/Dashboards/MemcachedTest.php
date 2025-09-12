@@ -246,9 +246,9 @@ final class MemcachedTest extends TestCase {
      */
     public function testExportAndImport(): void {
         $keys_to_test = [
-            'e2e:mem:key1' => ['value' => 'simple-value', 'ttl' => 120],
-            'e2e:mem:key2' => ['value' => 'no-expire-value', 'ttl' => 0],
-            'e2e:mem:key3' => ['value' => '{"json": "data"}', 'ttl' => 300],
+            'pu:mem:key1' => ['value' => 'simple-value', 'ttl' => 120],
+            'pu:mem:key2' => ['value' => 'no-expire-value', 'ttl' => 0],
+            'pu:mem:key3' => ['value' => '{"json": "data"}', 'ttl' => 300],
         ];
 
         $export_keys_array = [];
@@ -296,6 +296,7 @@ final class MemcachedTest extends TestCase {
         foreach ($keys_to_test as $key => $data) {
             $this->assertTrue($this->memcached->exists($key));
             $this->assertSame($data['value'], $this->memcached->getKey($key));
+            $this->memcached->delete($key);
         }
 
         unlink($tmp_file_path);

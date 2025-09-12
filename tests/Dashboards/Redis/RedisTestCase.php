@@ -473,6 +473,8 @@ abstract class RedisTestCase extends TestCase {
                 $this->assertGreaterThan(0, $restored_ttl);
                 $this->assertLessThanOrEqual($data['ttl'], $restored_ttl);
             }
+
+            $this->redis->del($key);
         }
 
         unlink($tmp_file_path);

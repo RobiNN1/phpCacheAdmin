@@ -175,9 +175,9 @@ final class APCuTest extends TestCase {
 
     public function testExportAndImport(): void {
         $keys_to_test = [
-            'e2e:apcu:key1' => ['value' => 'simple-value', 'ttl' => 120],
-            'e2e:apcu:key2' => ['value' => 'no-expire-value', 'ttl' => 0],
-            'e2e:apcu:key3' => ['value' => ['json' => 'data'], 'ttl' => 300],
+            'pu:apcu:key1' => ['value' => 'simple-value', 'ttl' => 120],
+            'pu:apcu:key2' => ['value' => 'no-expire-value', 'ttl' => 0],
+            'pu:apcu:key3' => ['value' => ['json' => 'data'], 'ttl' => 300],
         ];
 
         $export_keys_array = [];
@@ -223,6 +223,7 @@ final class APCuTest extends TestCase {
         foreach ($keys_to_test as $key => $data) {
             $this->assertTrue(apcu_exists($key));
             $this->assertSame($data['value'], apcu_fetch($key));
+            apcu_delete($key);
         }
 
         unlink($tmp_file_path);

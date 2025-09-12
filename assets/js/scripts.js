@@ -155,74 +155,73 @@ if (check_all) {
 /**
  * Ajax panels
  */
-document.addEventListener('DOMContentLoaded', function () {
-    function updateProgressBar(progress_element, percentage) {
-        const type = progress_element.dataset.type;
-        let color_class;
+const update_progress_bar = (progress_element, percentage) => {
+    let color_class;
 
-        if (type === 'higher') {
-            if (percentage >= 80) {
-                color_class = 'bg-green-600';
-            } else if (percentage >= 50) {
-                color_class = 'bg-orange-600';
-            } else {
-                color_class = 'bg-red-600';
-            }
+    if (progress_element.dataset.type === 'higher') {
+        if (percentage >= 80) {
+            color_class = 'bg-green-600';
+        } else if (percentage >= 50) {
+            color_class = 'bg-orange-600';
         } else {
-            if (percentage <= 50) {
-                color_class = 'bg-green-600';
-            } else if (percentage <= 80) {
-                color_class = 'bg-orange-600';
-            } else {
-                color_class = 'bg-red-600';
-            }
+            color_class = 'bg-red-600';
         }
-
-        progress_element.classList.remove('bg-red-600', 'bg-orange-600', 'bg-green-600');
-        progress_element.classList.add(color_class);
-        progress_element.style.width = percentage + '%';
-    }
-
-    function updateElement(panel_element, key, value) {
-        const element = panel_element.querySelector(`[data-value="${key}"]`);
-
-        if (!element) return;
-
-        if (Array.isArray(value)) {
-            element.textContent = value[0];
-            const progress_element = document.getElementById(key + '_progress');
-            if (progress_element) {
-                updateProgressBar(progress_element, value[1]);
-            }
+    } else {
+        if (percentage <= 50) {
+            color_class = 'bg-green-600';
+        } else if (percentage <= 80) {
+            color_class = 'bg-orange-600';
         } else {
-            element.textContent = value;
+            color_class = 'bg-red-600';
         }
     }
 
-    function refreshPanels() {
-        ajax('panels', function (request) {
-            if (request.currentTarget.status >= 200 && request.currentTarget.status < 400) {
-                const data = JSON.parse(request.currentTarget.response);
+    progress_element.classList.remove('bg-red-600', 'bg-orange-600', 'bg-green-600');
+    progress_element.classList.add(color_class);
+    progress_element.style.width = percentage + '%';
+}
 
-                for (const section_key in data) {
-                    const panel_element = document.getElementById(section_key + '_panel');
+const update_panel_data = (panel_element, key, value) => {
+    const element = panel_element.querySelector(`[data-value="${key}"]`);
 
-                    if (panel_element) {
-                        const section_data = data[section_key];
-                        for (const item_key in section_data) {
-                            updateElement(panel_element, item_key, section_data[item_key]);
-                        }
+    if (!element) return;
+
+    if (Array.isArray(value)) {
+        element.textContent = value[0];
+        const progress_element = document.getElementById(key + '_progress');
+        if (progress_element) {
+            update_progress_bar(progress_element, value[1]);
+        }
+    } else {
+        element.textContent = value;
+    }
+}
+
+const refresh_panels = () => {
+    ajax('panels', function (request) {
+        if (request.currentTarget.status >= 200 && request.currentTarget.status < 400) {
+            const data = JSON.parse(request.currentTarget.response);
+
+            for (const section_key in data) {
+                const panel_element = document.getElementById(section_key + '_panel');
+
+                if (panel_element) {
+                    const section_data = data[section_key];
+                    for (const item_key in section_data) {
+                        update_panel_data(panel_element, item_key, section_data[item_key]);
                     }
                 }
-            } else {
-                console.error('Error fetching panel data.');
             }
-        });
-    }
+        } else {
+            console.error('Error fetching panel data.');
+        }
+    });
+}
 
+document.addEventListener('DOMContentLoaded', function () {
     if (ajax_panels) {
-        refreshPanels();
-        setInterval(refreshPanels, panels_refresh_interval);
+        refresh_panels();
+        setInterval(refresh_panels, panels_refresh_interval);
     }
 });
 

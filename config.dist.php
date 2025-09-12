@@ -136,4 +136,5 @@ return [
     'decimal-sep'   => ',',
     'thousands-sep' => ' ',
     'list-view'     => 'table', // table/tree - default key list view
+    'panelrefresh'  => 2000, // In ms, refresh interval for panels - default 2000
 ];

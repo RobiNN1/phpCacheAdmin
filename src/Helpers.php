@@ -259,4 +259,52 @@ class Helpers {
 
         return $formatted;
     }
+
+    public static function snakeCase(string $string): string {
+        $string = preg_replace('/[^a-z0-9]+/i', ' ', $string);
+
+        return strtolower(str_replace(' ', '_', trim($string)));
+    }
+
+    /**
+     * @param array<int|string, mixed> $panel_data
+     */
+    public static function getPanelsJson(array $panel_data): string {
+        header('Content-Type: application/json');
+
+        $api_data = [];
+
+        if (isset($panel_data['error'])) {
+            try {
+                return json_encode($panel_data, JSON_THROW_ON_ERROR);
+            } catch (JsonException) {
+            }
+        }
+
+        foreach ($panel_data as $panel) {
+            if (empty($panel['title'])) {
+                continue;
+            }
+
+            $section_key = self::snakeCase($panel['title']);
+            $api_data[$section_key] = [];
+
+            foreach ($panel['data'] as $key => $value) {
+                if (is_int($key) && is_array($value) && !empty($value)) {
+                    $item_key = self::snakeCase($value[0]);
+                    $api_data[$section_key][$item_key] = array_slice($value, 1);
+                } else {
+                    $item_key = self::snakeCase((string) $key);
+                    $api_data[$section_key][$item_key] = $value;
+                }
+            }
+        }
+
+        try {
+            return json_encode($api_data, JSON_THROW_ON_ERROR);
+        } catch (JsonException) {
+        }
+
+        return '';
+    }
 }

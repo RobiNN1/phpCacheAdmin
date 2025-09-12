@@ -27,6 +27,9 @@
         }
 
         document.documentElement.classList.toggle('dark', current_theme === 'dark');
+
+        const panels_refresh_interval = {{ config('panelrefresh', 2000) }};
+        const ajax_panels = {{ ajax_panels is defined and ajax_panels == true ? 'true' : 'false' }};
     </script>
 </head>
 <body class="bg-gray-100 text-gray-900 dark:text-gray-200 dark:bg-gray-900" data-dashboard="{{ current }}">

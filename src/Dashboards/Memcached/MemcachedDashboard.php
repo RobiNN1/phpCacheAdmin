@@ -89,6 +89,10 @@ class MemcachedDashboard implements DashboardInterface {
         try {
             $this->memcached = $this->connect($this->servers[$this->current_server]);
 
+            if (isset($_GET['panels'])) {
+                return Helpers::getPanelsJson($this->getPanelsData());
+            }
+
             if (isset($_GET['deleteall'])) {
                 return $this->deleteAllKeys();
             }
@@ -112,8 +116,8 @@ class MemcachedDashboard implements DashboardInterface {
 
         try {
             $this->memcached = $this->connect($this->servers[$this->current_server]);
-
-            $this->template->addGlobal('side', $this->panels());
+            $this->template->addGlobal('ajax_panels', true);
+            $this->template->addGlobal('side', $this->template->render('partials/info', ['panels' => $this->getPanelsData()]));
 
             if (isset($_GET['moreinfo'])) {
                 return $this->moreInfo();

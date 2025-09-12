@@ -46,6 +46,10 @@ class APCuDashboard implements DashboardInterface {
     }
 
     public function ajax(): string {
+        if (isset($_GET['panels'])) {
+            return Helpers::getPanelsJson($this->getPanelsData());
+        }
+
         if (isset($_GET['deleteall']) && apcu_clear_cache()) {
             return Helpers::alert($this->template, 'Cache has been cleaned.', 'success');
         }
@@ -58,7 +62,8 @@ class APCuDashboard implements DashboardInterface {
     }
 
     public function dashboard(): string {
-        $this->template->addGlobal('side', $this->panels());
+        $this->template->addGlobal('ajax_panels', true);
+        $this->template->addGlobal('side', $this->template->render('partials/info', ['panels' => $this->getPanelsData()]));
 
         if (isset($_GET['moreinfo'])) {
             return $this->moreInfo();

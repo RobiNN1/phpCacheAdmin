@@ -14,7 +14,10 @@ use RobiNN\Pca\Http;
 use RobiNN\Pca\Paginator;
 
 trait OPCacheTrait {
-    private function panels(): string {
+    /**
+     * @return array<int|string, mixed>
+     */
+    private function getPanelsData(): array {
         $status = opcache_get_status(false);
         $configuration = opcache_get_configuration();
 
@@ -51,7 +54,7 @@ trait OPCacheTrait {
             ];
         }
 
-        $panels = [
+        return [
             [
                 'title'    => 'PHP OPCache extension v'.phpversion('Zend OPcache'),
                 'moreinfo' => true,
@@ -94,8 +97,6 @@ trait OPCacheTrait {
                 ],
             ],
         ];
-
-        return $this->template->render('partials/info', ['panels' => $panels]);
     }
 
     private function moreInfo(): string {

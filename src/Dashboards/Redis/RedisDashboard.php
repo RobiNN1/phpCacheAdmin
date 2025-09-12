@@ -100,6 +100,10 @@ class RedisDashboard implements DashboardInterface {
         try {
             $this->redis = $this->connect($this->servers[$this->current_server]);
 
+            if (isset($_GET['panels'])) {
+                return Helpers::getPanelsJson($this->getPanelsData());
+            }
+
             if (isset($_GET['deleteall'])) {
                 return $this->deleteAllKeys();
             }
@@ -127,8 +131,9 @@ class RedisDashboard implements DashboardInterface {
 
         try {
             $this->redis = $this->connect($this->servers[$this->current_server]);
-
-            $this->template->addGlobal('side', $this->dbSelect().$this->panels());
+            $this->template->addGlobal('ajax_panels', true);
+            $panels = $this->template->render('partials/info', ['panels' => $this->getPanelsData()]);
+            $this->template->addGlobal('side', $this->dbSelect().$panels);
 
             if (isset($_GET['moreinfo'])) {
                 return $this->moreInfo();

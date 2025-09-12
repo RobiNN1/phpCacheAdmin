@@ -1,4 +1,4 @@
-{% macro progress(percentage, type='lower') %}
+{% macro progress(percentage, type='lower', id=null) %}
     {% if type == 'higher' %}{# higher is better #}
         {% if percentage >= 80 %}
             {% set color = 'bg-green-600' %}
@@ -18,11 +18,11 @@
     {% endif %}
 
     <div class="mb-0.5 w-full bg-gray-200 rounded-sm h-1.5 dark:bg-gray-700">
-        <div class="{{ color }} h-1.5 rounded-sm" style="width: {{ percentage }}%;"></div>
+        <div class="{{ color }} h-1.5 rounded-sm transition-[width,background-color] duration-500 ease-in-out" style="width: {{ percentage }}%;"{{ (id ? ' id="' ~ id ~ '_progress" data-type="' ~ type ~ '"' : '')|raw }}></div>
     </div>
 {% endmacro %}
 
-<div class="mb-4 overflow-hidden rounded-sm bg-white border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+<div class="mb-4 overflow-hidden rounded-sm bg-white border border-gray-200 dark:bg-gray-800 dark:border-gray-700" id="{{ panel_title|snake_case }}_panel">
     <div class="border-b border-gray-200 bg-gray-50 px-4 py-2 dark:border-gray-700 dark:bg-white/5">
         <div class="flex items-center justify-between gap-4">
             <h2 class="text-sm font-semibold text-gray-900 dark:text-white">{{ panel_title }}</h2>
@@ -35,14 +35,15 @@
     <div class="divide-y divide-gray-900/5 dark:divide-white/5">
         {% for name, value in array %}
             {% if name or value is iterable %}
+                {% set value_name = value is iterable ? value[0] : name %}
                 <div class="px-4 py-1.5">
                     <div class="flex items-center justify-between gap-4">
-                        <div class="text-xs font-semibold text-gray-600 dark:text-gray-300">{{ value is iterable ? value[0] : name }}</div>
-                        <div class="text-sm font-semibold text-gray-900 dark:text-white">{{ value is iterable ? value[1] : value }}</div>
+                        <div class="text-xs font-semibold text-gray-600 dark:text-gray-300">{{ value_name }}</div>
+                        <div class="text-sm font-semibold text-gray-900 dark:text-white" data-value="{{ value_name|snake_case }}">{{ value is iterable ? value[1] : value }}</div>
                     </div>
 
                     {% if value[2] is not null %}
-                        {{ _self.progress(value[2], (value[3] ?? 'lower')) }}
+                        {{ _self.progress(value[2], (value[3] ?? 'lower'), value_name|snake_case) }}
                     {% endif %}
                 </div>
             {% endif %}

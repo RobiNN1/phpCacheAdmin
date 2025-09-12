@@ -85,6 +85,9 @@ class Template {
         $twig->addFilter(new TwigFilter('time', Format::time(...)));
         $twig->addFilter(new TwigFilter('timediff', Format::timeDiff(...)));
         $twig->addFilter(new TwigFilter('base64', static fn (string $string): string => base64_encode($string)));
+        $twig->addFilter(new TwigFilter('snake_case', Helpers::snakeCase(...)));
+
+        $twig->addGlobal('ajax_panels', false);
 
         foreach ($this->globals as $name => $value) {
             $twig->addGlobal($name, $value);

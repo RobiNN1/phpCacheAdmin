@@ -22,7 +22,10 @@ use RobiNN\Pca\Value;
 trait RedisTrait {
     use RedisTypes;
 
-    private function panels(): string {
+    /**
+     * @return array<int|string, mixed>
+     */
+    private function getPanelsData(): array {
         if ($this->client === 'redis') {
             $title = 'PHP Redis extension v'.phpversion('redis');
         } elseif ($this->client === 'predis') {
@@ -48,11 +51,10 @@ trait RedisTrait {
 
             $panels = array_filter($panels);
 
+            return array_values($panels);
         } catch (Exception $e) {
-            return $this->template->render('partials/info', ['panels' => ['error' => $e->getMessage()]]);
+            return ['error' => $e->getMessage()];
         }
-
-        return $this->template->render('partials/info', ['panels' => array_values($panels)]);
     }
 
     /**
@@ -143,9 +145,9 @@ trait RedisTrait {
         return [
             'title' => 'Memory',
             'data'  => [
-                'Total'               => $max_memory > 0 ? Format::bytes($max_memory, 0) : '&infin;',
+                'Total'               => $max_memory > 0 ? Format::bytes($max_memory, 0) : '∞',
                 $used_memory_formatted,
-                'Free'                => $max_memory > 0 ? Format::bytes($max_memory - $used_memory) : '&infin;',
+                'Free'                => $max_memory > 0 ? Format::bytes($max_memory - $used_memory) : '∞',
                 'Peak memory usage'   => Format::bytes((int) ($memory_info['used_memory_peak'] ?? 0)),
                 'Fragmentation ratio' => $memory_info['mem_fragmentation_ratio'] ?? 'N/A',
             ],

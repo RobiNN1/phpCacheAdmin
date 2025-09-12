@@ -16,17 +16,20 @@ use RobiNN\Pca\Paginator;
 use RobiNN\Pca\Value;
 
 trait MemcachedTrait {
-    private function panels(): string {
-        if (class_exists(PHPMem::class)) {
-            $title = 'PHPMem v'.PHPMem::VERSION;
-        }
-
+    /**
+     * @return array<int|string, mixed>
+     */
+    private function getPanelsData(): array {
         try {
+            if (class_exists(PHPMem::class)) {
+                $title = 'PHPMem v'.PHPMem::VERSION;
+            }
+
             $info = $this->memcached->getServerStats();
 
-            $memory_usage = round(($info['bytes'] / $info['limit_maxbytes']) * 100, 2);
+            $memory_usage = ($info['limit_maxbytes'] > 0) ? round(($info['bytes'] / $info['limit_maxbytes']) * 100, 2) : 0;
 
-            $panels = [
+            return [
                 [
                     'title'    => $title ?? null,
                     'moreinfo' => true,
@@ -64,10 +67,8 @@ trait MemcachedTrait {
                 ],
             ];
         } catch (MemcachedException $e) {
-            $panels = ['error' => $e->getMessage()];
+            return ['error' => $e->getMessage()];
         }
-
-        return $this->template->render('partials/info', ['panels' => $panels]);
     }
 
     /**

@@ -226,4 +226,8 @@ final class HelpersTest extends TestCase {
         $count = Helpers::countChildren($tree);
         $this->assertSame(3, $count);
     }
+
+    public function testSnakeCase(): void {
+        $this->assertSame('test_name_22', Helpers::snakeCase('Test name (22)'));
+    }
 }

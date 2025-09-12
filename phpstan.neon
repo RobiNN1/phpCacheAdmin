@@ -6,8 +6,5 @@ parameters:
         - tests
     ignoreErrors:
         -
-            message: '~^Method RedisCluster::(info|scan|rawcommand)\(\) invoked with \d+ parameters, .* required\.$~'
-            path: src/Dashboards/Redis/Compatibility/Cluster/RedisCluster.php
-        -
-            message: '~^Parameter #3 \$pattern of method RedisCluster::scan\(\) expects int, string given\.$~'
+            message: '~^Method RedisCluster::(info|rawcommand)\(\) invoked with \d+ parameters, .* required\.$~'
             path: src/Dashboards/Redis/Compatibility/Cluster/RedisCluster.php

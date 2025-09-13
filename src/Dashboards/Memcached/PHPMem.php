@@ -14,7 +14,12 @@ use function is_numeric;
 use function str_ends_with;
 
 class PHPMem {
-    public const VERSION = '2.0.0';
+    public const VERSION = '2.0.1';
+
+    /**
+     * @var resource|null
+     */
+    private $stream;
 
     /**
      * @param array<string, int|string> $server
@@ -280,6 +285,36 @@ class PHPMem {
     }
 
     /**
+     * @throws MemcachedException
+     */
+    private function connect(): void {
+        if (is_resource($this->stream)) {
+            return; // Already connected
+        }
+
+        $address = isset($this->server['path']) ? 'unix://'.$this->server['path'] : 'tcp://'.$this->server['host'].':'.$this->server['port'];
+        $stream = @stream_socket_client($address, $error_code, $error_message, 0.5);
+
+        if ($stream === false) {
+            throw new MemcachedException('Could not connect: '.$error_code.' - '.$error_message);
+        }
+
+        stream_set_timeout($stream, 1);
+        $this->stream = $stream;
+    }
+
+    public function __destruct() {
+        $this->disconnect();
+    }
+
+    public function disconnect(): void {
+        if (is_resource($this->stream)) {
+            fclose($this->stream);
+            $this->stream = null;
+        }
+    }
+
+    /**
      * Run command.
      *
      * These commands should work but are not guaranteed to work on any server:
@@ -335,20 +370,19 @@ class PHPMem {
      * @throws MemcachedException
      */
     private function streamConnection(string $command, string $command_name): string {
-        $address = isset($this->server['path']) ? 'unix://'.$this->server['path'] : 'tcp://'.$this->server['host'].':'.$this->server['port'];
-        $stream = @stream_socket_client($address, $error_code, $error_message, 0.5);
+        $this->connect();
 
-        if ($stream === false) {
-            throw new MemcachedException('Command: "'.$command.'": '.$error_code.' - '.$error_message);
+        if (!is_resource($this->stream) || feof($this->stream)) {
+            $this->disconnect();
+            $this->connect();
         }
 
-        stream_set_timeout($stream, 1);
-        fwrite($stream, $command);
+        fwrite($this->stream, $command);
 
         $buffer = '';
 
-        while (!feof($stream)) {
-            $line = fgets($stream, 4096);
+        while (!feof($this->stream)) {
+            $line = fgets($this->stream, 4096);
 
             if ($line === false) {
                 break;
@@ -369,8 +403,6 @@ class PHPMem {
                 break;
             }
         }
-
-        fclose($stream);
 
         return $buffer;
     }

@@ -188,7 +188,7 @@ const update_panel_data = (panel_element, key, value) => {
 
     if (Array.isArray(value)) {
         element.textContent = value[0];
-        const progress_element = document.getElementById(key + '_progress');
+        const progress_element = panel_element.querySelector(`[data-progress="${key}"]`);
         if (progress_element) {
             update_progress_bar(progress_element, value[1]);
         }

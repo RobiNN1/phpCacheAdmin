@@ -90,7 +90,7 @@ class MemcachedDashboard implements DashboardInterface {
             $this->memcached = $this->connect($this->servers[$this->current_server]);
 
             if (isset($_GET['panels'])) {
-                return Helpers::getPanelsJson($this->getPanelsData());
+                return Helpers::getPanelsJson($this->getPanelsData(Http::get('tab') === 'commands_stats'));
             }
 
             if (isset($_GET['deleteall'])) {

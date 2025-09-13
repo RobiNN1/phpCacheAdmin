@@ -18,7 +18,7 @@
     {% endif %}
 
     <div class="mb-0.5 w-full bg-gray-200 rounded-sm h-1.5 dark:bg-gray-700">
-        <div class="{{ color }} h-1.5 rounded-sm transition-[width,background-color] duration-500 ease-in-out" style="width: {{ percentage }}%;"{{ (id ? ' id="' ~ id ~ '_progress" data-type="' ~ type ~ '"' : '')|raw }}></div>
+        <div class="{{ color }} h-1.5 rounded-sm transition-[width,background-color] duration-500 ease-in-out" style="width: {{ percentage }}%;"{{ (id ? ' data-progress="' ~ id ~ '" data-type="' ~ type ~ '"' : '')|raw }}></div>
     </div>
 {% endmacro %}
 

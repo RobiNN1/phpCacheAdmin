@@ -137,7 +137,7 @@ final class MemcachedTest extends TestCase {
         yield 'test set incr' => ['6', 'incr pu-test-rc-int 5'];
         yield 'test set decr' => ['3', 'decr pu-test-rc-int 3'];
         yield 'test ms' => ['HD', 'ms pu-test-rc-ms 1\r\n4'];
-        yield 'test mg' => ['VA 1', 'mg pu-test-rc-ms v'];
+        yield 'test mg' => ['VA 1\r\n4', 'mg pu-test-rc-ms v'];
         yield 'test ma' => ['HD', 'ma pu-test-rc-ms'];
         yield 'test md' => ['HD', 'md pu-test-rc-ms'];
         yield 'test cache_memlimit' => ['OK', 'cache_memlimit 100'];

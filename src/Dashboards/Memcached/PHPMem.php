@@ -11,7 +11,9 @@ namespace RobiNN\Pca\Dashboards\Memcached;
 use function explode;
 use function is_numeric;
 use function preg_match;
+use function preg_match_all;
 use function preg_replace;
+use function rtrim;
 use function str_contains;
 use function str_ends_with;
 use function str_starts_with;
@@ -26,6 +28,20 @@ class PHPMem {
     private $stream;
 
     private ?string $server_version = null;
+
+    private const NO_END_COMMANDS = [
+        'me' => true, 'incr' => true, 'decr' => true, 'version' => true,
+        'ms' => true, 'md' => true, 'ma' => true, 'cache_memlimit' => true,
+        'mn' => true, 'quit' => true, 'mg' => true,
+    ];
+
+    private const END_MARKERS = [
+        "ERROR\r\n", "CLIENT_ERROR\r\n", "SERVER_ERROR\r\n", "STORED\r\n",
+        "NOT_STORED\r\n", "EXISTS\r\n", "NOT_FOUND\r\n", "TOUCHED\r\n",
+        "DELETED\r\n", "OK\r\n", "END\r\n", "BUSY\r\n", "BADCLASS\r\n",
+        "NOSPARE\r\n", "NOTFULL\r\n", "UNSAFE\r\n", "SAME\r\n", "RESET\r\n",
+        "EN\r\n",
+    ];
 
     /**
      * @param array<string, int|string> $server
@@ -177,27 +193,35 @@ class PHPMem {
             return $lines;
         }
 
-        $slabs = $this->runCommand('stats items');
-        $lines = explode("\n", $slabs);
-        $slab_ids = [];
-
-        foreach ($lines as $line) {
-            if (preg_match('/STAT items:(\d+):/', $line, $matches)) {
-                $slab_ids[] = $matches[1];
-            }
-        }
-
+        $slabs_raw = $this->runCommand('stats items');
         $keys = [];
+        $seen_slabs = [];
+        $seen_keys = [];
 
-        foreach (array_unique($slab_ids) as $slab_id) {
-            $dump = $this->runCommand('stats cachedump '.$slab_id.' 0');
-            $dump_lines = explode("\n", $dump);
+        foreach (explode("\n", $slabs_raw) as $line) {
+            if (preg_match('/STAT items:(\d+):/', $line, $m)) {
+                $slab_id = $m[1];
 
-            foreach ($dump_lines as $line) {
-                if (preg_match('/ITEM (\S+) \[(\d+) b; (\d+) s]/', $line, $matches)) {
-                    $exp = (int) $matches[3] === 0 ? -1 : (int) $matches[3];
-                    // Intentionally formatted as lru_crawler output
-                    $keys[] = 'key='.$matches[1].' exp='.$exp.' la=0 cas=0 fetch=no cls=1 size='.$matches[2];
+                if (isset($seen_slabs[$slab_id])) {
+                    continue;
+                }
+
+                $seen_slabs[$slab_id] = true;
+
+                $dump = $this->runCommand('stats cachedump '.$slab_id.' 100000');
+
+                if (preg_match_all('/ITEM (\S+) \[(\d+) b; (\d+) s]/', $dump, $matches, PREG_SET_ORDER)) {
+                    foreach ($matches as $item) {
+                        $key_name = $item[1];
+
+                        if (isset($seen_keys[$key_name])) {
+                            continue;
+                        }
+                        $seen_keys[$key_name] = true;
+
+                        $exp = ((int) $item[3] === 0) ? -1 : (int) $item[3];
+                        $keys[] = 'key='.$key_name.' exp='.$exp.' la=0 cas=0 fetch=no cls=1 size='.$item[2];
+                    }
                 }
             }
         }
@@ -212,7 +236,8 @@ class PHPMem {
      */
     public function parseLine(string $line): array {
         $data = [];
-        if (preg_match_all('/(\w+)=(\S+)/', $line, $matches, PREG_SET_ORDER)) {
+
+        if (preg_match_all('/(key|exp|la|size)=(\S+)/', $line, $matches, PREG_SET_ORDER)) {
             foreach ($matches as [, $key, $val]) {
                 switch ($key) {
                     case 'key':
@@ -405,8 +430,27 @@ class PHPMem {
 
         $buffer = '';
         $start = microtime(true);
+        $select_timeout_usec = 100_000; // 100ms
 
         while (microtime(true) - $start < 5) {
+            $read = [$this->stream];
+            $write = null;
+            $except = null;
+
+            $num = @stream_select($read, $write, $except, 0, $select_timeout_usec);
+
+            if ($num === false) {
+                usleep(1000);
+                continue;
+            }
+
+            if ($num === 0) {
+                if ($this->checkCommandEnd($buffer)) {
+                    break;
+                }
+                continue;
+            }
+
             $chunk = fread($this->stream, 65536);
 
             if ($chunk === false) {
@@ -423,10 +467,7 @@ class PHPMem {
             $buffer .= $chunk;
 
             // Commands without a specific end string.
-            if ($command_name === 'incr' || $command_name === 'decr' || $command_name === 'version' ||
-                $command_name === 'me' || $command_name === 'mg' || $command_name === 'ms' ||
-                $command_name === 'md' || $command_name === 'ma' || $command_name === 'mn' ||
-                $command_name === 'cache_memlimit' || $command_name === 'quit') {
+            if (isset(self::NO_END_COMMANDS[$command_name])) {
                 break;
             }
 
@@ -440,25 +481,16 @@ class PHPMem {
     }
 
     private function checkCommandEnd(string $buffer): bool {
-        return
-            str_ends_with($buffer, "ERROR\r\n") ||
-            str_ends_with($buffer, "CLIENT_ERROR\r\n") ||
-            str_ends_with($buffer, "SERVER_ERROR\r\n") ||
-            str_ends_with($buffer, "STORED\r\n") ||
-            str_ends_with($buffer, "NOT_STORED\r\n") ||
-            str_ends_with($buffer, "EXISTS\r\n") ||
-            str_ends_with($buffer, "NOT_FOUND\r\n") ||
-            str_ends_with($buffer, "TOUCHED\r\n") ||
-            str_ends_with($buffer, "DELETED\r\n") ||
-            str_ends_with($buffer, "OK\r\n") ||
-            str_ends_with($buffer, "END\r\n") ||
-            str_ends_with($buffer, "BUSY\r\n") ||
-            str_ends_with($buffer, "BADCLASS\r\n") ||
-            str_ends_with($buffer, "NOSPARE\r\n") ||
-            str_ends_with($buffer, "NOTFULL\r\n") ||
-            str_ends_with($buffer, "UNSAFE\r\n") ||
-            str_ends_with($buffer, "SAME\r\n") ||
-            str_ends_with($buffer, "RESET\r\n") ||
-            str_ends_with($buffer, "EN\r\n");
+        if ($buffer === '') {
+            return false;
+        }
+
+        foreach (self::END_MARKERS as $marker) {
+            if (str_ends_with($buffer, $marker)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

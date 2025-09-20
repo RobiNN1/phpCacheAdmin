@@ -9,9 +9,13 @@ declare(strict_types=1);
 namespace RobiNN\Pca\Dashboards\Memcached;
 
 use function explode;
-use function fgets;
 use function is_numeric;
+use function preg_match;
+use function preg_replace;
+use function str_contains;
 use function str_ends_with;
+use function str_starts_with;
+use function substr_count;
 
 class PHPMem {
     public const VERSION = '2.0.1';
@@ -20,6 +24,8 @@ class PHPMem {
      * @var resource|null
      */
     private $stream;
+
+    private ?string $server_version = null;
 
     /**
      * @param array<string, int|string> $server
@@ -206,11 +212,20 @@ class PHPMem {
      */
     public function parseLine(string $line): array {
         $data = [];
-
-        foreach (explode(' ', $line) as $part) {
-            if ($part !== '') {
-                [$key, $val] = explode('=', $part);
-                $data[$key] = is_numeric($val) ? (int) $val : $val;
+        if (preg_match_all('/(\w+)=(\S+)/', $line, $matches, PREG_SET_ORDER)) {
+            foreach ($matches as [, $key, $val]) {
+                switch ($key) {
+                    case 'key':
+                        $data['key'] = $val;
+                        break;
+                    case 'exp':
+                        $data['exp'] = ($val === '-1') ? -1 : (int) $val;
+                        break;
+                    case 'la':
+                    case 'size':
+                        $data[$key] = (int) $val;
+                        break;
+                }
             }
         }
 
@@ -281,7 +296,13 @@ class PHPMem {
      * @throws MemcachedException
      */
     public function version(): string {
-        return str_replace('VERSION ', '', $this->runCommand('version'));
+        if ($this->server_version !== null) {
+            return $this->server_version;
+        }
+
+        $this->server_version = str_replace('VERSION ', '', $this->runCommand('version'));
+
+        return $this->server_version;
     }
 
     /**
@@ -300,6 +321,7 @@ class PHPMem {
         }
 
         stream_set_timeout($stream, 1);
+        stream_set_blocking($stream, false);
         $this->stream = $stream;
     }
 
@@ -377,18 +399,28 @@ class PHPMem {
             $this->connect();
         }
 
+        stream_set_blocking($this->stream, true);
         fwrite($this->stream, $command);
+        stream_set_blocking($this->stream, false);
 
         $buffer = '';
+        $start = microtime(true);
 
-        while (!feof($this->stream)) {
-            $line = fgets($this->stream, 4096);
+        while (microtime(true) - $start < 5) {
+            $chunk = fread($this->stream, 65536);
 
-            if ($line === false) {
-                break;
+            if ($chunk === false) {
+                continue;
             }
 
-            $buffer .= $line;
+            if ($chunk === '') {
+                if ($this->checkCommandEnd($buffer)) {
+                    break;
+                }
+                continue;
+            }
+
+            $buffer .= $chunk;
 
             // Commands without a specific end string.
             if ($command_name === 'incr' || $command_name === 'decr' || $command_name === 'version' ||

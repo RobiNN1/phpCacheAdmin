@@ -94,7 +94,7 @@ class MemcachedDashboard implements DashboardInterface {
             }
 
             if (isset($_GET['metrics'])) {
-                return (new MemcachedMetrics($this->memcached))->collectAndRespond();
+                return (new MemcachedMetrics($this->memcached, $this->servers, $this->current_server))->collectAndRespond();
             }
 
             if (isset($_GET['deleteall'])) {

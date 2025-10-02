@@ -11,6 +11,7 @@ namespace RobiNN\Pca\Dashboards\Memcached;
 use JsonException;
 use PDO;
 use RobiNN\Pca\Config;
+use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
 
 class MemcachedMetrics {
@@ -19,8 +20,12 @@ class MemcachedMetrics {
     private const RATE_COMMANDS = ['get', 'set', 'delete', 'incr', 'decr', 'cas', 'touch', 'flush'];
     private const HIT_RATE_COMMANDS = ['get', 'delete', 'incr', 'decr', 'cas', 'touch'];
 
-    public function __construct(private readonly PHPMem $memcached) {
-        $hash = md5(Config::get('hash', 'pca')); // This isn't really safe, but it's better than nothing
+    /**
+     * @param array<int, array<string, int|string>> $servers
+     */
+    public function __construct(private readonly PHPMem $memcached, array $servers, int $selected) {
+        $server_name = Helpers::getServerTitle($servers[$selected]);
+        $hash = md5($server_name.Config::get('hash', 'pca')); // This isn't really safe, but it's better than nothing
         $db = __DIR__.'/../../../tmp/memcached_metrics'.$hash.'.db';
 
         $this->pdo = new PDO('sqlite:'.$db);

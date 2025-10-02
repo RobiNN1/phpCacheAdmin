@@ -17,7 +17,7 @@ return [
      *
      * You can comment out (or delete) any dashboard.
      */
-    'dashboards'    => [
+    'dashboards'     => [
         RobiNN\Pca\Dashboards\Server\ServerDashboard::class,
         RobiNN\Pca\Dashboards\Redis\RedisDashboard::class,
         RobiNN\Pca\Dashboards\Memcached\MemcachedDashboard::class,
@@ -25,7 +25,7 @@ return [
         RobiNN\Pca\Dashboards\APCu\APCuDashboard::class,
         RobiNN\Pca\Dashboards\Realpath\RealpathDashboard::class,
     ],
-    'redis'         => [
+    'redis'          => [
         [
             'name' => 'Localhost', // The server name (optional).
             'host' => '127.0.0.1', // Optional when a path or nodes is specified.
@@ -52,7 +52,7 @@ return [
             //'separator' => ':', // Separator for tree view (optional)
         ],
     ],
-    'memcached'     => [
+    'memcached'      => [
         [
             'name' => 'Localhost', // The server name, optional.
             'host' => '127.0.0.1', // Optional when a path is specified.
@@ -63,7 +63,7 @@ return [
     ],
     //'apcu-separator' => ':', // Separator for tree view (optional)
     // Example of authentication with http auth.
-    /*'auth'          => static function (): void {
+    /*'auth'           => static function (): void {
         $username = 'admin';
         $password = 'pass';
 
@@ -88,7 +88,7 @@ return [
         }
     },*/
     // Decoding / Encoding functions
-    'converters'    => [
+    'converters'     => [
         'gzcompress' => [
             'view' => static fn (string $value): ?string => @gzuncompress($value) !== false ? gzuncompress($value) : null,
             'save' => static fn (string $value): string => gzcompress($value),
@@ -116,7 +116,7 @@ return [
         ],*/
     ],
     // Formatting functions, it runs after decoding
-    'formatters'    => [
+    'formatters'     => [
         'unserialize' => static function (string $value): ?string {
             $unserialized_value = @unserialize($value, ['allowed_classes' => false]);
             if ($unserialized_value !== false && is_array($unserialized_value)) {
@@ -131,10 +131,13 @@ return [
         },
     ],
     // Customizations
-    //'timezone'      => 'Europe/Bratislava', // Leave empty (or commented out) to get it automatically obtained.
-    'time-format'   => 'd. m. Y H:i:s',
-    'decimal-sep'   => ',',
-    'thousands-sep' => ' ',
-    'list-view'     => 'table', // table/tree - default key list view
-    'panelrefresh'  => 30, // In seconds, refresh interval for panels - default 30
+    //'timezone'       => 'Europe/Bratislava', // Leave empty (or commented out) to get it automatically obtained.
+    'time-format'    => 'd. m. Y H:i:s',
+    'decimal-sep'    => ',',
+    'thousands-sep'  => ' ',
+    'list-view'      => 'table', // table/tree - default key list view
+    'panelrefresh'   => 30, // In seconds, refresh interval for panels - default 30
+    'metricsrefresh' => 60, // In seconds, refresh interval for metrics - default 60
+    'metricstab'     => 1440, // Default tab in metrics, 60 - Last hour, 1440 - Last day, 10080 - Last week, 43200 - Last month - default 1440
+    'hash'           => 'pca', // Any random string to secure metrics DB file
 ];

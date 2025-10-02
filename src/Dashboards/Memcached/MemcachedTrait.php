@@ -407,7 +407,7 @@ trait MemcachedTrait {
             $commands = ['error' => $e->getMessage()];
         }
 
-        return $this->template->render('dashboards/memcached', ['commands' => $commands]);
+        return $this->template->render('dashboards/memcached/memcached', ['commands' => $commands]);
     }
 
     /**
@@ -438,7 +438,7 @@ trait MemcachedTrait {
             return Helpers::formatFields($fields, $slab);
         }, $slabs_stats['slabs']);
 
-        return $this->template->render('dashboards/memcached', [
+        return $this->template->render('dashboards/memcached/memcached', [
             'slabs' => $slabs,
             'meta'  => $slabs_stats['meta'],
         ]);
@@ -486,7 +486,7 @@ trait MemcachedTrait {
             return Helpers::formatFields($fields, $item);
         }, $stats);
 
-        return $this->template->render('dashboards/memcached', ['items' => $items]);
+        return $this->template->render('dashboards/memcached/memcached', ['items' => $items]);
     }
 
     /**
@@ -524,7 +524,7 @@ trait MemcachedTrait {
 
         $paginator = new Paginator($this->template, $keys);
 
-        return $this->template->render('dashboards/memcached', [
+        return $this->template->render('dashboards/memcached/memcached', [
             'keys'      => $paginator->getPaginated(),
             'all_keys'  => $this->memcached->getServerStats()['curr_items'],
             'paginator' => $paginator->render(),

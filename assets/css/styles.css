@@ -1,4 +1,4 @@
-/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */
+/*! tailwindcss v4.1.14 | MIT License | https://tailwindcss.com */
 @layer properties;
 @layer theme, base, components, utilities;
 @layer theme {
@@ -195,6 +195,9 @@
   .col-span-8 {
     grid-column: span 8 / span 8;
   }
+  .col-span-10 {
+    grid-column: span 10 / span 10;
+  }
   .m-1 {
     margin: calc(0.25rem * 1);
   }
@@ -250,6 +253,9 @@
   .h-4 {
     height: calc(0.25rem * 4);
   }
+  .h-90 {
+    height: calc(0.25rem * 90);
+  }
   .w-4 {
     width: calc(0.25rem * 4);
   }
@@ -288,6 +294,9 @@
   }
   .cursor-pointer {
     cursor: pointer;
+  }
+  .resize {
+    resize: both;
   }
   .appearance-none {
     appearance: none;
@@ -834,6 +843,11 @@
   .disabled\:bg-red-300 {
     &:disabled {
       background-color: oklch(80.8% 0.114 19.571);
+    }
+  }
+  .md\:col-span-5 {
+    @media (width >= 48rem) {
+      grid-column: span 5 / span 5;
     }
   }
   .md\:me-4 {

@@ -4,6 +4,7 @@
         'commands_stats': 'Commands Stats',
         'slabs': 'Slabs',
         'items': 'Items',
+        'metrics': 'Metrics',
     },
 }) }}
 
@@ -68,4 +69,8 @@
             {% endfor %}
         </div>
     </div>
+{% endif %}
+
+{% if get('tab') == 'metrics' %}
+    {{ include('dashboards/memcached/metrics.twig') }}
 {% endif %}

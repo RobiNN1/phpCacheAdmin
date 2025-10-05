@@ -30,12 +30,12 @@
   "require-dev": {
     "clue/phar-composer": "^1.4",
     "phpstan/phpstan": "^2.1",
-    "phpunit/phpunit": "^11|^12.4"
+    "phpunit/phpunit": "^11 || ^12.4"
   },
   "suggest": {
     "ext-apcu": "Required for the APCu dashboard.",
-    "ext-zend-opcache": "Required for use the OPCache dashboard.",
     "ext-redis": "Required for use the Redis dashboard.",
+    "ext-zend-opcache": "Required for use the OPCache dashboard.",
     "ext-zlib": "Required for encoding/decoding with gz* functions.",
     "predis/predis": "Required for use the Redis dashboard, when Redis extension is not installed."
   },
@@ -55,8 +55,8 @@
     ]
   },
   "scripts": {
-    "phar:twig": "phar-composer build twig/twig",
     "phar:predis": "phar-composer build predis/predis",
+    "phar:twig": "phar-composer build twig/twig",
     "phpstan": "phpstan --ansi",
     "test": "phpunit --colors=always --display-skipped"
   }

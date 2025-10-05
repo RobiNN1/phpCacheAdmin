@@ -6,7 +6,7 @@
     {% set btn_color = 'bg-primary-500 hover:bg-primary-600 focus:ring-primary-200 disabled:bg-primary-300 dark:bg-primary-700 dark:hover:bg-primary-800 dark:focus:ring-primary-400 dark:disabled:bg-primary-400' %}
 {% endif %}
 
-{% set classes = 'text-sm inline-flex items-center gap-1 border border-transparent rounded-sm py-1.5 px-3 font-semibold text-white align-middle shadow-sm focus:ring-3 dark:text-white ' ~ btn_color %}
+{% set classes = 'text-sm inline-flex items-center gap-1 border border-transparent rounded-sm py-1.5 px-3 font-semibold text-white align-middle whitespace-nowrap shadow-sm focus:ring-3 dark:text-white ' ~ btn_color %}
 
 {% if link %}
     <a href="{{ link }}" class="{{ classes ~ class|space }}">{{ icon ? svg(icon, 12) : '' }}{{ text }}</a>

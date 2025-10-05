@@ -192,11 +192,8 @@
   .col-span-2 {
     grid-column: span 2 / span 2;
   }
-  .col-span-8 {
-    grid-column: span 8 / span 8;
-  }
-  .col-span-10 {
-    grid-column: span 10 / span 10;
+  .col-span-4 {
+    grid-column: span 4 / span 4;
   }
   .m-1 {
     margin: calc(0.25rem * 1);
@@ -845,9 +842,14 @@
       background-color: oklch(80.8% 0.114 19.571);
     }
   }
-  .md\:col-span-5 {
-    @media (width >= 48rem) {
-      grid-column: span 5 / span 5;
+  .sm\:col-span-3 {
+    @media (width >= 40rem) {
+      grid-column: span 3 / span 3;
+    }
+  }
+  .sm\:col-span-7 {
+    @media (width >= 40rem) {
+      grid-column: span 7 / span 7;
     }
   }
   .md\:me-4 {
@@ -913,6 +915,16 @@
   .md\:gap-4 {
     @media (width >= 48rem) {
       gap: calc(0.25rem * 4);
+    }
+  }
+  .lg\:col-span-2 {
+    @media (width >= 64rem) {
+      grid-column: span 2 / span 2;
+    }
+  }
+  .lg\:col-span-8 {
+    @media (width >= 64rem) {
+      grid-column: span 8 / span 8;
     }
   }
   .lg\:flex {

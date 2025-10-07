@@ -186,8 +186,10 @@ class Redis extends \Redis implements RedisCompatibilityInterface {
 
         foreach ($keys as $i => $key) {
             $result = $results[$i] ?? null;
-
-            if (!is_array($result) || count($result) < 3) {
+            if (!is_array($result)) {
+                continue;
+            }
+            if (count($result) < 3) {
                 continue;
             }
 

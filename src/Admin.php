@@ -16,9 +16,9 @@ class Admin {
     /**
      * @var array<string, DashboardInterface>
      */
-    public array $dashboards = [];
+    private array $dashboards = [];
 
-    public function __construct(Template $template) {
+    public function __construct(private readonly Template $template) {
         foreach (Config::get('dashboards', []) as $class) {
             if (is_subclass_of($class, DashboardInterface::class) && $class::check()) {
                 $dashboard = new $class($template);
@@ -28,13 +28,45 @@ class Admin {
         }
     }
 
-    public function getDashboard(string $dashboard): DashboardInterface {
+    private function getDashboard(string $dashboard): DashboardInterface {
         return $this->dashboards[$dashboard];
     }
 
-    public function currentDashboard(): string {
+    private function currentDashboard(): string {
         $current = Http::get('dashboard', '');
 
         return array_key_exists($current, $this->dashboards) ? $current : array_key_first($this->dashboards);
+    }
+
+    public function render(bool $auth): string {
+        $nav = array_map(static fn ($d_dashboard): array => $d_dashboard->dashboardInfo(), $this->dashboards);
+
+        $current = $this->currentDashboard();
+        $dashboard = $this->getDashboard($current);
+        $info = $dashboard->dashboardInfo();
+
+        $this->template->addGlobal('current', $current);
+
+        if (isset($_GET['ajax'])) {
+            return $dashboard->ajax();
+        }
+
+        $colors = '';
+
+        if (isset($info['colors'])) {
+            foreach ((array) $info['colors'] as $key => $color) {
+                $colors .= '--color-primary-'.$key.':'.$color.';';
+            }
+        }
+
+        return $this->template->render('layout', [
+            'colors'     => $colors,
+            'site_title' => $info['title'],
+            'nav'        => $nav,
+            'logout_url' => $auth ? Http::queryString([], ['logout' => 'yes']) : null,
+            'version'    => self::VERSION,
+            'repo'       => 'https://github.com/RobiNN1/phpCacheAdmin',
+            'dashboard'  => $dashboard->dashboard(),
+        ]);
     }
 }

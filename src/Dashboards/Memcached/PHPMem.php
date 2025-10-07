@@ -217,6 +217,7 @@ class PHPMem {
                         if (isset($seen_keys[$key_name])) {
                             continue;
                         }
+
                         $seen_keys[$key_name] = true;
 
                         $exp = ((int) $item[3] === 0) ? -1 : (int) $item[3];
@@ -448,6 +449,7 @@ class PHPMem {
                 if ($this->checkCommandEnd($buffer)) {
                     break;
                 }
+
                 continue;
             }
 
@@ -461,6 +463,7 @@ class PHPMem {
                 if ($this->checkCommandEnd($buffer)) {
                     break;
                 }
+
                 continue;
             }
 

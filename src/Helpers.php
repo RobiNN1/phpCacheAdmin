@@ -187,7 +187,7 @@ class Helpers {
             return '';
         }
 
-        $options = array_map(static fn ($server): string => self::getServerTitle($server), $servers);
+        $options = array_map(static fn (array $server): string => self::getServerTitle($server), $servers);
 
         return $template->render('components/select', [
             'id'            => 'server_select',
@@ -290,7 +290,7 @@ class Helpers {
             $api_data[$section_key] = [];
 
             foreach ($panel['data'] as $key => $value) {
-                if (is_int($key) && is_array($value) && !empty($value)) {
+                if (is_int($key) && is_array($value) && $value !== []) {
                     $item_key = self::snakeCase($value[0]);
                     $api_data[$section_key][$item_key] = array_slice($value, 1);
                 } else {

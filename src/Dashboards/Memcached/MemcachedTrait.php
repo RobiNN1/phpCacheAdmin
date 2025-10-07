@@ -68,7 +68,7 @@ trait MemcachedTrait {
             ];
 
             if ($command_stats) {
-                $stats = array_merge($stats, $this->commandsStatsData($info));
+                return array_merge($stats, $this->commandsStatsData($info));
             }
 
             return $stats;

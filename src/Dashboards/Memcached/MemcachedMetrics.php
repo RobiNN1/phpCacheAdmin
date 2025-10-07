@@ -15,9 +15,10 @@ use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
 
 class MemcachedMetrics {
-    private PDO $pdo;
+    private readonly PDO $pdo;
 
     private const RATE_COMMANDS = ['get', 'set', 'delete', 'incr', 'decr', 'cas', 'touch', 'flush'];
+
     private const HIT_RATE_COMMANDS = ['get', 'delete', 'incr', 'decr', 'cas', 'touch'];
 
     /**
@@ -54,7 +55,7 @@ class MemcachedMetrics {
     public function collectAndRespond(): string {
         $stats = $this->memcached->getServerStats();
 
-        if (empty($stats)) {
+        if ($stats === []) {
             throw new MemcachedException('Failed to retrieve Memcached stats.');
         }
 
@@ -113,7 +114,8 @@ class MemcachedMetrics {
         $command_rates['request_rate_overall'] = array_sum($command_rates);
 
         $hit_rates = [];
-        $total_hits = $total_misses = 0;
+        $total_hits = 0;
+        $total_misses = 0;
 
         foreach (self::HIT_RATE_COMMANDS as $cmd) {
             $hit_rates['hit_rate_'.$cmd] = $calculate_hit_rate($stats, $cmd);
@@ -154,7 +156,7 @@ class MemcachedMetrics {
     private function insertMetrics(array $metrics): void {
         $columns = implode(', ', array_keys($metrics));
         $placeholders = rtrim(str_repeat('?, ', count($metrics)), ', ');
-        $sql = "INSERT INTO metrics ($columns) VALUES ($placeholders)";
+        $sql = sprintf('INSERT INTO metrics (%s) VALUES (%s)', $columns, $placeholders);
 
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute(array_values($metrics));
@@ -169,6 +171,7 @@ class MemcachedMetrics {
         $stmt = $this->pdo->prepare('SELECT * FROM metrics ORDER BY id DESC LIMIT :limit');
         $stmt->bindValue(':limit', $max_data_points_to_return, PDO::PARAM_INT);
         $stmt->execute();
+
         $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         return array_reverse($results);

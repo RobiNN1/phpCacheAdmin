@@ -9,7 +9,6 @@ declare(strict_types=1);
 use Composer\InstalledVersions;
 use RobiNN\Pca\Admin;
 use RobiNN\Pca\Config;
-use RobiNN\Pca\Http;
 use RobiNN\Pca\Template;
 
 // Always display errors
@@ -37,40 +36,12 @@ if (is_file(__DIR__.'/vendor/autoload.php')) {
     autoload($path);
 }
 
+$auth = false;
+
 if (is_callable(Config::get('auth'))) {
     Config::get('auth')();
     $auth = true;
 }
 
-$tpl = new Template();
-$admin = new Admin($tpl);
-
-$nav = array_map(static fn ($d_dashboard): array => $d_dashboard->dashboardInfo(), $admin->dashboards);
-
-$current = $admin->currentDashboard();
-$dashboard = $admin->getDashboard($current);
-$info = $dashboard->dashboardInfo();
-
-$tpl->addGlobal('current', $current);
-
-if (isset($_GET['ajax'])) {
-    echo $dashboard->ajax();
-} else {
-    if (isset($info['colors'])) {
-        $colors = '';
-
-        foreach ((array) $info['colors'] as $key => $color) {
-            $colors .= '--color-primary-'.$key.':'.$color.';';
-        }
-    }
-
-    echo $tpl->render('layout', [
-        'colors'     => $colors ?? null,
-        'site_title' => $info['title'],
-        'nav'        => $nav,
-        'logout_url' => isset($auth) ? Http::queryString([], ['logout' => 'yes']) : null,
-        'version'    => Admin::VERSION,
-        'repo'       => 'https://github.com/RobiNN1/phpCacheAdmin',
-        'dashboard'  => $dashboard->dashboard(),
-    ]);
-}
+$template = new Template();
+echo (new Admin($template))->render($auth);

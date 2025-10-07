@@ -174,10 +174,10 @@ abstract class RedisTestCase extends TestCase {
 
         $this->saveData(['rtype' => 'list', 'key' => $key, 'value' => 'lvalue1']);
         $this->saveData(['rtype' => 'list', 'key' => $key, 'value' => 'lvalue2', 'index' => '1']);
-        $this->assertEquals(['lvalue1', 'lvalue2'], $this->dashboard->getAllKeyValues('list', $key));
+        $this->assertSame(['lvalue1', 'lvalue2'], $this->dashboard->getAllKeyValues('list', $key));
 
         $this->saveData(['rtype' => 'list', 'key' => $key, 'value' => 'lvalue1_updated', 'index' => '0']);
-        $this->assertEquals(['lvalue1_updated', 'lvalue2'], $this->dashboard->getAllKeyValues('list', $key));
+        $this->assertSame(['lvalue1_updated', 'lvalue2'], $this->dashboard->getAllKeyValues('list', $key));
     }
 
     /**
@@ -189,11 +189,11 @@ abstract class RedisTestCase extends TestCase {
         $this->saveData(['rtype' => 'zset', 'key' => $key, 'value' => 'zvalue1', 'score' => 10]);
         $this->saveData(['rtype' => 'zset', 'key' => $key, 'value' => 'zvalue2', 'score' => 20]);
         $this->assertEqualsCanonicalizing(['zvalue1', 'zvalue2'], $this->dashboard->getAllKeyValues('zset', $key));
-        $this->assertEquals(20.0, $this->redis->zScore($key, 'zvalue2'));
+        $this->assertEqualsWithDelta(20.0, $this->redis->zScore($key, 'zvalue2'), PHP_FLOAT_EPSILON);
 
         $this->saveData(['rtype' => 'zset', 'key' => $key, 'value' => 'zvalue2_updated', 'old_value' => 'zvalue2', 'score' => 30]);
         $this->assertEqualsCanonicalizing(['zvalue1', 'zvalue2_updated'], $this->dashboard->getAllKeyValues('zset', $key));
-        $this->assertEquals(30.0, $this->redis->zScore($key, 'zvalue2_updated'));
+        $this->assertEqualsWithDelta(30.0, $this->redis->zScore($key, 'zvalue2_updated'), PHP_FLOAT_EPSILON);
         $this->assertEmpty($this->redis->zScore($key, 'zvalue2'));
     }
 
@@ -205,7 +205,7 @@ abstract class RedisTestCase extends TestCase {
 
         $this->saveData(['rtype' => 'hash', 'key' => $key, 'hash_key' => 'field1', 'value' => 'hvalue1']);
         $this->saveData(['rtype' => 'hash', 'key' => $key, 'hash_key' => 'field2', 'value' => 'hvalue2']);
-        $this->assertEquals(['field1' => 'hvalue1', 'field2' => 'hvalue2'], $this->dashboard->getAllKeyValues('hash', $key));
+        $this->assertSame(['field1' => 'hvalue1', 'field2' => 'hvalue2'], $this->dashboard->getAllKeyValues('hash', $key));
 
         $this->saveData(['rtype' => 'hash', 'key' => $key, 'hash_key' => 'field1', 'value' => 'hvalue1_updated']);
         $this->assertSame('hvalue1_updated', $this->dashboard->getAllKeyValues('hash', $key)['field1']);

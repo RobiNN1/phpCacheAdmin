@@ -55,7 +55,7 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase {
      * @return array<int|string, mixed>
      */
     public function sortKeys(array $keys): array {
-        usort($keys, static fn ($a, $b): int => strcmp((string) $a['key'], (string) $b['key']));
+        usort($keys, static fn (array $a, array $b): int => strcmp((string) $a['key'], (string) $b['key']));
 
         return $keys;
     }
@@ -68,7 +68,7 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase {
     public function sortTreeKeys(array $tree): array {
         foreach ($tree as &$item) {
             if (isset($item['children'])) {
-                usort($item['children'], static fn ($a, $b): int => strcmp((string) $a['key'], (string) $b['key']));
+                usort($item['children'], static fn (array $a, array $b): int => strcmp((string) $a['key'], (string) $b['key']));
                 $item['children'] = $this->sortTreeKeys($item['children']);
             }
         }
@@ -83,7 +83,7 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase {
      * @return array<int|string, mixed>
      */
     public function normalizeInfoFields(array $data, array $fields): array {
-        return array_map(static function ($item) use ($fields) {
+        return array_map(static function (array $item) use ($fields): array {
             foreach ($fields as $field) {
                 if (isset($item['info'][$field])) {
                     $item['info'][$field] = 0;

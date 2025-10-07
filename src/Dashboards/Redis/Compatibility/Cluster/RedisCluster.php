@@ -337,7 +337,7 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
             }
         }
 
-        usort($all_logs, static fn ($a, $b): int => $b[1] <=> $a[1]);
+        usort($all_logs, static fn (array $a, array $b): int => $b[1] <=> $a[1]);
 
         return $all_logs;
     }

@@ -51,7 +51,7 @@ To customize the configuration, do not edit `config.dist.php` directly, but copy
 
 ## Updating
 
-Replace all files and delete the `tmp` folder (this folder contains only compiled Twig templates).
+Replace all files and delete the `tmp` folder (this folder contains compiled Twig templates and metrics DB files).
 
 ## Environment variables
 

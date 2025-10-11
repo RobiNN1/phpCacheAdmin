@@ -90,13 +90,11 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
             return $option !== null ? ($info[strtolower($option)] ?? []) : $info;
         }
 
-        $section_info = [];
         $sections = ['SERVER', 'CLIENTS', 'MEMORY', 'PERSISTENCE', 'STATS', 'REPLICATION', 'CPU', 'CLUSTER', 'KEYSPACE'];
+        $aggregated_data = [];
 
-        foreach ($sections as $section_name) {
-            $aggregated_values = [];
-
-            foreach ($this->nodes as $node) {
+        foreach ($this->nodes as $node) {
+            foreach ($sections as $section_name) {
                 try {
                     $node_section_info = $this->info($node, $section_name);
 
@@ -107,24 +105,24 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
                     foreach ($node_section_info as $key => $value) {
                         if (is_array($value)) {
                             foreach ($value as $sub_key => $sub_val) {
-                                $aggregated_values[$key][$sub_key][] = $sub_val;
+                                $aggregated_data[strtolower($section_name)][$key][$sub_key][] = $sub_val;
                             }
                         } else {
-                            $aggregated_values[$key][] = $value;
+                            $aggregated_data[strtolower($section_name)][$key][] = $value;
                         }
                     }
                 } catch (RedisClusterException) {
                     continue;
                 }
             }
+        }
 
-            if (empty($aggregated_values)) {
-                continue;
-            }
+        $combined_info = [];
 
+        foreach ($aggregated_data as $section_name => $section_data) {
             $combined_section = [];
 
-            foreach ($aggregated_values as $key => $values) {
+            foreach ($section_data as $key => $values) {
                 if (is_array(reset($values))) {
                     foreach ($values as $sub_key => $sub_values) {
                         $combined_section[$key][$sub_key] = $this->combineValues((string) $sub_key, $sub_values, $combine);
@@ -133,10 +131,11 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
                     $combined_section[$key] = $this->combineValues($key, $values, $combine);
                 }
             }
-            $section_info[strtolower($section_name)] = $combined_section;
+
+            $combined_info[$section_name] = $combined_section;
         }
 
-        $info = $section_info;
+        $info = $combined_info;
 
         return $option !== null ? ($info[strtolower($option)] ?? []) : $info;
     }

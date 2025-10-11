@@ -30,6 +30,8 @@
 
         const panels_refresh_interval = {{ config('panelrefresh', 30) * 1000 }};
         const ajax_panels = {{ ajax_panels is defined and ajax_panels == true ? 'true' : 'false' }};
+        const metrics_refresh_interval = {{ config('metricsrefresh', 60) * 1000 }};
+        let metrics_active_filter = {{ config('metricstab', 1440) }};
     </script>
 </head>
 <body class="bg-gray-100 text-gray-900 dark:text-gray-200 dark:bg-gray-900" data-dashboard="{{ current }}">

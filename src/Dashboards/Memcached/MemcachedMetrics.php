@@ -13,6 +13,7 @@ use PDO;
 use RobiNN\Pca\Config;
 use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
+use RobiNN\Pca\Template;
 
 class MemcachedMetrics {
     private readonly PDO $pdo;
@@ -24,10 +25,15 @@ class MemcachedMetrics {
     /**
      * @param array<int, array<string, int|string>> $servers
      */
-    public function __construct(private readonly PHPMem $memcached, array $servers, int $selected) {
+    public function __construct(
+        private readonly PHPMem   $memcached,
+        private readonly Template $template,
+        array                     $servers,
+        int                       $selected
+    ) {
         $server_name = Helpers::getServerTitle($servers[$selected]);
-        $hash = md5($server_name.Config::get('hash', 'pca')); // This isn't really safe, but it's better than nothing
-        $db = __DIR__.'/../../../tmp/memcached_metrics'.$hash.'.db';
+        $hash = md5($server_name.Config::get('hash', 'pca'));
+        $db = __DIR__.'/../../../tmp/memcached_metrics_'.$hash.'.db';
 
         $this->pdo = new PDO('sqlite:'.$db);
         $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -49,14 +55,11 @@ class MemcachedMetrics {
         $this->pdo->exec($schema);
     }
 
-    /**
-     * @throws MemcachedException
-     */
     public function collectAndRespond(): string {
-        $stats = $this->memcached->getServerStats();
-
-        if ($stats === []) {
-            throw new MemcachedException('Failed to retrieve Memcached stats.');
+        try {
+            $stats = $this->memcached->getServerStats();
+        } catch (MemcachedException) {
+            return Helpers::alert($this->template, 'Failed to retrieve Memcached stats.', 'error');
         }
 
         $metrics = $this->calculateMetrics($stats);
@@ -70,84 +73,158 @@ class MemcachedMetrics {
         try {
             return json_encode($formatted_data, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         } catch (JsonException $e) {
-            return $e->getMessage();
+            return Helpers::alert($this->template, $e->getMessage(), 'error');
         }
     }
 
     /**
-     * @param array<string, mixed> $stats Raw stats from Memcached.
+     * @param array<string, mixed> $stats
      *
-     * @return array<string, mixed>
+     * @return array<string, int|float>
      */
     private function calculateMetrics(array $stats): array {
-        /** @var array<string, mixed>|false $last_point */
+        $last_point = $this->getLastMetricsPoint();
+        $time_diff = $this->calculateTimeDifference($last_point);
+
+        $command_rates = $this->calculateCommandRates($stats, $last_point, $time_diff);
+        $hit_rates = $this->calculateHitRates($stats);
+        $core_metrics = $this->calculateCoreMetrics($stats, $last_point, $time_diff);
+        $cumulative_metrics = $this->cumulativeMetrics($stats);
+
+        return array_merge(['timestamp' => time()], $command_rates, $hit_rates, $core_metrics, $cumulative_metrics);
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function getLastMetricsPoint(): ?array {
         $last_point = $this->pdo->query('SELECT * FROM metrics ORDER BY id DESC LIMIT 1')->fetch(PDO::FETCH_ASSOC);
 
-        $time_diff = ($last_point && isset($last_point['timestamp'])) ? time() - (int) $last_point['timestamp'] : 60;
-        $time_diff = max($time_diff, 1);
+        return $last_point === false ? null : $last_point;
+    }
 
-        $calculate_rate = static function (int|float $current_val, ?int $last_val) use ($time_diff): float {
-            if ($last_val === null || $current_val < $last_val) {
-                return 0.0;
-            }
+    /**
+     * @param array<string, mixed>|null $last_point
+     */
+    private function calculateTimeDifference(?array $last_point): int {
+        $last_timestamp = $last_point['timestamp'] ?? (time() - 60);
+        $time_diff = time() - (int) $last_timestamp;
 
-            return round(($current_val - $last_val) / $time_diff, 2);
-        };
+        return max($time_diff, 1);
+    }
 
-        $calculate_hit_rate = static function (array $stats, string $cmd): float {
-            $hits = $stats[$cmd.'_hits'] ?? 0;
-            $misses = $stats[$cmd.'_misses'] ?? 0;
-            $total = $hits + $misses;
+    private function calculateRate(int|float $current_val, ?int $last_val, int $time_diff): float {
+        if ($last_val === null || $current_val < $last_val) {
+            return 0.0;
+        }
 
-            return $total > 0 ? round(($hits / $total) * 100, 2) : 0.0;
-        };
+        return round(($current_val - $last_val) / $time_diff, 2);
+    }
 
+    /**
+     * @param array<string, mixed>      $stats
+     * @param array<string, mixed>|null $last_point
+     *
+     * @return array<string, float>
+     */
+    private function calculateCommandRates(array $stats, ?array $last_point, int $time_diff): array {
         $command_rates = [];
 
         foreach (self::RATE_COMMANDS as $cmd) {
-            $command_rates['request_rate_'.$cmd] = $calculate_rate(
-                $stats['cmd_'.$cmd] ?? 0,
-                $last_point['cumulative_cmd_'.$cmd] ?? null
-            );
+            $current_val = $stats['cmd_'.$cmd] ?? 0;
+            $last_val = $last_point['cumulative_cmd_'.$cmd] ?? null;
+            $command_rates['request_rate_'.$cmd] = $this->calculateRate($current_val, $last_val, $time_diff);
         }
 
         $command_rates['request_rate_overall'] = array_sum($command_rates);
 
+        return $command_rates;
+    }
+
+    /**
+     * @param array<string, mixed> $stats
+     *
+     * @return array<string, float>
+     */
+    private function calculateHitRates(array $stats): array {
         $hit_rates = [];
         $total_hits = 0;
         $total_misses = 0;
 
         foreach (self::HIT_RATE_COMMANDS as $cmd) {
-            $hit_rates['hit_rate_'.$cmd] = $calculate_hit_rate($stats, $cmd);
-            $total_hits += $stats[$cmd.'_hits'] ?? 0;
-            $total_misses += $stats[$cmd.'_misses'] ?? 0;
+            $hits = $stats[$cmd.'_hits'] ?? 0;
+            $misses = $stats[$cmd.'_misses'] ?? 0;
+            $total = $hits + $misses;
+
+            $hit_rates['hit_rate_'.$cmd] = ($total > 0) ? round(($hits / $total) * 100, 2) : 0.0;
+            $total_hits += $hits;
+            $total_misses += $misses;
         }
 
-        $hit_rates['hit_rate_overall'] = ($total_hits + $total_misses > 0) ? round(($total_hits / ($total_hits + $total_misses)) * 100, 2) : 0.0;
+        $overall_total = $total_hits + $total_misses;
+        $hit_rates['hit_rate_overall'] = ($overall_total > 0) ? round(($total_hits / $overall_total) * 100, 2) : 0.0;
 
-        $metrics_to_insert = array_merge($hit_rates, $command_rates, [
-            'timestamp'                    => time(),
-            'memory_used'                  => $stats['bytes'] ?? 0,
-            'memory_limit'                 => $stats['limit_maxbytes'] ?? 0,
-            'stored_items'                 => $stats['curr_items'] ?? 0,
-            'connections'                  => $stats['curr_connections'] ?? 0,
-            'new_connection_rate'          => $calculate_rate($stats['total_connections'] ?? 0, $last_point['cumulative_total_connections'] ?? null),
-            'eviction_rate'                => $calculate_rate($stats['evictions'] ?? 0, $last_point['cumulative_evictions'] ?? null),
-            'expired_rate'                 => $calculate_rate($stats['expired_unfetched'] ?? 0, $last_point['cumulative_expired_unfetched'] ?? null),
-            'traffic_received_rate'        => $calculate_rate($stats['bytes_read'] ?? 0, $last_point['cumulative_bytes_read'] ?? null),
-            'traffic_sent_rate'            => $calculate_rate($stats['bytes_written'] ?? 0, $last_point['cumulative_bytes_written'] ?? null),
+        return $hit_rates;
+    }
+
+    /**
+     * @param array<string, mixed>      $stats
+     * @param array<string, mixed>|null $last_point
+     *
+     * @return array<string, int|float>
+     */
+    private function calculateCoreMetrics(array $stats, ?array $last_point, int $time_diff): array {
+        return [
+            'memory_used'           => $stats['bytes'] ?? 0,
+            'memory_limit'          => $stats['limit_maxbytes'] ?? 0,
+            'stored_items'          => $stats['curr_items'] ?? 0,
+            'connections'           => $stats['curr_connections'] ?? 0,
+            'new_connection_rate'   => $this->calculateRate(
+                $stats['total_connections'] ?? 0,
+                $last_point['cumulative_total_connections'] ?? null,
+                $time_diff),
+            'eviction_rate'         => $this->calculateRate(
+                $stats['evictions'] ?? 0,
+                $last_point['cumulative_evictions'] ?? null,
+                $time_diff
+            ),
+            'expired_rate'          => $this->calculateRate(
+                $stats['expired_unfetched'] ?? 0,
+                $last_point['cumulative_expired_unfetched'] ?? null,
+                $time_diff
+            ),
+            'traffic_received_rate' => $this->calculateRate(
+                $stats['bytes_read'] ?? 0,
+                $last_point['cumulative_bytes_read'] ?? null,
+                $time_diff
+            ),
+            'traffic_sent_rate'     => $this->calculateRate(
+                $stats['bytes_written'] ?? 0,
+                $last_point['cumulative_bytes_written'] ?? null,
+                $time_diff
+            ),
+        ];
+    }
+
+    /**
+     * @param array<string, mixed> $stats
+     *
+     * @return array<string, int>
+     */
+    private function cumulativeMetrics(array $stats): array {
+        $cumulative_metrics = [
             'cumulative_total_connections' => $stats['total_connections'] ?? 0,
             'cumulative_evictions'         => $stats['evictions'] ?? 0,
             'cumulative_expired_unfetched' => $stats['expired_unfetched'] ?? 0,
             'cumulative_bytes_read'        => $stats['bytes_read'] ?? 0,
             'cumulative_bytes_written'     => $stats['bytes_written'] ?? 0,
-        ]);
+        ];
 
         foreach (self::RATE_COMMANDS as $cmd) {
-            $metrics_to_insert['cumulative_cmd_'.$cmd] = $stats['cmd_'.$cmd] ?? 0;
+            $cumulative_metrics['cumulative_cmd_'.$cmd] = $stats['cmd_'.$cmd] ?? 0;
         }
 
-        return $metrics_to_insert;
+        return $cumulative_metrics;
     }
 
     /**
@@ -166,7 +243,7 @@ class MemcachedMetrics {
      * @return array<int, array<string, mixed>>
      */
     private function fetchRecentMetrics(): array {
-        $max_data_points_to_return = Http::get('points', Config::get('metricstab', 1440));
+        $max_data_points_to_return = Http::post('points', Config::get('metricstab', 1440));
 
         $stmt = $this->pdo->prepare('SELECT * FROM metrics ORDER BY id DESC LIMIT :limit');
         $stmt->bindValue(':limit', $max_data_points_to_return, PDO::PARAM_INT);

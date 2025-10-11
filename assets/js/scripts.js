@@ -1,4 +1,4 @@
-const ajax = (endpoint, callback, data = null) => {
+const ajax = (endpoint, callback, data = null, send_json = true) => {
     let url = window.location.href;
     url += url.includes('?') ? '&' : '?';
     url += !url.includes('dashboard=') ? `dashboard=${document.body.dataset.dashboard}&` : '';
@@ -8,12 +8,17 @@ const ajax = (endpoint, callback, data = null) => {
 
     if (data !== null) {
         request.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-        data = `${endpoint}=${JSON.stringify(data)}`;
+
+        if (send_json) {
+            data = `${endpoint}=${JSON.stringify(data)}`;
+        } else {
+            data = Object.keys(data).map(key => encodeURIComponent(key) + '=' + encodeURIComponent(data[key])).join('&');
+        }
     }
 
     request.onload = callback;
     request.send(data);
-}
+};
 
 const query_params = (params) => {
     const url = new URL(location.href);
@@ -31,7 +36,7 @@ const query_params = (params) => {
 
     url.search = search_params.toString();
     location.href = url.toString();
-}
+};
 
 const select_and_redirect = (id, param) => {
     const select = document.getElementById(id);
@@ -41,7 +46,7 @@ const select_and_redirect = (id, param) => {
             query_params({[param]: e.target.value});
         });
     }
-}
+};
 
 /**
  * Keys
@@ -179,7 +184,7 @@ const update_progress_bar = (progress_element, percentage) => {
     progress_element.classList.remove('bg-red-600', 'bg-orange-600', 'bg-green-600');
     progress_element.classList.add(color_class);
     progress_element.style.width = percentage + '%';
-}
+};
 
 const update_panel_data = (panel_element, key, value) => {
     const element = panel_element.querySelector(`[data-value="${key}"]`);
@@ -195,7 +200,7 @@ const update_panel_data = (panel_element, key, value) => {
     } else {
         element.textContent = value;
     }
-}
+};
 
 const refresh_panels = () => {
     ajax('panels', function (request) {
@@ -216,7 +221,7 @@ const refresh_panels = () => {
             console.error('Error fetching panel data.');
         }
     });
-}
+};
 
 document.addEventListener('DOMContentLoaded', function () {
     if (ajax_panels) {
@@ -253,7 +258,7 @@ const json_syntax_highlight = (json) => {
             }
         }
     );
-}
+};
 
 document.querySelectorAll('.json-code').forEach(value => {
     value.innerHTML = json_syntax_highlight(value.textContent);
@@ -333,7 +338,6 @@ if (treeview) {
     });
 
     function toggle_folder(button, show = null) {
-        // Find the next sibling that contains the children
         const children = button.closest('div').parentElement.querySelector('.tree-children');
         if (!children) return false;
 
@@ -346,7 +350,6 @@ if (treeview) {
         return will_show;
     }
 
-    // Handle folder toggling
     treeview.addEventListener('click', function (e) {
         const toggle_btn = e.target.closest('.tree-toggle');
         if (toggle_btn) {
@@ -463,10 +466,6 @@ class Modal {
         this.close_buttons = element.querySelectorAll('[data-modal-dismiss]');
         this.backdrop = element.querySelector('.modal-backdrop');
 
-        this.init();
-    }
-
-    init() {
         this.open_buttons.forEach(btn => {
             btn.addEventListener('click', () => this.open());
         });
@@ -492,9 +491,100 @@ class Modal {
 
     escapeHandler = (event) => {
         if (event.key === 'Escape') this.close();
-    }
+    };
 }
 
 document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.modal').forEach(modal => new Modal(modal));
 });
+
+/**
+ * Charts
+ */
+const time_switcher = (callback) => {
+    const default_btn_classes = ['hover:text-gray-600', 'dark:hover:text-gray-300'];
+    const active_btn_classes = ['shadow-sm', 'bg-white', 'dark:bg-gray-700'];
+
+    const time_buttons = document.querySelectorAll('[data-tab]');
+    time_buttons.forEach(button => {
+        button.addEventListener('click', () => {
+            time_buttons.forEach(btn => {
+                btn.classList.remove(...active_btn_classes);
+                btn.classList.add(...default_btn_classes);
+            });
+            button.classList.remove(...default_btn_classes);
+            button.classList.add(...active_btn_classes);
+
+            metrics_active_filter = parseInt(button.dataset.tab, 10);
+            callback();
+        });
+    });
+};
+
+const charts_theme = (chart_config, callback) => {
+    window.addEventListener('resize', () => {
+        for (const chart of Object.values(chart_config)) {
+            chart.resize();
+        }
+    });
+
+    const theme_observer = new MutationObserver((mutations_list) => {
+        for (const mutation of mutations_list) {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                const theme = document.documentElement.classList.contains('dark') ? 'dark' : null;
+
+                for (const key of Object.keys(chart_config)) {
+                    chart_config[key].dispose();
+                    const chart_element = document.getElementById(`${key}_chart`);
+                    chart_config[key] = echarts.init(chart_element, theme, {renderer: 'svg'});
+                }
+
+                callback();
+                break;
+            }
+        }
+    });
+
+    theme_observer.observe(document.documentElement, {attributes: true});
+};
+
+const fetch_metrics = (callback) => {
+    ajax('metrics', function (request) {
+        if (request.currentTarget.status >= 200 && request.currentTarget.status < 400) {
+            const content_type = request.currentTarget.getResponseHeader('content-type');
+            const response_text = request.currentTarget.responseText;
+
+            if (content_type && content_type.includes('application/json')) {
+                callback(JSON.parse(response_text));
+                document.getElementById('alerts').innerHTML = '';
+            } else {
+                document.getElementById('alerts').innerHTML = response_text;
+            }
+        } else {
+            document.getElementById('alerts').innerHTML = `Server responded with status ${request.status}`;
+        }
+    }, {points: metrics_active_filter}, false);
+};
+
+const init_metrics = (render_charts, chart_config) => {
+    let full_data = [];
+
+    const update_page_charts = () => {
+        fetch_metrics((data) => {
+            full_data = data;
+            render_charts(full_data);
+        });
+    };
+
+    time_switcher(update_page_charts);
+
+    charts_theme(chart_config, function () {
+        if (full_data && full_data.length > 0) {
+            render_charts(full_data);
+        }
+    });
+
+    update_page_charts();
+
+    setInterval(update_page_charts, metrics_refresh_interval);
+};

@@ -175,6 +175,7 @@ class Predis extends Client implements RedisCompatibilityInterface {
             if (!is_array($result)) {
                 continue;
             }
+
             if (count($result) < 3) {
                 continue;
             }

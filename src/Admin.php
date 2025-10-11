@@ -39,7 +39,7 @@ class Admin {
     }
 
     public function render(bool $auth): string {
-        $nav = array_map(static fn ($d_dashboard): array => $d_dashboard->dashboardInfo(), $this->dashboards);
+        $nav = array_map(static fn (DashboardInterface $d_dashboard): array => $d_dashboard->dashboardInfo(), $this->dashboards);
 
         $current = $this->currentDashboard();
         $dashboard = $this->getDashboard($current);

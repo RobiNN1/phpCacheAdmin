@@ -104,6 +104,10 @@ class RedisDashboard implements DashboardInterface {
                 return Helpers::getPanelsJson($this->getPanelsData());
             }
 
+            if (isset($_GET['metrics'])) {
+                return (new RedisMetrics($this->redis, $this->template, $this->servers, $this->current_server))->collectAndRespond();
+            }
+
             if (isset($_GET['deleteall'])) {
                 return $this->deleteAllKeys();
             }

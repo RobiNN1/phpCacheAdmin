@@ -1,0 +1,98 @@
+{{ include('components/tabs.twig', {
+    tabs: true,
+    selected: config('metricstab', 1440),
+    links: {
+        60: 'Last hour',
+        1440: 'Last day',
+        10080: 'Last week',
+        43200: 'Last month',
+    },
+}) }}
+
+<div class="md:grid md:grid-cols-4 gap-4">
+    <div class="p-4 mb-2 rounded-sm bg-white border border-gray-200 dark:bg-gray-800 dark:border-gray-700 col-span-2">
+        <div id="memory_chart" class="h-90"></div>
+    </div>
+    <div class="p-4 mb-2 rounded-sm bg-white border border-gray-200 dark:bg-gray-800 dark:border-gray-700 col-span-2">
+        <div id="fragmentation_chart" class="h-90"></div>
+    </div>
+    <div class="p-4 mb-2 rounded-sm bg-white border border-gray-200 dark:bg-gray-800 dark:border-gray-700 col-span-2">
+        <div id="commands_chart" class="h-90"></div>
+    </div>
+    <div class="p-4 mb-2 rounded-sm bg-white border border-gray-200 dark:bg-gray-800 dark:border-gray-700 col-span-2">
+        <div id="hit_rate_chart" class="h-90"></div>
+    </div>
+    <div class="p-4 mb-2 rounded-sm bg-white border border-gray-200 dark:bg-gray-800 dark:border-gray-700 col-span-2">
+        <div id="connections_chart" class="h-90"></div>
+    </div>
+</div>
+
+<script src="assets/js/echarts.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const initial_theme = document.documentElement.classList.contains('dark') ? 'dark' : null;
+
+        const chart_config = {
+            memory: echarts.init(document.getElementById('memory_chart'), initial_theme, {renderer: 'svg'}),
+            fragmentation: echarts.init(document.getElementById('fragmentation_chart'), initial_theme, {renderer: 'svg'}),
+            commands: echarts.init(document.getElementById('commands_chart'), initial_theme, {renderer: 'svg'}),
+            hit_rate: echarts.init(document.getElementById('hit_rate_chart'), initial_theme, {renderer: 'svg'}),
+            connections: echarts.init(document.getElementById('connections_chart'), initial_theme, {renderer: 'svg'}),
+        };
+
+        const render_charts = (data) => {
+            if (!data || data.length === 0) return;
+            const timestamps = data.map(p => p.timestamp.split(' ')[1]);
+
+            chart(chart_config.memory, {
+                title: 'Memory Usage',
+                legend: ['Used', 'Peak'],
+                yAxis: {type: 'value', name: 'Memory', axisLabel: {formatter: '{value} MB'}},
+                series: [
+                    {name: 'Used', type: 'line', data: data.map(p => (p.memory.used / 1048576).toFixed(2)), areaStyle: {}},
+                    {name: 'Peak', type: 'line', data: data.map(p => (p.memory.peak / 1048576).toFixed(2))},
+                ],
+            }, timestamps);
+
+            chart(chart_config.fragmentation, {
+                title: 'Fragmentation Ratio',
+                legend: ['Ratio'],
+                yAxis: {type: 'value', name: 'Ratio'},
+                series: [
+                    {name: 'Ratio', type: 'line', data: data.map(p => p.memory.fragmentation), areaStyle: {}},
+                ],
+            }, timestamps);
+
+            chart(chart_config.commands, {
+                title: 'Commands per second',
+                legend: ['Commands'],
+                yAxis: {type: 'value', name: 'ops/sec'},
+                series: [
+                    {name: 'Commands', type: 'line', data: data.map(p => p.commands_per_second), areaStyle: {}},
+                ],
+            }, timestamps);
+
+            chart(chart_config.hit_rate, {
+                title: 'Hit Rate',
+                tooltip: {valueFormatter: v => v.toFixed(2) + '%'},
+                legend: ['Hit Rate'],
+                yAxis: {type: 'value', min: 0, max: 100, axisLabel: {formatter: '{value}%'}},
+                series: [
+                    {name: 'Hit Rate', type: 'line', data: data.map(p => p.hit_rate), areaStyle: {}},
+                ],
+            }, timestamps);
+
+            chart(chart_config.connections, {
+                title: 'Connections',
+                legend: ['Connections'],
+                yAxis: {type: 'value', name: 'Clients'},
+                series: [
+                    {name: 'Connections', type: 'line', data: data.map(p => p.connections), areaStyle: {}},
+                ],
+            }, timestamps);
+
+        };
+
+        init_metrics(render_charts, chart_config);
+    });
+</script>

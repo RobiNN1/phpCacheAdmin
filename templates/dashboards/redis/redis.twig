@@ -2,6 +2,7 @@
     links: {
         'keys': 'Keys',
         'slowlog': 'Slow Log',
+        'metrics': 'Metrics',
     },
 }) }}
 
@@ -90,4 +91,8 @@
             </table>
         </div>
     </div>
+{% endif %}
+
+{% if get('tab') == 'metrics' %}
+    {{ include('dashboards/redis/metrics.twig') }}
 {% endif %}

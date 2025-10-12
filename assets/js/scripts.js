@@ -501,6 +501,20 @@ document.addEventListener('DOMContentLoaded', () => {
 /**
  * Charts
  */
+const chart = (instance, options, timestamps) => {
+    const {title, tooltip = {}, legend, yAxis, series} = options;
+
+    instance.setOption({
+        backgroundColor: 'transparent',
+        title: {text: title, left: 'left', padding: [0, 5, 5, 5]},
+        tooltip: {trigger: 'axis', ...tooltip},
+        legend: {data: legend, type: 'scroll', bottom: 0},
+        xAxis: {type: 'category', boundaryGap: false, data: timestamps},
+        yAxis: yAxis,
+        series: series,
+        grid: {left: 10, right: 10, top: 80, bottom: 60}
+    });
+};
 const time_switcher = (callback) => {
     const default_btn_classes = ['hover:text-gray-600', 'dark:hover:text-gray-300'];
     const active_btn_classes = ['shadow-sm', 'bg-white', 'dark:bg-gray-700'];

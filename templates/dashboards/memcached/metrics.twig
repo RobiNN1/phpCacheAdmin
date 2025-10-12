@@ -51,21 +51,6 @@
         const HIT_RATE_COMMANDS = ['get', 'delete', 'incr', 'decr', 'cas', 'touch'];
         const REQUEST_RATE_COMMANDS = ['get', 'set', 'delete', 'incr', 'decr', 'cas', 'touch', 'flush'];
 
-        const chart = (instance, options, timestamps) => {
-            const {title, tooltip = {}, legend, yAxis, series} = options;
-
-            instance.setOption({
-                backgroundColor: 'transparent',
-                title: {text: title, left: 'left', padding: [0, 5, 5, 5]},
-                tooltip: {trigger: 'axis', ...tooltip},
-                legend: {data: legend, type: 'scroll', bottom: 0},
-                xAxis: {type: 'category', boundaryGap: false, data: timestamps},
-                yAxis: yAxis,
-                series: series,
-                grid: {left: 10, right: 10, top: 80, bottom: 60}
-            });
-        };
-
         const render_charts = (data) => {
             if (!data || data.length === 0) return;
             const timestamps = data.map(p => p.timestamp.split(' ')[1]);

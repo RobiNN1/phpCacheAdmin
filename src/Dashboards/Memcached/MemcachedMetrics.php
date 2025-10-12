@@ -15,8 +15,8 @@ use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
 use RobiNN\Pca\Template;
 
-class MemcachedMetrics {
-    private readonly PDO $pdo;
+readonly class MemcachedMetrics {
+    private PDO $pdo;
 
     private const RATE_COMMANDS = ['get', 'set', 'delete', 'incr', 'decr', 'cas', 'touch', 'flush'];
 
@@ -26,10 +26,10 @@ class MemcachedMetrics {
      * @param array<int, array<string, int|string>> $servers
      */
     public function __construct(
-        private readonly PHPMem   $memcached,
-        private readonly Template $template,
-        array                     $servers,
-        int                       $selected
+        private PHPMem   $memcached,
+        private Template $template,
+        array            $servers,
+        int              $selected
     ) {
         $server_name = Helpers::getServerTitle($servers[$selected]);
         $hash = md5($server_name.Config::get('hash', 'pca'));

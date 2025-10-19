@@ -420,13 +420,7 @@ trait RedisTrait {
             $keys_array = $this->redis->keys($filter);
         }
 
-        $keys = array_map(static fn ($key): array => ['key' => $key], $keys_array);
-
-        if (Http::get('view', Config::get('list-view', 'table')) === 'tree') {
-            return $this->keysTreeView($keys);
-        }
-
-        return $this->keysTableView($keys);
+        return array_map(static fn ($key): array => ['key' => $key], $keys_array);
     }
 
     public function isCommandSupported(string $command): bool {
@@ -633,10 +627,17 @@ trait RedisTrait {
             Helpers::export($keys, 'redis_backup', fn (string $key): string => bin2hex($this->redis->dump($key)));
         }
 
-        $paginator = new Paginator($this->template, $keys, [['s', 'pp'], ['p' => '']]);
+        $paginator = new Paginator($this->template, $keys);
+        $paginated_keys = $paginator->getPaginated();
+
+        if (Http::get('view', Config::get('list-view', 'table')) === 'tree') {
+            $keys_to_display = $this->keysTreeView($paginated_keys);
+        } else {
+            $keys_to_display = $this->keysTableView($paginated_keys);
+        }
 
         return $this->template->render('dashboards/redis/redis', [
-            'keys'      => $paginator->getPaginated(),
+            'keys'      => $keys_to_display,
             'all_keys'  => $this->redis->databaseSize(),
             'paginator' => $paginator->render(),
             'view_key'  => Http::queryString(['s'], ['view' => 'key', 'key' => '__key__']),

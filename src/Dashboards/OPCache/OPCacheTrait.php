@@ -115,7 +115,7 @@ trait OPCacheTrait {
      * @return array<int, array<string, string|int>>
      */
     private function getCachedScripts(): array {
-        static $cached_scripts = [];
+        $cached_scripts = [];
         $search = Http::get('s', '');
 
         $this->template->addGlobal('search_value', $search);
@@ -148,6 +148,8 @@ trait OPCacheTrait {
                 }
             }
         }
+
+        unset($status);
 
         return Helpers::sortKeys($this->template, $cached_scripts);
     }

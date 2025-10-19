@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace RobiNN\Pca\Dashboards\APCu;
 
+use APCUIterator;
 use RobiNN\Pca\Config;
 use RobiNN\Pca\Format;
 use RobiNN\Pca\Helpers;
@@ -185,30 +186,30 @@ trait APCuTrait {
         $search = Http::get('s', '');
         $this->template->addGlobal('search_value', $search);
 
-        $info = apcu_cache_info();
         $keys = [];
         $time = time();
 
-        foreach ($info['cache_list'] as $key_data) {
-            $key = $key_data['info'];
+        $iterator = new APCUIterator('/.*/', APC_ITER_ALL, 0, APC_LIST_ACTIVE);
 
-            if (stripos($key, $search) !== false) {
-                $keys[] = [
-                    'key'           => $key,
-                    'mem_size'      => $key_data['mem_size'],
-                    'num_hits'      => $key_data['num_hits'],
-                    'access_time'   => $key_data['access_time'],
-                    'creation_time' => $key_data['creation_time'],
-                    'ttl'           => $key_data['ttl'] === 0 ? 'Doesn\'t expire' : $key_data['creation_time'] + $key_data['ttl'] - $time,
-                ];
+        foreach ($iterator as $item) {
+            $key = $item['key'];
+
+            if ($search !== '' && stripos($key, $search) === false) {
+                continue;
             }
+
+            $ttl = $item['ttl'];
+            $keys[] = [
+                'key'           => $key,
+                'mem_size'      => $item['mem_size'] ?? 0,
+                'num_hits'      => $item['num_hits'] ?? 0,
+                'access_time'   => $item['access_time'] ?? 0,
+                'creation_time' => $item['creation_time'] ?? 0,
+                'ttl'           => $ttl === 0 ? 'Doesn\'t expire' : ($item['creation_time'] + $ttl - $time),
+            ];
         }
 
-        if (Http::get('view', Config::get('list-view', 'table')) === 'tree') {
-            return $this->keysTreeView($keys);
-        }
-
-        return $this->keysTableView($keys);
+        return $keys;
     }
 
     /**
@@ -295,8 +296,6 @@ trait APCuTrait {
     }
 
     private function mainDashboard(): string {
-        $keys = $this->getAllKeys();
-
         if (isset($_POST['submit_import_key'])) {
             Helpers::import(
                 static fn (string $key): bool => apcu_exists($key),
@@ -306,16 +305,29 @@ trait APCuTrait {
             );
         }
 
+        $keys = $this->getAllKeys();
+
         if (isset($_GET['export_btn'])) {
             Helpers::export($keys, 'apcu_backup', static fn (string $key): string => base64_encode(serialize(apcu_fetch($key))));
         }
 
         $paginator = new Paginator($this->template, $keys);
+        $paginated_keys = $paginator->getPaginated();
+
+
+
+        if (Http::get('view', Config::get('list-view', 'table')) === 'tree') {
+            $keys_to_display = $this->keysTreeView($paginated_keys);
+        } else {
+            $keys_to_display = $this->keysTableView($paginated_keys);
+        }
+
+        unset($keys, $paginated_keys);
 
         $info = apcu_cache_info(true);
 
         return $this->template->render('dashboards/apcu', [
-            'keys'      => $paginator->getPaginated(),
+            'keys'      => $keys_to_display,
             'all_keys'  => (int) $info['num_entries'],
             'paginator' => $paginator->render(),
             'view_key'  => Http::queryString([], ['view' => 'key', 'key' => '__key__']),

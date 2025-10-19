@@ -229,11 +229,7 @@ trait MemcachedTrait {
             }
         }
 
-        if (Http::get('view', Config::get('list-view', 'table')) === 'tree') {
-            return $this->keysTreeView($keys);
-        }
-
-        return $this->keysTableView($keys);
+        return $keys;
     }
 
     /**
@@ -523,9 +519,16 @@ trait MemcachedTrait {
         }
 
         $paginator = new Paginator($this->template, $keys);
+        $paginated_keys = $paginator->getPaginated();
+
+        if (Http::get('view', Config::get('list-view', 'table')) === 'tree') {
+            $keys_to_display = $this->keysTreeView($paginated_keys);
+        } else {
+            $keys_to_display = $this->keysTableView($paginated_keys);
+        }
 
         return $this->template->render('dashboards/memcached/memcached', [
-            'keys'      => $paginator->getPaginated(),
+            'keys'      => $keys_to_display,
             'all_keys'  => $this->memcached->getServerStats()['curr_items'],
             'paginator' => $paginator->render(),
             'view_key'  => Http::queryString([], ['view' => 'key', 'key' => '__key__']),

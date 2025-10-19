@@ -43,7 +43,7 @@ readonly class Paginator {
     }
 
     /**
-     * @return array<int, int>
+     * @return array<int, int|string>
      */
     public function getPages(): array {
         $pages = [];
@@ -52,25 +52,31 @@ readonly class Paginator {
         $show_pages = 3; // number of pages displayed before and after the current page
 
         if ($total_pages > 1 && $this->page <= $total_pages) {
-            $pages[] = 1; // always show the first page
+            if ($total_pages > ($show_pages * 2) + 2) {
+                $pages[] = 1; // always show the first page
 
-            $i = max(2, $this->page - $show_pages);
+                $i = max(2, $this->page - $show_pages);
 
-            if ($i > 2) {
-                $pages[] = '..';
+                if ($i > 2) {
+                    $pages[] = '..';
+                }
+
+                $min = min($this->page + $show_pages, $total_pages - 1);
+
+                for (; $i <= $min; $i++) {
+                    $pages[] = $i;
+                }
+
+                if ($i < $total_pages) {
+                    $pages[] = '..';
+                }
+
+                $pages[] = $total_pages; // always show the last page
+            } else {
+                for ($i = 1; $i <= $total_pages; $i++) {
+                    $pages[] = $i;
+                }
             }
-
-            $min = min($this->page + ($show_pages + 1), $total_pages);
-
-            for (; $i < $min; $i++) {
-                $pages[] = $i;
-            }
-
-            if ($i !== $total_pages) {
-                $pages[] = '..';
-            }
-
-            $pages[] = $total_pages; // always show the last page
         }
 
         return $pages;

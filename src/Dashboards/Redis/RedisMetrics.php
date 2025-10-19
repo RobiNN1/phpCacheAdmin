@@ -51,14 +51,14 @@ readonly class RedisMetrics {
 
     public function collectAndRespond(): string {
         $info = $this->redis->getInfo(null, [
-                'used_memory',
-                'used_memory_peak',
-                'mem_fragmentation_ratio',
-                'keyspace_hits',
-                'keyspace_misses',
-                'connected_clients',
-                'instantaneous_ops_per_sec',
-            ]);
+            'used_memory',
+            'used_memory_peak',
+            'mem_fragmentation_ratio',
+            'keyspace_hits',
+            'keyspace_misses',
+            'connected_clients',
+            'instantaneous_ops_per_sec',
+        ]);
 
         $metrics = $this->calculateMetrics($info);
         $this->insertMetrics($metrics);

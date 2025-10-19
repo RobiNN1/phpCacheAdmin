@@ -250,7 +250,6 @@ abstract class RedisTestCase extends TestCase {
         $this->redis->set('pu-test-table1', 'value1');
         $this->redis->set('pu-test-table2', 'value2');
         $_GET['s'] = 'pu-test-table*';
-        $_GET['view'] = 'table';
 
         $result = $this->dashboard->getAllKeys();
 
@@ -273,6 +272,7 @@ abstract class RedisTestCase extends TestCase {
             ],
         ];
 
+        $result = $this->dashboard->keysTableView($result);
         $result = $this->normalizeInfoFields($result, ['bytes_size']);
 
         $this->assertEquals($this->sortKeys($expected), $this->sortKeys($result));
@@ -286,7 +286,6 @@ abstract class RedisTestCase extends TestCase {
         $this->redis->set('pu-test-tree1:sub2', 'value2');
         $this->redis->set('pu-test-tree2', 'value3');
         $_GET['s'] = 'pu-test-tree*';
-        $_GET['view'] = 'tree';
 
         $result = $this->dashboard->getAllKeys();
 
@@ -329,6 +328,7 @@ abstract class RedisTestCase extends TestCase {
             ],
         ];
 
+        $result = $this->dashboard->keysTreeView($result);
         $result = $this->normalizeInfoFields($result, ['bytes_size']);
 
         $this->assertEquals($this->sortTreeKeys($expected), $this->sortTreeKeys($result));

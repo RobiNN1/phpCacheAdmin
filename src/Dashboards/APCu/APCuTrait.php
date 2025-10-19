@@ -217,7 +217,7 @@ trait APCuTrait {
      *
      * @return array<int, array<string, string|int>>
      */
-    private function keysTableView(array $keys): array {
+    public function keysTableView(array $keys): array {
         $formatted_keys = [];
 
         foreach ($keys as $key_data) {
@@ -243,7 +243,7 @@ trait APCuTrait {
      *
      * @return array<int, array<string, string|int>>
      */
-    private function keysTreeView(array $keys): array {
+    public function keysTreeView(array $keys): array {
         $separator = Config::get('apcu-separator', ':');
         $this->template->addGlobal('separator', $separator);
 
@@ -313,8 +313,6 @@ trait APCuTrait {
 
         $paginator = new Paginator($this->template, $keys);
         $paginated_keys = $paginator->getPaginated();
-
-
 
         if (Http::get('view', Config::get('list-view', 'table')) === 'tree') {
             $keys_to_display = $this->keysTreeView($paginated_keys);

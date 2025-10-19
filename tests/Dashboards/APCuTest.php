@@ -88,7 +88,6 @@ final class APCuTest extends TestCase {
         apcu_store('pu-test-table1', 'value1');
         apcu_store('pu-test-table2', 'value2');
         $_GET['s'] = 'pu-test-table';
-        $_GET['view'] = 'table';
 
         $result = $this->dashboard->getAllKeys();
 
@@ -113,6 +112,7 @@ final class APCuTest extends TestCase {
             ],
         ];
 
+        $result = $this->dashboard->keysTableView($result);
         $result = $this->normalizeInfoFields($result, ['bytes_size', 'number_hits', 'timediff_last_used', 'time_created']);
 
         $this->assertEquals($this->sortKeys($expected), $this->sortKeys($result));
@@ -123,7 +123,6 @@ final class APCuTest extends TestCase {
         apcu_store('pu-test-tree1:sub2', 'value2');
         apcu_store('pu-test-tree2', 'value3');
         $_GET['s'] = 'pu-test-tree';
-        $_GET['view'] = 'tree';
 
         $result = $this->dashboard->getAllKeys();
 
@@ -168,6 +167,7 @@ final class APCuTest extends TestCase {
             ],
         ];
 
+        $result = $this->dashboard->keysTreeView($result);
         $result = $this->normalizeInfoFields($result, ['bytes_size', 'number_hits', 'timediff_last_used', 'time_created']);
 
         $this->assertEquals($this->sortTreeKeys($expected), $this->sortTreeKeys($result));

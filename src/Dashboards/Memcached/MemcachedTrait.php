@@ -237,7 +237,7 @@ trait MemcachedTrait {
      *
      * @return array<int, array<string, string|int>>
      */
-    private function keysTableView(array $keys): array {
+    public function keysTableView(array $keys): array {
         $formatted_keys = [];
 
         foreach ($keys as $key_data) {
@@ -262,7 +262,7 @@ trait MemcachedTrait {
      *
      * @throws MemcachedException
      */
-    private function keysTreeView(array $keys): array {
+    public function keysTreeView(array $keys): array {
         $separator = $this->servers[$this->current_server]['separator'] ?? ':';
 
         if (version_compare($this->memcached->version(), '1.5.19', '>=')) {

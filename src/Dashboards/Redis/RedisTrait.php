@@ -441,7 +441,7 @@ trait RedisTrait {
      *
      * @throws Exception
      */
-    private function keysTableView(array $keys): array {
+    public function keysTableView(array $keys): array {
         $formatted_keys = [];
         $keys_array = array_column($keys, 'key');
         $pipeline = $this->redis->pipelineKeys($keys_array);
@@ -469,7 +469,7 @@ trait RedisTrait {
      *
      * @throws Exception
      */
-    private function keysTreeView(array $keys): array {
+    public function keysTreeView(array $keys): array {
         $keys_array = array_column($keys, 'key');
         $pipeline = $this->redis->pipelineKeys($keys_array);
         $separator = $this->servers[$this->current_server]['separator'] ?? ':';

@@ -162,7 +162,6 @@ final class MemcachedTest extends TestCase {
         $this->memcached->set('pu-test-table1', 'value1');
         $this->memcached->set('pu-test-table2', 'value2');
         $_GET['s'] = 'pu-test-table';
-        $_GET['view'] = 'table';
 
         $result = $this->dashboard->getAllKeys();
 
@@ -183,6 +182,7 @@ final class MemcachedTest extends TestCase {
             ],
         ];
 
+        $result = $this->dashboard->keysTableView($result);
         $result = $this->normalizeInfoFields($result, ['bytes_size', 'timediff_last_access']);
 
         $this->assertEquals($this->sortKeys($expected), $this->sortKeys($result));
@@ -198,7 +198,6 @@ final class MemcachedTest extends TestCase {
         $this->memcached->set('pu-test-tree1:sub2', 'value2');
         $this->memcached->set('pu-test-tree2', 'value3');
         $_GET['s'] = 'pu-test-tree';
-        $_GET['view'] = 'tree';
 
         $result = $this->dashboard->getAllKeys();
 
@@ -238,6 +237,7 @@ final class MemcachedTest extends TestCase {
             ],
         ];
 
+        $result = $this->dashboard->keysTreeView($result);
         $result = $this->normalizeInfoFields($result, ['bytes_size', 'timediff_last_access']);
 
         $this->assertEquals($this->sortTreeKeys($expected), $this->sortTreeKeys($result));

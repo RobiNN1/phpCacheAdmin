@@ -10,6 +10,7 @@ namespace RobiNN\Pca\Dashboards\Redis;
 
 use Exception;
 use JsonException;
+use PDO;
 use Predis\Client as Predis;
 use RobiNN\Pca\Config;
 use RobiNN\Pca\Dashboards\DashboardException;
@@ -572,7 +573,7 @@ trait RedisTrait {
      */
     private function slowlog(): string {
         if (!$this->isCommandSupported('SLOWLOG')) {
-            return $this->template->render('components/tabs', ['links' => ['keys' => 'Keys', 'slowlog' => 'Slow Log',],]).
+            return $this->template->render('components/tabs', ['links' => ['keys' => 'Keys', 'slowlog' => 'Slow Log',]]).
                 'Slowlog is disabled on your server.';
         }
 
@@ -600,6 +601,15 @@ trait RedisTrait {
         ]);
     }
 
+    private function metrics(): string {
+        if (!in_array('sqlite', PDO::getAvailableDrivers(), true)) {
+            return $this->template->render('components/tabs', ['links' => ['keys' => 'Keys', 'slowlog' => 'Slow Log',]]).
+                'Metrics are disabled because the PDO SQLite driver is not available. Install the sqlite3 extension for PHP.';
+        }
+
+        return $this->template->render('dashboards/redis/redis');
+    }
+
     /**
      * @throws Exception
      */
@@ -619,6 +629,10 @@ trait RedisTrait {
 
         if (Http::get('tab') === 'slowlog') {
             return $this->slowlog();
+        }
+
+        if (Http::get('tab') === 'metrics') {
+            return $this->metrics();
         }
 
         $keys = $this->getAllKeys();

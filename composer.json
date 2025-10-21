@@ -35,6 +35,7 @@
   "suggest": {
     "ext-apcu": "Required for the APCu dashboard.",
     "ext-redis": "Required for use the Redis dashboard.",
+    "ext-sqlite3": "Required for metrics.",
     "ext-zend-opcache": "Required for use the OPCache dashboard.",
     "ext-zlib": "Required for encoding/decoding with gz* functions.",
     "predis/predis": "Required for use the Redis dashboard, when Redis extension is not installed."

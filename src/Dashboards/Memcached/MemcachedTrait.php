@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace RobiNN\Pca\Dashboards\Memcached;
 
+use PDO;
 use RobiNN\Pca\Config;
 use RobiNN\Pca\Format;
 use RobiNN\Pca\Helpers;
@@ -485,6 +486,19 @@ trait MemcachedTrait {
         return $this->template->render('dashboards/memcached/memcached', ['items' => $items]);
     }
 
+    private function metrics(): string {
+        if (!in_array('sqlite', PDO::getAvailableDrivers(), true)) {
+            return $this->template->render('components/tabs', [
+                    'links' => [
+                        'keys' => 'Keys', 'commands_stats' => 'Commands Stats', 'slabs' => 'Slabs', 'items' => 'Items', 'metrics' => 'Metrics',
+                    ],
+                ]).
+                'Metrics are disabled because the PDO SQLite driver is not available. Install the sqlite3 extension for PHP.';
+        }
+
+        return $this->template->render('dashboards/memcached/memcached');
+    }
+
     /**
      * @throws MemcachedException
      */
@@ -506,6 +520,10 @@ trait MemcachedTrait {
 
         if (Http::get('tab') === 'items') {
             return $this->items();
+        }
+
+        if (Http::get('tab') === 'metrics') {
+            return $this->metrics();
         }
 
         $keys = $this->getAllKeys();

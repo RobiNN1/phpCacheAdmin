@@ -107,12 +107,12 @@ return [
         ],
         /*'gz_magento' => [
             'view' => static function (string $value): ?string {
-                // https://github.com/colinmollenhour/Cm_Cache_Backend_Redis/blob/master/Cm/Cache/Backend/Redis.php (_encodeData method)
-                $value = str_starts_with($value, "gz:\x1f\x8b") ? substr($value, 5);
+                $prefix = ':gz:';
+                $value = str_starts_with($value, $prefix) ? substr($value, strlen($prefix)) : $value;
 
                 return @gzuncompress($value) !== false ? gzuncompress($value) : null;
             },
-            'save' => static fn (string $value): string => "gz:\x1f\x8b".gzcompress($value),
+            'save' => static fn (string $value): string => ':gz:'.gzcompress($value),
         ],*/
     ],
     // Formatting functions, it runs after decoding

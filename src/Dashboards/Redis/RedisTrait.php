@@ -650,7 +650,7 @@ trait RedisTrait {
         $keys = $this->getAllKeys();
 
         if (isset($_GET['export_btn'])) {
-            Helpers::export($keys, 'redis_backup', fn (string $key): string => bin2hex($this->redis->dump($key)));
+            Helpers::export($this->keysTableView($keys), 'redis_backup', fn (string $key): string => bin2hex($this->redis->dump($key)));
         }
 
         $paginator = new Paginator($this->template, $keys);

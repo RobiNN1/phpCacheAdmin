@@ -1,29 +1,21 @@
-{% import 'partials/key_type_badge.twig' as key_badge %}
+{% import 'components/macros.twig' as components %}
 <div class="mb-2 text-lg font-semibold break-all dark:text-gray-300">{{ key }}</div>
 <div class="mb-4 lg:flex lg:items-center lg:gap-2 dark:text-gray-300">
     {% if type %}
-        <span>Type {{ key_badge.key_type(type) }}</span>
+        <span>Type {{ components.key_type(type) }}</span>
     {% endif %}
 
     {% if ttl %}
         <span>
             TTL
-            {{ include('components/badge.twig', {
-                text: ttl == -1 ? 'Doesn\'t expire' : ttl,
-                class: 'uppercase font-bold',
-                bg: 'bg-slate-500 dark:bg-slate-700',
-            }) }}
+             {{ components.badge(ttl == -1 ? 'Doesn\'t expire' : ttl, 'uppercase font-bold', 'bg-slate-500 dark:bg-slate-700') }}
         </span>
     {% endif %}
 
     {% if size %}
         <span>
             Size
-            {{ include('components/badge.twig', {
-                text: size,
-                class: 'font-bold',
-                bg: 'bg-sky-500 dark:bg-sky-700',
-            }) }}
+            {{ components.badge(size, 'font-bold', 'bg-sky-500 dark:bg-sky-700') }}
         </span>
     {% endif %}
 

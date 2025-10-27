@@ -6,7 +6,7 @@
            aria-label=""{{ (disabled is defined and disabled) ? ' disabled' : '' }}>
 {% endmacro %}
 
-{% macro badge(text, class, bg, txt) %}
+{% macro badge(text, class, bg, txt=null) %}
     <span class="inline-block py-1 px-3 rounded-full {{ bg }} text-xs {{ txt ? txt : 'text-white dark:text-gray-100' }}{{ class|space }}">{{ text|raw }}</span>
 {% endmacro %}
 
@@ -27,5 +27,5 @@
         {% set type_color = 'bg-blue-500' %}
     {% endif %}
 
-    {{ _self.badge(type, 'uppercase font-bold', type_color, null) }}
+    {{ _self.badge(type, 'uppercase font-bold', type_color) }}
 {% endmacro %}

@@ -151,6 +151,7 @@ trait RedisTrait {
                 'Free'                => $max_memory > 0 ? Format::bytes($max_memory - $used_memory) : '∞',
                 'Peak memory usage'   => Format::bytes((int) ($memory_info['used_memory_peak'] ?? 0)),
                 'Fragmentation ratio' => $memory_info['mem_fragmentation_ratio'] ?? 'N/A',
+                'Lua memory usage'   => Format::bytes((int) ($memory_info['used_memory_lua'] ?? 0)),
             ],
         ];
     }

@@ -313,7 +313,7 @@ document.querySelectorAll('[data-sortcol]').forEach(element => {
         if (new_sort_dir === 'none') {
             query_params({sortdir: null, sortcol: null});
         } else {
-            query_params({p: null, sortdir: new_sort_dir, sortcol: sort_col});
+            query_params({sortdir: new_sort_dir, sortcol: sort_col});
         }
     });
 });

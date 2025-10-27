@@ -12,6 +12,18 @@ use JsonException;
 
 class Config {
     /**
+     * @var array<string, mixed>|null
+     */
+    private static ?array $config = null;
+
+    /**
+     * This is intended for use in tests.
+     */
+    public static function reset(): void {
+        self::$config = null;
+    }
+
+    /**
      * @template Default
      *
      * @param Default $default
@@ -19,6 +31,10 @@ class Config {
      * @return mixed|Default
      */
     public static function get(string $key, $default = null) {
+        if (self::$config !== null) {
+            return self::$config[$key] ?? $default;
+        }
+
         if (is_file(__DIR__.'/../config.php')) {
             $config = (array) require __DIR__.'/../config.php';
         } elseif (is_file(__DIR__.'/../config.dist.php')) {
@@ -33,7 +49,9 @@ class Config {
             $key = 'encoding';
         }
 
-        return $config[$key] ?? $default;
+        self::$config = $config;
+
+        return self::$config[$key] ?? $default;
     }
 
     /**

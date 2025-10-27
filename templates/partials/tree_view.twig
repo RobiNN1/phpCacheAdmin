@@ -1,5 +1,7 @@
+{% import 'components/macros.twig' as components %}
 {% set show_actions = hide_actions is not defined or hide_actions == false %}
-{% macro render_tree(items, level=0, show_actions, view_key) %}
+
+{% macro render_tree(items, level=0, show_actions, view_key, components) %}
     {% for key, item in items %}
         {% if item.type == 'folder' %}
             <div class="border-t border-gray-200 dark:border-gray-700" style="--level: {{ level }}">
@@ -11,7 +13,7 @@
                     <span class="items-count text-gray-500 dark:text-gray-400 text-xs">({{ item.count }})</span>
                 </div>
                 <div class="tree-children hidden" data-path="{{ item.path }}">
-                    {{ _self.render_tree(item.children, level + 1, show_actions, view_key) }}
+                    {{ _self.render_tree(item.children, level + 1, show_actions, view_key, components) }}
                 </div>
             </div>
         {% else %}
@@ -19,7 +21,7 @@
                 <div data-key="{{ item.base64 ? item.key|base64 : item.key }}" class="flex justify-between px-6 py-1 hover:bg-gray-50 dark:hover:bg-white/5" style="padding-left: calc({{ level }} * 20px + 32px)">
                     <div class="flex items-center gap-2">
                         {% if show_actions %}
-                            {{ include('components/checkbox.twig', {class: 'check-key mt-0'}) }}
+                            {{ components.checkbox('check-key mt-0') }}
                         {% endif %}
 
                         <span class="text-primary-500 hover:text-primary-700 font-semibold dark:text-primary-400 dark:hover:text-primary-300">
@@ -33,8 +35,7 @@
                     <div class="flex gap-4">
                         {% for item_key, kitem in item.info %}
                             {% if item_key == 'type' %}
-                                {% import 'partials/key_type_badge.twig' as key_badge %}
-                                {{- key_badge.key_type(kitem) -}}
+                                {{- components.key_type(kitem) -}}
                             {% elseif item_key starts with 'number_' %}
                                 {{- kitem|number -}}
                             {% elseif item_key starts with 'time_' %}
@@ -62,12 +63,12 @@
 
 <div class="treeview border-b border-t border-gray-200 dark:border-gray-700">
     <div class="flex gap-2 px-6 py-2">
-        <div title="Check all">{{ include('components/checkbox.twig', {disabled: keys|length == 0, class: 'check-all'}) }}</div>
+        <div title="Check all">{{ components.checkbox('check-all', keys|length == 0) }}</div>
         <button class="expand-toggle text-xs px-2 py-1 rounded text-gray-900 bg-gray-100 hover:bg-gray-300 dark:text-gray-100 dark:bg-gray-900 dark:hover:bg-gray-700">
             Expand all
         </button>
     </div>
     <div class="tree-content">
-        {{ _self.render_tree(keys, 0, show_actions, view_key) }}
+        {{ _self.render_tree(keys, 0, show_actions, view_key, components) }}
     </div>
 </div>

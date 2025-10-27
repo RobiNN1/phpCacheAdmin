@@ -13,6 +13,11 @@ use PHPUnit\Framework\TestCase;
 use RobiNN\Pca\Config;
 
 final class ConfigTest extends TestCase {
+    protected function tearDown(): void {
+        parent::tearDown();
+        Config::reset();
+    }
+
     public function testGetter(): void {
         $this->assertTrue(Config::get('true', true));
         $this->assertSame([], Config::get('array', []));
@@ -47,6 +52,8 @@ final class ConfigTest extends TestCase {
     public function testEnvOverride(): void {
         // default in config
         $this->assertSame('d. m. Y H:i:s', Config::get('time-format', ''));
+
+        Config::reset();
 
         putenv('PCA_TIME-FORMAT=d. m. Y');
 

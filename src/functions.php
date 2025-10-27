@@ -54,7 +54,7 @@ function autoload(string $path): void {
     });
 }
 
-if (!extension_loaded('xdebug')) {
+if (!extension_loaded('xdebug') && php_sapi_name() !== 'cli') {
     set_error_handler(static function (int $errno, string $errstr, string $errfile, int $errline): bool {
         if ((error_reporting() & $errno) === 0) {
             return false;

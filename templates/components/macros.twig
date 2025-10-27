@@ -1,0 +1,31 @@
+{% macro checkbox(class, disabled, id) %}
+    <input type="checkbox"{{ (id ? ' id="' ~ id ~ '" name="' ~ id ~ '"' : '')|raw }}
+           class="checkbox text-primary-500 -mt-1.5 h-4 w-4 select-none appearance-none rounded border border-gray-300 bg-white align-middle
+       checked:border-primary-200 checked:bg-primary-500 focus:outline-hidden focus:ring-3 focus:ring-primary-200 focus:border-primary-300
+       dark:bg-gray-900 dark:border-gray-600 dark:checked:bg-primary-500 dark:checked:border-primary-800 dark:focus:ring-primary-400 dark:focus:border-primary-500{{ class|space }}"
+           aria-label=""{{ (disabled is defined and disabled) ? ' disabled' : '' }}>
+{% endmacro %}
+
+{% macro badge(text, class, bg, txt) %}
+    <span class="inline-block py-1 px-3 rounded-full {{ bg }} text-xs {{ txt ? txt : 'text-white dark:text-gray-100' }}{{ class|space }}">{{ text|raw }}</span>
+{% endmacro %}
+
+{% macro key_type(type) %}
+    {% if type == 'string' %}
+        {% set type_color = 'bg-green-500' %}
+    {% elseif type == 'set' %}
+        {% set type_color = 'bg-sky-500' %}
+    {% elseif type == 'list' %}
+        {% set type_color = 'bg-orange-500' %}
+    {% elseif type == 'zset' %}
+        {% set type_color = 'bg-red-500' %}
+    {% elseif type == 'hash' %}
+        {% set type_color = 'bg-purple-500' %}
+    {% elseif type == 'stream' %}
+        {% set type_color = 'bg-slate-500' %}
+    {% else %}
+        {% set type_color = 'bg-blue-500' %}
+    {% endif %}
+
+    {{ _self.badge(type, 'uppercase font-bold', type_color, null) }}
+{% endmacro %}

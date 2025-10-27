@@ -421,7 +421,7 @@ trait RedisTrait {
             $keys_array = $this->redis->keys($filter);
         }
 
-        return array_map(static fn ($key): array => ['key' => $key], $keys_array);
+        return $keys_array;
     }
 
     public function isCommandSupported(string $command): bool {
@@ -438,14 +438,27 @@ trait RedisTrait {
     /**
      * @param array<int|string, mixed> $keys
      *
+     * @return array<int|string, mixed>
+     *
+     * @throws Exception
+     */
+    private function pipeline(array $keys): array {
+        $keys = array_map(static fn ($key): array => ['key' => $key], $keys);
+        $keys_array = array_column($keys, 'key');
+
+        return $this->redis->pipelineKeys($keys_array);
+    }
+
+    /**
+     * @param array<int|string, mixed> $keys_array
+     *
      * @return array<int, array<string, string|int>>
      *
      * @throws Exception
      */
-    public function keysTableView(array $keys): array {
+    public function keysTableView(array $keys_array): array {
+        $pipeline = $this->pipeline($keys_array);
         $formatted_keys = [];
-        $keys_array = array_column($keys, 'key');
-        $pipeline = $this->redis->pipelineKeys($keys_array);
 
         foreach ($keys_array as $key) {
             $formatted_keys[] = [
@@ -464,15 +477,14 @@ trait RedisTrait {
     }
 
     /**
-     * @param array<int|string, mixed> $keys
+     * @param array<int|string, mixed> $keys_array
      *
      * @return array<int, array<string, string|int>>
      *
      * @throws Exception
      */
-    public function keysTreeView(array $keys): array {
-        $keys_array = array_column($keys, 'key');
-        $pipeline = $this->redis->pipelineKeys($keys_array);
+    public function keysTreeView(array $keys_array): array {
+        $pipeline = $this->pipeline($keys_array);
         $separator = $this->servers[$this->current_server]['separator'] ?? ':';
         $this->template->addGlobal('separator', $separator);
 

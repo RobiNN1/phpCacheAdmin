@@ -21,8 +21,8 @@ readonly class Paginator {
     private int $per_page;
 
     /**
-     * @param array<int, array<string, int|string>> $items
-     * @param array<int, array<int|string, string>> $url
+     * @param array<int, string|array<string, int|string>> $items
+     * @param array<int, array<int|string, string>>        $url
      */
     public function __construct(
         private Template $template,

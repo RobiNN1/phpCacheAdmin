@@ -204,7 +204,7 @@ trait MemcachedTrait {
     }
 
     /**
-     * @return array<int, array<string, string|int>>
+     * @return array<int, string>
      *
      * @throws MemcachedException
      */
@@ -212,43 +212,43 @@ trait MemcachedTrait {
         $search = Http::get('s', '');
         $this->template->addGlobal('search_value', $search);
 
-        $all_keys = $this->memcached->getKeys();
-        $keys = [];
-        $time = time();
+        $all_key_lines = $this->memcached->getKeys();
 
-        foreach ($all_keys as $key_data) {
-            $key_data = $this->memcached->parseLine($key_data);
-            $ttl = $key_data['exp'] ?? null;
+        if ($search === '') {
+            return $all_key_lines;
+        }
 
-            if (stripos($key_data['key'], $search) !== false) {
-                $keys[] = [
-                    'key'  => $key_data['key'],
-                    'size' => $key_data['size'],
-                    'la'   => $key_data['la'] ?? 0,
-                    'ttl'  => $ttl === -1 ? 'Doesn\'t expire' : $ttl - $time,
-                ];
+        $filtered_lines = [];
+        foreach ($all_key_lines as $line) {
+            if (preg_match('/key=(\S+)/', $line, $match) && stripos($match[1], $search) !== false) {
+                $filtered_lines[] = $line;
             }
         }
 
-        return $keys;
+        return $filtered_lines;
     }
 
     /**
-     * @param array<int|string, mixed> $keys
+     * @param array<int, string> $raw_lines
      *
-     * @return array<int, array<string, string|int>>
+     * @return array<int, array<string, mixed>>
      */
-    public function keysTableView(array $keys): array {
+    public function keysTableView(array $raw_lines): array {
         $formatted_keys = [];
+        $time = time();
 
-        foreach ($keys as $key_data) {
+        foreach ($raw_lines as $line) {
+            $key_data = $this->memcached->parseLine($line);
+            $ttl = $key_data['exp'] ?? null;
+            $ttl_display = $ttl === -1 ? 'Doesn\'t expire' : $ttl - $time;
+
             $formatted_keys[] = [
                 'key'  => $key_data['key'],
                 'info' => [
                     'link_title'           => urldecode($key_data['key']),
-                    'bytes_size'           => $key_data['size'],
-                    'timediff_last_access' => $key_data['la'] !== 0 ? $key_data['la'] : null,
-                    'ttl'                  => $key_data['ttl'],
+                    'bytes_size'           => $key_data['size'] ?? 0,
+                    'timediff_last_access' => $key_data['la'] ?? 0,
+                    'ttl'                  => $ttl_display,
                 ],
             ];
         }
@@ -257,13 +257,12 @@ trait MemcachedTrait {
     }
 
     /**
-     * @param array<int|string, mixed> $keys
+     * @param array<int, string> $raw_lines
      *
-     * @return array<int, array<string, string|int>>
-     *
+     * @return array<string, mixed>
      * @throws MemcachedException
      */
-    public function keysTreeView(array $keys): array {
+    public function keysTreeView(array $raw_lines): array {
         $separator = $this->servers[$this->current_server]['separator'] ?? ':';
 
         if (version_compare($this->memcached->version(), '1.5.19', '>=')) {
@@ -272,9 +271,20 @@ trait MemcachedTrait {
 
         $this->template->addGlobal('separator', urldecode($separator));
 
+        $time = time();
+
         $tree = [];
 
-        foreach ($keys as $key_data) {
+        foreach ($raw_lines as $line) {
+            $key_data = $this->memcached->parseLine($line);
+
+            if (!isset($key_data['key'])) {
+                continue;
+            }
+
+            $ttl = $key_data['exp'] ?? null;
+            $ttl_display = $ttl === -1 ? 'Doesn\'t expire' : $ttl - $time;
+
             $parts = explode($separator, $key_data['key']);
 
             /** @var array<int|string, mixed> $current */
@@ -290,9 +300,9 @@ trait MemcachedTrait {
                         'name' => urldecode($part),
                         'key'  => $key_data['key'],
                         'info' => [
-                            'bytes_size'           => $key_data['size'],
-                            'timediff_last_access' => $key_data['la'] !== 0 ? $key_data['la'] : null,
-                            'ttl'                  => $key_data['ttl'],
+                            'bytes_size'           => $key_data['size'] ?? 0,
+                            'timediff_last_access' => $key_data['la'] ?? 0,
+                            'ttl'                  => $ttl_display,
                         ],
                     ];
                 } else {
@@ -322,7 +332,7 @@ trait MemcachedTrait {
      * @return array<int|string, mixed>
      */
     private function commandsStatsData(array $info): array {
-        $rate = (static fn (int $hits, int $total): float => $hits !== 0 ? round(($hits / $total) * 100, 2) : 0);
+        $rate = (static fn (int $hits, int $total): float => $hits !== 0 && $total !== 0 ? round(($hits / $total) * 100, 2) : 0);
 
         $get_hit_rate = $rate($info['get_hits'], $info['cmd_get']);
         $delete_hit_rate = $rate($info['delete_hits'], $info['delete_hits'] + $info['delete_misses']);
@@ -526,23 +536,34 @@ trait MemcachedTrait {
             return $this->metrics();
         }
 
-        $keys = $this->getAllKeys();
+        $raw_key_lines = $this->getAllKeys();
 
         if (isset($_GET['export_btn'])) {
-            Helpers::export($keys, 'memcached_backup', function (string $key): ?string {
+            $keys_to_export = [];
+            foreach ($raw_key_lines as $line) {
+                $key_data = $this->memcached->parseLine($line);
+                if (isset($key_data['key'])) {
+                    $keys_to_export[] = [
+                        'key' => $key_data['key'],
+                        'ttl' => ($key_data['exp'] ?? -1) === -1 ? -1 : ($key_data['exp'] - time()),
+                    ];
+                }
+            }
+
+            Helpers::export($keys_to_export, 'memcached_backup', function (string $key): ?string {
                 $value = $this->memcached->getKey(urldecode($key));
 
                 return $value !== false ? base64_encode($value) : null;
             });
         }
 
-        $paginator = new Paginator($this->template, $keys);
-        $paginated_keys = $paginator->getPaginated();
+        $paginator = new Paginator($this->template, $raw_key_lines);
+        $paginated_raw_lines = $paginator->getPaginated();
 
         if (Http::get('view', Config::get('list-view', 'table')) === 'tree') {
-            $keys_to_display = $this->keysTreeView($paginated_keys);
+            $keys_to_display = $this->keysTreeView($paginated_raw_lines);
         } else {
-            $keys_to_display = $this->keysTableView($paginated_keys);
+            $keys_to_display = $this->keysTableView($paginated_raw_lines);
         }
 
         return $this->template->render('dashboards/memcached/memcached', [

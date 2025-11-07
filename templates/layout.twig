@@ -4,9 +4,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ site_title }} - phpCacheAdmin</title>
-    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ config('pcapath', '') }}assets/favicon.png">
     <meta name="theme-color" content="#ffffff">
-    <link rel="stylesheet" href="assets/css/styles.css?v={{ version }}">
+    <link rel="stylesheet" href="{{ config('pcapath', '') }}assets/css/styles.css?v={{ version }}">
 
     {%- if colors -%}
         <style>
@@ -97,6 +97,6 @@
     </div>
 </footer>
 {{ modals|raw }}
-<script src="assets/js/scripts.js?v={{ version }}"></script>
+<script src="{{ config('pcapath', '') }}assets/js/scripts.js?v={{ version }}"></script>
 </body>
 </html>

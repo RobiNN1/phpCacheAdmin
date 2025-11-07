@@ -16,11 +16,19 @@ class Config {
      */
     private static ?array $config = null;
 
+    private static ?string $config_path = null;
+
+    public static function setConfigPath(string $path): void {
+        self::$config_path = $path;
+        self::$config = null;
+    }
+
     /**
      * This is intended for use in tests.
      */
     public static function reset(): void {
         self::$config = null;
+        self::$config_path = null;
     }
 
     /**
@@ -35,7 +43,9 @@ class Config {
             return self::$config[$key] ?? $default;
         }
 
-        if (is_file(__DIR__.'/../config.php')) {
+        if (self::$config_path !== null && is_file(self::$config_path)) {
+            $config = (array) require self::$config_path;
+        } elseif (is_file(__DIR__.'/../config.php')) {
             $config = (array) require __DIR__.'/../config.php';
         } elseif (is_file(__DIR__.'/../config.dist.php')) {
             $config = (array) require __DIR__.'/../config.dist.php';

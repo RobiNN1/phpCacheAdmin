@@ -33,7 +33,8 @@ readonly class RedisMetrics {
     ) {
         $server_name = Helpers::getServerTitle($servers[$selected]);
         $hash = md5($server_name.Config::get('hash', 'pca'));
-        $db = __DIR__.'/../../../tmp/redis_metrics_'.$hash.'.db';
+        $tmp = Config::get('tmpdir', __DIR__.'/../../../tmp');
+        $db = $tmp.'/redis_metrics_'.$hash.'.db';
 
         $this->pdo = new PDO('sqlite:'.$db);
         $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);

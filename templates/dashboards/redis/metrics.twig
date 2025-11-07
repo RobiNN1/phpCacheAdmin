@@ -27,7 +27,7 @@
     </div>
 </div>
 
-<script src="assets/js/echarts.min.js"></script>
+<script src="{{ config('pcapath', '') }}assets/js/echarts.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const initial_theme = document.documentElement.classList.contains('dark') ? 'dark' : null;

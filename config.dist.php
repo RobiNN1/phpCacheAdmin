@@ -140,4 +140,6 @@ return [
     'metricsrefresh' => 60, // In seconds, refresh interval for metrics - default 60
     'metricstab'     => 1440, // Default tab in metrics, 60 - Last hour, 1440 - Last day, 10080 - Last week, 43200 - Last month - default 1440
     'hash'           => 'pca', // Any random string to secure metrics DB file
+    'tmpdir'         => __DIR__.'/tmp',
+    //'pcapath'        => 'vendor/robinn/phpcacheadmin/', // Path to the package when installed via composer. User for assets.
 ];

@@ -13,15 +13,19 @@ use RobiNN\Pca\Dashboards\DashboardInterface;
 class Admin {
     public const VERSION = '2.3.1';
 
+    private readonly Template $template;
+
     /**
      * @var array<string, DashboardInterface>
      */
     private array $dashboards = [];
 
-    public function __construct(private readonly Template $template) {
+    public function __construct() {
+        $this->template = new Template();
+
         foreach (Config::get('dashboards', []) as $class) {
             if (is_subclass_of($class, DashboardInterface::class) && $class::check()) {
-                $dashboard = new $class($template);
+                $dashboard = new $class($this->template);
                 $info = $dashboard->dashboardInfo();
                 $this->dashboards[$info['key']] = $dashboard;
             }

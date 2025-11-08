@@ -147,7 +147,7 @@ class PredisCluster extends PredisClient implements RedisCompatibilityInterface 
             return $unique[0];
         }
 
-        $numeric = array_filter($values, 'is_numeric');
+        $numeric = array_filter($values, is_numeric(...));
 
         if ($combine && in_array($key, $combine, true) && count($numeric) === count($values)) {
             return array_sum($values);

@@ -18,7 +18,7 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase {
      */
     public function deleteKeysHelper(Template $template, array|string $keys, callable $delete_key, bool $base64 = false): void {
         if ($base64) {
-            $keys_b64 = is_array($keys) ? array_map(static fn (string $key): string => base64_encode($key), $keys) : base64_encode($keys);
+            $keys_b64 = is_array($keys) ? array_map(base64_encode(...), $keys) : base64_encode($keys);
         }
 
         try {

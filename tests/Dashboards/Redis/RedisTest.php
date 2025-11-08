@@ -8,6 +8,6 @@ declare(strict_types=1);
 
 namespace Tests\Dashboards\Redis;
 
-class RedisTest extends RedisTestCase {
+final class RedisTest extends RedisTestCase {
     protected string $client = 'redis';
 }

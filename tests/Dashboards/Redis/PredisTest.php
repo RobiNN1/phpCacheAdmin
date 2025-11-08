@@ -10,7 +10,7 @@ namespace Tests\Dashboards\Redis;
 
 use Predis\Client;
 
-class PredisTest extends RedisTestCase {
+final class PredisTest extends RedisTestCase {
     public static function setUpBeforeClass(): void {
         parent::setUpBeforeClass();
 

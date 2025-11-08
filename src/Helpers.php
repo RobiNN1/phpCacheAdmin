@@ -187,7 +187,7 @@ class Helpers {
             return '';
         }
 
-        $options = array_map(static fn (array $server): string => self::getServerTitle($server), $servers);
+        $options = array_map(self::getServerTitle(...), $servers);
 
         return $template->render('components/select', [
             'id'            => 'server_select',

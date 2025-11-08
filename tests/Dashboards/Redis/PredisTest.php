@@ -11,6 +11,8 @@ namespace Tests\Dashboards\Redis;
 use Predis\Client;
 
 final class PredisTest extends RedisTestCase {
+    protected string $client = 'predis';
+
     public static function setUpBeforeClass(): void {
         parent::setUpBeforeClass();
 
@@ -18,6 +20,4 @@ final class PredisTest extends RedisTestCase {
             self::markTestSkipped('Predis is not installed. Skipping tests.');
         }
     }
-
-    protected string $client = 'predis';
 }

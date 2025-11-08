@@ -351,6 +351,8 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
 
     /**
      * @return array<int, string>
+     *
+     * @throws RedisClusterException
      */
     public function getCommands(): array {
         $commands = $this->rawcommand($this->nodes[0], 'COMMAND');

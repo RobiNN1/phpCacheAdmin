@@ -234,28 +234,39 @@ document.addEventListener('DOMContentLoaded', function () {
  * JSON syntax highlighter
  */
 const json_syntax_highlight = (json) => {
+    if (typeof json !== 'string') {
+        json = JSON.stringify(json, null, 2);
+    }
+
+    json = json.replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+
     return json.replace(
-        /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?|[[\]{}:,s])/g,
+        /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?|[{}\[\],:])/g,
         match => {
-            if (match.startsWith("\"")) {
-                if (/"(\w+)":/.test(match)) {
-                    return `<span class="json-key">${match.replace('":', '"')}</span><span class="json-colon">:</span>`;
+            let cls = '';
+            if (/^"/.test(match)) {
+                if (/:$/.test(match)) {
+                    cls = 'json-key';
                 } else {
-                    return `<span class="json-string">${match}</span>`;
+                    cls = 'json-string';
                 }
-            } else if (/[[\]{}]/.test(match)) {
-                return `<span class="json-bracket">${match}</span>`;
             } else if (/true|false/.test(match)) {
-                return `<span class="json-boolean">${match}</span>`;
+                cls = 'json-boolean';
             } else if (/null/.test(match)) {
-                return `<span class="json-null">${match}</span>`;
+                cls = 'json-null';
             } else if (/^-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?$/.test(match)) {
-                return `<span class="json-number">${match}</span>`;
+                cls = 'json-number';
+            } else if (/[\[\]{}]/.test(match)) {
+                cls = 'json-bracket';
             } else if (match === ',') {
-                return `<span class="json-comma">${match}</span>`;
-            } else {
-                return match;
+                cls = 'json-comma';
+            } else if (match === ':') {
+                cls = 'json-colon';
             }
+
+            return cls ? `<span class="${cls}">${match}</span>` : match;
         }
     );
 };

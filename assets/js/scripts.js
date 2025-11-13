@@ -231,51 +231,6 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 /**
- * JSON syntax highlighter
- */
-const json_syntax_highlight = (json) => {
-    if (typeof json !== 'string') {
-        json = JSON.stringify(json, null, 2);
-    }
-
-    json = json.replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;');
-
-    return json.replace(
-        /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?|[{}\[\],:])/g,
-        match => {
-            let cls = '';
-            if (/^"/.test(match)) {
-                if (/:$/.test(match)) {
-                    cls = 'json-key';
-                } else {
-                    cls = 'json-string';
-                }
-            } else if (/true|false/.test(match)) {
-                cls = 'json-boolean';
-            } else if (/null/.test(match)) {
-                cls = 'json-null';
-            } else if (/^-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?$/.test(match)) {
-                cls = 'json-number';
-            } else if (/[\[\]{}]/.test(match)) {
-                cls = 'json-bracket';
-            } else if (match === ',') {
-                cls = 'json-comma';
-            } else if (match === ':') {
-                cls = 'json-colon';
-            }
-
-            return cls ? `<span class="${cls}">${match}</span>` : match;
-        }
-    );
-};
-
-document.querySelectorAll('.json-code').forEach(value => {
-    value.innerHTML = json_syntax_highlight(value.textContent);
-});
-
-/**
  * Redirects
  */
 select_and_redirect('per_page', 'pp');

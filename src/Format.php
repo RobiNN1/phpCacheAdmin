@@ -92,7 +92,7 @@ class Format {
             return 'Never';
         }
 
-        $format = Config::get('time-format', 'd. m. Y H:i:s');
+        $format = Config::get('timeformat', 'd. m. Y H:i:s');
 
         try {
             return (new DateTimeImmutable('@'.$time))
@@ -131,8 +131,8 @@ class Format {
         return number_format(
             $number,
             $decimals,
-            Config::get('decimal-sep', ','),
-            Config::get('thousands-sep', ' ')
+            Config::get('decimalsep', ','),
+            Config::get('thousandssep', ' ')
         );
     }
 }

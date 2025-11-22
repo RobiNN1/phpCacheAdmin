@@ -560,7 +560,7 @@ trait MemcachedTrait {
         $paginator = new Paginator($this->template, $raw_key_lines);
         $paginated_raw_lines = $paginator->getPaginated();
 
-        if (Http::get('view', Config::get('list-view', 'table')) === 'tree') {
+        if (Http::get('view', Config::get('listview', 'table')) === 'tree') {
             $keys_to_display = $this->keysTreeView($paginated_raw_lines);
         } else {
             $keys_to_display = $this->keysTableView($paginated_raw_lines);

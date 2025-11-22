@@ -51,8 +51,8 @@ class Template {
         $loader = new FilesystemLoader(__DIR__.'/../templates');
         $tmp = Config::get('tmpdir', __DIR__.'/../tmp');
         $twig = new Environment($loader, [
-            'cache' => Config::get('twig-cache', $tmp.'/twig'),
-            'debug' => Config::get('twig-debug', false),
+            'cache' => Config::get('twigcache', $tmp.'/twig'),
+            'debug' => Config::get('twigdebug', false),
         ]);
 
         foreach ($this->paths as $namespace => $path) {
@@ -65,7 +65,7 @@ class Template {
             }
         }
 
-        if (Config::get('twig-debug', false)) {
+        if (Config::get('twigdebug', false)) {
             $twig->addExtension(new DebugExtension());
         }
 

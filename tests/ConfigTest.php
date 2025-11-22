@@ -22,7 +22,7 @@ final class ConfigTest extends TestCase {
         $this->assertTrue(Config::get('true', true));
         $this->assertSame([], Config::get('array', []));
         $this->assertSame(88, Config::get('int', 88));
-        $this->assertSame('d. m. Y H:i:s', Config::get('time-format', ''));
+        $this->assertSame('d. m. Y H:i:s', Config::get('timeformat', ''));
     }
 
     /**
@@ -51,12 +51,12 @@ final class ConfigTest extends TestCase {
 
     public function testEnvOverride(): void {
         // default in config
-        $this->assertSame('d. m. Y H:i:s', Config::get('time-format', ''));
+        $this->assertSame('d. m. Y H:i:s', Config::get('timeformat', ''));
 
         Config::reset();
 
-        putenv('PCA_TIME-FORMAT=d. m. Y');
+        putenv('PCA_TIMEFORMAT=d. m. Y');
 
-        $this->assertSame('d. m. Y', Config::get('time-format', ''));
+        $this->assertSame('d. m. Y', Config::get('timeformat', ''));
     }
 }

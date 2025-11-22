@@ -314,7 +314,7 @@ trait APCuTrait {
         $paginator = new Paginator($this->template, $keys);
         $paginated_keys = $paginator->getPaginated();
 
-        if (Http::get('view', Config::get('list-view', 'table')) === 'tree') {
+        if (Http::get('view', Config::get('listview', 'table')) === 'tree') {
             $keys_to_display = $this->keysTreeView($paginated_keys);
         } else {
             $keys_to_display = $this->keysTableView($paginated_keys);

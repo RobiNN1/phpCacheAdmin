@@ -68,10 +68,9 @@ class Config {
      * Get config from ENV.
      *
      * All keys from the config file are supported ENV variables, they just must start with PCA_ prefix.
-     * Since keys with underscores are converted to an array, use a dash to create a space (-).
      *
      * E.g.
-     * PCA_TIME-FORMAT
+     * PCA_TIMEFORMAT
      * PCA_REDIS_1_HOST = 1 is server id
      * PCA_MEMCACHED_0_HOST ...
      *

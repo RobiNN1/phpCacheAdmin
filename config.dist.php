@@ -67,24 +67,34 @@ return [
         $username = 'admin';
         $password = 'pass';
 
+        if (isset($_GET['logout'])) {
+            setcookie('auth_reset', '1', time() + 60, '/');
+
+            $clean_uri = strtok($_SERVER['REQUEST_URI'], '?');
+            $is_https = (
+                (isset($_SERVER['HTTPS']) && ($_SERVER['HTTPS'] === 'on' || $_SERVER['HTTPS'] === 1)) ||
+                (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https')
+            );
+
+            header('Location: http'.($is_https ? 's' : '').'://'.$_SERVER['HTTP_HOST'].$clean_uri);
+            exit;
+        }
+
+        if (isset($_COOKIE['auth_reset'])) {
+            setcookie('auth_reset', '', time() - 3600, '/');
+
+            header('WWW-Authenticate: Basic realm="phpCacheAdmin Login"');
+            header('HTTP/1.0 401 Unauthorized');
+            exit('You have been logged out.');
+        }
+
         if (
             !isset($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']) ||
             $_SERVER['PHP_AUTH_USER'] !== $username || $_SERVER['PHP_AUTH_PW'] !== $password
         ) {
             header('WWW-Authenticate: Basic realm="phpCacheAdmin Login"');
             header('HTTP/1.0 401 Unauthorized');
-
             exit('Incorrect username or password!');
-        }
-
-        // Use this section for the logout. It will display a link in the sidebar.
-        if (isset($_GET['logout'])) {
-            $is_https = (
-                (isset($_SERVER['HTTPS']) && ($_SERVER['HTTPS'] === 'on' || $_SERVER['HTTPS'] === 1)) ||
-                (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https')
-            );
-
-            header('Location: http'.($is_https ? 's' : '').'://reset:reset@'.($_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI']));
         }
     },*/
     // Decoding / Encoding functions
@@ -132,14 +142,15 @@ return [
     ],
     // Customizations
     //'timezone'       => 'Europe/Bratislava', // Leave empty (or commented out) to get it automatically obtained.
-    'time-format'    => 'd. m. Y H:i:s',
-    'decimal-sep'    => ',',
-    'thousands-sep'  => ' ',
-    'list-view'      => 'table', // table/tree - default key list view
+    'timeformat'     => 'd. m. Y H:i:s',
+    'decimalsep'     => ',',
+    'thousandssep'   => ' ',
+    'listview'       => 'table', // table/tree - default key list view
     'panelrefresh'   => 30, // In seconds, refresh interval for panels - default 30
     'metricsrefresh' => 60, // In seconds, refresh interval for metrics - default 60
     'metricstab'     => 1440, // Default tab in metrics, 60 - Last hour, 1440 - Last day, 10080 - Last week, 43200 - Last month - default 1440
     'hash'           => 'pca', // Any random string to secure metrics DB file
     'tmpdir'         => __DIR__.'/tmp',
     //'pcapath'        => 'vendor/robinn/phpcacheadmin/', // Path to the package when installed via composer. User for assets.
+    //'url'            => '/', // URL to the package, e.g., /phpcacheadmin
 ];

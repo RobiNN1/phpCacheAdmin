@@ -244,7 +244,7 @@ trait APCuTrait {
      * @return array<int, array<string, string|int>>
      */
     public function keysTreeView(array $keys): array {
-        $separator = Config::get('apcu-separator', ':');
+        $separator = Config::get('apcuseparator', ':');
         $this->template->addGlobal('separator', $separator);
 
         $tree = [];

@@ -61,7 +61,7 @@ return [
             //'separator' => ':', // Separator for tree view (optional)
         ],
     ],
-    //'apcu-separator' => ':', // Separator for tree view (optional)
+    //'apcuseparator' => ':', // Separator for tree view (optional)
     // Example of authentication with http auth.
     /*'auth'           => static function (): void {
         $username = 'admin';

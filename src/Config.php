@@ -99,14 +99,19 @@ class Config {
         $var = substr($var, 4);
         $keys = array_map(strtolower(...), explode('_', $var));
 
+        $current = &$array;
+
         foreach ($keys as $i => $key) {
             if (count($keys) === 1) {
                 break;
             }
 
-            unset($keys[$i]);
-
-            $array = &$array[$key];
+            if (isset($current[$key]) && is_array($current[$key])) {
+                $current = &$current[$key];
+                unset($keys[$i]);
+            } else {
+                break;
+            }
         }
 
         if (json_validate($value)) {
@@ -117,7 +122,7 @@ class Config {
             }
         }
 
-        $array[array_shift($keys)] = $value;
+        $current[implode('_', $keys)] = $value;
     }
 
     /**

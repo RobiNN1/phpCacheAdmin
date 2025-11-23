@@ -59,4 +59,28 @@ final class ConfigTest extends TestCase {
 
         $this->assertSame('d. m. Y', Config::get('timeformat', ''));
     }
+
+    public function testEnvNested(): void {
+        putenv('PCA_REDIS_0_HOST=127.0.0.1');
+        putenv('PCA_REDIS_0_PORT=6379');
+
+        $redis_config = Config::get('redis', []);
+
+        $this->assertSame('127.0.0.1', $redis_config[0]['host'] ?? null);
+        $this->assertSame(6379, $redis_config[0]['port'] ?? null);
+    }
+
+    public function testEnvCollisionWithScalar(): void {
+        putenv('PCA_TIMEFORMAT=d. m. Y H:i:s');
+        putenv('PCA_TIMEFORMAT_EXTRA=test');
+
+        $this->assertSame('d. m. Y H:i:s', Config::get('timeformat', ''));
+        $this->assertSame('test', Config::get('timeformat_extra'));
+    }
+
+    public function testEnvSnakeCase(): void {
+        putenv('PCA_SOME_SNAKE_CASE_KEY=value');
+
+        $this->assertSame('value', Config::get('some_snake_case_key'));
+    }
 }

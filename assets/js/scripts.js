@@ -253,13 +253,6 @@ if (search_form) {
             submit_search.click();
         }
     });
-
-    document.addEventListener('keydown', e => {
-        if (e.key === '/') {
-            e.preventDefault();
-            search_key.focus();
-        }
-    });
 }
 
 /**

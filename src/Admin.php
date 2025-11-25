@@ -11,7 +11,7 @@ namespace RobiNN\Pca;
 use RobiNN\Pca\Dashboards\DashboardInterface;
 
 class Admin {
-    public const VERSION = '2.3.4';
+    public const VERSION = '2.3.5';
 
     private readonly Template $template;
 

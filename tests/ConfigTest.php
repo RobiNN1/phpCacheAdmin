@@ -63,11 +63,16 @@ final class ConfigTest extends TestCase {
     public function testEnvNested(): void {
         putenv('PCA_REDIS_0_HOST=127.0.0.1');
         putenv('PCA_REDIS_0_PORT=6379');
+        putenv('PCA_REDIS_2_HOST=localhost');
+        putenv('PCA_REDIS_2_PORT=6380');
 
         $redis_config = Config::get('redis', []);
 
         $this->assertSame('127.0.0.1', $redis_config[0]['host'] ?? null);
         $this->assertSame(6379, $redis_config[0]['port'] ?? null);
+
+        $this->assertSame('localhost', $redis_config[2]['host'] ?? null);
+        $this->assertSame(6380, $redis_config[2]['port'] ?? null);
     }
 
     public function testEnvCollisionWithScalar(): void {

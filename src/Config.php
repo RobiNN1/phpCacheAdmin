@@ -96,23 +96,7 @@ class Config {
      * @param array<string, mixed> $array
      */
     private static function envVarToArray(array &$array, string $var, string $value): void {
-        $var = substr($var, 4);
-        $keys = array_map(strtolower(...), explode('_', $var));
-
-        $current = &$array;
-
-        foreach ($keys as $i => $key) {
-            if (count($keys) === 1) {
-                break;
-            }
-
-            if (isset($current[$key]) && is_array($current[$key])) {
-                $current = &$current[$key];
-                unset($keys[$i]);
-            } else {
-                break;
-            }
-        }
+        $lower_var = strtolower(substr($var, 4));
 
         if (json_validate($value)) {
             try {
@@ -122,7 +106,25 @@ class Config {
             }
         }
 
-        $current[implode('_', $keys)] = $value;
+        // Redis and Memcached variables: PCA_REDIS_1_HOST $config['redis'][1]['host']
+        if (str_starts_with($lower_var, 'redis') || str_starts_with($lower_var, 'memcached')) {
+            $keys = explode('_', $lower_var);
+            $final_key = array_pop($keys);
+
+            $current = &$array;
+
+            foreach ($keys as $key) {
+                if (!isset($current[$key]) || !is_array($current[$key])) {
+                    $current[$key] = [];
+                }
+                $current = &$current[$key];
+            }
+
+            $current[$final_key] = $value;
+        } else {
+            // All other variables: PCA_AUTH_PASSWORD $config['auth_password']
+            $array[$lower_var] = $value;
+        }
     }
 
     /**

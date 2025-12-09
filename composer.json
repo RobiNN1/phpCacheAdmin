@@ -45,15 +45,15 @@
   "autoload": {
     "psr-4": {
       "RobiNN\\Pca\\": "src/"
-    }
-  },
-  "autoload-dev": {
-    "psr-4": {
-      "Tests\\": "tests/"
     },
     "files": [
       "src/functions.php"
     ]
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Tests\\": "tests/"
+    }
   },
   "scripts": {
     "phar:predis": "phar-composer build predis/predis",

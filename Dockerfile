@@ -1,5 +1,5 @@
 # Build stage
-FROM php:8.4-cli-alpine AS builder
+FROM php:8.5-cli-alpine AS builder
 
 RUN apk add --no-cache --virtual .build-deps autoconf build-base git \
     && pecl install -o -f redis \

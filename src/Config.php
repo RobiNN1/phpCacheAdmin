@@ -117,6 +117,7 @@ class Config {
                 if (!isset($current[$key]) || !is_array($current[$key])) {
                     $current[$key] = [];
                 }
+
                 $current = &$current[$key];
             }
 

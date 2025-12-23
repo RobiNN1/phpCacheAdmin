@@ -1,3 +1,4 @@
+{% import 'components/macros.twig' as components %}
 <div class="md:grid md:grid-cols-2 md:gap-4">
     {% for panel in panels %}
         {{ include('partials/info_table.twig', {
@@ -18,12 +19,7 @@
 <div>
     {% for extension in extensions %}
         <a href="{{ link([''], {'moreinfo': 1}) ~ '#module_' ~ extension|replace({' ': '+'})|lower }}">
-            {{ include('components/badge.twig', {
-                text: extension,
-                txt: 'font-semibold',
-                bg: 'bg-slate-200 dark:bg-slate-700',
-                class: 'm-1',
-            }) }}
+            {{ components.badge(extension, 'blue', 'm-1') }}
         </a>
     {% endfor %}
 </div>

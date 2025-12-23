@@ -6,26 +6,20 @@
     {% endif %}
 
     {% if ttl %}
-        <span>
-            TTL
-             {{ components.badge(ttl == -1 ? 'Doesn\'t expire' : ttl, 'uppercase font-bold', 'bg-slate-500 dark:bg-slate-700') }}
-        </span>
+        <span>TTL {{ components.badge(ttl == -1 ? 'Doesn\'t expire' : ttl, 'indigo', 'uppercase') }}</span>
     {% endif %}
 
     {% if size %}
-        <span>
-            Size
-            {{ components.badge(size, 'font-bold', 'bg-sky-500 dark:bg-sky-700') }}
-        </span>
+        <span>Size {{ components.badge(size, 'sky') }}</span>
     {% endif %}
 
     {% if encode_fn %}
-        <span>Encoded with {{ include('components/badge.twig', {text: encode_fn, class: 'uppercase font-bold', bg: 'bg-blue-500 dark:bg-blue-700'}) }}</span>
+        <span>Encoded with {{ components.badge(encode_fn, 'blue', 'uppercase') }}</span>
         {% set encode_url = '&encoder=' ~ encode_fn %}
     {% endif %}
 
     {% if formatted == true %}
-        {{ include('components/badge.twig', {text: 'Formatted', class: 'uppercase font-bold', bg: 'bg-blue-500 dark:bg-blue-700'}) }}
+        {{ components.badge('Formatted', 'blue', 'uppercase') }}
     {% endif %}
 
     <span>
@@ -52,7 +46,7 @@
             {{ svg('edit', 16) }} Edit
         </a>
     {% endif %}
-    <div class="rounded-sm bg-white border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+    <div class="rounded-md bg-white border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
         <div class="overflow-y-auto p-4 dark:text-gray-300">
             {{ value|raw }}
         </div>

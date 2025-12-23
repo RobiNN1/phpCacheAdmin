@@ -170,7 +170,7 @@ trait APCuTrait {
         $value = Value::converter($value, $encoder, 'view');
 
         return $this->template->render('partials/form', [
-            'exp_attr' => ' min="0"',
+            'exp_attr' => 'min="0"',
             'key'      => $key,
             'value'    => $value,
             'expire'   => $expire,

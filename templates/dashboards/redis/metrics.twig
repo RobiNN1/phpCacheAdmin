@@ -1,5 +1,6 @@
 {{ include('components/tabs.twig', {
     tabs: true,
+    pills: true,
     selected: config('metricstab', 1440),
     links: {
         60: 'Last hour',
@@ -10,19 +11,19 @@
 }) }}
 
 <div class="md:grid md:grid-cols-4 gap-4">
-    <div class="p-4 mb-2 rounded-sm bg-white border border-gray-200 dark:bg-gray-800 dark:border-gray-700 col-span-2">
+    <div class="p-4 mb-2 rounded-md bg-white border border-gray-200 dark:bg-gray-800 dark:border-gray-700 col-span-2">
         <div id="memory_chart" class="h-90"></div>
     </div>
-    <div class="p-4 mb-2 rounded-sm bg-white border border-gray-200 dark:bg-gray-800 dark:border-gray-700 col-span-2">
+    <div class="p-4 mb-2 rounded-md bg-white border border-gray-200 dark:bg-gray-800 dark:border-gray-700 col-span-2">
         <div id="fragmentation_chart" class="h-90"></div>
     </div>
-    <div class="p-4 mb-2 rounded-sm bg-white border border-gray-200 dark:bg-gray-800 dark:border-gray-700 col-span-2">
+    <div class="p-4 mb-2 rounded-md bg-white border border-gray-200 dark:bg-gray-800 dark:border-gray-700 col-span-2">
         <div id="commands_chart" class="h-90"></div>
     </div>
-    <div class="p-4 mb-2 rounded-sm bg-white border border-gray-200 dark:bg-gray-800 dark:border-gray-700 col-span-2">
+    <div class="p-4 mb-2 rounded-md bg-white border border-gray-200 dark:bg-gray-800 dark:border-gray-700 col-span-2">
         <div id="hit_rate_chart" class="h-90"></div>
     </div>
-    <div class="p-4 mb-2 rounded-sm bg-white border border-gray-200 dark:bg-gray-800 dark:border-gray-700 col-span-2">
+    <div class="p-4 mb-2 rounded-md bg-white border border-gray-200 dark:bg-gray-800 dark:border-gray-700 col-span-2">
         <div id="connections_chart" class="h-90"></div>
     </div>
 </div>

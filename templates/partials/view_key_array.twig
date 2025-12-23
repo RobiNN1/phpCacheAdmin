@@ -1,30 +1,27 @@
+{% import 'components/macros.twig' as components %}
 {{ include('components/button.twig', {
     text: 'Add another value',
     icon: 'plus',
     link: add_subkey_url,
-    btn_green: true,
+    color: 'green',
     class: 'mb-4',
 }) }}
 
 {% for item in value %}
-    <div class="mb-4 rounded-sm bg-white border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+    <div class="mb-4 rounded-md bg-white border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
         <div class="flex justify-between overflow-y-auto border-b border-gray-200 px-4 py-1.5 dark:border-gray-700">
             <span class="dark:text-gray-300">
                 {% if type not in types.extra.hide_title %}
-                    {{ types[type].title }} {{ include('components/badge.twig', {text: item.sub_key, class: 'font-bold', bg: 'bg-slate-400 dark:bg-slate-600'}) }}
+                    {{ types[type].title }} {{ components.badge(item.sub_key, 'indigo') }}
                 {% endif %}
 
                 {% if item.encode_fn %}
-                    <span>
-                        Encoded with
-                        {{ include('components/badge.twig', {text: item.encode_fn, class: 'uppercase font-bold', bg: 'bg-blue-500 dark:bg-blue-600'}) }}
-                    </span>
-
+                    <span>Encoded with {{ components.badge(item.encode_fn, 'blue', 'uppercase') }}</span>
                     {% set item_encode_url = '&encoder=' ~ item.encode_fn %}
                 {% endif %}
 
                 {% if item.formatted == true %}
-                    {{ include('components/badge.twig', {text: 'Formatted', class: 'uppercase font-bold', bg: 'bg-blue-500 dark:bg-blue-600'}) }}
+                    {{ components.badge('Formatted', 'blue', 'uppercase') }}
                 {% endif %}
             </span>
 

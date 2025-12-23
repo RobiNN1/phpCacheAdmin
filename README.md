@@ -1,6 +1,11 @@
 <p align="center"><img src=".github/img/logo.svg" width="400" alt="Logo"></p>
 <p align="center">Web GUI for managing Redis, Memcached, APCu, OPCache, and Realpath with data management.</p>
-<p align="center"><img alt="Preview" src=".github/img/preview.png" width="500px"></p>
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset=".github/img/preview-dark.png">
+    <img alt="Preview" src=".github/img/preview.png" width="500px">
+  </picture>
+</p>
 
 ![Visitor Badge](https://visitor-badge.laobi.icu/badge?page_id=RobiNN1.phpCacheAdmin)
 ![Docker Pulls](https://img.shields.io/docker/pulls/robinn/phpcacheadmin)
@@ -8,6 +13,7 @@
 ## Features
 
 ### General
+
 - Clean, responsive interface with a **Dark Mode**.
 - Switch between multiple configured servers for Redis, Memcached.
 - Back up and restore your data.
@@ -16,6 +22,7 @@
 - **Docker ready**.
 
 ### Redis
+
 - Works with both **phpredis** and **Predis** clients.
 - View, add, edit, and delete keys. Supports all Redis data types.
 - **Cluster support**.
@@ -25,6 +32,7 @@
 - Supports both SCAN and KEYS commands for retrieving keys.
 
 ### Memcached
+
 - Uses a custom client, so **no memcache(d) extension** is required.
 - View, add, edit, and delete keys.
 - Server Stats including uptime, memory usage, connections, and more.
@@ -32,6 +40,7 @@
 - Commands Stats.
 
 ### PHP Caches
+
 - **APCu**:
     - View, edit, and delete user-cached entries.
     - View cache information and memory usage statistics.
@@ -51,7 +60,7 @@ To customize the configuration, do not edit `config.dist.php` directly, but copy
 
 ## Updating
 
-Replace all files and delete the `tmp` folder (this folder contains compiled Twig templates and metrics DB files).
+Replace all files and delete the `/tmp/twig` folder (it contains compiled Twig templates).
 
 ## Environment variables
 
@@ -132,7 +141,8 @@ services:
 
 - PHP >= 8.2 (Use [v1 branch](https://github.com/RobiNN1/phpCacheAdmin/tree/v1.x) if you need support for >=7.4)
 - Redis server >= 4.0
-- Memcached server >= 1.4.31. SASL is not supported because there is no way to get the keys.
+- Memcached server >= 1.4.31. SASL is not supported because there is no way to get the keys
+- sqlite3 extension for metrics
 
 > It is not necessary to have all dashboards enabled.
 

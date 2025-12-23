@@ -17,12 +17,12 @@
         {% endif %}
     {% endif %}
 
-    <div class="mb-0.5 w-full bg-gray-200 rounded-sm h-1.5 dark:bg-gray-700">
-        <div class="{{ color }} h-1.5 rounded-sm transition-[width,background-color] duration-500 ease-in-out" style="width: {{ percentage }}%;"{{ (id ? ' data-progress="' ~ id ~ '" data-type="' ~ type ~ '"' : '')|raw }}></div>
+    <div class="mb-0.5 w-full bg-gray-200 rounded-full h-1.5 dark:bg-gray-700">
+        <div class="{{ color }} h-1.5 rounded-full transition-[width,background-color] duration-500 ease-in-out" style="width: {{ percentage }}%;"{{ id ? ' data-progress="%s" data-type="%s"'|format(id, type)|raw : '' }}></div>
     </div>
 {% endmacro %}
 
-<div class="mb-4 overflow-hidden rounded-sm bg-white border border-gray-200 dark:bg-gray-800 dark:border-gray-700" id="{{ panel_title|snake_case }}_panel">
+<div class="mb-4 overflow-hidden rounded-md bg-white border border-gray-200 dark:bg-gray-800 dark:border-gray-700" id="{{ panel_title|snake_case }}_panel">
     <div class="border-b border-gray-200 bg-gray-50 px-4 py-2 dark:border-gray-700 dark:bg-white/5">
         <div class="flex items-center justify-between gap-4">
             <h2 class="text-sm font-semibold text-gray-900 dark:text-white">{{ panel_title }}</h2>

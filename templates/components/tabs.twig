@@ -1,21 +1,20 @@
-<ul class="flex flex-wrap gap-3 mb-4">
+<ul class="flex flex-wrap mb-4{{ pills ? ' gap-3' : '' }}{{ class|space }}">
     {% for link, title in links %}
         {% if tabs %}
             {% set is_active = selected is defined ? (selected == link) : (links|keys|first == link) %}
         {% else %}
             {% set is_active = get('tab', links|keys|first) == link %}
         {% endif %}
-
-        {% set active_class = is_active ? ' shadow-sm bg-white dark:bg-gray-700' : ' hover:text-gray-600 dark:hover:text-gray-300' %}
+        {% if pills %}
+            {% set item_class = 'cursor-pointer text-sm font-semibold inline-flex py-2 px-4 bg-white border-2 border-gray-300 rounded-md hover:border-primary-300 dark:bg-gray-800 dark:border-gray-600 dark:hover:text-gray-300 dark:hover:border-gray-300 [&.active]:border-primary-500 [&.active]:text-primary-500' %}
+        {% else %}
+            {% set item_class = 'cursor-pointer text-sm font-semibold inline-flex py-3 px-4 border-b-2 border-transparent hover:text-gray-600 hover:border-gray-600 dark:hover:text-gray-300 dark:hover:border-gray-300 [&.active]:border-primary-500 [&.active]:text-primary-500' %}
+        {% endif %}
         <li>
             {% if tabs %}
-                <button data-tab="{{ link }}" class="text-sm inline-flex rounded-sm py-1.5 px-3 border border-transparent cursor-pointer{{ active_class }}">
-                    {{ title }}
-                </button>
+                <button data-tab="{{ link }}" class="{{ item_class }}{{ is_active ? ' active' : '' }}">{{ title }}</button>
             {% else %}
-                <a href="{{ link([], {'tab': link}) }}" class="text-sm inline-flex rounded-sm py-1.5 px-3 border border-transparent{{ active_class }}">
-                    {{ title }}
-                </a>
+                <a href="{{ link([], {'tab': link}) }}" class="{{ item_class }}{{ is_active ? ' active' : '' }}">{{ title }}</a>
             {% endif %}
         </li>
     {% endfor %}

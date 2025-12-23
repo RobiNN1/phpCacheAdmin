@@ -34,7 +34,8 @@
         let metrics_active_filter = {{ config('metricstab', 1440) }};
     </script>
 </head>
-<body class="bg-gray-100 text-gray-900 dark:text-gray-200 dark:bg-gray-900" data-dashboard="{{ current }}">
+<body class="bg-gray-100 text-gray-900 dark:text-gray-200 dark:bg-gray-900 flex flex-col min-h-screen" data-dashboard="{{ current }}">
+<div id="alerts">{{ alerts|raw }}</div>
 <header class="md:grid md:grid-cols-3 p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
     <div class="flex">
         <a class="block w-72 md:me-4" href="{{ config('url', '/') }}">{{ svg('logo', null) }}</a>
@@ -45,7 +46,7 @@
         {% for link, item in nav %}
             {% set link_bg = item.colors ? ' style="--link-bg:' ~ item.colors.500 ~ ';--link-bg-hover:' ~ item.colors.700 ~ ';--link-active:' ~ item.colors.300 ~ ';--link-active-dark:' ~ item.colors.900 ~ ';"' : '' %}
             {% set server = get('server') and get('dashboard') == link ? '&server=' ~ get('server') : '' %}
-            <a class="sblink{{ current == link ? ' active' : '' }} flex size-9 items-center justify-center rounded-sm text-white" {{ link_bg|raw }} href="?dashboard={{ link ~ server }}" title="{{ item.title }}">
+            <a class="dashboard-link{{ current == link ? ' active' : '' }} flex size-9 items-center justify-center rounded-sm text-white" {{ link_bg|raw }} href="?dashboard={{ link ~ server }}" title="{{ item.title }}">
                 {{ svg(item.icon ?? ('dashboards/' ~ item.key), 16) }}
             </a>
         {% endfor %}
@@ -71,31 +72,33 @@
         <a class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" href="{{ repo }}" title="GitHub" target="_blank" rel="noopener">{{ svg('github', 28) }}</a>
     </div>
 </header>
-<main class="p-4" id="maincontent">
-    <div id="alerts">{{ alerts|raw }}</div>
-
+<main id="maincontent" class="flex flex-col md:flex-row flex-1">
     {% if side %}
-        <div class="md:grid md:grid-cols-10 gap-4">
-            <div class="sm:col-span-3 lg:col-span-2">{{ side|raw }}</div>
-
-            <div class="sm:col-span-7 lg:col-span-8">{{ dashboard|raw }}</div>
+        <div class="w-full md:w-[30%] lg:w-[20%] bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">
+            <div class="p-4">
+                {{ side|raw }}
+            </div>
         </div>
-    {% else %}
-        {{ dashboard|raw }}
     {% endif %}
-</main>
 
-<footer class="my-4 text-center">
-    <div>
-        &copy; {{ 'now'|date('Y') }}
-        <a class="text-primary-500 font-semibold hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-500" href="https://github.com/RobiNN1">RobiNN1</a>.
-        All Rights Reserved.
+    <div class="flex-1 flex flex-col w-full">
+        <div class="p-4 flex-1">
+            {{ dashboard|raw }}
+        </div>
+
+        <footer class="my-4 text-center">
+            <div>
+                &copy; {{ 'now'|date('Y') }}
+                <a class="text-primary-500 font-semibold hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-500" href="https://github.com/RobiNN1">RobiNN1</a>.
+                All Rights Reserved.
+            </div>
+            <div>
+                v{{ version }}
+                <a class="text-primary-500 font-semibold hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-500" href="{{ repo }}/issues" target="_blank" rel="noopener">Report Issue</a>
+            </div>
+        </footer>
     </div>
-    <div>
-        v{{ version }}
-        <a class="text-primary-500 font-semibold hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-500" href="{{ repo }}/issues" target="_blank" rel="noopener">Report Issue</a>
-    </div>
-</footer>
+</main>
 {{ modals|raw }}
 <script src="{{ config('pcapath', '') }}assets/js/scripts.js?v={{ version }}"></script>
 </body>

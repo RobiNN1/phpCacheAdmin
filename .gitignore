@@ -6,4 +6,5 @@ composer.lock
 node_modules
 package-lock.json
 /config.php
-/.phpunit.result.cache
+.phpunit.result.cache
+.ide_helper.php

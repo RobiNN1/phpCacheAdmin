@@ -35,45 +35,19 @@
     color-scheme: dark;
 }
 
-.json-colon,
-.json-bracket,
-.json-comma {
-    @apply text-gray-900 dark:text-gray-400;
-}
-
-.json-key {
-    @apply text-emerald-500;
-}
-
-.json-number {
-    @apply text-violet-500;
-}
-
-.json-string {
-    @apply text-amber-500;
-}
-
-.json-boolean {
-    @apply text-blue-500;
-}
-
-.json-null {
-    @apply text-rose-500;
-}
-
-.sblink {
+.dashboard-link {
     background-color: var(--link-bg);
 }
 
-.sblink:hover {
+.dashboard-link:hover {
     background-color: var(--link-bg-hover);
 }
 
-.sblink.active {
+.dashboard-link.active {
     box-shadow: 0 0 0 4px var(--link-active);
 }
 
-.dark .sblink.active {
+.dark .dashboard-link.active {
     box-shadow: 0 0 0 4px var(--link-active-dark);
 }
 

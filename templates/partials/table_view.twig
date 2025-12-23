@@ -9,15 +9,17 @@
             {% endif %}
             {% for item in head_items %}
                 {% set is_active = sortcol == item.sort %}
-                {% set data_sort = item.sort ? ' data-sortdir="' ~ sortdir ~ '" data-sortcol="' ~ item.sort ~ '"' : '' %}
+                {% set data_sort = item.sort ? ' data-sortdir="%s" data-sortcol="%s"'|format(sortdir, item.sort)|raw : '' %}
 
                 <th class="px-3 py-2 text-xs font-bold uppercase whitespace-nowrap{{ item.class|space }}">
-                    <span class="inline-flex gap-1 items-center{{ item.sort ? ' cursor-pointer' : '' }}"{{ data_sort|raw }}>
-                        {{ item.title }}
-                        {% if item.sort %}
+                    {% if item.sort %}
+                        <button type="button" class="inline-flex gap-1 items-center cursor-pointer appearance-none font-bold uppercase text-xs" {{ data_sort|raw }}>
+                            {{ item.title }}
                             {{ svg('down', 10, (is_active ? '' : 'opacity-30') ~ (is_active and sortdir == 'asc' ? ' rotate-180' : '')) }}
-                        {% endif %}
-                    </span>
+                        </button>
+                    {% else %}
+                        <span class="inline-flex gap-1 items-center">{{ item.title }}</span>
+                    {% endif %}
                 </th>
             {% endfor %}
             {% if show_actions %}

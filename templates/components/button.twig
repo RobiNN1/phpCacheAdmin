@@ -1,15 +1,13 @@
-{% if btn_green %}
-    {% set btn_color = 'bg-green-500 hover:bg-green-600 focus:ring-green-200 disabled:bg-green-300 dark:bg-green-700 dark:hover:bg-green-800 dark:focus:ring-green-400 dark:disabled:bg-green-400' %}
-{% elseif btn_red %}
-    {% set btn_color = 'bg-red-500 hover:bg-red-600 focus:ring-red-200 disabled:bg-red-300 dark:bg-red-700 dark:hover:bg-red-800 dark:focus:ring-red-400 dark:disabled:bg-red-400' %}
-{% else %}
-    {% set btn_color = 'bg-primary-500 hover:bg-primary-600 focus:ring-primary-200 disabled:bg-primary-300 dark:bg-primary-700 dark:hover:bg-primary-800 dark:focus:ring-primary-400 dark:disabled:bg-primary-400' %}
-{% endif %}
-
+{% set color_map = {
+    'primary': 'bg-primary-500 hover:bg-primary-600 focus:ring-primary-200 disabled:bg-primary-300 dark:bg-primary-700 dark:hover:bg-primary-800 dark:focus:ring-primary-400 dark:disabled:bg-primary-400',
+    'green': 'bg-green-500 hover:bg-green-600 focus:ring-green-200 disabled:bg-green-300 dark:bg-green-700 dark:hover:bg-green-800 dark:focus:ring-green-400 dark:disabled:bg-green-400',
+    'red': 'bg-red-500 hover:bg-red-600 focus:ring-red-200 disabled:bg-red-300 dark:bg-red-700 dark:hover:bg-red-800 dark:focus:ring-red-400 dark:disabled:bg-red-400',
+} %}
+{% set btn_color = color_map[color] ?? color_map.primary %}
 {% set classes = 'text-sm inline-flex items-center gap-1 border border-transparent rounded-sm py-1.5 px-3 font-semibold text-white align-middle whitespace-nowrap shadow-sm focus:ring-3 dark:text-white ' ~ btn_color %}
 
 {% if link %}
-    <a href="{{ link }}" class="{{ classes ~ class|space }}">{{ icon ? svg(icon, 12) : '' }}{{ text }}</a>
+    <a href="{{ link }}" class="{{ (classes ~ ' ' ~ class)|trim }}">{{ icon ? svg(icon, 12) : '' }}{{ text }}</a>
 {% else %}
     {% macro attr(attributes) %}
         {% for name, value in attributes %}
@@ -21,9 +19,12 @@
         {% endfor %}
     {% endmacro %}
 
-    {% set id = id is not empty ? 'id="' ~ id ~ '" name="' ~ id ~ '" ' : '' %}
+    {% set props = {
+        'type': submit ? 'submit' : 'button',
+        'class': (classes ~ ' ' ~ class)|trim,
+        'id': id,
+        'name': id
+    }|merge(attributes|default({})) %}
 
-    <button type="{{ submit ? 'submit' : 'button' }}" {{ id|raw }}class="{{ classes ~ class|space }}"{{ _self.attr(attributes) }}>
-        {{ icon ? svg(icon, 12) : '' }}{{ text }}
-    </button>
+    <button {{ _self.attr(props) }}>{{ icon ? svg(icon, 12) }}{{ text }}</button>
 {% endif %}

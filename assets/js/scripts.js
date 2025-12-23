@@ -475,18 +475,12 @@ const chart = (instance, options, timestamps) => {
     });
 };
 const time_switcher = (callback) => {
-    const default_btn_classes = ['hover:text-gray-600', 'dark:hover:text-gray-300'];
-    const active_btn_classes = ['shadow-sm', 'bg-white', 'dark:bg-gray-700'];
-
     const time_buttons = document.querySelectorAll('[data-tab]');
+
     time_buttons.forEach(button => {
         button.addEventListener('click', () => {
-            time_buttons.forEach(btn => {
-                btn.classList.remove(...active_btn_classes);
-                btn.classList.add(...default_btn_classes);
-            });
-            button.classList.remove(...default_btn_classes);
-            button.classList.add(...active_btn_classes);
+            time_buttons.forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
 
             metrics_active_filter = parseInt(button.dataset.tab, 10);
             callback();

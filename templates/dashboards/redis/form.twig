@@ -24,7 +24,7 @@
             type: 'number',
             help: '-1 removes expiration (default).',
             value: expire,
-            attr: ' min="-1" max="2147483647"',
+            attr: 'min="-1" max="2147483647"',
         }) }}
     </div>
 
@@ -32,7 +32,7 @@
         id: 'index',
         label: 'List Index',
         type: 'number',
-        extra_attr: ' style="display: ' ~ (type == 'list' ? 'block' : 'none') ~ ';" id="redis_index"',
+        extra_attr: 'style="display: ' ~ (type == 'list' ? 'block' : 'none') ~ ';" id="redis_index"',
         help: 'Empty to append, -1 to prepend.',
         value: index,
     }) }}
@@ -41,21 +41,21 @@
         id: 'score',
         label: 'Zset Score',
         type: 'number',
-        extra_attr: ' style="display: ' ~ (type == 'zset' ? 'block' : 'none') ~ ';" id="redis_score"',
+        extra_attr: 'style="display: ' ~ (type == 'zset' ? 'block' : 'none') ~ ';" id="redis_score"',
         value: score,
     }) }}
 
     {{ include('components/input.twig', {
         id: 'hash_key',
         label: 'Hash Key',
-        extra_attr: ' style="display: ' ~ (type == 'hash' ? 'block' : 'none') ~ ';" id="redis_hash_key"',
+        extra_attr: 'style="display: ' ~ (type == 'hash' ? 'block' : 'none') ~ ';" id="redis_hash_key"',
         value: hash_key,
     }) }}
 
     {{ include('components/input.twig', {
         id: 'stream_id',
         label: 'Stream Entry ID',
-        extra_attr: ' style="display: ' ~ (type == 'stream' ? 'block' : 'none') ~ ';" id="redis_stream_id"',
+        extra_attr: 'style="display: ' ~ (type == 'stream' ? 'block' : 'none') ~ ';" id="redis_stream_id"',
         help: 'Use * to let Redis generate the ID.',
         value: stream_id,
     }) }}
@@ -80,7 +80,7 @@
         text: 'Save key',
         icon: 'save',
         id: 'submit',
-        btn_green: true,
+        color: 'green',
         submit: true,
     }) }}
 </form>

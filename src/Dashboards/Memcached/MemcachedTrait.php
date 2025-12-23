@@ -194,7 +194,7 @@ trait MemcachedTrait {
         $value = Value::converter($value, $encoder, 'view');
 
         return $this->template->render('partials/form', [
-            'exp_attr' => ' min="0" max="2592000"',
+            'exp_attr' => 'min="0" max="2592000"',
             'key'      => $key,
             'value'    => $value,
             'expire'   => $expire,

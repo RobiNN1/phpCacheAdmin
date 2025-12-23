@@ -4,6 +4,7 @@
         'slowlog': 'Slow Log',
         'metrics': 'Metrics',
     },
+    class: '-m-4 px-4 relative bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700',
 }) }}
 
 {% if get('tab', 'keys') == 'keys' %}
@@ -27,7 +28,7 @@
 {% endif %}
 
 {% if get('tab') == 'slowlog' %}
-    <div class="rounded-sm bg-white border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+    <div class="rounded-md bg-white border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
         <div class="px-6 py-4 md:flex justify-between">
             <div class="md:flex gap-1 items-center">
                 <form method="post" class="md:flex gap-1">
@@ -48,7 +49,7 @@
                     {{ include('components/button.twig', {
                         id: 'save',
                         text: 'Save',
-                        btn_green: true,
+                        color: 'green',
                         submit: true,
                     }) }}
                 </form>
@@ -59,7 +60,7 @@
                 {{ include('components/button.twig', {
                     text: 'Reset',
                     link: link(['tab'], {'resetlog': 1}),
-                    btn_green: true,
+                    color: 'green',
                 }) }}
             </div>
         </div>

@@ -18,7 +18,7 @@
             </div>
         {% else %}
             <div class="keywrapper border-t border-gray-200 dark:border-gray-700" style="--level: {{ level }}">
-                <div data-key="{{ item.base64 ? item.key|base64 : item.key }}" class="flex justify-between px-6 py-1 hover:bg-gray-50 dark:hover:bg-white/5" style="padding-left: calc({{ level }} * 20px + 32px)">
+                <div data-key="{{ item.base64 ? item.key|base64 : item.key }}" class="flex justify-between px-6 py-1 text-sm hover:bg-gray-50 dark:hover:bg-white/5" style="padding-left: calc({{ level }} * 20px + 32px)">
                     <div class="flex items-center gap-2">
                         {% if show_actions %}
                             {{ components.checkbox('check-key mt-0') }}
@@ -28,6 +28,9 @@
                             {% set link = view_key|replace({'__key__': item.key}) %}
                             <a class="text-primary-500 hover:text-primary-700 font-semibold dark:text-primary-400 dark:hover:text-primary-300" href="{{ link }}">
                                 {{ item.name }}
+                                {% if item.items %}
+                                    <span class="text-gray-500 dark:text-gray-400 text-xs">({{ item.items }} items)</span>
+                                {% endif %}
                             </a>
                         </span>
                     </div>
@@ -35,7 +38,7 @@
                     <div class="flex gap-4">
                         {% for item_key, kitem in item.info %}
                             {% if item_key == 'type' %}
-                                {{- components.key_type(kitem) -}}
+                                <span class="w-24">{{ components.key_type(kitem) }}</span>
                             {% elseif item_key starts with 'number_' %}
                                 {{- kitem|number -}}
                             {% elseif item_key starts with 'time_' %}

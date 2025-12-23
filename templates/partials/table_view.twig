@@ -39,7 +39,12 @@
                     <td class="px-3 py-2 border-b border-gray-200 text-sm{{ td_class }}{{ classes[loop.index]|space }} dark:border-gray-700 dark:text-gray-300">
                         {% if item_key == 'link_title' and view_key %}
                             {% set link = view_key|replace({'__key__': key.key}) %}
-                            <a class="text-primary-500 hover:text-primary-700 font-semibold dark:text-primary-400 dark:hover:text-primary-300" href="{{ link }}">{{ item }}</a>
+                            <a class="text-primary-500 hover:text-primary-700 font-semibold dark:text-primary-400 dark:hover:text-primary-300" href="{{ link }}">
+                                {{ item }}
+                                {% if key.items %}
+                                    <span class="text-gray-500 dark:text-gray-400 text-xs">({{ key.items }} items)</span>
+                                {% endif %}
+                            </a>
                         {% elseif item_key == 'type' %}
                             {{- components.key_type(item) -}}
                         {% elseif item_key starts with 'number_' %}

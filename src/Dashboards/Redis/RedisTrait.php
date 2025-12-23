@@ -464,9 +464,10 @@ trait RedisTrait {
         foreach ($keys_array as $key) {
             $formatted_keys[] = [
                 'key'    => $key,
+                'items'  => $pipeline[$key]['count'] ?? null,
                 'base64' => true,
                 'info'   => [
-                    'link_title' => ($pipeline[$key]['count'] !== null ? '('.$pipeline[$key]['count'].' items) ' : '').$key,
+                    'link_title' => $key,
                     'bytes_size' => $pipeline[$key]['size'],
                     'type'       => $pipeline[$key]['type'],
                     'ttl'        => $pipeline[$key]['ttl'] === -1 ? 'Doesn\'t expire' : $pipeline[$key]['ttl'],
@@ -503,8 +504,9 @@ trait RedisTrait {
                 if ($i === count($parts) - 1) { // check last part
                     $current[] = [
                         'type'   => 'key',
-                        'name'   => ($pipeline[$key]['count'] !== null ? '('.$pipeline[$key]['count'].' items) ' : '').$part,
+                        'name'   => $part,
                         'key'    => $key,
+                        'items'  => $pipeline[$key]['count'] ?? null,
                         'base64' => true,
                         'info'   => [
                             'bytes_size' => $pipeline[$key]['size'],

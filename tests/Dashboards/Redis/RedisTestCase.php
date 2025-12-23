@@ -262,11 +262,13 @@ abstract class RedisTestCase extends TestCase {
         $expected = [
             [
                 'key'    => 'pu-test-table1',
+                'items'  => null,
                 'base64' => true,
                 'info'   => array_merge(['link_title' => 'pu-test-table1'], $info),
             ],
             [
                 'key'    => 'pu-test-table2',
+                'items'  => null,
                 'base64' => true,
                 'info'   => array_merge(['link_title' => 'pu-test-table2'], $info),
             ],
@@ -305,6 +307,7 @@ abstract class RedisTestCase extends TestCase {
                         'type'   => 'key',
                         'name'   => 'sub1',
                         'key'    => 'pu-test-tree1:sub1',
+                        'items'  => null,
                         'base64' => true,
                         'info'   => $info,
                     ],
@@ -312,6 +315,7 @@ abstract class RedisTestCase extends TestCase {
                         'type'   => 'key',
                         'name'   => 'sub2',
                         'key'    => 'pu-test-tree1:sub2',
+                        'items'  => null,
                         'base64' => true,
                         'info'   => $info,
                     ],
@@ -323,6 +327,7 @@ abstract class RedisTestCase extends TestCase {
                 'type'   => 'key',
                 'name'   => 'pu-test-tree2',
                 'key'    => 'pu-test-tree2',
+                'items'  => null,
                 'base64' => true,
                 'info'   => $info,
             ],

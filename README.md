@@ -2,8 +2,8 @@
 <p align="center">Web GUI for managing Redis, Memcached, APCu, OPCache, and Realpath with data management.</p>
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset=".github/img/preview-dark.png">
-    <img alt="Preview" src=".github/img/preview.png" width="500px">
+    <source media="(prefers-color-scheme: dark)" srcset=".github/img/preview-dark.webp">
+    <img alt="Preview" src=".github/img/preview.webp" width="500px">
   </picture>
 </p>
 

@@ -56,7 +56,7 @@ trait OPCacheTrait {
 
         return [
             [
-                'title'    => 'PHP OPCache extension v'.phpversion('Zend OPcache'),
+                'title'    => 'OPCache extension v'.phpversion('Zend OPcache'),
                 'moreinfo' => true,
                 'data'     => [
                     'JIT'                 => $jit_enabled ? 'Enabled' : 'Disabled',

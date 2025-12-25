@@ -28,7 +28,7 @@ trait RedisTrait {
      */
     private function getPanelsData(): array {
         if ($this->client === 'redis') {
-            $title = 'PHP Redis extension v'.phpversion('redis');
+            $title = 'Redis extension v'.phpversion('redis');
         } elseif ($this->client === 'predis') {
             $title = 'Predis v'.Predis::VERSION;
         }

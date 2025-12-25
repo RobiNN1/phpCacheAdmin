@@ -34,7 +34,7 @@ trait APCuTrait {
 
         return [
             [
-                'title'    => 'PHP APCu extension v'.phpversion('apcu'),
+                'title'    => 'APCu extension v'.phpversion('apcu'),
                 'moreinfo' => true,
                 'data'     => [
                     'Start time'       => Format::time($info['start_time']),

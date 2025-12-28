@@ -34,15 +34,15 @@
         let metrics_active_filter = {{ config('metricstab', 1440) }};
     </script>
 </head>
-<body class="bg-gray-100 text-gray-900 dark:text-gray-200 dark:bg-gray-900 flex flex-col min-h-screen" data-dashboard="{{ current }}">
+<body class="flex flex-col min-h-screen text-gray-900 bg-gray-100 dark:text-gray-200 dark:bg-gray-900" data-dashboard="{{ current }}">
 <div id="alerts">{{ alerts|raw }}</div>
-<header class="md:grid md:grid-cols-3 p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+<header class="p-4 bg-white border-b border-gray-200 md:grid md:grid-cols-3 dark:bg-gray-800 dark:border-gray-700">
     <div class="flex">
         <a class="block w-72 md:me-4" href="{{ config('url', '/') }}">{{ svg('logo', null) }}</a>
         <div class="w-72">{{ servers|raw }}</div>
     </div>
 
-    <div class="flex items-center justify-center gap-4">
+    <div class="flex gap-4 justify-center items-center">
         {% for link, item in nav %}
             {% set link_bg = item.colors ? ' style="--link-bg:' ~ item.colors.500 ~ ';--link-bg-hover:' ~ item.colors.700 ~ ';--link-active:' ~ item.colors.300 ~ ';--link-active-dark:' ~ item.colors.900 ~ ';"' : '' %}
             {% set server = get('server') and get('dashboard') == link ? '&server=' ~ get('server') : '' %}
@@ -52,19 +52,19 @@
         {% endfor %}
     </div>
 
-    <div class="flex items-center justify-end gap-4">
+    <div class="flex gap-4 justify-end items-center">
         {% if logout_url %}
             <a class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" href="{{ logout_url }}" title="Logout">{{ svg('logout', 32) }}</a>
         {% endif %}
 
         <div class="flex border rounded-sm overflow-hidden border-gray-300 dark:border-gray-600 [&>.active]:text-gray-600 dark:[&>.active]:text-gray-300 [&>.active]:bg-gray-200 dark:[&>.active]:bg-gray-950">
-            <button class="cursor-pointer flex items-center justify-center px-3 py-2 text-gray-400 dark:text-gray-500" type="button" data-theme="light" title="Light">
+            <button class="flex justify-center items-center py-2 px-3 text-gray-400 cursor-pointer dark:text-gray-500" type="button" data-theme="light" title="Light">
                 {{ svg('sun', 18) }}
             </button>
-            <button class="cursor-pointer flex items-center justify-center px-3 py-2 text-gray-400 dark:text-gray-500 border-l border-gray-300 dark:border-gray-600" type="button" data-theme="dark" title="Dark">
+            <button class="flex justify-center items-center py-2 px-3 text-gray-400 border-l border-gray-300 cursor-pointer dark:text-gray-500 dark:border-gray-600" type="button" data-theme="dark" title="Dark">
                 {{ svg('moon', 18) }}
             </button>
-            <button class="cursor-pointer flex items-center justify-center px-3 py-2 text-gray-400 dark:text-gray-500 border-l border-gray-300 dark:border-gray-600" type="button" data-theme="system" title="System">
+            <button class="flex justify-center items-center py-2 px-3 text-gray-400 border-l border-gray-300 cursor-pointer dark:text-gray-500 dark:border-gray-600" type="button" data-theme="system" title="System">
                 {{ svg('system', 18) }}
             </button>
         </div>
@@ -72,7 +72,7 @@
         <a class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" href="{{ repo }}" title="GitHub" target="_blank" rel="noopener">{{ svg('github', 28) }}</a>
     </div>
 </header>
-<main id="maincontent" class="flex flex-col md:flex-row flex-1">
+<main id="maincontent" class="flex flex-col flex-1 md:flex-row">
     {% if side %}
         <div class="w-full md:w-[30%] lg:w-[20%] bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">
             <div class="p-4">
@@ -81,20 +81,20 @@
         </div>
     {% endif %}
 
-    <div class="flex-1 flex flex-col w-full">
-        <div class="p-4 flex-1">
+    <div class="flex flex-col flex-1 w-full">
+        <div class="flex-1 p-4">
             {{ dashboard|raw }}
         </div>
 
         <footer class="my-4 text-center">
             <div>
                 &copy; {{ 'now'|date('Y') }}
-                <a class="text-primary-500 font-semibold hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-500" href="https://github.com/RobiNN1">RobiNN1</a>.
+                <a class="font-semibold text-primary-500 dark:text-primary-400 dark:hover:text-primary-500 hover:text-primary-700" href="https://github.com/RobiNN1">RobiNN1</a>.
                 All Rights Reserved.
             </div>
             <div>
                 v{{ version }}
-                <a class="text-primary-500 font-semibold hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-500" href="{{ repo }}/issues" target="_blank" rel="noopener">Report Issue</a>
+                <a class="font-semibold text-primary-500 dark:text-primary-400 dark:hover:text-primary-500 hover:text-primary-700" href="{{ repo }}/issues" target="_blank" rel="noopener">Report Issue</a>
             </div>
         </footer>
     </div>

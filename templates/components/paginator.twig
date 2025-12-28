@@ -1,12 +1,12 @@
-<div class="flex gap-4 flex-wrap items-center justify-between">
-    <div class="flex items-center gap-1">
+<div class="flex flex-wrap gap-4 justify-between items-center">
+    <div class="flex gap-1 items-center">
         Showing
         <span class="font-semibold">{{ first_on_page }}</span> to
         <span class="font-semibold">{{ last_on_page }}</span> of
         <span class="font-semibold">{{ total }}</span> items
     </div>
 
-    <div class="flex items-center gap-2">
+    <div class="flex gap-2 items-center">
         {{ include('components/select.twig', {id: 'per_page', options: select, selected: per_page, width: 'w-24', wrapper_class: false}) }}
         <label class="-mt-1.5" for="per_page">per page</label>
     </div>
@@ -15,16 +15,16 @@
         <nav class="flex -space-x-px">
             {% for page in pages %}
                 {% if page == current_page %}
-                    {% set class = 'border-primary-400 bg-primary-500 text-white dark:bg-primary-900 dark:border-primary-700' %}
+                    {% set class = 'text-white border-primary-400 bg-primary-500 dark:bg-primary-900 dark:border-primary-700' %}
                 {% else %}
-                    {% set class = 'border-gray-300 bg-white hover:bg-gray-100 hover:text-gray-700 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white' %}
+                    {% set class = 'bg-white border-gray-300 dark:text-gray-300 dark:bg-gray-800 dark:border-gray-600 hover:text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-white' %}
                 {% endif %}
 
                 {% set first_item = loop.first ? ' rounded-l' : '' %}
                 {% set last_item = loop.last ? ' rounded-r' : '' %}
 
                 {% if page == '...' %}
-                    <div><span class="py-[0.4rem] px-3 border border-gray-300 bg-white dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300">{{ page }}</span></div>
+                    <div><span class="px-3 bg-white border border-gray-300 dark:text-gray-300 dark:bg-gray-800 dark:border-gray-600 py-[0.4rem]">{{ page }}</span></div>
                 {% else %}
                     <div><a href="{{ url ~ page }}" class="py-[0.4rem] px-3 border {{ class }}{{ first_item ~ last_item }}">{{ page }}</a></div>
                 {% endif %}

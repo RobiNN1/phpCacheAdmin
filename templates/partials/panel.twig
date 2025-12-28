@@ -17,17 +17,17 @@
         {% endif %}
     {% endif %}
 
-    <div class="mb-0.5 w-full bg-gray-200 rounded-full h-1.5 dark:bg-gray-700">
+    <div class="mb-0.5 w-full h-1.5 bg-gray-200 rounded-full dark:bg-gray-700">
         <div class="{{ color }} h-1.5 rounded-full transition-[width,background-color] duration-500 ease-in-out" style="width: {{ percentage }}%;"{{ id ? ' data-progress="%s" data-type="%s"'|format(id, type)|raw : '' }}></div>
     </div>
 {% endmacro %}
 
-<div class="mb-4 overflow-hidden rounded-md bg-white border border-gray-200 dark:bg-gray-800 dark:border-gray-700" id="{{ panel_title|snake_case }}_panel">
-    <div class="border-b border-gray-200 bg-gray-50 px-4 py-2 dark:border-gray-700 dark:bg-white/5">
-        <div class="flex items-center justify-between gap-4">
+<div class="overflow-hidden mb-4 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700" id="{{ panel_title|snake_case }}_panel">
+    <div class="py-2 px-4 bg-gray-50 border-b border-gray-200 dark:border-gray-700 dark:bg-white/5">
+        <div class="flex gap-4 justify-between items-center">
             <h2 class="text-sm font-semibold text-gray-900 dark:text-white">{{ panel_title }}</h2>
             {% if moreinfo %}
-                <a href="{{ link([''], {'moreinfo': 1}) }}" class="text-xs font-semibold text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300">More info</a>
+                <a href="{{ link([''], {'moreinfo': 1}) }}" class="text-xs font-semibold text-primary-600 dark:text-primary-400 dark:hover:text-primary-300 hover:text-primary-700">More info</a>
             {% endif %}
         </div>
     </div>
@@ -36,8 +36,8 @@
         {% for name, value in array %}
             {% if name or value is iterable %}
                 {% set value_name = value is iterable ? value[0] : name %}
-                <div class="px-4 py-1.5">
-                    <div class="flex items-center justify-between gap-4">
+                <div class="py-1.5 px-4">
+                    <div class="flex gap-4 justify-between items-center">
                         <div class="text-xs font-semibold text-gray-600 dark:text-gray-300">{{ value_name }}</div>
                         <div class="text-sm font-semibold text-gray-900 dark:text-white" data-value="{{ value_name|snake_case }}">{{ value is iterable ? value[1] : value }}</div>
                     </div>

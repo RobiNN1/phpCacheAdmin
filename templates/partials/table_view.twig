@@ -1,11 +1,11 @@
 {% import 'components/macros.twig' as components %}
 {% set show_actions = hide_actions is not defined or hide_actions == false %}
 <div class="overflow-hidden overflow-x-auto">
-    <table class="w-full table-auto text-left dark:text-gray-300">
+    <table class="w-full text-left table-auto dark:text-gray-300">
         <thead>
-        <tr class="text-primary-900 border-t border-b border-gray-200 dark:border-gray-700 dark:text-primary-400">
+        <tr class="border-t border-b border-gray-200 dark:border-gray-700 text-primary-900 dark:text-primary-400">
             {% if show_actions %}
-                <th class="pl-6 px-3 py-2 w-4" title="Check all">{{ components.checkbox('check-all', keys|length == 0) }}</th>
+                <th class="py-2 px-3 pl-6 w-4" title="Check all">{{ components.checkbox('check-all', keys|length == 0) }}</th>
             {% endif %}
             {% for item in head_items %}
                 {% set is_active = sortcol == item.sort %}
@@ -13,7 +13,7 @@
 
                 <th class="px-3 py-2 text-xs font-bold uppercase whitespace-nowrap{{ item.class|space }}">
                     {% if item.sort %}
-                        <button type="button" class="inline-flex gap-1 items-center cursor-pointer appearance-none font-bold uppercase text-xs" {{ data_sort|raw }}>
+                        <button type="button" class="inline-flex gap-1 items-center text-xs font-bold uppercase appearance-none cursor-pointer" {{ data_sort|raw }}>
                             {{ item.title }}
                             {{ svg('down', 10, (is_active ? '' : 'opacity-30') ~ (is_active and sortdir == 'asc' ? ' rotate-180' : '')) }}
                         </button>
@@ -23,7 +23,7 @@
                 </th>
             {% endfor %}
             {% if show_actions %}
-                <th class="px-3 py-2 text-xs font-bold uppercase whitespace-nowrap w-24">Actions</th>
+                <th class="py-2 px-3 w-24 text-xs font-bold uppercase whitespace-nowrap">Actions</th>
             {% endif %}
         </tr>
         </thead>
@@ -31,7 +31,7 @@
         {% for key in keys %}
             <tr class="hover:bg-gray-50 dark:hover:bg-white/5" data-key="{{ key.base64 ? key.key|base64 : key.key }}">
                 {% if show_actions %}
-                    <td class="pl-6 px-3 py-2 border-b border-gray-200 dark:border-gray-700">{{ components.checkbox('check-key') }}</td>
+                    <td class="py-2 px-3 pl-6 border-b border-gray-200 dark:border-gray-700">{{ components.checkbox('check-key') }}</td>
                 {% endif %}
                 {% for item_key, item in key.info %}
                     {% set is_title = item_key == 'title' or (item_key == 'link_title' and view_key) %}
@@ -39,10 +39,10 @@
                     <td class="px-3 py-2 border-b border-gray-200 text-sm{{ td_class }}{{ classes[loop.index]|space }} dark:border-gray-700 dark:text-gray-300">
                         {% if item_key == 'link_title' and view_key %}
                             {% set link = view_key|replace({'__key__': key.key}) %}
-                            <a class="text-primary-500 hover:text-primary-700 font-semibold dark:text-primary-400 dark:hover:text-primary-300" href="{{ link }}">
+                            <a class="font-semibold text-primary-500 dark:text-primary-400 dark:hover:text-primary-300 hover:text-primary-700" href="{{ link }}">
                                 {{ item }}
                                 {% if key.items %}
-                                    <span class="text-gray-500 dark:text-gray-400 text-xs">({{ key.items }} items)</span>
+                                    <span class="text-xs text-gray-500 dark:text-gray-400">({{ key.items }} items)</span>
                                 {% endif %}
                             </a>
                         {% elseif item_key == 'type' %}
@@ -61,8 +61,8 @@
                     </td>
                 {% endfor %}
                 {% if show_actions %}
-                    <td class="px-3 py-2 border-b border-gray-200 text-sm whitespace-nowrap dark:border-gray-700">
-                        <button class="delete-key text-red-500 hover:text-red-700 font-semibold inline-flex items-center gap-1" type="button" title="Delete">
+                    <td class="py-2 px-3 text-sm whitespace-nowrap border-b border-gray-200 dark:border-gray-700">
+                        <button class="inline-flex gap-1 items-center font-semibold text-red-500 hover:text-red-700 delete-key" type="button" title="Delete">
                             {{ svg('trash', 16) }} Delete
                         </button>
                     </td>

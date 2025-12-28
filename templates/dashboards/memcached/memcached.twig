@@ -27,7 +27,7 @@
 {% endif %}
 
 {% if get('tab') == 'commands_stats' %}
-    <div class="px-6 py-4 rounded-md bg-white border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+    <div class="py-4 px-6 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
         <div class="md:grid md:grid-cols-3 md:gap-4">
             {% for command in commands %}
                 {{ include('partials/panel.twig', {
@@ -40,8 +40,8 @@
 {% endif %}
 
 {% if get('tab') == 'slabs' %}
-    <div class="px-6 py-4 rounded-md bg-white border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
-        <div class="flex items-center gap-4 mb-4">
+    <div class="py-4 px-6 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+        <div class="flex gap-4 items-center mb-4">
             <div class="font-semibold text-gray-600 dark:text-gray-300">Total memory allocated to slab pages</div>
             <div class="text-sm font-semibold text-gray-900 dark:text-white">{{ meta.total_malloced|bytes }}</div>
         </div>
@@ -58,7 +58,7 @@
 {% endif %}
 
 {% if get('tab') == 'items' %}
-    <div class="px-6 py-4 rounded-md bg-white border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+    <div class="py-4 px-6 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
         <div class="md:grid md:grid-cols-4 md:gap-4">
             {% for item, data in items %}
                 {{ include('partials/panel.twig', {

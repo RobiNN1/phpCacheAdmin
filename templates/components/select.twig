@@ -1,6 +1,6 @@
 <div{{ (wrapper_class is not defined ? ' class="mb-4"' : '')|raw }}>
     {% if label %}
-        <label for="{{ id }}" class="mb-2 block text-sm font-semibold">{{ label|raw }}</label>
+        <label for="{{ id }}" class="block mb-2 text-sm font-semibold">{{ label|raw }}</label>
     {% endif %}
     <select id="{{ id }}" name="{{ id }}"
             class="select {{ width ? width : 'w-full' }} text-sm appearance-none rounded border border-gray-300 bg-white py-1.5 px-3 pe-5 focus:outline-hidden focus:ring-3 focus:ring-primary-200 focus:border-primary-300

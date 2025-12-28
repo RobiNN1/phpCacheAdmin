@@ -1,6 +1,6 @@
-<div class="mb-4 rounded-md bg-white border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
-    <div class="px-6 py-4 md:flex flex-wrap gap-3 justify-between">
-        <div class="flex gap-3 flex-wrap">
+<div class="mb-4 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+    <div class="flex-wrap gap-3 justify-between py-4 px-6 md:flex">
+        <div class="flex flex-wrap gap-3">
             {% if treeview %}
                 <div>
                     <div class="flex border rounded-sm overflow-hidden border-gray-300 dark:border-gray-600 [&>.active]:text-gray-600 dark:[&>.active]:text-gray-300 [&>.active]:bg-gray-200 dark:[&>.active]:bg-gray-950">
@@ -18,10 +18,9 @@
                 <div>
                     <div class="flex" id="search_form">
                         <input type="text" id="search_key" value="{{ search_value }}" placeholder="Search..." aria-label="Search..."
-                               class="w-full md:w-72 rounded-l border border-gray-300 bg-white py-1.5 px-3 text-sm
+                               class="py-1.5 px-3 w-full text-sm bg-white rounded-l border border-gray-300 md:w-72
                                focus:outline-hidden focus:ring-3 focus:ring-primary-200 focus:border-primary-300
-                               dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:placeholder-gray-400
-                               dark:focus:ring-primary-500 dark:focus:border-primary-400">
+                               dark:placeholder-gray-400 dark:text-white dark:bg-gray-800 dark:border-gray-600 dark:focus:ring-primary-500 dark:focus:border-primary-400">
                         {{ include('components/button.twig', {
                             text: '',
                             icon: 'search',
@@ -33,7 +32,7 @@
             {% endif %}
         </div>
 
-        <div class="md:flex gap-2 flex-wrap">
+        <div class="flex-wrap gap-2 md:flex">
             {% for button in custom_buttons %}
                 {{ button|raw }}
             {% endfor %}
@@ -89,5 +88,5 @@
     <div id="table-no-keys" class="{{ keys|length > 0 ? 'hidden ' : '' }}p-4 border-b border-gray-200 dark:border-gray-700 text-center dark:text-gray-400">
         No keys.
     </div>
-    <div class="px-6 py-4">{{ paginator|raw }}</div>
+    <div class="py-4 px-6">{{ paginator|raw }}</div>
 </div>

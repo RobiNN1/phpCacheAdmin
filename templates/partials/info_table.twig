@@ -1,22 +1,22 @@
-<div class="mb-4 overflow-hidden rounded-md bg-white border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
-    <div class="border-b border-gray-200 bg-gray-50 px-4 py-2 dark:border-gray-700 dark:bg-white/5">
+<div class="overflow-hidden mb-4 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+    <div class="py-2 px-4 bg-gray-50 border-b border-gray-200 dark:border-gray-700 dark:bg-white/5">
         <h2 class="text-sm font-semibold text-gray-900 dark:text-white">{{ panel_title }}</h2>
     </div>
 
-    <div class="relative overflow-x-auto">
-        <table class="w-full table-auto text-left text-sm">
+    <div class="overflow-x-auto relative">
+        <table class="w-full text-sm text-left table-auto">
             <tbody class="divide-y divide-gray-900/5 dark:divide-white/5">
             {% for name, value in array %}
                 {% if value is iterable and value|length > 0 %}
                     <tr class="bg-gray-50 dark:bg-white/5">
-                        <td colspan="2" class="px-4 py-1.5 text-xs uppercase text-primary-600 dark:text-primary-400">
+                        <td colspan="2" class="py-1.5 px-4 text-xs uppercase text-primary-600 dark:text-primary-400">
                             {{ name|replace({'_': ' '}) }}
                         </td>
                     </tr>
                     {% for sub_name, sub_value in value %}
                         <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
-                            <td class="whitespace-nowrap px-4 py-1.5 text-gray-900 dark:text-white">{{ sub_name }}</td>
-                            <td class="px-4 py-1.5 font-semibold text-gray-700 dark:text-gray-300">
+                            <td class="py-1.5 px-4 text-gray-900 whitespace-nowrap dark:text-white">{{ sub_name }}</td>
+                            <td class="py-1.5 px-4 font-semibold text-gray-700 dark:text-gray-300">
                                 {% if sub_value is not iterable %}
                                     {{ sub_value|raw }}
                                 {% else %}
@@ -29,8 +29,8 @@
                     {% endfor %}
                 {% elseif not value is iterable %}
                     <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
-                        <td class="whitespace-nowrap px-4 py-1.5 text-gray-900 dark:text-white">{{ name }}</td>
-                        <td class="px-4 py-1.5 font-semibold text-gray-700 dark:text-gray-300">{{ value|raw }}</td>
+                        <td class="py-1.5 px-4 text-gray-900 whitespace-nowrap dark:text-white">{{ name }}</td>
+                        <td class="py-1.5 px-4 font-semibold text-gray-700 dark:text-gray-300">{{ value|raw }}</td>
                     </tr>
                 {% endif %}
             {% endfor %}

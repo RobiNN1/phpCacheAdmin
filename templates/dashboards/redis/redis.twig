@@ -28,10 +28,10 @@
 {% endif %}
 
 {% if get('tab') == 'slowlog' %}
-    <div class="rounded-md bg-white border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
-        <div class="px-6 py-4 md:flex justify-between">
-            <div class="md:flex gap-1 items-center">
-                <form method="post" class="md:flex gap-1">
+    <div class="bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+        <div class="justify-between py-4 px-6 md:flex">
+            <div class="gap-1 items-center md:flex">
+                <form method="post" class="gap-1 md:flex">
                     {{ include('components/input.twig', {
                         id: 'slowlog_max_items',
                         label: 'Display&nbsp;items',
@@ -56,7 +56,7 @@
                 <div class="text-xs">This will change the config value. Default is 128 items and 10 000 μs.</div>
             </div>
 
-            <div class="md:flex gap-1">
+            <div class="gap-1 md:flex">
                 {{ include('components/button.twig', {
                     text: 'Reset',
                     link: link(['tab'], {'resetlog': 1}),
@@ -66,26 +66,26 @@
         </div>
 
         <div class="overflow-hidden overflow-x-auto">
-            <table class="w-full table-auto text-left dark:text-gray-300">
+            <table class="w-full text-left table-auto dark:text-gray-300">
                 <thead>
-                <tr class="text-primary-900 border-t border-b border-gray-200 dark:border-gray-700 dark:text-primary-400">
-                    <th class="px-6 py-2 text-xs font-bold uppercase">ID</th>
-                    <th class="px-6 py-2 text-xs font-bold uppercase">Timestamp</th>
-                    <th class="px-6 py-2 text-xs font-bold uppercase">Duration</th>
-                    <th class="px-6 py-2 text-xs font-bold uppercase">Command</th>
+                <tr class="border-t border-b border-gray-200 dark:border-gray-700 text-primary-900 dark:text-primary-400">
+                    <th class="py-2 px-6 text-xs font-bold uppercase">ID</th>
+                    <th class="py-2 px-6 text-xs font-bold uppercase">Timestamp</th>
+                    <th class="py-2 px-6 text-xs font-bold uppercase">Duration</th>
+                    <th class="py-2 px-6 text-xs font-bold uppercase">Command</th>
                 </tr>
                 </thead>
                 <tbody>
                 {% for item in slowlog.items %}
                     <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
-                        <td class="px-6 py-2 border-t border-gray-200 text-sm dark:border-gray-700 dark:text-gray-300">{{ item[0] }}</td>
-                        <td class="px-6 py-2 border-t border-gray-200 text-sm dark:border-gray-700 dark:text-gray-300">{{ item[1]|time }}</td>
-                        <td class="px-6 py-2 border-t border-gray-200 text-sm dark:border-gray-700 dark:text-gray-300">{{ item[2] }}μs</td>
-                        <td class="px-6 py-2 border-t border-gray-200 text-sm dark:border-gray-700 dark:text-gray-300">{{ item[3]|join(' ') }}</td>
+                        <td class="py-2 px-6 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700">{{ item[0] }}</td>
+                        <td class="py-2 px-6 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700">{{ item[1]|time }}</td>
+                        <td class="py-2 px-6 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700">{{ item[2] }}μs</td>
+                        <td class="py-2 px-6 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700">{{ item[3]|join(' ') }}</td>
                     </tr>
                 {% else %}
                     <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
-                        <td colspan="4" class="px-6 py-2 border-t border-gray-200 text-sm dark:border-gray-700 dark:text-gray-300 text-center">No items.</td>
+                        <td colspan="4" class="py-2 px-6 text-sm text-center border-t border-gray-200 dark:text-gray-300 dark:border-gray-700">No items.</td>
                     </tr>
                 {% endfor %}
                 </tbody>

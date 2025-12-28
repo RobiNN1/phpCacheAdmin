@@ -1,14 +1,14 @@
 {{ include('components/button.twig', open_btn|merge({attributes: {'data-modal-target': '#' ~ modal_id}})) }}
 
 {% macro modal(modal_id, title, content) %}
-    <div id="{{ modal_id }}" class="modal fixed inset-0 z-50 transition-opacity duration-300 pointer-events-none opacity-0 flex items-center justify-center">
-        <div class="modal-backdrop fixed inset-0 bg-gray-500/75 dark:bg-gray-900/75"></div>
+    <div id="{{ modal_id }}" class="modal flex fixed inset-0 z-50 justify-center items-center opacity-0 transition-opacity duration-300 pointer-events-none">
+        <div class="fixed inset-0 modal-backdrop bg-gray-500/75 dark:bg-gray-900/75"></div>
 
         <div class="relative bg-white rounded-md shadow-sm dark:bg-gray-700">
-            <div class="flex items-center justify-between p-4 md:min-w-[35rem] border-b border-gray-200 dark:border-gray-600">
+            <div class="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-600 md:min-w-[35rem]">
                 <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ title }}</h3>
 
-                <button data-modal-dismiss type="button" class="cursor-pointer text-gray-400 hover:text-gray-900 text-sm inline-flex justify-center items-center dark:hover:text-white">
+                <button data-modal-dismiss type="button" class="inline-flex justify-center items-center text-sm text-gray-400 cursor-pointer hover:text-gray-900 dark:hover:text-white">
                     {{ svg('close', 13) }}
                 </button>
             </div>

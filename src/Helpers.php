@@ -172,7 +172,7 @@ class Helpers {
      * @param array<string, int|string> $server
      */
     public static function getServerTitle(array $server): string {
-        $name = $server['name'] ?? '';
+        $name = $server['name'] ?? 'Server';
         $host = isset($server['host']) ? ' - '.$server['host'] : '';
         $port = isset($server['port']) ? ':'.$server['port'] : '';
 

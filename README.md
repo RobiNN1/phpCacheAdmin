@@ -53,7 +53,6 @@
 ## Installation
 
 Unzip the archive and launch index.php in a web browser. No installation is required.
-However, it is highly recommended (although not required) to run `composer install`.
 
 If you use the defaults (e.g., Redis, Memcached servers), everything should work out of the box.
 To customize the configuration, do not edit `config.dist.php` directly, but copy it into `config.php`.

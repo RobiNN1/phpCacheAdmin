@@ -1,0 +1,17 @@
+@import 'tailwindcss' source(none);
+@import 'tailwindcss/theme' theme(inline reference);
+
+@variant dark (&:where(.dark, .dark *));
+@source '../../index.php';
+
+@theme {
+    --color-redis: #ee5145;
+    --color-memcached: #2b8e84;
+    --color-opcache: #0ea5e9;
+    --color-apcu: #3b82f6;
+    --color-realpath: #748abd;
+}
+
+.dark {
+    color-scheme: dark;
+}

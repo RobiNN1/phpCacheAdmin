@@ -49,9 +49,8 @@ class Template {
 
     private function initTwig(): Environment {
         $loader = new FilesystemLoader(__DIR__.'/../templates');
-        $tmp = Config::get('tmpdir', __DIR__.'/../tmp');
         $twig = new Environment($loader, [
-            'cache' => Config::get('twigcache', $tmp.'/twig'),
+            'cache' => Config::get('twigcache', __DIR__.'/../tmp/twig'),
             'debug' => Config::get('twigdebug', false),
         ]);
 

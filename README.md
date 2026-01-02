@@ -61,6 +61,16 @@ To customize the configuration, do not edit `config.dist.php` directly, but copy
 
 Replace all files and delete the `/tmp/twig` folder (it contains compiled Twig templates).
 
+## Cronjob
+
+You can add these links to your cronjob to collect metrics when the dashboard is not open:
+
+Redis `https://example.com/phpCacheAdmin/?dashboard=redis&ajax&metrics`
+
+Memcached `https://example.com/phpCacheAdmin/?dashboard=memcached&ajax&metrics`
+
+Metrics are collected whenever this link is refreshed, so you can set any time in the cronjob.
+
 ## Environment variables
 
 All keys from the [config](https://github.com/RobiNN1/phpCacheAdmin/blob/master/config.dist.php) file are supported ENV variables,
@@ -146,6 +156,8 @@ services:
 > It is not necessary to have all dashboards enabled.
 
 ## Custom Dashboards
+
+Here is an example of how to implement a custom dashboard
 
 - [FileCache](https://github.com/RobiNN1/FileCache-Dashboard) ([`robinn/cache`](https://github.com/RobiNN1/Cache)) dashboard.
 

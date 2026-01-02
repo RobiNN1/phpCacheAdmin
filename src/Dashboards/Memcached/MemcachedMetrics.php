@@ -33,8 +33,8 @@ readonly class MemcachedMetrics {
     ) {
         $server_name = Helpers::getServerTitle($servers[$selected]);
         $hash = md5($server_name.Config::get('hash', 'pca'));
-        $tmp = Config::get('tmpdir', __DIR__.'/../../../tmp');
-        $db = $tmp.'/memcached_metrics_'.$hash.'.db';
+        $dir = Config::get('metricsdir', __DIR__.'/../../../tmp/metrics');
+        $db = $dir.'/memcached_metrics_'.$hash.'.db';
 
         $this->pdo = new PDO('sqlite:'.$db);
         $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);

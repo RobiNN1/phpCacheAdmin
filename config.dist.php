@@ -61,7 +61,7 @@ return [
             //'separator' => ':', // Separator for tree view (optional)
         ],
     ],
-    //'apcuseparator' => ':', // Separator for tree view (optional)
+    'apcuseparator' => ':', // Separator for tree view (optional)
     // Example of authentication with http auth.
     /*'auth'           => static function (): void {
         $username = 'admin';
@@ -149,8 +149,9 @@ return [
     'panelrefresh'   => 30, // In seconds, refresh interval for panels - default 30
     'metricsrefresh' => 60, // In seconds, refresh interval for metrics - default 60
     'metricstab'     => 1440, // Default tab in metrics, 60 - Last hour, 1440 - Last day, 10080 - Last week, 43200 - Last month - default 1440
-    'hash'           => 'pca', // Any random string to secure a metrics DB file
-    'tmpdir'         => __DIR__.'/tmp',
-    //'pcapath'        => 'vendor/robinn/phpcacheadmin/', // Path to the package when installed via composer. User for assets.
-    //'url'            => '/', // URL to the package, e.g., /phpcacheadmin
+    'hash'           => 'pca', // Any random string to secure a metrics DB file.
+    'metricsdir'     => __DIR__.'/tmp/metrics', // Directory for metrics DB files.
+    'twigcache'      => __DIR__.'/tmp/twig', // Directory for Twig cache files.
+    //'pcapath'        => 'vendor/robinn/phpcacheadmin/', // Path to the package when installed via composer. Used for assets.
+    //'url'            => '/', // URL to the dashboard when installed via composer, e.g., /phpcacheadmin
 ];

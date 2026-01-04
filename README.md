@@ -65,9 +65,11 @@ Replace all files and delete the `/tmp/twig` folder (it contains compiled Twig t
 
 You can add these links to your cronjob to collect metrics when the dashboard is not open:
 
-Redis `https://example.com/phpCacheAdmin/?dashboard=redis&ajax&metrics`
+Redis `https://example.com/phpCacheAdmin/?dashboard=redis&server=0&ajax&metrics`
 
-Memcached `https://example.com/phpCacheAdmin/?dashboard=memcached&ajax&metrics`
+Memcached `https://example.com/phpCacheAdmin/?dashboard=memcached&server=0&ajax&metrics`
+
+> `server=0` is the default server ID.
 
 Metrics are collected whenever this link is refreshed, so you can set any time in the cronjob.
 

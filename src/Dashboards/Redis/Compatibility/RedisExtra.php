@@ -22,20 +22,17 @@ trait RedisExtra {
     }
 
     /**
-     * @return array<int, array<string, mixed>>
+     * @return array<string, array<string, mixed>>
      */
     public function parseSectionData(string $section): array {
-        $data = $this->getInfo($section);
+        /** @var array<string, string> $info */
+        $info = $this->getInfo($section);
 
-        return array_map(static function ($value) {
-            if (is_array($value)) {
-                return $value;
-            }
-
+        return array_map(static function (string $value): array {
             parse_str(str_replace(',', '&', $value), $parsed);
 
             return $parsed;
-        }, $data);
+        }, $info);
     }
 
     /**

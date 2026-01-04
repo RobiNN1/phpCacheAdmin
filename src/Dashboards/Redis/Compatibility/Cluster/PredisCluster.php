@@ -98,9 +98,12 @@ class PredisCluster extends PredisClient implements RedisCompatibilityInterface 
                 try {
                     $response = $node->info($section_name);
 
-                    $node_section_info = (is_array($response) && !empty($response)) ? reset($response) : null;
+                    $node_section_info = (is_array($response) && $response !== []) ? reset($response) : null;
+                    if (!$node_section_info) {
+                        continue;
+                    }
 
-                    if (!$node_section_info || !is_array($node_section_info)) {
+                    if (!is_array($node_section_info)) {
                         continue;
                     }
 

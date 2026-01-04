@@ -79,7 +79,7 @@ class Predis extends Client implements RedisCompatibilityInterface {
             foreach ($this->getInfoSections() as $section) {
                 $response = $this->info($section);
 
-                $section_data = (is_array($response) && !empty($response)) ? reset($response) : null;
+                $section_data = (is_array($response) && $response !== []) ? reset($response) : null;
 
                 if ($section_data && is_array($section_data)) {
                     if ($section === 'keyspace') {
@@ -96,6 +96,7 @@ class Predis extends Client implements RedisCompatibilityInterface {
 
                             $reformatted_keyspace[$db] = implode(',', $key_value_pairs);
                         }
+
                         $section_data = $reformatted_keyspace;
                     }
 

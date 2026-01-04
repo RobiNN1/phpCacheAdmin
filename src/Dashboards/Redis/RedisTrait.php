@@ -546,20 +546,21 @@ trait RedisTrait {
         if (isset($this->servers[$this->current_server]['databases'])) {
             $db_count = (int) $this->servers[$this->current_server]['databases'];
         } else {
-            $db_count = (int) $this->redis->config('GET', 'databases')['databases'];
+            $config = $this->redis->config('GET', 'databases');
+            $db_count = (int) ($config['databases'] ?? 16);
         }
 
-        for ($d = 0; $d < $db_count; $d++) {
-            $keyspace = $this->redis->getInfo('keyspace');
-            $keys_in_db = '';
+        $keyspace = $this->redis->parseSectionData('keyspace');
 
-            if (array_key_exists('db'.$d, $keyspace)) {
-                $db = explode(',', $keyspace['db'.$d]);
-                $keys = explode('=', $db[0]);
-                $keys_in_db = ' ('.Format::number((int) $keys[1]).' keys)';
+        for ($d = 0; $d < $db_count; $d++) {
+            $label = 'Database '.$d;
+
+            if (isset($keyspace['db'.$d]['keys'])) {
+                $count = (int) $keyspace['db'.$d]['keys'];
+                $label .= ' ('.Format::number($count).' keys)';
             }
 
-            $databases[$d] = 'Database '.$d.$keys_in_db;
+            $databases[$d] = $label;
         }
 
         return $databases;

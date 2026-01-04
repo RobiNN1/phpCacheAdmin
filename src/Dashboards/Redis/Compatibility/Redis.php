@@ -12,8 +12,7 @@ use RedisException;
 use RobiNN\Pca\Dashboards\DashboardException;
 
 class Redis extends \Redis implements RedisCompatibilityInterface {
-    use RedisJson;
-    use RedisModules;
+    use RedisExtra;
 
     /**
      * @var array<int|string, string>
@@ -91,9 +90,8 @@ class Redis extends \Redis implements RedisCompatibilityInterface {
 
         if ($info === null) {
             $section_info = [];
-            $sections = ['SERVER', 'CLIENTS', 'MEMORY', 'PERSISTENCE', 'STATS', 'REPLICATION', 'CPU', 'CLUSTER', 'KEYSPACE'];
 
-            foreach ($sections as $section) {
+            foreach ($this->getInfoSections() as $section) {
                 try {
                     $section_data = $this->info($section);
 

@@ -15,8 +15,7 @@ use Predis\Collection\Iterator\Keyspace;
  * @method bool restore(string $key, int $ttl, string $value)
  */
 class Predis extends Client implements RedisCompatibilityInterface {
-    use RedisJson;
-    use RedisModules;
+    use RedisExtra;
 
     /**
      * @var array<string, string>
@@ -74,42 +73,44 @@ class Predis extends Client implements RedisCompatibilityInterface {
     public function getInfo(?string $option = null): array {
         static $info = null;
 
-        if ($info !== null) {
-            return $option !== null ? ($info[strtolower($option)] ?? []) : $info;
-        }
+        if ($info === null) {
+            $section_info = [];
 
-        $all_sections = $this->info();
-        $section_info = [];
+            foreach ($this->getInfoSections() as $section) {
+                $response = $this->info($section);
 
-        foreach ($all_sections as $section_name => $section_data) {
-            $section_name_lower = strtolower((string) $section_name);
+                $section_data = (is_array($response) && !empty($response)) ? reset($response) : null;
 
-            if ($section_name_lower === 'keyspace') {
-                $reformatted_keyspace = [];
+                if ($section_data && is_array($section_data)) {
+                    if ($section === 'keyspace') {
+                        $reformatted_keyspace = [];
 
-                if (is_array($section_data)) {
-                    foreach ($section_data as $db => $keys_data_array) {
-                        $key_value_pairs = [];
+                        foreach ($section_data as $db => $keys_data_array) {
+                            $key_value_pairs = [];
 
-                        if (is_array($keys_data_array)) {
-                            foreach ($keys_data_array as $key => $value) {
-                                $key_value_pairs[] = $key.'='.$value;
+                            if (is_array($keys_data_array)) {
+                                foreach ($keys_data_array as $key => $value) {
+                                    $key_value_pairs[] = $key.'='.$value;
+                                }
                             }
+
+                            $reformatted_keyspace[$db] = implode(',', $key_value_pairs);
                         }
-
-                        $reformatted_keyspace[$db] = implode(',', $key_value_pairs);
+                        $section_data = $reformatted_keyspace;
                     }
-                }
 
-                $section_data = $reformatted_keyspace;
+                    $section_info[strtolower($section)] = $section_data;
+                }
             }
 
-            $section_info[$section_name_lower] = $section_data;
+            $info = $section_info;
         }
 
-        $info = $section_info;
+        if ($option !== null) {
+            return $info[strtolower($option)] ?? [];
+        }
 
-        return $option !== null ? ($info[strtolower($option)] ?? []) : $info;
+        return $info;
     }
 
     /**

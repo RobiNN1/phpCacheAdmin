@@ -14,15 +14,13 @@ use Predis\Client as PredisClient;
 use Predis\Collection\Iterator\Keyspace;
 use RobiNN\Pca\Dashboards\DashboardException;
 use RobiNN\Pca\Dashboards\Redis\Compatibility\RedisCompatibilityInterface;
-use RobiNN\Pca\Dashboards\Redis\Compatibility\RedisJson;
-use RobiNN\Pca\Dashboards\Redis\Compatibility\RedisModules;
+use RobiNN\Pca\Dashboards\Redis\Compatibility\RedisExtra;
 
 /**
  * @method bool restore(string $key, int $ttl, string $value)
  */
 class PredisCluster extends PredisClient implements RedisCompatibilityInterface {
-    use RedisJson;
-    use RedisModules;
+    use RedisExtra;
 
     /**
      * @var array<int, PredisClient>
@@ -96,22 +94,29 @@ class PredisCluster extends PredisClient implements RedisCompatibilityInterface 
         $aggregated = [];
 
         foreach ($this->nodes as $node) {
-            try {
-                $node_section_info = $node->info();
-            } catch (Exception) {
-                continue;
-            }
+            foreach ($this->getInfoSections() as $section_name) {
+                try {
+                    $response = $node->info($section_name);
 
-            foreach ($node_section_info as $section_name => $section_data) {
-                $section_name_lower = strtolower((string) $section_name);
-                foreach ($section_data as $key => $value) {
-                    if (is_array($value)) {
-                        foreach ($value as $sub_key => $sub_val) {
-                            $aggregated[$section_name_lower][$key][$sub_key][] = $sub_val;
-                        }
-                    } else {
-                        $aggregated[$section_name_lower][$key][] = $value;
+                    $node_section_info = (is_array($response) && !empty($response)) ? reset($response) : null;
+
+                    if (!$node_section_info || !is_array($node_section_info)) {
+                        continue;
                     }
+
+                    $section_name_lower = strtolower($section_name);
+
+                    foreach ($node_section_info as $key => $value) {
+                        if (is_array($value)) {
+                            foreach ($value as $sub_key => $sub_val) {
+                                $aggregated[$section_name_lower][$key][$sub_key][] = $sub_val;
+                            }
+                        } else {
+                            $aggregated[$section_name_lower][$key][] = $value;
+                        }
+                    }
+                } catch (Exception) {
+                    continue;
                 }
             }
         }
@@ -133,34 +138,6 @@ class PredisCluster extends PredisClient implements RedisCompatibilityInterface 
         $info = $combined_info;
 
         return $option !== null ? ($info[strtolower($option)] ?? []) : $info;
-    }
-
-    /**
-     * @param list<mixed>       $values
-     * @param list<string>|null $combine
-     */
-    private function combineValues(string $key, array $values, ?array $combine): mixed {
-        $unique = array_unique($values);
-
-        if (count($unique) === 1) {
-            return $unique[0];
-        }
-
-        $numeric = array_filter($values, is_numeric(...));
-
-        if ($combine && in_array($key, $combine, true) && count($numeric) === count($values)) {
-            return array_sum($values);
-        }
-
-        if ($key === 'mem_fragmentation_ratio' && count($numeric) === count($values)) {
-            return round(array_sum($values) / count($values), 2);
-        }
-
-        if ($key === 'used_memory_peak' && count($numeric) === count($values)) {
-            return max($values);
-        }
-
-        return $values;
     }
 
     /**

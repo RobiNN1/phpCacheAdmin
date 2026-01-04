@@ -13,12 +13,10 @@ use Redis;
 use RedisClusterException;
 use RobiNN\Pca\Dashboards\DashboardException;
 use RobiNN\Pca\Dashboards\Redis\Compatibility\RedisCompatibilityInterface;
-use RobiNN\Pca\Dashboards\Redis\Compatibility\RedisJson;
-use RobiNN\Pca\Dashboards\Redis\Compatibility\RedisModules;
+use RobiNN\Pca\Dashboards\Redis\Compatibility\RedisExtra;
 
 class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface {
-    use RedisJson;
-    use RedisModules;
+    use RedisExtra;
 
     /**
      * @var array<int, mixed>
@@ -90,11 +88,10 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
             return $option !== null ? ($info[strtolower($option)] ?? []) : $info;
         }
 
-        $sections = ['SERVER', 'CLIENTS', 'MEMORY', 'PERSISTENCE', 'STATS', 'REPLICATION', 'CPU', 'CLUSTER', 'KEYSPACE'];
         $aggregated_data = [];
 
         foreach ($this->nodes as $node) {
-            foreach ($sections as $section_name) {
+            foreach ($this->getInfoSections() as $section_name) {
                 try {
                     $node_section_info = $this->info($node, $section_name);
 
@@ -138,34 +135,6 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
         $info = $combined_info;
 
         return $option !== null ? ($info[strtolower($option)] ?? []) : $info;
-    }
-
-    /**
-     * @param list<mixed>       $values
-     * @param list<string>|null $combine
-     */
-    private function combineValues(string $key, array $values, ?array $combine): mixed {
-        $unique = array_unique($values);
-
-        if (count($unique) === 1) {
-            return $unique[0];
-        }
-
-        $numeric = array_filter($values, is_numeric(...));
-
-        if ($combine && in_array($key, $combine, true) && count($numeric) === count($values)) {
-            return array_sum($values);
-        }
-
-        if ($key === 'mem_fragmentation_ratio' && count($numeric) === count($values)) {
-            return round(array_sum($values) / count($values), 2);
-        }
-
-        if ($key === 'used_memory_peak' && count($numeric) === count($values)) {
-            return max($values);
-        }
-
-        return $values;
     }
 
     /**

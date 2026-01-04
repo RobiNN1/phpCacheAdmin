@@ -97,25 +97,26 @@ class PredisCluster extends PredisClient implements RedisCompatibilityInterface 
             foreach ($this->getInfoSections() as $section_name) {
                 try {
                     $response = $node->info($section_name);
-
                     $node_section_info = (is_array($response) && $response !== []) ? reset($response) : null;
-                    if (!$node_section_info) {
+
+                    if (!$node_section_info || !is_array($node_section_info)) {
                         continue;
                     }
 
-                    if (!is_array($node_section_info)) {
-                        continue;
-                    }
-
-                    $section_name_lower = strtolower($section_name);
+                    $section_lower = strtolower($section_name);
 
                     foreach ($node_section_info as $key => $value) {
+                        if ($section_lower === 'commandstats' || $section_lower === 'keyspace') {
+                            $aggregated[$section_lower][$key][] = $value;
+                            continue;
+                        }
+
                         if (is_array($value)) {
                             foreach ($value as $sub_key => $sub_val) {
-                                $aggregated[$section_name_lower][$key][$sub_key][] = $sub_val;
+                                $aggregated[$section_lower][$key][$sub_key][] = $sub_val;
                             }
                         } else {
-                            $aggregated[$section_name_lower][$key][] = $value;
+                            $aggregated[$section_lower][$key][] = $value;
                         }
                     }
                 } catch (Exception) {
@@ -124,21 +125,7 @@ class PredisCluster extends PredisClient implements RedisCompatibilityInterface 
             }
         }
 
-        $combined_info = [];
-
-        foreach ($aggregated as $section_name => $section_data) {
-            foreach ($section_data as $key => $values) {
-                if (is_array(reset($values))) {
-                    foreach ($values as $sub_key => $sub_values) {
-                        $combined_info[$section_name][$key][$sub_key] = $this->combineValues($sub_key, $sub_values, $combine);
-                    }
-                } else {
-                    $combined_info[$section_name][$key] = $this->combineValues($key, $values, $combine);
-                }
-            }
-        }
-
-        $info = $combined_info;
+        $info = $this->aggregatedData($aggregated, $combine);
 
         return $option !== null ? ($info[strtolower($option)] ?? []) : $info;
     }

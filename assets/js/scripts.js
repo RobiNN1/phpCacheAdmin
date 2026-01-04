@@ -474,6 +474,7 @@ const chart = (instance, options, timestamps) => {
         grid: {left: 10, right: 10, top: 80, bottom: 60}
     });
 };
+
 const time_switcher = (callback) => {
     const time_buttons = document.querySelectorAll('[data-tab]');
 

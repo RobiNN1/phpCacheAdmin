@@ -27,7 +27,7 @@
 - View, add, edit, and delete keys. Supports all Redis data types.
 - **Cluster support**.
 - Supports ACL.
-- Detailed server statistics including memory usage, uptime, connected clients, and general info.
+- Detailed server statistics including command calls, memory usage, uptime, connected clients, and general info.
 - View the Redis slowlog to debug performance issues.
 - Supports both SCAN and KEYS commands for retrieving keys.
 

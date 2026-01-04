@@ -11,6 +11,9 @@
 }) }}
 
 <div class="gap-4 md:grid md:grid-cols-4">
+    <div class="col-span-4 p-4 mb-2 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+        <div id="command_calls_chart" class="h-90"></div>
+    </div>
     <div class="col-span-2 p-4 mb-2 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
         <div id="memory_chart" class="h-90"></div>
     </div>
@@ -34,6 +37,7 @@
         const initial_theme = document.documentElement.classList.contains('dark') ? 'dark' : null;
 
         const chart_config = {
+            command_calls: echarts.init(document.getElementById('command_calls_chart'), initial_theme, {renderer: 'svg'}),
             memory: echarts.init(document.getElementById('memory_chart'), initial_theme, {renderer: 'svg'}),
             fragmentation: echarts.init(document.getElementById('fragmentation_chart'), initial_theme, {renderer: 'svg'}),
             commands: echarts.init(document.getElementById('commands_chart'), initial_theme, {renderer: 'svg'}),
@@ -44,6 +48,43 @@
         const render_charts = (data) => {
             if (!data || data.length === 0) return;
             const timestamps = data.map(p => p.timestamp.split(' ')[1]);
+
+            const command_series = [...new Set(data.flatMap(p => Object.keys(p.commands_stats ?? {})))].map(name => ({
+                name: name,
+                type: 'line',
+                stack: 'Total',
+                areaStyle: {},
+                emphasis: {focus: 'series'},
+                data: data.map((p, i) => {
+                    if (i === 0 || !p.commands_stats || !data[i - 1].commands_stats) return 0;
+                    const val = (p.commands_stats?.[name] ?? 0) - (data[i - 1].commands_stats?.[name] ?? 0);
+                    return val < 0 ? 0 : val;
+                })
+            })).filter(s => s.data.some(v => v > 0));
+
+            chart(chart_config.command_calls, {
+                title: 'Command Calls',
+                legend: command_series.map(s => s.name),
+                tooltip: {
+                    confine: true,
+                    formatter: function (params) {
+                        let html = `<div style="min-width: 450px;">
+                            <strong>${params[0].name}</strong>
+                            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0 20px;">`;
+
+                        params.forEach(item => {
+                            if (item.value > 0) {
+                                html += `<div class="flex justify-between items-center"><span>${item.marker} ${item.seriesName}</span><strong>${item.value}</strong></div>`;
+                            }
+                        });
+
+                        html += '</div></div>';
+                        return html;
+                    }
+                },
+                yAxis: {type: 'value', name: 'Calls'},
+                series: command_series
+            }, timestamps);
 
             chart(chart_config.memory, {
                 title: 'Memory Usage',
@@ -91,7 +132,6 @@
                     {name: 'Connections', type: 'line', data: data.map(p => p.connections), areaStyle: {}},
                 ],
             }, timestamps);
-
         };
 
         init_metrics(render_charts, chart_config);

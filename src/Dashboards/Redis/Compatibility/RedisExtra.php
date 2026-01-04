@@ -25,11 +25,24 @@ trait RedisExtra {
      * @return array<string, array<string, mixed>>
      */
     public function parseSectionData(string $section): array {
-        /** @var array<string, string> $info */
+        /** @var array<string, string|array<int, string>> $info */
         $info = $this->getInfo($section);
 
-        return array_map(static function (string $value): array {
-            parse_str(str_replace(',', '&', $value), $parsed);
+        return array_map(static function ($value): array {
+            // Cluster mode
+            if (is_array($value)) {
+                $aggregated = [];
+                foreach ($value as $node_string) {
+                    parse_str(str_replace(',', '&', (string) $node_string), $parsed);
+                    foreach ($parsed as $k => $v) {
+                        $aggregated[$k] = ($aggregated[$k] ?? 0) + (is_numeric($v) ? $v : 0);
+                    }
+                }
+
+                return $aggregated;
+            }
+
+            parse_str(str_replace(',', '&', (string) $value), $parsed);
 
             return $parsed;
         }, $info);
@@ -87,7 +100,38 @@ trait RedisExtra {
     }
 
     /**
-     * Combine info values into a single value in a cluster.
+     * Helper function for cluster mode.
+     *
+     * @param array<string, array<string, mixed>> $aggregated
+     * @param null|list<string>                   $combine
+     *
+     * @return array<string, array<string, mixed>>
+     */
+    private function aggregatedData(array $aggregated, ?array $combine = null): array {
+        $combined_info = [];
+
+        foreach ($aggregated as $section_name => $section_data) {
+            foreach ($section_data as $key => $values) {
+                if ($section_name === 'commandstats' || $section_name === 'keyspace') {
+                    $combined_info[$section_name][$key] = $values;
+                    continue;
+                }
+
+                if (is_array(reset($values))) {
+                    foreach ($values as $sub_key => $sub_values) {
+                        $combined_info[$section_name][$key][$sub_key] = $this->combineValues((string) $sub_key, $sub_values, $combine);
+                    }
+                } else {
+                    $combined_info[$section_name][$key] = $this->combineValues($key, $values, $combine);
+                }
+            }
+        }
+
+        return $combined_info;
+    }
+
+    /**
+     * Helper function for cluster mode.
      *
      * @param list<mixed>       $values
      * @param list<string>|null $combine

@@ -41,15 +41,45 @@ readonly class RedisMetrics {
 
         $schema = <<<SQL
         CREATE TABLE IF NOT EXISTS metrics (
-            id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp INTEGER NOT NULL,
-            commands_per_second INTEGER, hit_rate REAL, memory_used INTEGER, memory_peak INTEGER,
-            fragmentation_ratio REAL, connections INTEGER
+            id INTEGER PRIMARY KEY AUTOINCREMENT, 
+            timestamp INTEGER NOT NULL,
+            commands_per_second INTEGER, 
+            hit_rate REAL, 
+            memory_used INTEGER, 
+            memory_peak INTEGER,
+            fragmentation_ratio REAL, 
+            connections INTEGER,
+            commands_stats TEXT
         )
         SQL;
 
         $this->pdo->exec($schema);
+
+        $this->updateSchema([
+            'commands_stats' => 'TEXT',
+        ]);
     }
 
+    /**
+     * @param array<string, string> $new_columns
+     */
+    private function updateSchema(array $new_columns): void {
+        try {
+            $statement = $this->pdo->query('PRAGMA table_info(metrics)');
+            $existing_columns = $statement->fetchAll(PDO::FETCH_COLUMN, 1);
+
+            foreach ($new_columns as $column_name => $type) {
+                if (!in_array($column_name, $existing_columns, true)) {
+                    $this->pdo->exec(sprintf('ALTER TABLE metrics ADD COLUMN %s %s', $column_name, $type));
+                }
+            }
+        } catch (\Exception) {
+        }
+    }
+
+    /**
+     * @throws JsonException
+     */
     public function collectAndRespond(): string {
         $info = $this->redis->getInfo(null, [
             'used_memory',
@@ -79,12 +109,22 @@ readonly class RedisMetrics {
     /**
      * @param array<string, mixed> $info
      *
-     * @return array<string, int|float>
+     * @return array<string, int|float|string>
+     *
+     * @throws JsonException
      */
     private function calculateMetrics(array $info): array {
         $keyspace_hits = $info['stats']['keyspace_hits'] ?? 0;
         $keyspace_misses = $info['stats']['keyspace_misses'] ?? 0;
         $total_commands = $keyspace_hits + $keyspace_misses;
+
+        $parsed_commands = $this->redis->parseSectionData('commandstats');
+        $command_calls = [];
+
+        foreach ($parsed_commands as $cmd => $details) {
+            $name = str_replace('cmdstat_', '', $cmd);
+            $command_calls[$name] = (int) ($details['calls'] ?? 0);
+        }
 
         return [
             'timestamp'           => time(),
@@ -94,6 +134,7 @@ readonly class RedisMetrics {
             'memory_peak'         => $info['memory']['used_memory_peak'] ?? 0,
             'fragmentation_ratio' => $info['memory']['mem_fragmentation_ratio'] ?? 0,
             'connections'         => $info['clients']['connected_clients'] ?? 0,
+            'commands_stats'      => json_encode($command_calls, JSON_THROW_ON_ERROR),
         ];
     }
 
@@ -119,15 +160,15 @@ readonly class RedisMetrics {
         $stmt->bindValue(':limit', $max_data_points_to_return, PDO::PARAM_INT);
         $stmt->execute();
 
-        $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        return array_reverse($results);
+        return array_reverse($stmt->fetchAll(PDO::FETCH_ASSOC));
     }
 
     /**
      * @param array<int, array<string, mixed>> $db_rows
      *
      * @return array<int, array<string, mixed>>
+     *
+     * @throws JsonException
      */
     private function formatDataForResponse(array $db_rows): array {
         $formatted_results = [];
@@ -144,6 +185,7 @@ readonly class RedisMetrics {
                     'fragmentation' => $row['fragmentation_ratio'],
                 ],
                 'connections'         => $row['connections'],
+                'commands_stats'      => json_decode((string) $row['commands_stats'], true, 512, JSON_THROW_ON_ERROR),
             ];
         }
 

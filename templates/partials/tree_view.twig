@@ -47,7 +47,9 @@
                             {% elseif item_key starts with 'time_' %}
                                 {{- kitem|time -}}
                             {% elseif item_key starts with 'timediff_' and kitem is not empty %}
-                                <span title="{{ kitem|time }}">{{- kitem|timediff -}}</span>
+                                <span title="{{ kitem|time }}" data-timediff="{{ kitem }}">{{- kitem|timediff -}}</span>
+                            {% elseif item_key starts with 'countdown_' %}
+                                <span data-ttl-expiry="{{ kitem }}">{{- kitem|countdown -}}</span>
                             {% elseif item_key starts with 'bytes_' %}
                                 {{- kitem|bytes -}}
                             {% else %}

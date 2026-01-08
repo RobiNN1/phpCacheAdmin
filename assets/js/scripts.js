@@ -362,6 +362,56 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 /**
+ * TTL Countdown - Updates elements with data-ttl-expiry every second
+ */
+const format_countdown = (expiry_timestamp, granularity) => {
+    if (expiry_timestamp <= 0) {
+        return "Doesn't expire";
+    }
+
+    const now = Math.floor(Date.now() / 1000);
+    const remaining = expiry_timestamp - now;
+
+    if (remaining <= 0) {
+        return 'Expired';
+    }
+
+    const seconds_in_minute = 60;
+    const seconds_in_hour = 60 * seconds_in_minute;
+    const seconds_in_day = 24 * seconds_in_hour;
+
+    const days = Math.floor(remaining / seconds_in_day);
+    const hour_seconds = remaining % seconds_in_day;
+    const hours = Math.floor(hour_seconds / seconds_in_hour);
+    const minute_seconds = hour_seconds % seconds_in_hour;
+    const minutes = Math.floor(minute_seconds / seconds_in_minute);
+    const seconds = Math.ceil(minute_seconds % seconds_in_minute);
+
+    const parts = [];
+
+    if (days > 0 && parts.length < granularity) parts.push(`${days} day${days === 1 ? '' : 's'}`);
+    if (hours > 0 && parts.length < granularity) parts.push(`${hours} hour${hours === 1 ? '' : 's'}`);
+    if (minutes > 0 && parts.length < granularity) parts.push(`${minutes} minute${minutes === 1 ? '' : 's'}`);
+    if (seconds > 0 && parts.length < granularity) parts.push(`${seconds} second${seconds === 1 ? '' : 's'}`);
+
+    return parts.length > 0 ? parts.join(' ') : '0 seconds';
+};
+
+const update_ttl_countdowns = () => {
+    document.querySelectorAll('[data-ttl-expiry]').forEach(element => {
+        const expiry = parseInt(element.dataset.ttlExpiry, 10);
+        const simpleTTL = format_countdown(expiry, 1);
+        if(simpleTTL !== element.textContent) {
+            element.textContent = simpleTTL;
+        }
+        element.title = format_countdown(expiry, 10);
+    });
+};
+
+// Update TTL countdowns every second
+setInterval(update_ttl_countdowns, 1000);
+
+/**
  * Redirects
  */
 select_and_redirect('per_page', 'pp');

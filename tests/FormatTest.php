@@ -51,4 +51,19 @@ final class FormatTest extends TestCase {
             $this->assertSame($diff, Format::timeDiff($value, $current_time));
         }
     }
+
+    public function testcountdown(): void {
+        $current_time = time();
+
+        // Special values that never expire
+        $this->assertSame("Doesn't expire", Format::countdown(0));
+        $this->assertSame("Doesn't expire", Format::countdown(-1));
+
+        // Already expired
+        $this->assertSame('Expired', Format::countdown($current_time - 10));
+
+        // TTL with remaining time
+        $this->assertSame('1 hour', Format::countdown($current_time + 3600));
+        $this->assertSame('1 day', Format::countdown($current_time + 86400));
+    }
 }

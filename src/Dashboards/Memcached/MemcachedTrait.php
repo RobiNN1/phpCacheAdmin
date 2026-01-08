@@ -235,12 +235,9 @@ trait MemcachedTrait {
      */
     public function keysTableView(array $raw_lines): array {
         $formatted_keys = [];
-        $time = time();
 
         foreach ($raw_lines as $line) {
             $key_data = $this->memcached->parseLine($line);
-            $ttl = $key_data['exp'] ?? null;
-            $ttl_display = $ttl === -1 ? 'Doesn\'t expire' : $ttl - $time;
 
             $formatted_keys[] = [
                 'key'  => $key_data['key'],
@@ -248,7 +245,7 @@ trait MemcachedTrait {
                     'link_title'           => urldecode($key_data['key']),
                     'bytes_size'           => $key_data['size'] ?? 0,
                     'timediff_last_access' => $key_data['la'] ?? 0,
-                    'ttl'                  => $ttl_display,
+                    'countdown_ttl'     => $key_data['exp'] ?? null,
                 ],
             ];
         }
@@ -282,9 +279,6 @@ trait MemcachedTrait {
                 continue;
             }
 
-            $ttl = $key_data['exp'] ?? null;
-            $ttl_display = $ttl === -1 ? 'Doesn\'t expire' : $ttl - $time;
-
             $parts = explode($separator, $key_data['key']);
 
             /** @var array<int|string, mixed> $current */
@@ -302,7 +296,7 @@ trait MemcachedTrait {
                         'info' => [
                             'bytes_size'           => $key_data['size'] ?? 0,
                             'timediff_last_access' => $key_data['la'] ?? 0,
-                            'ttl'                  => $ttl_display,
+                            'countdown_ttl'        => $key_data['exp'] ?? null,
                         ],
                     ];
                 } else {

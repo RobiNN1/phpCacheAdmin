@@ -462,15 +462,18 @@ trait RedisTrait {
         $formatted_keys = [];
 
         foreach ($keys_array as $key) {
+            $ttl = $pipeline[$key]['ttl'];
+            $expiry = $ttl > 0 ? time() + $ttl : $ttl;
+
             $formatted_keys[] = [
                 'key'    => $key,
                 'items'  => $pipeline[$key]['count'] ?? null,
                 'base64' => true,
                 'info'   => [
-                    'link_title' => $key,
-                    'bytes_size' => $pipeline[$key]['size'],
-                    'type'       => $pipeline[$key]['type'],
-                    'ttl'        => $pipeline[$key]['ttl'] === -1 ? 'Doesn\'t expire' : $pipeline[$key]['ttl'],
+                    'link_title'      => $key,
+                    'bytes_size'      => $pipeline[$key]['size'],
+                    'type'            => $pipeline[$key]['type'],
+                    'countdown_ttl' => $expiry,
                 ],
             ];
         }
@@ -502,6 +505,9 @@ trait RedisTrait {
                 $path = $path !== '' && $path !== '0' ? $path.$separator.$part : $part;
 
                 if ($i === count($parts) - 1) { // check last part
+                    $ttl = $pipeline[$key]['ttl'];
+                    $expiry = $ttl > 0 ? time() + $ttl : $ttl;
+
                     $current[] = [
                         'type'   => 'key',
                         'name'   => $part,
@@ -509,9 +515,9 @@ trait RedisTrait {
                         'items'  => $pipeline[$key]['count'] ?? null,
                         'base64' => true,
                         'info'   => [
-                            'bytes_size' => $pipeline[$key]['size'],
-                            'type'       => $pipeline[$key]['type'],
-                            'ttl'        => $pipeline[$key]['ttl'] === -1 ? 'Doesn\'t expire' : $pipeline[$key]['ttl'],
+                            'bytes_size'       => $pipeline[$key]['size'],
+                            'type'             => $pipeline[$key]['type'],
+                            'countdown_ttl' => $expiry,
                         ],
                     ];
                 } else {

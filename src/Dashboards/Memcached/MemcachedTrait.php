@@ -306,15 +306,13 @@ trait MemcachedTrait {
                         ],
                     ];
                 } else {
-                    if (!isset($current[$part])) {
-                        $current[$part] = [
-                            'type'     => 'folder',
-                            'name'     => $part,
-                            'path'     => $path,
-                            'children' => [],
-                            'expanded' => false,
-                        ];
-                    }
+                    $current[$part] ??= [
+                        'type' => 'folder',
+                        'name' => $part,
+                        'path' => $path,
+                        'children' => [],
+                        'expanded' => false,
+                    ];
 
                     $current = &$current[$part]['children'];
                 }

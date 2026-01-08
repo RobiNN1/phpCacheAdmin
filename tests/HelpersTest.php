@@ -173,58 +173,64 @@ final class HelpersTest extends TestCase {
             [
                 'type'     => 'folder',
                 'children' => [
-                    ['type' => 'file'],
-                    ['type' => 'file'],
+                    ['type' => 'file', 'info' => ['bytes_size' => 100]],
+                    ['type' => 'file', 'info' => ['bytes_size' => 200]],
                     [
                         'type'     => 'folder',
                         'children' => [
-                            ['type' => 'file'],
-                            ['type' => 'file'],
+                            ['type' => 'file', 'info' => ['bytes_size' => 300]],
+                            ['type' => 'file', 'info' => ['bytes_size' => 400]],
                         ],
                     ],
                 ],
             ],
-            ['type' => 'file'],
-            ['type' => 'file'],
+            ['type' => 'file', 'info' => ['bytes_size' => 500]],
+            ['type' => 'file', 'info' => ['bytes_size' => 600]],
         ];
 
         $expected = [
             [
                 'type'     => 'folder',
                 'children' => [
-                    ['type' => 'file'],
-                    ['type' => 'file'],
+                    ['type' => 'file', 'info' => ['bytes_size' => 100]],
+                    ['type' => 'file', 'info' => ['bytes_size' => 200]],
                     [
                         'type' => 'folder',
 
                         'children' => [
-                            ['type' => 'file'],
-                            ['type' => 'file'],
+                            ['type' => 'file', 'info' => ['bytes_size' => 300]],
+                            ['type' => 'file', 'info' => ['bytes_size' => 400]],
                         ],
                         'count'    => 2,
+                        'size'     => 700,
                     ],
                 ],
                 'count'    => 4,
+                'size'     => 1000,
             ],
-            ['type' => 'file'],
-            ['type' => 'file'],
+            ['type' => 'file', 'info' => ['bytes_size' => 500]],
+            ['type' => 'file', 'info' => ['bytes_size' => 600]],
         ];
 
-        $count = Helpers::countChildren($tree);
-        $this->assertSame(6, $count);
+        $result = Helpers::calculateStats($tree);
+        $this->assertSame(['count' => 6, 'size' => 2100], $result);
         $this->assertSame($expected, $tree);
     }
 
     public function testCountChildrenEmpty(): void {
         $tree = [];
-        $count = Helpers::countChildren($tree);
-        $this->assertSame(0, $count);
+        $result = Helpers::calculateStats($tree);
+        $this->assertSame(['count' => 0, 'size' => 0], $result);
     }
 
     public function testCountChildrenNoFolders(): void {
-        $tree = [['type' => 'file'], ['type' => 'file'], ['type' => 'file'],];
-        $count = Helpers::countChildren($tree);
-        $this->assertSame(3, $count);
+        $tree = [
+            ['type' => 'file', 'info' => ['bytes_size' => 100]],
+            ['type' => 'file', 'info' => ['bytes_size' => 200]],
+            ['type' => 'file', 'info' => ['bytes_size' => 300]],
+        ];
+        $result = Helpers::calculateStats($tree);
+        $this->assertSame(['count' => 3, 'size' => 600], $result);
     }
 
     public function testSnakeCase(): void {

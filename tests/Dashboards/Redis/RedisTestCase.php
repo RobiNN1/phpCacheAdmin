@@ -322,6 +322,7 @@ abstract class RedisTestCase extends TestCase {
                 ],
                 'expanded' => false,
                 'count'    => 2,
+                'size'     => 0,
             ],
             [
                 'type'   => 'key',

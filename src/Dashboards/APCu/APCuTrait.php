@@ -288,7 +288,7 @@ trait APCuTrait {
             }
         }
 
-        Helpers::countChildren($tree);
+        Helpers::calculateStats($tree);
 
         return $tree;
     }

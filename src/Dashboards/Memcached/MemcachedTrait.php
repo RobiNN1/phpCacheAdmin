@@ -319,7 +319,7 @@ trait MemcachedTrait {
             }
         }
 
-        Helpers::countChildren($tree);
+        Helpers::calculateStats($tree);
 
         return $tree;
     }

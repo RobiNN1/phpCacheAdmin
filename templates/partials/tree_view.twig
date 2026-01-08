@@ -4,13 +4,16 @@
 {% macro render_tree(items, level=0, show_actions, view_key, components) %}
     {% for key, item in items %}
         {% if item.type == 'folder' %}
-            <div class="border-t border-gray-200 dark:border-gray-700" style="--level: {{ level }}">
+            <div class="border-t border-gray-200 dark:border-gray-700 folder-wrapper" style="--level: {{ level }}" data-folder-path="{{ item.path }}">
                 <div class="flex gap-1 items-center py-1 px-6 hover:bg-gray-50 dark:hover:bg-white/5" style="padding-left: calc({{ level }} * 20px + 1.5rem)">
+                    {% if show_actions %}
+                        {{ components.checkbox('check-folder mr-1') }}
+                    {% endif %}
                     <button class="flex gap-1 items-center tree-toggle" data-path="{{ item.path }}">
                         {{ svg('down', 10, '-rotate-90') }}
                         <span class="tree">{{ item.name }}{{ separator }}*</span>
                     </button>
-                    <span class="text-xs text-gray-500 dark:text-gray-400 items-count">({{ item.count }})</span>
+                    <span class="text-xs text-gray-500 dark:text-gray-400 items-count" data-count="{{ item.count }}" data-size="{{ item.size }}">({{ item.count }} items, {{ item.size|bytes }})</span>
                 </div>
                 <div class="hidden tree-children" data-path="{{ item.path }}">
                     {{ _self.render_tree(item.children, level + 1, show_actions, view_key, components) }}
@@ -18,7 +21,7 @@
             </div>
         {% else %}
             <div class="border-t border-gray-200 dark:border-gray-700 keywrapper" style="--level: {{ level }}">
-                <div data-key="{{ item.base64 ? item.key|base64 : item.key }}" class="flex justify-between py-1 px-6 text-sm hover:bg-gray-50 dark:hover:bg-white/5" style="padding-left: calc({{ level }} * 20px + 32px)">
+                <div data-key="{{ item.base64 ? item.key|base64 : item.key }}" data-size="{{ item.info.bytes_size|default(0) }}" class="flex justify-between py-1 px-6 text-sm hover:bg-gray-50 dark:hover:bg-white/5" style="padding-left: calc({{ level }} * 20px + 32px)">
                     <div class="flex gap-2 items-center">
                         {% if show_actions %}
                             {{ components.checkbox('check-key mt-0') }}

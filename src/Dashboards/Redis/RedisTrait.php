@@ -528,7 +528,7 @@ trait RedisTrait {
             }
         }
 
-        Helpers::countChildren($tree);
+        Helpers::calculateStats($tree);
 
         return $tree;
     }

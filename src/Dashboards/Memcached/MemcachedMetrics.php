@@ -34,7 +34,15 @@ readonly class MemcachedMetrics {
         $server_name = Helpers::getServerTitle($servers[$selected]);
         $hash = md5($server_name.Config::get('hash', 'pca'));
         $dir = Config::get('metricsdir', __DIR__.'/../../../tmp/metrics');
-        $db = $dir.'/memcached_metrics_'.$hash.'.db';
+
+        if (!is_dir($dir)) {
+            // Attempt to create the directory with write permissions
+            if (!mkdir($dir, 0777, true) && !is_dir($dir)) {
+                throw new \RuntimeException(sprintf('Directory "%s" was not created', $dir));
+            }
+        }
+        
+        $db = "{$dir}/memcached_metrics_{$hash}.db";
 
         $this->pdo = new PDO('sqlite:'.$db);
         $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);

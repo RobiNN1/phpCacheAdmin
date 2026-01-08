@@ -538,7 +538,7 @@ function update_folder_counts() {
         if (bytes === 0) return '0 B';
         const units = ['B', 'KB', 'MB', 'GB', 'TB'];
         const i = Math.floor(Math.log(bytes) / Math.log(1024));
-        return parseFloat((bytes / Math.pow(1024, i)).toFixed(2)) + ' ' + units[i];
+        return parseFloat((bytes / Math.pow(1024, i)).toFixed(2)) + units[i];
     };
 
     // Recursive function to calculate count and size of a folder
@@ -589,7 +589,7 @@ function update_folder_counts() {
             const stats = calculate_folder_stats(tree_children);
             items_count.dataset.count = stats.count;
             items_count.dataset.size = stats.size;
-            items_count.textContent = `(${stats.count}) ${format_bytes(stats.size)}`;
+            items_count.textContent = `(${stats.count} items, ${format_bytes(stats.size)})`;
         }
     });
 }

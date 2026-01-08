@@ -52,7 +52,9 @@
                         {% elseif item_key starts with 'time_' %}
                             {{- item|time -}}
                         {% elseif item_key starts with 'timediff_' and item is not empty %}
-                            <span title="{{ item|time }}">{{- item|timediff -}}</span>
+                            <span title="{{ item|time }}" data-timediff="{{ item }}">{{- item|timediff -}}</span>
+                        {% elseif item_key starts with 'countdown_' %}
+                            <span data-ttl-expiry="{{ item }}">{{- item|countdown -}}</span>
                         {% elseif item_key starts with 'bytes_' %}
                             {{- item|bytes -}}
                         {% else %}

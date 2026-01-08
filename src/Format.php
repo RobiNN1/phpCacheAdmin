@@ -49,7 +49,7 @@ class Format {
         return $size;
     }
 
-    public static function seconds(int $time): string {
+    public static function seconds(int $time, int $granularity = PHP_INT_MAX): string {
         if ($time === -1) {
             return (string) $time;
         }
@@ -79,7 +79,7 @@ class Format {
         $time_parts = [];
 
         foreach ($sections as $name => $value) {
-            if ($value > 0) {
+            if ($value > 0 && count($time_parts) < $granularity) {
                 $time_parts[] = $value.' '.$name.($value === 1 ? '' : 's');
             }
         }
@@ -127,7 +127,31 @@ class Format {
         return '1 second ago';
     }
 
+    /**
+     * Formats a TTL (remaining time) in readable format with countdown.
+     *
+     * @param int $expiry_timestamp Expiration timestamp (0 = never expires, -1 = does not expire)
+     */
+    public static function countdown(int $expiry_timestamp): string {
+        if ($expiry_timestamp <= 0) {
+            return "Doesn't expire";
+        }
+
+        $remaining = $expiry_timestamp - time();
+
+        if ($remaining <= 0) {
+            return 'Expired';
+        }
+
+        return self::seconds($remaining, 1);
+    }
+
     public static function number(float $number, int $decimals = 0): string {
+        // If the number is effectively an integer (e.g., 50.00), force decimals to 0
+        if ($number == (int)$number) {
+            $decimals = 0;
+        }
+
         return number_format(
             $number,
             $decimals,

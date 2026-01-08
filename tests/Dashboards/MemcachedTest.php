@@ -228,6 +228,7 @@ final class MemcachedTest extends TestCase {
                 ],
                 'expanded' => false,
                 'count'    => 2,
+                'size'     => 0,
             ],
             [
                 'type' => 'key',

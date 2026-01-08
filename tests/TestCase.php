@@ -90,6 +90,11 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase {
                 }
             }
 
+            // Normalize folder size if bytes_size is in the fields
+            if (in_array('bytes_size', $fields, true) && isset($item['size'])) {
+                $item['size'] = 0;
+            }
+
             if (isset($item['children']) && is_array($item['children'])) {
                 $item['children'] = array_map(static function (array $child) use ($fields): array {
                     foreach ($fields as $field) {

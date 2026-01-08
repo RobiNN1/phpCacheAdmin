@@ -69,11 +69,12 @@ if (delete_selected) {
             const treeview = document.querySelector('.treeview');
             if (treeview) {
                 parent.closest('.keywrapper').remove();
-                update_folder_counts();
             } else {
                 parent.remove();
             }
         });
+
+        update_folder_counts();
 
         ajax('delete', function (request) {
             if (this.status >= 200 && this.status < 400) {
@@ -154,8 +155,138 @@ if (check_all) {
         keys.forEach(key => {
             key.querySelector('[type="checkbox"]').checked = check_all.checked;
         });
+
+        // Sync folder checkboxes
+        document.querySelectorAll('.check-folder').forEach(checkbox => {
+            checkbox.checked = check_all.checked;
+        });
     });
 }
+
+/**
+ * Folder checkbox functionality
+ */
+const init_folder_checkboxes = () => {
+    const treeview = document.querySelector('.treeview');
+    if (!treeview) return;
+
+    // Select/deselect all subitems of a folder
+    treeview.querySelectorAll('.check-folder').forEach(checkbox => {
+        checkbox.addEventListener('change', function () {
+            const folder_wrapper = this.closest('.folder-wrapper');
+            if (!folder_wrapper) return;
+
+            const tree_children = folder_wrapper.querySelector('.tree-children');
+            if (!tree_children) return;
+
+            // Select all keys within this folder
+            tree_children.querySelectorAll('.check-key').forEach(key_checkbox => {
+                key_checkbox.checked = this.checked;
+            });
+
+            // Select all subfolder checkboxes
+            tree_children.querySelectorAll('.check-folder').forEach(folder_checkbox => {
+                folder_checkbox.checked = this.checked;
+            });
+
+            // Update the state of the delete_selected button
+            if (delete_selected) {
+                delete_selected.disabled = document.querySelectorAll('.check-key:checked').length < 1;
+            }
+
+            // Sync parent checkbox if exists
+            sync_parent_folder_checkbox(folder_wrapper);
+        });
+    });
+
+    // Sync the state of the folder checkbox when child items change
+    treeview.querySelectorAll('.check-key').forEach(checkbox => {
+        checkbox.addEventListener('change', function () {
+            const folder_wrapper = this.closest('.folder-wrapper');
+            if (folder_wrapper) {
+                sync_folder_checkbox(folder_wrapper);
+            }
+        });
+    });
+};
+
+const sync_folder_checkbox = (folder_wrapper) => {
+    const folder_checkbox = folder_wrapper.querySelector(':scope > div > .check-folder');
+    if (!folder_checkbox) return;
+
+    const tree_children = folder_wrapper.querySelector('.tree-children');
+    if (!tree_children) return;
+
+    const all_key_checkboxes = tree_children.querySelectorAll('.check-key');
+    const checked_key_checkboxes = tree_children.querySelectorAll('.check-key:checked');
+
+    // Check if all are selected, uncheck if none, indeterminate if some
+    if (checked_key_checkboxes.length === 0) {
+        folder_checkbox.checked = false;
+        folder_checkbox.indeterminate = false;
+    } else if (checked_key_checkboxes.length === all_key_checkboxes.length) {
+        folder_checkbox.checked = true;
+        folder_checkbox.indeterminate = false;
+    } else {
+        folder_checkbox.checked = false;
+        folder_checkbox.indeterminate = true;
+    }
+
+    // Sync parent checkbox if exists
+    sync_parent_folder_checkbox(folder_wrapper);
+};
+
+const sync_parent_folder_checkbox = (folder_wrapper) => {
+    const parent_folder = folder_wrapper.parentElement?.closest('.folder-wrapper');
+    if (parent_folder) {
+        sync_folder_checkbox(parent_folder);
+    }
+};
+
+/**
+ * Shift-click multi-selection
+ */
+let last_checked_checkbox = null;
+
+const init_shift_click_selection = () => {
+    const treeview = document.querySelector('.treeview');
+    if (!treeview) return;
+
+    const all_checkboxes = [...treeview.querySelectorAll('.check-key')];
+    if (all_checkboxes.length === 0) return;
+
+    all_checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('click', function (e) {
+            if (e.shiftKey && last_checked_checkbox && last_checked_checkbox !== this) {
+                const start_index = all_checkboxes.indexOf(last_checked_checkbox);
+                const end_index = all_checkboxes.indexOf(this);
+
+                const min_index = Math.min(start_index, end_index);
+                const max_index = Math.max(start_index, end_index);
+
+                // Apply the same state as the current checkbox
+                const new_state = this.checked;
+                for (let i = min_index; i <= max_index; i++) {
+                    all_checkboxes[i].checked = new_state;
+
+                    // Dispatch change event to sync folder checkboxes
+                    all_checkboxes[i].dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            }
+
+            last_checked_checkbox = this;
+
+            // Update the state of the delete_selected button
+            if (delete_selected) {
+                delete_selected.disabled = document.querySelectorAll('.check-key:checked').length < 1;
+            }
+        });
+    });
+};
+
+// Init treeview checkboxes
+init_folder_checkboxes();
+init_shift_click_selection();
 
 /**
  * Ajax panels
@@ -229,6 +360,56 @@ document.addEventListener('DOMContentLoaded', function () {
         setInterval(refresh_panels, panels_refresh_interval);
     }
 });
+
+/**
+ * TTL Countdown - Updates elements with data-ttl-expiry every second
+ */
+const format_countdown = (expiry_timestamp, granularity) => {
+    if (expiry_timestamp <= 0) {
+        return "Doesn't expire";
+    }
+
+    const now = Math.floor(Date.now() / 1000);
+    const remaining = expiry_timestamp - now;
+
+    if (remaining <= 0) {
+        return 'Expired';
+    }
+
+    const seconds_in_minute = 60;
+    const seconds_in_hour = 60 * seconds_in_minute;
+    const seconds_in_day = 24 * seconds_in_hour;
+
+    const days = Math.floor(remaining / seconds_in_day);
+    const hour_seconds = remaining % seconds_in_day;
+    const hours = Math.floor(hour_seconds / seconds_in_hour);
+    const minute_seconds = hour_seconds % seconds_in_hour;
+    const minutes = Math.floor(minute_seconds / seconds_in_minute);
+    const seconds = Math.ceil(minute_seconds % seconds_in_minute);
+
+    const parts = [];
+
+    if (days > 0 && parts.length < granularity) parts.push(`${days} day${days === 1 ? '' : 's'}`);
+    if (hours > 0 && parts.length < granularity) parts.push(`${hours} hour${hours === 1 ? '' : 's'}`);
+    if (minutes > 0 && parts.length < granularity) parts.push(`${minutes} minute${minutes === 1 ? '' : 's'}`);
+    if (seconds > 0 && parts.length < granularity) parts.push(`${seconds} second${seconds === 1 ? '' : 's'}`);
+
+    return parts.length > 0 ? parts.join(' ') : '0 seconds';
+};
+
+const update_ttl_countdowns = () => {
+    document.querySelectorAll('[data-ttl-expiry]').forEach(element => {
+        const expiry = parseInt(element.dataset.ttlExpiry, 10);
+        const simpleTTL = format_countdown(expiry, 1);
+        if(simpleTTL !== element.textContent) {
+            element.textContent = simpleTTL;
+        }
+        element.title = format_countdown(expiry, 10);
+    });
+};
+
+// Update TTL countdowns every second
+setInterval(update_ttl_countdowns, 1000);
 
 /**
  * Redirects
@@ -352,14 +533,63 @@ if (treeview) {
 function update_folder_counts() {
     const folders = document.querySelectorAll('.tree-toggle[data-path]');
 
+    // Helper function to format bytes
+    const format_bytes = (bytes) => {
+        if (bytes === 0) return '0 B';
+        const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(1024));
+        return parseFloat((bytes / Math.pow(1024, i)).toFixed(2)) + units[i];
+    };
+
+    // Recursive function to calculate count and size of a folder
+    const calculate_folder_stats = (tree_children) => {
+        if (!tree_children) return { count: 0, size: 0 };
+
+        let count = 0;
+        let size = 0;
+
+        // Count direct keys
+        tree_children.querySelectorAll(':scope > .keywrapper').forEach(wrapper => {
+            count++;
+            const key_element = wrapper.querySelector('[data-key]');
+            if (key_element) {
+                // Try to get size from data-size attribute if it exists
+                const size_attr = key_element.dataset.size;
+                if (size_attr) {
+                    size += parseInt(size_attr, 10) || 0;
+                }
+            }
+        });
+
+        // Process subfolders
+        tree_children.querySelectorAll(':scope > .folder-wrapper').forEach(subfolder => {
+            const subfolder_children = subfolder.querySelector('.tree-children');
+            const subfolder_stats = calculate_folder_stats(subfolder_children);
+            count += subfolder_stats.count;
+            size += subfolder_stats.size;
+
+            // Update the subfolder
+            const subfolder_items_count = subfolder.querySelector(':scope > div > .items-count');
+            if (subfolder_items_count) {
+                subfolder_items_count.dataset.count = subfolder_stats.count;
+                subfolder_items_count.dataset.size = subfolder_stats.size;
+                subfolder_items_count.textContent = `(${subfolder_stats.count}) ${format_bytes(subfolder_stats.size)}`;
+            }
+        });
+
+        return { count, size };
+    };
+
     folders.forEach(folder => {
         const path = folder.getAttribute('data-path');
         const tree_children = document.querySelector(`.tree-children[data-path="${path}"]`);
-        const children_count = tree_children ? tree_children.querySelectorAll('.keywrapper').length : 0;
         const items_count = folder.parentElement.querySelector('.items-count');
 
-        if (items_count) {
-            items_count.textContent = `(${children_count})`;
+        if (items_count && tree_children) {
+            const stats = calculate_folder_stats(tree_children);
+            items_count.dataset.count = stats.count;
+            items_count.dataset.size = stats.size;
+            items_count.textContent = `(${stats.count} items, ${format_bytes(stats.size)})`;
         }
     });
 }

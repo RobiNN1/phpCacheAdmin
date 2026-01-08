@@ -31,7 +31,7 @@ readonly class Paginator {
     ) {
         $this->total = count($items);
         $this->page = Http::get('p', 1);
-        $this->per_page = min(500, max(1, Http::get('pp', 50)));
+        $this->per_page = max(1, Http::get('pp', 50));
         $this->paginated = array_slice($items, $this->per_page * ($this->page - 1), $this->per_page, true);
     }
 
@@ -85,6 +85,10 @@ readonly class Paginator {
     public function render(): string {
         $on_page = $this->paginated !== [] ? 1 : 0;
         $select = [50, 100, 200, 300, 400, 500];
+        if(in_array($this->per_page, $select) === false) {
+            $select[] = $this->per_page;
+            sort($select);
+        }
 
         return $this->template->render('components/paginator', [
             'first_on_page' => Format::number((int) array_key_first($this->paginated) + $on_page),

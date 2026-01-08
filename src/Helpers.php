@@ -176,7 +176,7 @@ class Helpers {
         $host = isset($server['host']) ? ' - '.$server['host'] : '';
         $port = isset($server['port']) ? ':'.$server['port'] : '';
 
-        return $name.$host.$port;
+        return "{$name}{$host}{$port}";
     }
 
     /**
@@ -225,21 +225,30 @@ class Helpers {
     }
 
     /**
+     * Count children and calculate the total size of a key tree.
+     *
      * @param array<int|string, mixed> &$tree
+     *
+     * @return array{count: int, size: int}
      */
-    public static function countChildren(array &$tree): int {
+    public static function calculateStats(array &$tree): array {
         $count = 0;
+        $size = 0;
 
         foreach ($tree as &$item) {
             if (isset($item['type']) && $item['type'] === 'folder') {
-                $item['count'] = self::countChildren($item['children']);
-                $count += $item['count'];
+                $result = self::calculateStats($item['children']);
+                $item['count'] = $result['count'];
+                $item['size'] = $result['size'];
+                $count += $result['count'];
+                $size += $result['size'];
             } else {
                 $count++;
+                $size += (int) ($item['info']['bytes_size'] ?? 0);
             }
         }
 
-        return $count;
+        return ['count' => $count, 'size' => $size];
     }
 
     /**

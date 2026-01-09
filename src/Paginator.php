@@ -84,6 +84,7 @@ readonly class Paginator {
 
     public function render(): string {
         $on_page = $this->paginated !== [] ? 1 : 0;
+        /** @var list<int> $select */
         $select = [50, 100, 200, 300, 400, 500];
         if(in_array($this->per_page, $select) === false) {
             $select[] = $this->per_page;

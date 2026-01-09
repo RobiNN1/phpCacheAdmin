@@ -1,0 +1,81 @@
+{% import 'components/macros.twig' as components %}
+{% set show_actions = hide_actions is not defined or hide_actions == false %}
+
+<div class="namespaceview" data-separator="{{ separator }}">
+    <div class="flex gap-2 py-2 px-6 border-t border-gray-200 dark:border-gray-700">
+        <div title="Check all">{{ components.checkbox('check-all', namespaces|length == 0) }}</div>
+        <button type="button" class="py-1 px-2 text-xs text-gray-900 bg-gray-100 rounded dark:text-gray-100 dark:bg-gray-900 hover:bg-gray-300 expand-all-namespaces dark:hover:bg-gray-700">
+            Expand all
+        </button>
+    </div>
+    <div class="namespace-content">
+        {% if direct_keys_count is defined and direct_keys_count > 0 %}
+            <div class="flex gap-1 items-center py-2 px-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+                <span class="flex-1 text-sm text-gray-600 dark:text-gray-400">
+                    <span class="font-medium">{{ direct_keys_count|number }}</span> direct key{{ direct_keys_count > 1 ? 's' : '' }} (not in any namespace)
+                </span>
+                <div class="flex items-center gap-1 text-sm">
+                    <span class="w-24 text-right" title="Total size">{{ direct_keys_size|bytes }}</span>
+                    <span class="w-24">
+                        <div class="flex items-center gap-2">
+                            <div class="flex-1 h-2 bg-gray-200 rounded dark:bg-gray-700 overflow-hidden">
+                                <div class="h-full bg-primary-500 rounded" style="width: {{ direct_keys_percentage }}%"></div>
+                            </div>
+                            <span class="text-xs text-gray-500 dark:text-gray-400 w-12 text-right">{{ direct_keys_percentage|number_format(1) }}%</span>
+                        </div>
+                    </span>
+                    {% if show_actions %}
+                        <span class="w-24"></span>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+        {% for ns in namespaces %}
+            <div class="namespace-item border-t border-gray-200 dark:border-gray-700" data-namespace="{{ ns.path }}" data-has-children="{{ ns.has_children ? '1' : '0' }}">
+                <div class="flex gap-1 items-center py-2 px-6 hover:bg-gray-50 dark:hover:bg-white/5">
+                    {% if show_actions %}
+                        {{ components.checkbox('check-namespace mr-1') }}
+                    {% endif %}
+                    <button type="button" class="flex gap-1 items-center namespace-toggle {{ ns.has_children ? '' : 'invisible' }}" data-namespace="{{ ns.path }}">
+                        {{ svg('down', 10, '-rotate-90 transition-transform') }}
+                    </button>
+                    <span class="font-semibold text-primary-500 dark:text-primary-400 flex-1">
+                        {{ ns.name }}{{ separator }}*
+                    </span>
+                    <div class="flex items-center gap-1 text-sm">
+                        <span class="w-24 text-right" title="Keys count">{{ ns.count|number }} keys</span>
+                        <span class="w-24 text-right" title="Total size">{{ ns.size|bytes }}</span>
+                        <span class="w-24">
+                            <div class="flex items-center gap-2">
+                                <div class="flex-1 h-2 bg-gray-200 rounded dark:bg-gray-700 overflow-hidden">
+                                    <div class="h-full bg-primary-500 rounded" style="width: {{ ns.percentage }}%"></div>
+                                </div>
+                                <span class="text-xs text-gray-500 dark:text-gray-400 w-12 text-right">{{ ns.percentage|number_format(1) }}%</span>
+                            </div>
+                        </span>
+                        {% if show_actions %}
+                            <button class="inline-flex gap-1 items-center font-semibold text-red-500 hover:text-red-700 delete-namespace" type="button" title="Delete all keys in namespace" data-namespace="{{ ns.path }}">
+                                {{ svg('trash', 16) }} Delete
+                            </button>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="hidden namespace-children pl-6" data-namespace="{{ ns.path }}">
+                    <div class="namespace-loading hidden py-4 text-center text-gray-500 dark:text-gray-400">
+                        <svg class="inline-block w-4 h-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Loading...
+                    </div>
+                    <div class="namespace-children-content"></div>
+                </div>
+            </div>
+        {% else %}
+            <div class="py-4 px-6 border-t border-gray-200 dark:border-gray-700 text-center text-gray-500 dark:text-gray-400">
+                No namespaces found.
+            </div>
+        {% endfor %}
+    </div>
+</div>
+

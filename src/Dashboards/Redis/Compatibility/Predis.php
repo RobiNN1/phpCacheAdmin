@@ -131,6 +131,23 @@ class Predis extends Client implements RedisCompatibilityInterface {
         return $keys;
     }
 
+    /**
+     * @return array{cursor: int|string, keys: array<int, string>}
+     */
+    public function scanKeysWithCursor(string $pattern, int $count, int|string|null $cursor): array {
+        $iterator = $cursor ?? 0;
+
+        $result = $this->scan($iterator, [
+            'MATCH' => $pattern,
+            'COUNT' => $count,
+        ]);
+
+        return [
+            'cursor' => $result[0] ?? 0,
+            'keys'   => $result[1] ?? [],
+        ];
+    }
+
     public function listRem(string $key, string $value, int $count): int {
         return $this->lrem($key, $count, $value);
     }

@@ -10,6 +10,9 @@
                         <a href="{{ link([], {'view': 'tree'}) }}" title="Tree view" class="{{ get('view', config('listview', 'table')) == 'tree' ? 'active ' : '' }}flex items-center justify-center px-3 py-1.5 text-gray-400 dark:text-gray-500 border-l border-gray-300 dark:border-gray-600">
                             {{ svg('treeview', 20) }}
                         </a>
+                        <a href="{{ link([], {'view': 'namespaces'}) }}" title="Namespace view" class="{{ get('view', config('listview', 'table')) == 'namespaces' ? 'active ' : '' }}flex items-center justify-center px-3 py-1.5 text-gray-400 dark:text-gray-500 border-l border-gray-300 dark:border-gray-600">
+                            {{ svg('namespaceview', 20) }}
+                        </a>
                     </div>
                 </div>
             {% endif %}
@@ -67,7 +70,7 @@
                     color: 'red',
                 }) }}
 
-                {% if buttons.delete_selected_btn is not defined or buttons.delete_selected_btn == true %}
+                {% if (buttons.delete_selected_btn is not defined or buttons.delete_selected_btn == true) and get('view', config('listview', 'table')) != 'namespaces' %}
                     {{ include('components/button.twig', {
                         text: 'Delete selected',
                         icon: 'trash',
@@ -81,11 +84,13 @@
 
     {% if treeview and get('view', config('listview', 'table')) == 'tree' %}
         {{ include('partials/tree_view.twig') }}
+    {% elseif treeview and get('view', config('listview', 'table')) == 'namespaces' %}
+        {{ include('partials/namespace_view.twig') }}
     {% else %}
         {{ include('partials/table_view.twig') }}
     {% endif %}
 
-    <div id="table-no-keys" class="{{ keys|length > 0 ? 'hidden ' : '' }}p-4 border-b border-gray-200 dark:border-gray-700 text-center dark:text-gray-400">
+    <div id="table-no-keys" class="{{ (keys|length > 0 or namespaces|length > 0) ? 'hidden ' : '' }}p-4 border-b border-gray-200 dark:border-gray-700 text-center dark:text-gray-400">
         No keys.
     </div>
     <div class="py-4 px-6">{{ paginator|raw }}</div>

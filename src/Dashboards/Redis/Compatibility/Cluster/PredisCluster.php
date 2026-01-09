@@ -164,6 +164,39 @@ class PredisCluster extends PredisClient implements RedisCompatibilityInterface 
         return $keys;
     }
 
+    /**
+     * @return array{cursor: int|string, keys: array<int, string>}
+     */
+    public function scanKeysWithCursor(string $pattern, int $count, int|string|null $cursor): array {
+        // In cluster mode, iterate over all nodes to get the keys
+        $keys = [];
+        $iterator = $cursor ?? 0;
+        $new_cursor = 0;
+
+        foreach ($this->nodes as $node) {
+            $result = $node->scan($iterator, [
+                'MATCH' => $pattern,
+                'COUNT' => $count,
+            ]);
+
+            if (isset($result[1]) && is_array($result[1])) {
+                foreach ($result[1] as $key) {
+                    $keys[] = $key;
+                }
+            }
+
+            if (isset($result[0]) && $result[0] !== 0 && $result[0] !== '0') {
+                $new_cursor = $result[0];
+                break;
+            }
+        }
+
+        return [
+            'cursor' => $new_cursor,
+            'keys'   => $keys,
+        ];
+    }
+
     public function listRem(string $key, string $value, int $count): int {
         return $this->lrem($key, $count, $value);
     }

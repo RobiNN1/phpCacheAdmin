@@ -540,6 +540,133 @@ trait RedisTrait {
     }
 
     /**
+     * Generates namespace statistics using generators to optimize memory.
+     *
+     * @return \Generator<int, array{key: string, size: int}>
+     *
+     * @throws Exception
+     */
+    private function keysGenerator(): \Generator {
+        $filter = Http::get('s', '*');
+
+        if (isset($this->servers[$this->current_server]['scansize']) || !$this->isCommandSupported('KEYS')) {
+            $scansize = (int) ($this->servers[$this->current_server]['scansize'] ?? 1000);
+            $cursor = null;
+
+            do {
+                $keys = $this->redis->scanKeysWithCursor($filter, $scansize, $cursor);
+
+                foreach ($keys['keys'] as $key) {
+                    $size = $this->redis->size($key);
+                    yield ['key' => $key, 'size' => $size];
+                }
+
+                $cursor = $keys['cursor'];
+            } while ($cursor !== 0 && $cursor !== '0');
+        } else {
+            $keys = $this->redis->keys($filter);
+            foreach ($keys as $key) {
+                $size = $this->redis->size($key);
+                yield ['key' => $key, 'size' => $size];
+            }
+        }
+    }
+
+    /**
+     * Gets namespace statistics for a given prefix.
+     *
+     * @param string $prefix
+     *
+     * @return array{namespaces: array<int, array{name: string, path: string, count: int, size: int, percentage: float, has_children: bool, direct_keys: int}>, direct_keys_count: int, direct_keys_size: int, direct_keys_percentage: float}
+     *
+     * @throws Exception
+     */
+    public function keysNamespaceView(string $prefix = ''): array {
+        $separator = $this->servers[$this->current_server]['separator'] ?? ':';
+        $this->template->addGlobal('separator', $separator);
+
+        $namespaces = [];
+        $total_size = 0;
+        $total_count = 0;
+        $direct_keys_count = 0;
+        $direct_keys_size = 0;
+
+        // Add prefix to search filter if it exists
+        $original_search = Http::get('s', '*');
+        if ($prefix !== '') {
+            $_GET['s'] = $prefix.$separator.'*';
+        }
+
+        foreach ($this->keysGenerator() as $keyData) {
+            $key = $keyData['key'];
+            $size = $keyData['size'];
+            $total_size += $size;
+            $total_count++;
+
+            // Extract the current level namespace
+            $keyWithoutPrefix = $prefix !== '' ? substr($key, strlen($prefix) + strlen($separator)) : $key;
+            $parts = explode($separator, $keyWithoutPrefix);
+
+            // Only one part means it's a direct key without sub-namespace
+            if (count($parts) === 1) {
+                $direct_keys_count++;
+                $direct_keys_size += $size;
+                continue;
+            }
+
+            if (count($parts) > 1) {
+                $ns_name = $parts[0];
+                $ns_path = $prefix !== '' ? $prefix.$separator.$ns_name : $ns_name;
+
+                if (!isset($namespaces[$ns_path])) {
+                    $namespaces[$ns_path] = [
+                        'name'         => $ns_name,
+                        'path'         => $ns_path,
+                        'count'        => 0,
+                        'size'         => 0,
+                        'has_children' => false,
+                        'direct_keys'  => 0,
+                    ];
+                }
+
+                $namespaces[$ns_path]['count']++;
+                $namespaces[$ns_path]['size'] += $size;
+
+                // Determine if it has children (more than two parts after the current namespace)
+                if (count($parts) > 2) {
+                    $namespaces[$ns_path]['has_children'] = true;
+                } else {
+                    // It's a direct key of the namespace (e.g.: user:123, not user:123:name)
+                    $namespaces[$ns_path]['direct_keys']++;
+                }
+            }
+        }
+
+        // Restore original filter
+        if ($prefix !== '') {
+            $_GET['s'] = $original_search;
+        }
+
+        // Calculate percentages
+        foreach ($namespaces as &$ns) {
+            $ns['percentage'] = $total_size > 0 ? round(($ns['size'] / $total_size) * 100, 2) : 0;
+        }
+
+        // Sort by size in descending order
+        uasort($namespaces, static fn (array $a, array $b): int => $b['size'] <=> $a['size']);
+
+        // Calculate direct keys percentage
+        $direct_keys_percentage = $total_size > 0 ? round(($direct_keys_size / $total_size) * 100, 2) : 0;
+
+        return [
+            'namespaces'             => array_values($namespaces),
+            'direct_keys_count'      => $direct_keys_count,
+            'direct_keys_size'       => $direct_keys_size,
+            'direct_keys_percentage' => $direct_keys_percentage,
+        ];
+    }
+
+    /**
      * @return array<int, string>
      *
      * @throws Exception
@@ -655,6 +782,24 @@ trait RedisTrait {
             return $this->metrics();
         }
 
+        $view = Http::get('view', Config::get('listview', 'table'));
+
+        // Namespace view - does not use traditional pagination
+        if ($view === 'namespaces') {
+            $result = $this->keysNamespaceView();
+
+            return $this->template->render('dashboards/redis/redis', [
+                'namespaces'             => $result['namespaces'],
+                'direct_keys_count'      => $result['direct_keys_count'],
+                'direct_keys_size'       => $result['direct_keys_size'],
+                'direct_keys_percentage' => $result['direct_keys_percentage'],
+                'keys'                   => [], // No keys in this view
+                'all_keys'               => $this->redis->databaseSize(),
+                'paginator'              => '',
+                'view_key'               => Http::queryString(['s'], ['view' => 'key', 'key' => '__key__']),
+            ]);
+        }
+
         $keys = $this->getAllKeys();
 
         if (isset($_GET['export_btn'])) {
@@ -664,7 +809,7 @@ trait RedisTrait {
         $paginator = new Paginator($this->template, $keys);
         $paginated_keys = $paginator->getPaginated();
 
-        if (Http::get('view', Config::get('listview', 'table')) === 'tree') {
+        if ($view === 'tree') {
             $keys_to_display = $this->keysTreeView($paginated_keys);
         } else {
             $keys_to_display = $this->keysTableView($paginated_keys);

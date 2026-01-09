@@ -137,6 +137,27 @@ class Redis extends \Redis implements RedisCompatibilityInterface {
     }
 
     /**
+     * @return array{cursor: int|string, keys: array<int, string>}
+     *
+     * @throws RedisException
+     */
+    public function scanKeysWithCursor(string $pattern, int $count, int|string|null $cursor): array {
+        $iterator = $cursor ?? null;
+        $keys = [];
+
+        $scan = $this->scan($iterator, $pattern, $count);
+
+        if ($scan !== false) {
+            $keys = $scan;
+        }
+
+        return [
+            'cursor' => $iterator ?? 0,
+            'keys'   => $keys,
+        ];
+    }
+
+    /**
      * @throws RedisException
      */
     public function listRem(string $key, string $value, int $count): int {

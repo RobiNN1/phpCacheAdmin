@@ -171,6 +171,9 @@
   .pointer-events-none {
     pointer-events: none;
   }
+  .invisible {
+    visibility: hidden;
+  }
   .fixed {
     position: fixed;
   }
@@ -210,6 +213,9 @@
   .mt-0 {
     margin-top: calc(0.25rem * 0);
   }
+  .mr-1 {
+    margin-right: calc(0.25rem * 1);
+  }
   .mr-3 {
     margin-right: calc(0.25rem * 3);
   }
@@ -247,17 +253,26 @@
   .h-1\.5 {
     height: calc(0.25rem * 1.5);
   }
+  .h-2 {
+    height: calc(0.25rem * 2);
+  }
   .h-4 {
     height: calc(0.25rem * 4);
   }
   .h-90 {
     height: calc(0.25rem * 90);
   }
+  .h-full {
+    height: 100%;
+  }
   .min-h-screen {
     min-height: 100vh;
   }
   .w-4 {
     width: calc(0.25rem * 4);
+  }
+  .w-12 {
+    width: calc(0.25rem * 12);
   }
   .w-16 {
     width: calc(0.25rem * 16);
@@ -294,6 +309,9 @@
   }
   .rotate-180 {
     rotate: 180deg;
+  }
+  .animate-spin {
+    animation: spin 1s linear infinite;
   }
   .cursor-pointer {
     cursor: pointer;
@@ -554,6 +572,10 @@
     --tw-font-weight: 700;
     font-weight: 700;
   }
+  .font-medium {
+    --tw-font-weight: 500;
+    font-weight: 500;
+  }
   .font-semibold {
     --tw-font-weight: 600;
     font-weight: 600;
@@ -621,8 +643,14 @@
   .opacity-0 {
     opacity: 0%;
   }
+  .opacity-25 {
+    opacity: 25%;
+  }
   .opacity-30 {
     opacity: 30%;
+  }
+  .opacity-75 {
+    opacity: 75%;
   }
   .shadow-lg {
     --tw-shadow: 0 10px 15px -3px var(--tw-shadow-color, rgb(0 0 0 / 0.1)), 0 4px 6px -4px var(--tw-shadow-color, rgb(0 0 0 / 0.1));
@@ -639,6 +667,11 @@
   }
   .transition-opacity {
     transition-property: opacity;
+    transition-timing-function: var(--tw-ease, cubic-bezier(0.4, 0, 0.2, 1));
+    transition-duration: var(--tw-duration, 150ms);
+  }
+  .transition-transform {
+    transition-property: transform, translate, scale, rotate;
     transition-timing-function: var(--tw-ease, cubic-bezier(0.4, 0, 0.2, 1));
     transition-duration: var(--tw-duration, 150ms);
   }
@@ -1015,6 +1048,11 @@
   .dark\:bg-gray-800 {
     &:where(.dark, .dark *) {
       background-color: oklch(27.8% 0.033 256.848);
+    }
+  }
+  .dark\:bg-gray-800\/50 {
+    &:where(.dark, .dark *) {
+      background-color: color-mix(in oklab, oklch(27.8% 0.033 256.848) 50%, transparent);
     }
   }
   .dark\:bg-gray-900 {
@@ -1596,6 +1634,16 @@
 @property --tw-ease {
   syntax: "*";
   inherits: false;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 @layer properties {
   @supports ((-webkit-hyphens: none) and (not (margin-trim: inline))) or ((-moz-orient: inline) and (not (color:rgb(from red r g b)))) {

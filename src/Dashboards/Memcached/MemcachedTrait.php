@@ -319,6 +319,124 @@ trait MemcachedTrait {
     }
 
     /**
+     * Generates namespace statistics using generators to optimize memory.
+     *
+     * @return \Generator<int, array{key: string, size: int}>
+     *
+     * @throws MemcachedException
+     */
+    private function keysGenerator(): \Generator {
+        $all_key_lines = $this->memcached->getKeys();
+
+        foreach ($all_key_lines as $line) {
+            $key_data = $this->memcached->parseLine($line);
+
+            if (!isset($key_data['key'])) {
+                continue;
+            }
+
+            yield [
+                'key'  => $key_data['key'],
+                'size' => $key_data['size'] ?? 0,
+            ];
+        }
+    }
+
+    /**
+     * Gets namespace statistics for a given prefix.
+     *
+     * @param string $prefix The namespace prefix (empty for root level)
+     *
+     * @return array<int, array{name: string, path: string, count: int, size: int, percentage: float, has_children: bool}>
+     *
+     * @throws MemcachedException
+     *
+     * @return array{namespaces: array<int, array{name: string, path: string, count: int, size: int, percentage: float, has_children: bool, direct_keys: int}>, direct_keys_count: int, direct_keys_size: int, direct_keys_percentage: float}
+     */
+    public function keysNamespaceView(string $prefix = ''): array {
+        $separator = $this->servers[$this->current_server]['separator'] ?? ':';
+
+        if (version_compare($this->memcached->version(), '1.5.19', '>=')) {
+            $separator = urlencode($separator);
+        }
+
+        $this->template->addGlobal('separator', urldecode($separator));
+
+        $namespaces = [];
+        $total_size = 0;
+        $direct_keys_count = 0;
+        $direct_keys_size = 0;
+
+        foreach ($this->keysGenerator() as $keyData) {
+            $key = $keyData['key'];
+            $size = $keyData['size'];
+
+            // Filter by prefix if it exists
+            if ($prefix !== '') {
+                if (!str_starts_with($key, $prefix.$separator)) {
+                    continue;
+                }
+            }
+
+            $total_size += $size;
+
+            // Extract the current level namespace
+            $keyWithoutPrefix = $prefix !== '' ? substr($key, strlen($prefix) + strlen($separator)) : $key;
+            $parts = explode($separator, $keyWithoutPrefix);
+
+            // Only one part means it's a direct key without sub-namespace
+            if (count($parts) === 1) {
+                $direct_keys_count++;
+                $direct_keys_size += $size;
+                continue;
+            }
+
+            if (count($parts) > 1) {
+                $ns_name = urldecode($parts[0]);
+                $ns_path = $prefix !== '' ? $prefix.$separator.$parts[0] : $parts[0];
+
+                $namespaces[$ns_path] ??= [
+                    'name' => $ns_name,
+                    'path' => $ns_path,
+                    'count' => 0,
+                    'size' => 0,
+                    'has_children' => false,
+                    'direct_keys' => 0,
+                ];
+
+                $namespaces[$ns_path]['count']++;
+                $namespaces[$ns_path]['size'] += $size;
+
+                // Determine if it has children (more than two parts after the current namespace)
+                if (count($parts) > 2) {
+                    $namespaces[$ns_path]['has_children'] = true;
+                } else {
+                    // It's a direct key of the namespace (e.g.: user:123, not user:123:name)
+                    $namespaces[$ns_path]['direct_keys']++;
+                }
+            }
+        }
+
+        // Calculate percentages
+        foreach ($namespaces as &$ns) {
+            $ns['percentage'] = $total_size > 0 ? round(($ns['size'] / $total_size) * 100, 2) : 0;
+        }
+
+        // Sort by size in descending order
+        uasort($namespaces, static fn (array $a, array $b): int => $b['size'] <=> $a['size']);
+
+        // Calculate direct keys percentage
+        $direct_keys_percentage = $total_size > 0 ? round(($direct_keys_size / $total_size) * 100, 2) : 0;
+
+        return [
+            'namespaces'             => array_values($namespaces),
+            'direct_keys_count'      => $direct_keys_count,
+            'direct_keys_size'       => $direct_keys_size,
+            'direct_keys_percentage' => $direct_keys_percentage,
+        ];
+    }
+
+    /**
      * @param array<int|string, mixed> $info
      *
      * @return array<int|string, mixed>
@@ -528,6 +646,24 @@ trait MemcachedTrait {
             return $this->metrics();
         }
 
+        $view = Http::get('view', Config::get('listview', 'table'));
+
+        // Namespace view - does not use traditional pagination
+        if ($view === 'namespaces') {
+            $result = $this->keysNamespaceView();
+
+            return $this->template->render('dashboards/memcached/memcached', [
+                'namespaces'             => $result['namespaces'],
+                'direct_keys_count'      => $result['direct_keys_count'],
+                'direct_keys_size'       => $result['direct_keys_size'],
+                'direct_keys_percentage' => $result['direct_keys_percentage'],
+                'keys'                   => [], // No keys in this view
+                'all_keys'               => $this->memcached->getServerStats()['curr_items'],
+                'paginator'              => '',
+                'view_key'               => Http::queryString([], ['view' => 'key', 'key' => '__key__']),
+            ]);
+        }
+
         $raw_key_lines = $this->getAllKeys();
 
         if (isset($_GET['export_btn'])) {
@@ -552,7 +688,7 @@ trait MemcachedTrait {
         $paginator = new Paginator($this->template, $raw_key_lines);
         $paginated_raw_lines = $paginator->getPaginated();
 
-        if (Http::get('view', Config::get('listview', 'table')) === 'tree') {
+        if ($view === 'tree') {
             $keys_to_display = $this->keysTreeView($paginated_raw_lines);
         } else {
             $keys_to_display = $this->keysTableView($paginated_raw_lines);

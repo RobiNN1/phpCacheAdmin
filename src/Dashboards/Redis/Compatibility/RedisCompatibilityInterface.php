@@ -38,6 +38,13 @@ interface RedisCompatibilityInterface {
     public function scanKeys(string $pattern, int $count): array;
 
     /**
+     * Alias to a scan() that also returns the cursor.
+     *
+     * @return array{cursor: int|string, keys: array<int, string>}
+     */
+    public function scanKeysWithCursor(string $pattern, int $count, int|string|null $cursor): array;
+
+    /**
      * Alias to a lRem().
      */
     public function listRem(string $key, string $value, int $count): int;

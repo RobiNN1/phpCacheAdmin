@@ -152,6 +152,38 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
     }
 
     /**
+     * @return array{cursor: int|string, keys: array<int, string>}
+     *
+     * @throws RedisClusterException
+     */
+    public function scanKeysWithCursor(string $pattern, int $count, int|string|null $cursor): array {
+        // In cluster mode, iterate over all nodes to get the keys
+        $keys = [];
+        $iterator = $cursor ?? null;
+        $new_cursor = 0;
+
+        foreach ($this->nodes as $node) {
+            $scan = $this->scan($iterator, $node, $pattern, $count);
+
+            if ($scan !== false) {
+                foreach ($scan as $key) {
+                    $keys[] = $key;
+                }
+            }
+
+            if ($iterator !== null && $iterator !== 0 && $iterator !== '0') {
+                $new_cursor = $iterator;
+                break;
+            }
+        }
+
+        return [
+            'cursor' => $new_cursor,
+            'keys'   => $keys,
+        ];
+    }
+
+    /**
      * @throws RedisClusterException
      */
     public function listRem(string $key, string $value, int $count): int {

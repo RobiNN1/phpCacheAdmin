@@ -168,7 +168,7 @@ final class MemcachedTest extends TestCase {
         $info = [
             'bytes_size'           => 0,
             'timediff_last_access' => 0,
-            'ttl'                  => 'Doesn\'t expire',
+            'countdown_ttl'        => -1
         ];
 
         $expected = [
@@ -204,7 +204,7 @@ final class MemcachedTest extends TestCase {
         $info = [
             'bytes_size'           => 0,
             'timediff_last_access' => 0,
-            'ttl'                  => 'Doesn\'t expire',
+            'countdown_ttl'        => -1
         ];
 
         $expected = [

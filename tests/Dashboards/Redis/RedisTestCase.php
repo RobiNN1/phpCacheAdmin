@@ -254,9 +254,9 @@ abstract class RedisTestCase extends TestCase {
         $result = $this->dashboard->getAllKeys();
 
         $info = [
-            'bytes_size' => 0,
-            'type'       => 'string',
-            'ttl'        => 'Doesn\'t expire',
+            'bytes_size'    => 0,
+            'type'          => 'string',
+            'countdown_ttl' => -1
         ];
 
         $expected = [
@@ -294,7 +294,7 @@ abstract class RedisTestCase extends TestCase {
         $info = [
             'bytes_size' => 0,
             'type'       => 'string',
-            'ttl'        => 'Doesn\'t expire',
+            'countdown_ttl' => -1
         ];
 
         $expected = [

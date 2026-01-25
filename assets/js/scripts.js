@@ -144,18 +144,67 @@ if (delete_all) {
     });
 }
 
-const check_all = document.querySelector('.check-all');
-if (check_all) {
-    check_all.addEventListener('change', () => {
-        if (delete_selected) {
-            delete_selected.disabled = check_all.checked !== true;
-        }
+// Check all keys in a table or treeview
+document.addEventListener('change', (e) => {
+    if (!e.target.matches('input[type="checkbox"].check-all')) {
+        return;
+    }
 
-        keys.forEach(key => {
-            key.querySelector('[type="checkbox"]').checked = check_all.checked;
-        });
+    let scope;
+
+    if (e.target.closest('.tree-group')) {
+        const tree_group = e.target.closest('.tree-group');
+        const children = tree_group.querySelector(':scope > .tree-children');
+        scope = children || tree_group;
+    } else {
+        scope = e.target.closest('table') || e.target.closest('.treeview');
+    }
+
+    if (!scope) {
+        return;
+    }
+
+    const checkboxes = scope.querySelectorAll('input[type="checkbox"]:not(.check-all)');
+
+    checkboxes.forEach(cb => {
+        cb.checked = e.target.checked;
+        cb.dispatchEvent(new Event('change', {bubbles: true}));
     });
-}
+});
+
+// Shift-click multi-select
+let last_checked = null;
+document.addEventListener('click', (e) => {
+    if (!e.target.matches('input[type="checkbox"]') || e.target.classList.contains('check-all')) {
+        return;
+    }
+
+    const tree = e.target.closest('.treeview');
+    const table = e.target.closest('table');
+    let checkboxes;
+
+    if (tree) {
+        checkboxes = Array.from(tree.querySelectorAll('.keywrapper input[type="checkbox"]:not(.check-all)'));
+    } else if (table) {
+        checkboxes = Array.from(table.querySelectorAll('input[type="checkbox"]:not(.check-all)'));
+    } else {
+        return;
+    }
+
+    if (e.shiftKey && last_checked) {
+        const start = checkboxes.indexOf(last_checked);
+        const end = checkboxes.indexOf(e.target);
+
+        if (start !== -1 && end !== -1) {
+            for (let i = Math.min(start, end); i <= Math.max(start, end); i++) {
+                checkboxes[i].checked = e.target.checked;
+                checkboxes[i].dispatchEvent(new Event('change', {bubbles: true}));
+            }
+        }
+    }
+
+    last_checked = e.target;
+});
 
 /**
  * Ajax panels

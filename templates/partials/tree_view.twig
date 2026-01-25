@@ -6,7 +6,7 @@
         {% if item.type == 'folder' %}
             <div class="tree-group border-t border-gray-200 dark:border-gray-700" style="--level: {{ level }}">
                 <div class="flex gap-1 items-center py-1 px-6 hover:bg-gray-50 dark:hover:bg-white/5" style="padding-left: calc({{ level }} * 20px + 1.5rem)">
-                    <div>{{ components.checkbox('check-all') }}</div>
+                    <div class="pe-1" title="Check all">{{ components.checkbox('check-all') }}</div>
                     <button class="flex gap-1 items-center tree-toggle" data-path="{{ item.path }}">
                         {{ svg('down', 10, '-rotate-90') }}
                         <span class="tree">{{ item.name }}{{ separator }}*</span>
@@ -47,7 +47,7 @@
                             {% elseif item_key starts with 'timediff_' and kitem is not empty %}
                                 <span title="{{ kitem|time }}">{{- kitem|timediff -}}</span>
                             {% elseif item_key starts with 'bytes_' %}
-                                {{- kitem|bytes -}}
+                                <span class="file-size" data-bytes="{{ kitem }}">{{- kitem|bytes -}}</span>
                             {% else %}
                                 {{- kitem -}}
                             {% endif %}

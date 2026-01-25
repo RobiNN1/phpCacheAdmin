@@ -520,6 +520,9 @@
   .py-\[0\.4rem\] {
     padding-block: 0.4rem;
   }
+  .pe-1 {
+    padding-inline-end: calc(0.25rem * 1);
+  }
   .pe-5 {
     padding-inline-end: calc(0.25rem * 5);
   }

@@ -398,20 +398,47 @@ if (treeview) {
     init_expand_state();
 }
 
+function number_format(number, decimals = 0) {
+    let parts = parseFloat(number).toFixed(decimals).split('.');
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, thousandssep);
+    return parts.join(decimalsep);
+}
+
+function format_bytes(bytes, decimals = 2) {
+    if (bytes > 1048576) {
+        return number_format(bytes / 1048576, decimals) + 'MB';
+    }
+
+    if (bytes > 1024) {
+        return number_format(bytes / 1024, decimals) + 'KB';
+    }
+
+    return number_format(bytes, decimals) + 'B';
+}
+
 function update_folder_counts() {
-    const folders = document.querySelectorAll('.tree-toggle[data-path]');
+    document.querySelectorAll('.tree-toggle').forEach(folder => {
+        const children_wrapper = folder.closest('.tree-group').querySelector('.tree-children');
 
-    folders.forEach(folder => {
-        const path = folder.getAttribute('data-path');
-        const tree_children = document.querySelector(`.tree-children[data-path="${path}"]`);
-        const children_count = tree_children ? tree_children.querySelectorAll('.keywrapper').length : 0;
-        const items_count = folder.parentElement.querySelector('.items-count');
+        if (children_wrapper) {
+            const total_items = children_wrapper.querySelectorAll('.keywrapper').length;
+            let total_bytes = 0;
+            children_wrapper.querySelectorAll('.file-size').forEach(el => {
+                const bytes = parseFloat(el.getAttribute('data-bytes')) || 0;
+                total_bytes += bytes;
+            });
 
-        if (items_count) {
-            items_count.textContent = `(${children_count})`;
+            const items_count_span = folder.parentElement.querySelector('.items-count');
+            if (items_count_span) {
+                items_count_span.textContent = `(${total_items} items, ${format_bytes(total_bytes)})`;
+            }
         }
     });
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    update_folder_counts();
+});
 
 /**
  * Light / Dark mode

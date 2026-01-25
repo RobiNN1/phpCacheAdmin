@@ -27,11 +27,11 @@ readonly class Paginator {
     public function __construct(
         private Template $template,
         array            $items,
-        private array    $url = [['pp', 's'], ['p' => '']]
+        private array    $url = [['pp', 's', 'view'], ['p' => '']]
     ) {
         $this->total = count($items);
         $this->page = Http::get('p', 1);
-        $this->per_page = min(500, max(1, Http::get('pp', 50)));
+        $this->per_page = min(500, max(1, Http::get('pp', 50))); // this is intentionally limited to 500
         $this->paginated = array_slice($items, $this->per_page * ($this->page - 1), $this->per_page, true);
     }
 

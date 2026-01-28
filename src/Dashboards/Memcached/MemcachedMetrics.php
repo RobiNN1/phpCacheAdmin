@@ -36,6 +36,10 @@ readonly class MemcachedMetrics {
         $dir = Config::get('metricsdir', __DIR__.'/../../../tmp/metrics');
         $db = $dir.'/memcached_metrics_'.$hash.'.db';
 
+        if (!is_dir($dir) && !mkdir($dir, 0777, true) && !is_dir($dir)) {
+            throw new \RuntimeException(sprintf('Directory "%s" was not created', $dir));
+        }
+
         $this->pdo = new PDO('sqlite:'.$db);
         $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 

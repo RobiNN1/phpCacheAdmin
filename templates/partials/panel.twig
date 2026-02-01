@@ -22,7 +22,7 @@
     </div>
 {% endmacro %}
 
-<div class="overflow-hidden mb-4 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700" id="{{ panel_title|snake_case }}_panel">
+<div class="overflow-hidden mb-4 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700" id="{{ panel_title|default('')|snake_case }}_panel">
     <div class="py-2 px-4 bg-gray-50 border-b border-gray-200 dark:border-gray-700 dark:bg-white/5">
         <div class="flex gap-4 justify-between items-center">
             <h2 class="text-sm font-semibold text-gray-900 dark:text-white">{{ panel_title }}</h2>

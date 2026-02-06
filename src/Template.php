@@ -73,6 +73,7 @@ class Template {
         $twig->addFunction(new TwigFunction('link', Http::queryString(...), ['is_safe' => ['html']]));
         $twig->addFunction(new TwigFunction('get', Http::get(...)));
         $twig->addFunction(new TwigFunction('config', Config::get(...)));
+        $twig->addFunction(new TwigFunction('is_numeric', is_numeric(...)));
 
         $twig->addFilter(new TwigFilter('space', static function (?string $value, bool $right = false): string {
             $right_side = $right ? $value.' ' : ' '.$value;

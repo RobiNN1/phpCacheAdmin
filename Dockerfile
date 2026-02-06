@@ -12,7 +12,7 @@ RUN git clone --depth=1 https://github.com/RobiNN1/phpCacheAdmin.git . \
     && apk del .build-deps
 
 # Final stage
-FROM php:8.4-fpm-alpine
+FROM php:8.5-fpm-alpine
 
 COPY --from=builder /usr/local/lib/php/extensions /usr/local/lib/php/extensions
 COPY --from=builder /usr/local/etc/php/conf.d /usr/local/etc/php/conf.d

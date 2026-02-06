@@ -53,6 +53,8 @@
                             {{- item|time -}}
                         {% elseif item_key starts with 'timediff_' and item is not empty %}
                             <span title="{{ item|time }}">{{- item|timediff -}}</span>
+                        {% elseif item_key == 'ttl' and item is not empty %}
+                            <span title="{{ item|seconds }}">{{- item -}}</span>
                         {% elseif item_key starts with 'bytes_' %}
                             {{- item|bytes -}}
                         {% else %}

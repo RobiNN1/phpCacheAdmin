@@ -46,6 +46,8 @@
                                 {{- kitem|time -}}
                             {% elseif item_key starts with 'timediff_' and kitem is not empty %}
                                 <span title="{{ kitem|time }}">{{- kitem|timediff -}}</span>
+                            {% elseif item_key == 'ttl' and item is not empty %}
+                                <span title="{{ item|seconds }}">{{- item -}}</span>
                             {% elseif item_key starts with 'bytes_' %}
                                 <span class="file-size" data-bytes="{{ kitem }}">{{- kitem|bytes -}}</span>
                             {% else %}

@@ -49,7 +49,7 @@ return [
             //'path'      => '/var/run/redis/redis-server.sock', // Unix domain socket (optional).
             //'databases' => 16, // Number of databases, use this if the CONFIG command is disabled (optional).
             //'scansize'  => 1000, // Number of keys, the server will use the SCAN command instead of KEYS (optional).
-            //'separator' => ':', // Separator for tree view (optional)
+            //'separator' => ':', // Separator for tree view (optional).
         ],
     ],
     'memcached'      => [
@@ -58,10 +58,11 @@ return [
             'host' => '127.0.0.1', // Optional when a path is specified.
             'port' => 11211, // Optional when the default port is used.
             //'path' => '/var/run/memcached/memcached.sock', // Unix domain socket (optional).
-            //'separator' => ':', // Separator for tree view (optional)
+            //'separator' => ':', // Separator for tree view (optional).
+            //'extension' => true, // Enable Memcached extension only for get and set operations (optional).
         ],
     ],
-    'apcuseparator' => ':', // Separator for tree view (optional)
+    'apcuseparator' => ':', // Separator for tree view (optional).
     // Example of authentication with http auth.
     /*'auth'           => static function (): void {
         $username = 'admin';
@@ -145,7 +146,7 @@ return [
     'timeformat'     => 'd. m. Y H:i:s',
     'decimalsep'     => ',',
     'thousandssep'   => ' ',
-    'listview'       => 'table', // table/tree - default key list view
+    'listview'       => 'table', // table/tree - default key list view.
     'panelrefresh'   => 30, // In seconds, refresh interval for panels - default 30
     'metricsrefresh' => 60, // In seconds, refresh interval for metrics - default 60
     'metricstab'     => 1440, // Default tab in metrics, 60 - Last hour, 1440 - Last day, 10080 - Last week, 43200 - Last month - default 1440

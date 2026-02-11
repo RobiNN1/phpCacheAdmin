@@ -87,7 +87,7 @@ final class MemcachedTest extends TestCase {
     #[DataProvider('keysProvider')]
     public function testSetGetKey(string $type, mixed $original, mixed $expected): void {
         $this->memcached->set('pu-test-'.$type, $original);
-        $this->assertSame($expected, Helpers::mixedToString($this->memcached->getKey('pu-test-'.$type)));
+        $this->assertSame($expected, Helpers::mixedToString($this->memcached->get('pu-test-'.$type)));
         $this->memcached->delete('pu-test-'.$type);
     }
 
@@ -104,7 +104,7 @@ final class MemcachedTest extends TestCase {
         Http::stopRedirect();
         $this->dashboard->saveKey();
 
-        $this->assertSame('test-value', $this->memcached->getKey($key));
+        $this->assertSame('test-value', $this->memcached->get($key));
 
         $this->memcached->delete($key);
     }
@@ -266,7 +266,7 @@ final class MemcachedTest extends TestCase {
             $export_keys_array,
             'memcached_backup',
             function (string $key): ?string {
-                $value = $this->memcached->getKey(urldecode($key));
+                $value = $this->memcached->get(urldecode($key));
 
                 return $value !== false ? base64_encode($value) : null;
             },
@@ -299,7 +299,7 @@ final class MemcachedTest extends TestCase {
 
         foreach ($keys_to_test as $key => $data) {
             $this->assertTrue($this->memcached->exists($key));
-            $this->assertSame($data['value'], $this->memcached->getKey($key));
+            $this->assertSame($data['value'], $this->memcached->get($key));
             $this->memcached->delete($key);
         }
 

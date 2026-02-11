@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace RobiNN\Pca\Dashboards\Memcached;
 
+use Memcached;
 use function explode;
 use function is_numeric;
 use function preg_match;
@@ -29,6 +30,8 @@ class PHPMem {
 
     private ?string $server_version = null;
 
+    private ?Memcached $memcached = null;
+
     private const NO_END_COMMANDS = [
         'me' => true, 'incr' => true, 'decr' => true, 'version' => true,
         'ms' => true, 'md' => true, 'ma' => true, 'cache_memlimit' => true,
@@ -44,9 +47,18 @@ class PHPMem {
     ];
 
     /**
-     * @param array<string, int|string> $server
+     * @param array<string, int|string|bool> $server
      */
     public function __construct(protected array $server = []) {
+        if (isset($this->server['extension']) && $this->server['extension'] === true && extension_loaded('memcached')) {
+            $this->memcached = new Memcached();
+
+            if (isset($this->server['path'])) {
+                $this->memcached->addServer($this->server['path'], 0);
+            } else {
+                $this->memcached->addServer($this->server['host'], (int) $this->server['port']);
+            }
+        }
     }
 
     /**
@@ -55,6 +67,10 @@ class PHPMem {
      * @throws MemcachedException
      */
     public function set(string $key, mixed $value, int $expiration = 0): bool {
+        if ($this->memcached !== null) {
+            return $this->memcached->set($key, $value, $expiration);
+        }
+
         $value = is_scalar($value) ? (string) $value : serialize($value);
         $raw = $this->runCommand('set '.$key.' 0 '.$expiration.' '.strlen($value)."\r\n".$value);
 
@@ -62,20 +78,31 @@ class PHPMem {
     }
 
     /**
-     * Retrieve an item.
+     * Get raw key.
      *
      * @throws MemcachedException
      */
     public function get(string $key): string|false {
-        $raw = $this->runCommand('get '.$key);
-        $lines = explode("\r\n", $raw);
+        if ($this->memcached !== null) {
+            $value = $this->memcached->get($key);
 
-        if (str_starts_with($raw, 'VALUE') && str_ends_with($raw, 'END')) {
-            return $lines[1];
+            if ($this->memcached->getResultCode() === Memcached::RES_NOTFOUND) {
+                return false;
+            }
+
+            return is_scalar($value) ? (string) $value : serialize($value);
         }
 
-        return false;
+        $raw = $this->runCommand('get '.$key);
+        $data = explode("\r\n", $raw);
+
+        if ($data[0] === 'END') {
+            return false;
+        }
+
+        return !isset($data[1]) || $data[1] === 'N;' ? '' : $data[1];
     }
+
 
     /**
      * Delete item from the server.
@@ -259,22 +286,6 @@ class PHPMem {
     }
 
     /**
-     * Get raw key.
-     *
-     * @throws MemcachedException
-     */
-    public function getKey(string $key): string|false {
-        $raw = $this->runCommand('get '.$key);
-        $data = explode("\r\n", $raw);
-
-        if ($data[0] === 'END') {
-            return false;
-        }
-
-        return !isset($data[1]) || $data[1] === 'N;' ? '' : $data[1];
-    }
-
-    /**
      * Get key meta-data.
      *
      * This command requires Memcached server >= 1.5.19
@@ -315,7 +326,7 @@ class PHPMem {
      * @throws MemcachedException
      */
     public function exists(string $key): bool {
-        return $this->getKey($key) !== false;
+        return $this->get($key) !== false;
     }
 
     /**

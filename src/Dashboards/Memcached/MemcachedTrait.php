@@ -22,8 +22,15 @@ trait MemcachedTrait {
      */
     private function getPanelsData(bool $command_stats = false): array {
         try {
+            $title = '';
+
             if (class_exists(PHPMem::class)) {
                 $title = 'PHPMem v'.PHPMem::VERSION;
+
+                $server = $this->servers[$this->current_server];
+                if (isset($server['extension']) && $server['extension'] === true && extension_loaded('memcached')) {
+                    $title .= ' + Memcached';
+                }
             }
 
             $info = $this->memcached->getServerStats();
@@ -32,7 +39,7 @@ trait MemcachedTrait {
 
             $stats = [
                 [
-                    'title'    => $title ?? null,
+                    'title'    => $title,
                     'moreinfo' => true,
                     'data'     => [
                         'Version' => $info['version'],
@@ -94,9 +101,9 @@ trait MemcachedTrait {
             $info = $this->memcached->getServerStats();
             $info += ['settings' => $this->memcached->getServerStats('settings')];
 
-            if (extension_loaded('memcached') || extension_loaded('memcache')) {
-                $memcached = extension_loaded('memcached') ? 'd' : '';
-                $info += Helpers::getExtIniInfo('memcache'.$memcached);
+            $server = $this->servers[$this->current_server];
+            if (isset($server['extension']) && $server['extension'] === true && extension_loaded('memcached')) {
+                $info += Helpers::getExtIniInfo('memcached');
             }
 
             return $this->template->render('partials/info_table', [
@@ -126,7 +133,7 @@ trait MemcachedTrait {
             Helpers::export(
                 [['key' => $key, 'ttl' => $ttl]],
                 $key,
-                fn (string $key): string => base64_encode($this->memcached->getKey($key))
+                fn (string $key): string => base64_encode($this->memcached->get($key))
             );
         }
 
@@ -135,7 +142,7 @@ trait MemcachedTrait {
             Http::redirect();
         }
 
-        $value = $this->memcached->getKey($key);
+        $value = $this->memcached->get($key);
 
         [$formatted_value, $encode_fn, $is_formatted] = Value::format($value);
 
@@ -184,7 +191,7 @@ trait MemcachedTrait {
         $value = Http::post('value', '');
 
         if (isset($_GET['key']) && $this->memcached->exists($key)) {
-            $value = $this->memcached->getKey($key);
+            $value = $this->memcached->get($key);
         }
 
         if (isset($_POST['submit'])) {
@@ -551,7 +558,7 @@ trait MemcachedTrait {
             }
 
             Helpers::export($keys_to_export, 'memcached_backup', function (string $key): ?string {
-                $value = $this->memcached->getKey(urldecode($key));
+                $value = $this->memcached->get(urldecode($key));
 
                 return $value !== false ? base64_encode($value) : null;
             });

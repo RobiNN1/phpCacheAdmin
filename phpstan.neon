@@ -4,7 +4,3 @@ parameters:
     paths:
         - src
         - tests
-    ignoreErrors:
-        -
-            message: '~^Method RedisCluster::(info|rawcommand)\(\) invoked with \d+ parameters, .* required\.$~'
-            path: src/Dashboards/Redis/Compatibility/Cluster/RedisCluster.php

@@ -299,6 +299,9 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
         return $all_logs;
     }
 
+    /**
+     * @throws RedisClusterException
+     */
     public function resetSlowlog(): bool {
         foreach ($this->nodes as $node) {
             $this->rawcommand($node, 'SLOWLOG', 'RESET');

@@ -163,4 +163,11 @@ Here is an example of how to implement a custom dashboard
 
 - [FileCache](https://github.com/RobiNN1/FileCache-Dashboard) ([`robinn/cache`](https://github.com/RobiNN1/Cache)) dashboard.
 
+## Contributing
+
+PRs are closed to prevent AI-generated garbage.
+
+If you have a feature request, suggestion, or have found a bug,
+please **open an Issue** describing what you would like to see.
+
 <!-- Font used in logo Arial Rounded MT Bold -->

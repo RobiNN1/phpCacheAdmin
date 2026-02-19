@@ -35,42 +35,33 @@ trait MemcachedTrait {
 
             $info = $this->memcached->getServerStats();
 
-            $memory_usage = ($info['limit_maxbytes'] > 0) ? round(($info['bytes'] / $info['limit_maxbytes']) * 100, 2) : 0;
-
             $stats = [
                 [
                     'title'    => $title,
                     'moreinfo' => true,
                     'data'     => [
                         'Version' => $info['version'],
-                        'Uptime'  => Format::seconds($info['uptime']),
+                        'Uptime'  => Format::seconds($info['uptime'] ?? 0),
                     ],
                 ],
-                [
-                    'title' => 'Memory',
-                    'data'  => [
-                        'Total' => Format::bytes($info['limit_maxbytes'], 0),
-                        ['Used', Format::bytes($info['bytes']).' ('.$memory_usage.'%)', $memory_usage],
-                        'Free'  => Format::bytes($info['limit_maxbytes'] - $info['bytes']),
-                    ],
-                ],
+                $this->memoryPanel($info),
                 [
                     'title' => 'Keys',
                     'data'  => [
-                        'Current'             => Format::number($info['curr_items']),
-                        'Total (since start)' => Format::number($info['total_items']),
-                        'Evictions'           => Format::number($info['evictions']),
-                        'Reclaimed'           => Format::number($info['reclaimed']),
-                        'Expired Unfetched'   => Format::number($info['expired_unfetched']),
-                        'Evicted Unfetched'   => Format::number($info['evicted_unfetched']),
+                        'Current'             => Format::number($info['curr_items'] ?? 0),
+                        'Total (since start)' => Format::number($info['total_items'] ?? 0),
+                        'Evictions'           => Format::number($info['evictions'] ?? 0),
+                        'Reclaimed'           => Format::number($info['reclaimed'] ?? 0),
+                        'Expired Unfetched'   => Format::number($info['expired_unfetched'] ?? 0),
+                        'Evicted Unfetched'   => Format::number($info['evicted_unfetched'] ?? 0),
                     ],
                 ],
                 [
                     'title' => 'Connections',
                     'data'  => [
-                        'Current'  => Format::number($info['curr_connections']).' / '.Format::number($info['max_connections']).' max',
-                        'Total'    => Format::number($info['total_connections']),
-                        'Rejected' => Format::number($info['rejected_connections']),
+                        'Current'  => Format::number($info['curr_connections'] ?? 0).' / '.Format::number($info['max_connections'] ?? 0).' max',
+                        'Total'    => Format::number($info['total_connections'] ?? 0),
+                        'Rejected' => Format::number($info['rejected_connections'] ?? 0),
                     ],
                 ],
             ];
@@ -83,6 +74,26 @@ trait MemcachedTrait {
         } catch (MemcachedException $e) {
             return ['error' => $e->getMessage()];
         }
+    }
+
+    /**
+     * @param array<string, mixed> $info
+     *
+     * @return array{title: string, data: array<int|string, mixed>}
+     */
+    private function memoryPanel(array $info): array {
+        $limit_maxbytes = $info['limit_maxbytes'] ?? 0;
+        $bytes = $info['bytes'] ?? 0;
+        $memory_usage = ($limit_maxbytes > 0) ? round(($bytes / $limit_maxbytes) * 100, 2) : 0;
+
+        return [
+            'title' => 'Memory',
+            'data'  => [
+                'Total' => Format::bytes($limit_maxbytes, 0),
+                ['Used', Format::bytes($bytes).' ('.$memory_usage.'%)', $memory_usage],
+                'Free'  => Format::bytes($limit_maxbytes - $bytes),
+            ],
+        ];
     }
 
     /**

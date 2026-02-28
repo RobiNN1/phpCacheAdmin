@@ -87,6 +87,9 @@ trait RedisTrait {
         if (isset($server_info['valkey_version'])) {
             $version = 'Valkey '.$server_info['valkey_version'].' (Redis '.($server_info['redis_version'] ?? 'N/A').')';
             $mode = $server_info['server_mode'] ?? null;
+        } elseif (str_contains((strtolower($server_info['executable'] ?? '')), 'keydb')) {
+            $version = 'KeyDB '.($server_info['redis_version'] ?? 'N/A');
+            $mode = $server_info['redis_mode'] ?? null;
         } else {
             $version = $server_info['redis_version'] ?? 'N/A';
             $mode = $server_info['redis_mode'] ?? null;

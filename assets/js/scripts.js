@@ -559,7 +559,7 @@ const time_switcher = (callback) => {
             time_buttons.forEach(btn => btn.classList.remove('active'));
             button.classList.add('active');
 
-            metrics_active_filter = parseInt(button.dataset.tab, 10);
+            metrics_active_filter = button.dataset.tab;
             callback();
         });
     });
@@ -607,7 +607,7 @@ const fetch_metrics = (callback) => {
         } else {
             document.getElementById('alerts').innerHTML = `Server responded with status ${request.status}`;
         }
-    }, {points: metrics_active_filter}, false);
+    }, {filter: metrics_active_filter}, false);
 };
 
 const init_metrics = (render_charts, chart_config) => {

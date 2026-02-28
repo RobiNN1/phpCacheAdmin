@@ -149,7 +149,7 @@ return [
     'listview'       => 'table', // table/tree - default key list view.
     'panelrefresh'   => 30, // In seconds, refresh interval for panels - default 30
     'metricsrefresh' => 60, // In seconds, refresh interval for metrics - default 60
-    'metricstab'     => 1440, // Default tab in metrics, 60 - Last hour, 1440 - Last day, 10080 - Last week, 43200 - Last month - default 1440
+    'metricstab'     => '1d', // Default tab in metrics, 1h - Last hour, 1d - Last day, 1w - Last week, 1m - Last month - default 1d
     'hash'           => 'pca', // Any random string to secure a metrics DB file.
     'metricsdir'     => __DIR__.'/tmp/metrics', // Directory for metrics DB files.
     'twigcache'      => __DIR__.'/tmp/twig', // Directory for Twig cache files.

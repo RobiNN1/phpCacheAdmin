@@ -248,15 +248,22 @@ readonly class MemcachedMetrics {
      * @return array<int, array<string, mixed>>
      */
     private function fetchRecentMetrics(): array {
-        $max_data_points_to_return = Http::post('points', Config::get('metricstab', 1440));
+        $filter = Http::post('filter', Config::get('metricstab', '1d'));
 
-        $stmt = $this->pdo->prepare('SELECT * FROM metrics ORDER BY id DESC LIMIT :limit');
-        $stmt->bindValue(':limit', $max_data_points_to_return, PDO::PARAM_INT);
+        $seconds = match ($filter) {
+            '1h' => 3600,
+            '1w' => 604800,
+            '1m' => 2592000,
+            default => 86400,
+        };
+
+        $time_ago = time() - $seconds;
+
+        $stmt = $this->pdo->prepare('SELECT * FROM metrics WHERE timestamp >= :time_ago ORDER BY id DESC');
+        $stmt->bindValue(':time_ago', $time_ago, PDO::PARAM_INT);
         $stmt->execute();
 
-        $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        return array_reverse($results);
+        return array_reverse($stmt->fetchAll(PDO::FETCH_ASSOC));
     }
 
     /**

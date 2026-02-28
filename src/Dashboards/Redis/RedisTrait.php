@@ -89,7 +89,7 @@ trait RedisTrait {
             $mode = $server_info['server_mode'] ?? null;
         } else {
             $version = $server_info['redis_version'] ?? 'N/A';
-            $mode = $server_info['redis_mode' ?? null];
+            $mode = $server_info['redis_mode'] ?? null;
         }
 
         $data = [

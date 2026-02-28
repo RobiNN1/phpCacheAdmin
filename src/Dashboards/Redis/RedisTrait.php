@@ -36,6 +36,7 @@ trait RedisTrait {
         try {
             $info = $this->redis->getInfo(null, [
                 'redis_version',
+                'valkey_version',
                 'used_memory',
                 'maxmemory',
                 'keyspace_hits',
@@ -83,8 +84,16 @@ trait RedisTrait {
             $role = ['Role', $replication_info['role'].', connected slaves '.$slaves];
         }
 
+        if (isset($server_info['valkey_version'])) {
+            $version = 'Valkey '.$server_info['valkey_version'].' (Redis '.($server_info['redis_version'] ?? 'N/A').')';
+            $mode = $server_info['server_mode'] ?? null;
+        } else {
+            $version = $server_info['redis_version'] ?? 'N/A';
+            $mode = $server_info['redis_mode' ?? null];
+        }
+
         $data = [
-            'Version' => ($server_info['redis_version'] ?? 'N/A').(isset($server_info['redis_mode']) ? ', '.$server_info['redis_mode'].' mode' : ''),
+            'Version' => $version.($mode !== null ? ', '.$mode.' mode' : ''),
             'Cluster' => ($cluster_info['cluster_enabled'] ?? 0) ? 'Enabled' : 'Disabled',
             'Uptime'  => Format::seconds((int) ($server_info['uptime_in_seconds'] ?? 0)),
             $role,

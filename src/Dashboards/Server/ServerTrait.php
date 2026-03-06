@@ -52,7 +52,7 @@ trait ServerTrait {
 
     private function phpInfo(): string {
         ob_start();
-        phpinfo();
+        phpinfo(INFO_GENERAL | INFO_CONFIGURATION | INFO_MODULES);
 
         $phpinfo = preg_replace('%^.*<body>(.*)</body>.*$%ms', '$1', ob_get_clean());
 

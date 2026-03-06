@@ -71,6 +71,7 @@ class PHPMem {
             return $this->memcached->set($key, $value, $expiration);
         }
 
+        $key = preg_replace('/[\s\x00-\x1f]+/', '', $key);
         $value = is_scalar($value) ? (string) $value : serialize($value);
         $raw = $this->runCommand('set '.$key.' 0 '.$expiration.' '.strlen($value)."\r\n".$value);
 
@@ -93,6 +94,7 @@ class PHPMem {
             return is_scalar($value) ? (string) $value : serialize($value);
         }
 
+        $key = preg_replace('/[\s\x00-\x1f]+/', '', $key);
         $raw = $this->runCommand('get '.$key);
         $data = explode("\r\n", $raw);
 
@@ -110,6 +112,8 @@ class PHPMem {
      * @throws MemcachedException
      */
     public function delete(string $key): bool {
+        $key = preg_replace('/[\s\x00-\x1f]+/', '', $key);
+
         return $this->runCommand('delete '.$key) === 'DELETED';
     }
 
@@ -297,6 +301,8 @@ class PHPMem {
      * @throws MemcachedException
      */
     public function getKeyMeta(string $key): array {
+        $key = preg_replace('/[\s\x00-\x1f]+/', '', $key);
+
         if (version_compare($this->version(), '1.5.19', '>=')) {
             $raw = $this->runCommand('me '.$key);
 
@@ -410,8 +416,7 @@ class PHPMem {
      * verbosity <level>\r\n
      * quit\r\n
      *
-     * Note: \r\n is added automatically to the end,
-     * and \r\n (as a plain string) is converted to a real end of the line.
+     * Note: \r\n is added automatically to the end.
      *
      * @link https://github.com/memcached/memcached/blob/master/doc/protocol.txt
      *
@@ -419,7 +424,7 @@ class PHPMem {
      */
     public function runCommand(string $command): string {
         $command_name = strtolower(strtok($command, ' '));
-        $command = strtr($command, ['\r\n' => "\r\n"])."\r\n";
+        $command .= "\r\n";
         $data = $this->streamConnection($command, $command_name);
 
         return rtrim($data, "\r\n");

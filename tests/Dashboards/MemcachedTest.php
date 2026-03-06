@@ -152,6 +152,7 @@ final class MemcachedTest extends TestCase {
      */
     #[DataProvider('commandDataProvider')]
     public function testRunCommand(string $expected, string $command): void {
+        $command = strtr($command, ['\r\n' => "\r\n"]);
         $this->assertSame(strtr($expected, ['\r\n' => "\r\n"]), $this->memcached->runCommand($command));
     }
 

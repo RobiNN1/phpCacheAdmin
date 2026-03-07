@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace RobiNN\Pca\Dashboards\Memcached;
 
 use RobiNN\Pca\Config;
+use RobiNN\Pca\Csrf;
 use RobiNN\Pca\Dashboards\DashboardException;
 use RobiNN\Pca\Dashboards\DashboardInterface;
 use RobiNN\Pca\Helpers;
@@ -98,10 +99,18 @@ class MemcachedDashboard implements DashboardInterface {
             }
 
             if (isset($_GET['deleteall'])) {
+                if (!Csrf::validateToken(Http::post('csrf_token', ''))) {
+                    return Helpers::alert($this->template, 'Invalid CSRF token.', 'error');
+                }
+
                 return $this->deleteAllKeys();
             }
 
             if (isset($_GET['delete'])) {
+                if (!Csrf::validateToken(Http::post('csrf_token', ''))) {
+                    return Helpers::alert($this->template, 'Invalid CSRF token.', 'error');
+                }
+
                 return Helpers::deleteKey($this->template, fn (string $key): bool => $this->memcached->delete($key));
             }
         } catch (DashboardException|MemcachedException $e) {

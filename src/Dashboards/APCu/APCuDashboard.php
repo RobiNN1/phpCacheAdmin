@@ -8,8 +8,10 @@ declare(strict_types=1);
 
 namespace RobiNN\Pca\Dashboards\APCu;
 
+use RobiNN\Pca\Csrf;
 use RobiNN\Pca\Dashboards\DashboardInterface;
 use RobiNN\Pca\Helpers;
+use RobiNN\Pca\Http;
 use RobiNN\Pca\Template;
 
 class APCuDashboard implements DashboardInterface {
@@ -50,11 +52,21 @@ class APCuDashboard implements DashboardInterface {
             return Helpers::getPanelsJson($this->getPanelsData());
         }
 
-        if (isset($_GET['deleteall']) && apcu_clear_cache()) {
-            return Helpers::alert($this->template, 'Cache has been cleaned.', 'success');
+        if (isset($_GET['deleteall'])) {
+            if (!Csrf::validateToken(Http::post('csrf_token', ''))) {
+                return Helpers::alert($this->template, 'Invalid CSRF token.', 'error');
+            }
+
+            if (apcu_clear_cache()) {
+                return Helpers::alert($this->template, 'Cache has been cleaned.', 'success');
+            }
         }
 
         if (isset($_GET['delete'])) {
+            if (!Csrf::validateToken(Http::post('csrf_token', ''))) {
+                return Helpers::alert($this->template, 'Invalid CSRF token.', 'error');
+            }
+
             return Helpers::deleteKey($this->template, static fn (string $key): bool => apcu_delete($key), true);
         }
 

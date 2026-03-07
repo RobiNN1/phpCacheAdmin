@@ -10,6 +10,7 @@ namespace RobiNN\Pca\Dashboards\Memcached;
 
 use PDO;
 use RobiNN\Pca\Config;
+use RobiNN\Pca\Csrf;
 use RobiNN\Pca\Format;
 use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
@@ -148,9 +149,13 @@ trait MemcachedTrait {
             );
         }
 
-        if (isset($_GET['delete'])) {
-            $this->memcached->delete($key);
-            Http::redirect();
+        if (isset($_POST['delete'])) {
+            if (!Csrf::validateToken(Http::post('csrf_token', ''))) {
+                Helpers::alert($this->template, 'Invalid CSRF token.', 'error');
+            } else {
+                $this->memcached->delete($key);
+                Http::redirect();
+            }
         }
 
         $value = $this->memcached->get($key);
@@ -166,7 +171,6 @@ trait MemcachedTrait {
             'formatted'  => $is_formatted,
             'edit_url'   => Http::queryString(['ttl'], ['form' => 'edit', 'key' => $key]),
             'export_url' => Http::queryString(['ttl', 'view', 'p', 'key'], ['export' => 'key']),
-            'delete_url' => Http::queryString(['view'], ['delete' => 'key', 'key' => $key]),
         ]);
     }
 
@@ -206,7 +210,11 @@ trait MemcachedTrait {
         }
 
         if (isset($_POST['submit'])) {
-            $this->saveKey();
+            if (Csrf::validateToken(Http::post('csrf_token', ''))) {
+                $this->saveKey();
+            } else {
+                Helpers::alert($this->template, 'Invalid CSRF token.', 'error');
+            }
         }
 
         $value = Value::converter($value, $encoder, 'view');
@@ -532,10 +540,14 @@ trait MemcachedTrait {
      */
     private function mainDashboard(): string {
         if (isset($_POST['submit_import_key'])) {
-            Helpers::import(
-                fn (string $key): bool => $this->memcached->exists($key),
-                fn (string $key, string $value, int $ttl): bool => $this->memcached->set(urldecode($key), base64_decode($value), $ttl)
-            );
+            if (Csrf::validateToken(Http::post('csrf_token', ''))) {
+                Helpers::import(
+                    fn (string $key): bool => $this->memcached->exists($key),
+                    fn (string $key, string $value, int $ttl): bool => $this->memcached->set(urldecode($key), base64_decode($value), $ttl)
+                );
+            } else {
+                echo Helpers::alert($this->template, 'Invalid CSRF token.', 'error');
+            }
         }
 
         if (Http::get('tab') === 'commands_stats') {

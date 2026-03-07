@@ -10,6 +10,7 @@ namespace RobiNN\Pca\Dashboards\APCu;
 
 use APCUIterator;
 use RobiNN\Pca\Config;
+use RobiNN\Pca\Csrf;
 use RobiNN\Pca\Format;
 use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
@@ -112,9 +113,13 @@ trait APCuTrait {
             );
         }
 
-        if (isset($_GET['delete'])) {
-            apcu_delete($key);
-            Http::redirect();
+        if (isset($_POST['delete'])) {
+            if (!Csrf::validateToken(Http::post('csrf_token', ''))) {
+                Helpers::alert($this->template, 'Invalid CSRF token.', 'error');
+            } else {
+                apcu_delete($key);
+                Http::redirect();
+            }
         }
 
         [$formatted_value, $encode_fn, $is_formatted] = Value::format($value);
@@ -128,7 +133,6 @@ trait APCuTrait {
             'formatted'  => $is_formatted,
             'edit_url'   => Http::queryString(['ttl'], ['form' => 'edit', 'key' => $key]),
             'export_url' => Http::queryString(['ttl', 'view', 'p', 'key'], ['export' => 'key']),
-            'delete_url' => Http::queryString(['view'], ['delete' => 'key', 'key' => $key]),
         ]);
     }
 
@@ -164,7 +168,11 @@ trait APCuTrait {
         }
 
         if (isset($_POST['submit'])) {
-            $this->saveKey();
+            if (Csrf::validateToken(Http::post('csrf_token', ''))) {
+                $this->saveKey();
+            } else {
+                Helpers::alert($this->template, 'Invalid CSRF token.', 'error');
+            }
         }
 
         $value = Value::converter($value, $encoder, 'view');
@@ -297,12 +305,16 @@ trait APCuTrait {
 
     private function mainDashboard(): string {
         if (isset($_POST['submit_import_key'])) {
-            Helpers::import(
-                static fn (string $key): bool => apcu_exists($key),
-                static function (string $key, string $value, int $ttl): bool {
-                    return apcu_store($key, unserialize(base64_decode($value), ['allowed_classes' => false]), $ttl);
-                }
-            );
+            if (Csrf::validateToken(Http::post('csrf_token', ''))) {
+                Helpers::import(
+                    static fn (string $key): bool => apcu_exists($key),
+                    static function (string $key, string $value, int $ttl): bool {
+                        return apcu_store($key, unserialize(base64_decode($value), ['allowed_classes' => false]), $ttl);
+                    }
+                );
+            } else {
+                echo Helpers::alert($this->template, 'Invalid CSRF token.', 'error');
+            }
         }
 
         $keys = $this->getAllKeys();

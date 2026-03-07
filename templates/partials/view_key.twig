@@ -29,12 +29,13 @@
             </a>
         {% endif %}
 
-        {% if delete_url %}
-            <a href="{{ delete_url }}" class="inline-flex gap-1 items-center font-semibold text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
-               onclick="return confirm('Are you sure you want to remove this item?');">
+        <form method="post" class="inline">
+            <input type="hidden" name="csrf_token" value="{{ csrf }}">
+            <button type="submit" name="delete" class="inline-flex gap-1 items-center font-semibold text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
+                    onclick="return confirm('Are you sure you want to remove this item?');">
                 {{ svg('trash', 16) }} Delete
-            </a>
-        {% endif %}
+            </button>
+        </form>
     </span>
 </div>
 

@@ -124,6 +124,7 @@ class Template {
         $twig->addFilter(new TwigFilter('snake_case', Helpers::snakeCase(...)));
 
         $twig->addGlobal('ajax_panels', false);
+        $twig->addGlobal('csrf', Csrf::generateToken());
 
         foreach ($this->globals as $name => $value) {
             $twig->addGlobal($name, $value);

@@ -29,10 +29,15 @@
                 <a href="{{ edit_url }}&{{ types[type].param }}={{ item.key ~ item_encode_url }}" class="inline-flex gap-1 items-center mr-3 font-semibold text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
                     {{ svg('edit', 16) }} Edit
                 </a>
-                <a href="{{ deletesub_url }}&{{ types[type].param }}={{ item.key }}" class="inline-flex gap-1 items-center font-semibold text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
-                   onclick="return confirm('Are you sure you want to remove this item?');">
-                    {{ svg('trash', 16) }} Delete
-                </a>
+
+                <form method="post" class="inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf }}">
+                    <input type="hidden" name="{{ types[type].param }}" value="{{ item.key }}">
+                    <button type="submit" name="deletesub" class="inline-flex gap-1 items-center font-semibold text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
+                            onclick="return confirm('Are you sure you want to remove this item?');">
+                        {{ svg('trash', 16) }} Delete
+                    </button>
+                </form>
             </div>
         </div>
 

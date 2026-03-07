@@ -13,6 +13,7 @@ use JsonException;
 use PDO;
 use Predis\Client as Predis;
 use RobiNN\Pca\Config;
+use RobiNN\Pca\Csrf;
 use RobiNN\Pca\Dashboards\DashboardException;
 use RobiNN\Pca\Format;
 use RobiNN\Pca\Helpers;
@@ -277,24 +278,31 @@ trait RedisTrait {
             return $e->getMessage();
         }
 
-        if (isset($_GET['deletesub'])) {
-            $subkey = match ($type) {
-                'set' => Http::get('member', 0),
-                'list' => Http::get('index', 0),
-                'zset' => Http::get('range', 0),
-                'hash' => Http::get('hash_key', ''),
-                'stream' => Http::get('stream_id', ''),
-                default => null,
-            };
+        if (isset($_POST['deletesub'])) {
+            if (!Csrf::validateToken(Http::post('csrf_token', ''))) {
+                Helpers::alert($this->template, 'Invalid CSRF token.', 'error');
+            } else {
+                $subkey = match ($type) {
+                    'set' => Http::post('member', 0),
+                    'list' => Http::post('index', 0),
+                    'zset' => Http::post('range', 0),
+                    'hash' => Http::post('hash_key', ''),
+                    'stream' => Http::post('stream_id', ''),
+                    default => null,
+                };
 
-            $this->deleteSubKey($type, $key, $subkey);
-
-            Http::redirect(['key', 'view', 'p']);
+                $this->deleteSubKey($type, $key, $subkey);
+                Http::redirect(['key', 'view', 'p']);
+            }
         }
 
-        if (isset($_GET['delete'])) {
-            $this->redis->del($key);
-            Http::redirect();
+        if (isset($_POST['delete'])) {
+            if (!Csrf::validateToken(Http::post('csrf_token', ''))) {
+                Helpers::alert($this->template, 'Invalid CSRF token.', 'error');
+            } else {
+                $this->redis->del($key);
+                Http::redirect();
+            }
         }
 
         $ttl = $this->redis->ttl($key);
@@ -331,10 +339,8 @@ trait RedisTrait {
             'encode_fn'      => $encode_fn,
             'formatted'      => $is_formatted,
             'add_subkey_url' => Http::queryString([], ['form' => 'new', 'key' => $key]),
-            'deletesub_url'  => Http::queryString(['view', 'p'], ['deletesub' => 'key', 'key' => $key]),
             'edit_url'       => Http::queryString([], ['form' => 'edit', 'key' => $key]),
             'export_url'     => Http::queryString(['view', 'p', 'key'], ['export' => 'key']),
-            'delete_url'     => Http::queryString(['view'], ['delete' => 'key', 'key' => $key]),
             'paginator'      => $paginator,
             'types'          => $this->typesTplOptions(),
         ]);
@@ -382,7 +388,11 @@ trait RedisTrait {
         $stream_id = Http::post('stream_id', '*');
 
         if (isset($_POST['submit'])) {
-            $this->saveKey();
+            if (Csrf::validateToken(Http::post('csrf_token', ''))) {
+                $this->saveKey();
+            } else {
+                Helpers::alert($this->template, 'Invalid CSRF token.', 'error');
+            }
         }
 
         // edit|subkeys
@@ -605,15 +615,23 @@ trait RedisTrait {
                 'Slowlog is disabled on your server.';
         }
 
-        if (isset($_GET['resetlog'])) {
-            $this->redis->resetSlowlog();
-            Http::redirect(['tab']);
+        if (isset($_POST['resetlog'])) {
+            if (!Csrf::validateToken(Http::post('csrf_token', ''))) {
+                Helpers::alert($this->template, 'Invalid CSRF token.', 'error');
+            } else {
+                $this->redis->resetSlowlog();
+                Http::redirect(['tab']);
+            }
         }
 
         if (isset($_POST['save'])) {
-            $this->redis->execConfig('SET', 'slowlog-max-len', Http::post('slowlog_max_items', '50'));
-            $this->redis->execConfig('SET', 'slowlog-log-slower-than', Http::post('slowlog_slower_than', '1000'));
-            Http::redirect(['tab']);
+            if (!Csrf::validateToken(Http::post('csrf_token', ''))) {
+                Helpers::alert($this->template, 'Invalid CSRF token.', 'error');
+            } else {
+                $this->redis->execConfig('SET', 'slowlog-max-len', Http::post('slowlog_max_items', '50'));
+                $this->redis->execConfig('SET', 'slowlog-log-slower-than', Http::post('slowlog_slower_than', '1000'));
+                Http::redirect(['tab']);
+            }
         }
 
         $slowlog_max_items = (int) $this->redis->execConfig('GET', 'slowlog-max-len')['slowlog-max-len'];
@@ -643,16 +661,20 @@ trait RedisTrait {
      */
     private function mainDashboard(): string {
         if (isset($_POST['submit_import_key'])) {
-            Helpers::import(
-                function (string $key): bool {
-                    $exists = $this->redis->exists($key);
+            if (Csrf::validateToken(Http::post('csrf_token', ''))) {
+                Helpers::import(
+                    function (string $key): bool {
+                        $exists = $this->redis->exists($key);
 
-                    return is_int($exists) && $exists > 0;
-                },
-                function (string $key, string $value, int $ttl): bool {
-                    return $this->redis->restoreKeys($key, ($ttl === -1 ? 0 : $ttl), hex2bin($value));
-                }
-            );
+                        return is_int($exists) && $exists > 0;
+                    },
+                    function (string $key, string $value, int $ttl): bool {
+                        return $this->redis->restoreKeys($key, ($ttl === -1 ? 0 : $ttl), hex2bin($value));
+                    }
+                );
+            } else {
+                echo Helpers::alert($this->template, 'Invalid CSRF token.', 'error');
+            }
         }
 
         if (Http::get('tab') === 'slowlog') {

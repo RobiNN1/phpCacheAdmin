@@ -7,6 +7,7 @@
     <link rel="icon" type="image/png" sizes="32x32" href="{{ config('pcapath', '') }}assets/favicon.png">
     <meta name="theme-color" content="#ffffff">
     <link rel="stylesheet" href="{{ config('pcapath', '') }}assets/css/styles.css?v={{ version }}">
+    <meta name="csrf-token" content="{{ csrf }}">
 
     {%- if colors -%}
         <style>

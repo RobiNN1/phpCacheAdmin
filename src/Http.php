@@ -97,4 +97,32 @@ class Http {
             exit;
         }
     }
+
+    /**
+     * Get session value.
+     *
+     * @template Type
+     *
+     * @param Type $default
+     *
+     * @return Type
+     */
+    public static function session(string $key, $default = null) {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        if (!isset($_SESSION[$key])) {
+            return $default;
+        }
+
+        if (!is_scalar($_SESSION[$key])) {
+            return $_SESSION[$key];
+        }
+
+        $filter = is_int($default) ? FILTER_SANITIZE_NUMBER_INT : FILTER_UNSAFE_RAW;
+        $value = filter_var($_SESSION[$key], $filter);
+
+        return is_int($default) ? (int) $value : $value;
+    }
 }

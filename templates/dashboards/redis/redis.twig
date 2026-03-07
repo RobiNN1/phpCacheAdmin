@@ -32,6 +32,8 @@
         <div class="justify-between py-4 px-6 md:flex">
             <div class="gap-1 items-center md:flex">
                 <form method="post" class="gap-1 md:flex">
+                    <input type="hidden" name="csrf_token" value="{{ csrf }}">
+
                     {{ include('components/input.twig', {
                         id: 'slowlog_max_items',
                         label: 'Display&nbsp;items',
@@ -57,11 +59,15 @@
             </div>
 
             <div class="gap-1 md:flex">
-                {{ include('components/button.twig', {
-                    text: 'Reset',
-                    link: link(['tab'], {'resetlog': 1}),
-                    color: 'green',
-                }) }}
+                <form method="post">
+                    <input type="hidden" name="csrf_token" value="{{ csrf }}">
+                    {{ include('components/button.twig', {
+                        id: 'resetlog',
+                        text: 'Reset',
+                        color: 'red',
+                        submit: true
+                    }) }}
+                </form>
             </div>
         </div>
 

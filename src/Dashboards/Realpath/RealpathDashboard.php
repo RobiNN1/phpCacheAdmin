@@ -8,8 +8,10 @@ declare(strict_types=1);
 
 namespace RobiNN\Pca\Dashboards\Realpath;
 
+use RobiNN\Pca\Csrf;
 use RobiNN\Pca\Dashboards\DashboardInterface;
 use RobiNN\Pca\Helpers;
+use RobiNN\Pca\Http;
 use RobiNN\Pca\Paginator;
 use RobiNN\Pca\Template;
 
@@ -54,6 +56,10 @@ class RealpathDashboard implements DashboardInterface {
 
     public function ajax(): string {
         if (isset($_GET['deleteall'])) {
+            if (!Csrf::validateToken(Http::post('csrf_token', ''))) {
+                return Helpers::alert($this->template, 'Invalid CSRF token.', 'error');
+            }
+
             clearstatcache(true);
 
             return Helpers::alert($this->template, 'Cache has been cleaned.', 'success');

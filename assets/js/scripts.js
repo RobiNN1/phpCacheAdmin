@@ -8,11 +8,14 @@ const ajax = (endpoint, callback, data = null, send_json = true) => {
 
     if (data !== null) {
         request.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+        const csrf_meta = document.querySelector('meta[name="csrf-token"]');
+        const csrf_token = csrf_meta ? encodeURIComponent(csrf_meta.content) : '';
 
         if (send_json) {
-            data = `${endpoint}=${JSON.stringify(data)}`;
+            data = `${endpoint}=${JSON.stringify(data)}&csrf_token=${csrf_token}`;
         } else {
             data = Object.keys(data).map(key => encodeURIComponent(key) + '=' + encodeURIComponent(data[key])).join('&');
+            data += `&csrf_token=${csrf_token}`;
         }
     }
 
@@ -140,7 +143,7 @@ if (delete_all) {
 
                 document.getElementById('table-no-keys').classList.remove('hidden');
             }
-        });
+        }, {});
     });
 }
 

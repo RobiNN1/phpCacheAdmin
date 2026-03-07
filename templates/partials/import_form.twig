@@ -1,5 +1,7 @@
 {% macro form() %}
     <form method="post" enctype="multipart/form-data" id="import_form">
+        <input type="hidden" name="csrf_token" value="{{ csrf }}">
+
         <div class="mb-4">
             <label for="import" class="block mb-2 text-sm font-semibold dark:text-gray-300">JSON file</label>
             <input id="import" name="import" type="file" accept="application/json"

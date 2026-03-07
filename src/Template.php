@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace RobiNN\Pca;
 
 use Exception;
+use RuntimeException;
 use Twig\Environment;
 use Twig\Error\LoaderError;
 use Twig\Extension\DebugExtension;
@@ -26,6 +27,39 @@ class Template {
      * @var array<string, string>
      */
     private array $paths = [];
+
+    public function __construct() {
+        $app_version = Admin::VERSION;
+        $cache_dir = Config::get('twigcache', __DIR__.'/../tmp/twig');
+        $version_file = $cache_dir.'/app_version.txt';
+
+        $saved_version = file_exists($version_file) ? file_get_contents($version_file) : '';
+
+        if ($app_version !== $saved_version) {
+            $this->clearTwigCache($cache_dir);
+
+            if (!mkdir($cache_dir, 0777, true) && !is_dir($cache_dir)) {
+                throw new RuntimeException(sprintf('Directory "%s" was not created', $cache_dir));
+            }
+
+            file_put_contents($version_file, $app_version);
+        }
+    }
+
+    private function clearTwigCache(string $target_dir): void {
+        if (!is_dir($target_dir)) {
+            return;
+        }
+
+        $directory_files = array_diff(scandir($target_dir), ['.', '..']);
+
+        foreach ($directory_files as $file_item) {
+            $file_path = $target_dir.DIRECTORY_SEPARATOR.$file_item;
+            is_dir($file_path) ? $this->clearTwigCache($file_path) : unlink($file_path);
+        }
+
+        rmdir($target_dir);
+    }
 
     /**
      * Add global Twig variable.

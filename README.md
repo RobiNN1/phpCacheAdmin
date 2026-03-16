@@ -61,6 +61,11 @@ To customize the configuration, do not edit `config.dist.php` directly, but copy
 
 Replace all files and delete the `/tmp/twig` folder (it contains compiled Twig templates).
 
+## Common issues
+
+If you get the error "Fatal error: Allowed memory size of x bytes exhausted" or a blank page, increase the PHP memory
+limit or enable the SCAN command (set `PCA_REDIS_0_SCANSIZE` or uncomment `scansize` in `config.php`).
+
 ## Cronjob
 
 You can add these links to your cronjob to collect metrics when the dashboard is not open:
@@ -165,7 +170,7 @@ Here is an example of how to implement a custom dashboard
 
 ## Contributing
 
-PRs are closed to prevent AI-generated garbage.
+**Pull Requests are disabled to prevent AI-generated garbage.**
 
 If you have a feature request, suggestion, or have found a bug,
 please **open an Issue** describing what you would like to see.

@@ -1,123 +1,7 @@
 <?php
 declare(strict_types=1);
-
-function svg(string $icon, ?int $size = 16, ?string $class = null): string {
-    $file = is_file($icon) ? $icon : __DIR__.'/assets/img/icons/'.$icon.'.svg';
-    $content = is_file($file) ? trim(file_get_contents($file)) : $icon;
-
-    preg_match('~<svg([^<>]*)>~', $content, $attributes);
-
-    $size_attr = $size !== null ? ' width="'.$size.'" height="'.$size.'"' : '';
-    $class_attr = $class !== null ? ' class="'.$class.'"' : '';
-    $svg = preg_replace('~<svg([^<>]*)>~', '<svg'.($attributes[1] ?? '').$size_attr.$class_attr.'>', $content);
-    $svg = preg_replace('/\s+/', ' ', $svg);
-
-    return str_replace("\n", '', $svg);
-}
-
-ob_start(static function (string $html): string {
-    $html = preg_replace('/\s+/', ' ', $html);
-
-    return preg_replace('/<!--(?!\[if).*?-->/', '', $html);
-});
-
+require_once __DIR__.'/_header.php';
 ?>
-<!doctype html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>phpCacheAdmin - Modern GUI for Redis, Memcached, OPCache & APCu</title>
-    <meta name="description" content="The ultimate web dashboard for Redis, Memcached, APCu, OPCache, and Realpath. A modern, docker-ready alternative to phpRedisAdmin and opcache-gui with Cluster & ACL support.">
-    <meta name="keywords" content="phpCacheAdmin, Redis GUI, Memcached Admin, OPCache GUI, APCu Dashboard, Realpath Cache, phpRedisAdmin alternative, Redis Cluster, Docker, PHP cache manager">
-    <meta name="robots" content="index, follow">
-    <meta name="author" content="RobiNN1">
-    <link rel="canonical" href="https://phpcacheadmin.com/">
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://phpcacheadmin.com/">
-    <meta property="og:title" content="phpCacheAdmin - Modern GUI for Redis, Memcached, OPCache & APCu">
-    <meta property="og:description" content="The ultimate web dashboard for Redis, Memcached, APCu, OPCache, and Realpath. A modern, docker-ready alternative to phpRedisAdmin and opcache-gui with Cluster & ACL support.">
-    <meta property="og:image" content="https://phpcacheadmin.com/assets/og-image.jpg">
-    <meta property="og:site_name" content="phpCacheAdmin">
-    <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon.png">
-    <meta name="theme-color" content="#ffffff">
-    <link rel="stylesheet" href="assets/css/styles.css?v=<?php echo filemtime(__DIR__.'/assets/css/styles.css'); ?>">
-    <script>
-        const theme = localStorage.getItem('theme') || 'system';
-        let current_theme = theme;
-
-        if (theme === 'system') {
-            current_theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-            document.documentElement.setAttribute('color-theme', 'system');
-        } else {
-            document.documentElement.setAttribute('color-theme', theme);
-        }
-
-        document.documentElement.classList.toggle('dark', current_theme === 'dark');
-    </script>
-</head>
-<body class="overflow-x-hidden antialiased transition-colors duration-300 bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-300">
-<div class="overflow-hidden fixed inset-0 z-0 pointer-events-none">
-    <div class="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-sky-500/20 blur-3xl mix-blend-multiply dark:mix-blend-screen dark:bg-sky-500/10"></div>
-    <div class="absolute -left-20 top-40 w-72 h-72 rounded-full bg-redis/20 blur-3xl mix-blend-multiply dark:mix-blend-screen dark:bg-redis/10"></div>
-    <div class="absolute right-20 bottom-20 w-80 h-80 rounded-full bg-memcached/20 blur-3xl mix-blend-multiply dark:mix-blend-screen dark:bg-memcached/10"></div>
-</div>
-
-<nav class="fixed top-0 z-50 w-full border-b border-gray-100 bg-white/50 backdrop-blur-xl dark:border-b-white/5 dark:bg-slate-950/70">
-    <div class="px-4 mx-auto max-w-7xl">
-        <div class="flex flex-wrap justify-between items-center lg:text-xl">
-            <a class="inline-block py-3" href="/" aria-label="Link to this site">
-                <?php echo svg('../logo', null, 'h-5 md:h-10 w-auto'); ?>
-            </a>
-
-            <div class="flex items-center py-3 md:hidden">
-                <button id="toggle-menu" type="button" class="text-gray-600 dark:text-gray-300">
-                    <?php echo svg('menu', 24); ?>
-                    <span class="sr-only">Toggle menu</span>
-                </button>
-            </div>
-
-            <div class="hidden order-last w-full md:flex md:w-auto md:order-0" id="menu">
-                <div class="flex flex-col gap-6 items-center py-4 w-full md:flex-row md:gap-8 md:py-0">
-                    <?php /* ?><div class="flex flex-col gap-4 text-center md:flex-row md:gap-8">
-                        <?php
-                        $links = [
-                            'Features',
-                            'Installation',
-                            'Configuration',
-                        ];
-                        foreach ($links as $link) {
-                            $url = strtolower(str_replace(' ', '-', $link));
-                            echo '<a href="#'.$url.'" class="font-medium text-gray-600 transition-colors dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-200">'.$link.'</a>';
-                        }
-                        ?>
-                    </div><?php */ ?>
-
-                    <div class="flex gap-3 justify-center">
-                        <div class="flex p-1 gap-1 h-10 items-center rounded-lg bg-gray-100 dark:bg-white/5 border border-transparent dark:border-white/5 [&>.active]:bg-white dark:[&>.active]:bg-slate-700 [&>.active]:text-gray-900 dark:[&>.active]:text-white [&>.active]:shadow-sm">
-                            <button class="flex justify-center items-center w-8 h-8 text-gray-500 rounded-md transition-all cursor-pointer dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200" type="button" data-theme="light" title="Light">
-                                <?php echo svg('sun'); ?>
-                            </button>
-                            <button class="flex justify-center items-center w-8 h-8 text-gray-500 rounded-md transition-all cursor-pointer dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200" type="button" data-theme="dark" title="Dark">
-                                <?php echo svg('moon'); ?>
-                            </button>
-                            <button class="flex justify-center items-center w-8 h-8 text-gray-500 rounded-md transition-all cursor-pointer dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200" type="button" data-theme="system" title="System">
-                                <?php echo svg('system'); ?>
-                            </button>
-                        </div>
-
-                        <a href="https://github.com/RobiNN1/phpCacheAdmin" target="_blank" rel="noopener noreferrer" class="flex gap-2 justify-center items-center px-4 h-10 text-sm font-semibold text-white bg-gray-900 rounded-lg transition-opacity dark:text-gray-900 dark:bg-white hover:opacity-90">
-                            <?php echo svg('github', 20); ?>
-                            <span>GitHub</span>
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</nav>
-
-<main class="relative z-10">
     <section class="px-4 pt-20 pb-10 mx-auto max-w-7xl md:pt-32">
         <div class="mb-16 text-center">
             <h1 class="mb-6 text-4xl font-bold leading-tight sm:text-5xl lg:text-7xl text-balance">
@@ -125,8 +9,7 @@ ob_start(static function (string $html): string {
                 <span class="text-transparent bg-clip-text bg-linear-to-r from-redis via-apcu to-memcached">Redis, Memcached, OPCache & APCu</span>
             </h1>
             <p class="mx-auto mb-8 max-w-4xl text-lg leading-relaxed text-gray-600 sm:mb-10 sm:text-xl dark:text-gray-400 text-balance">
-                A powerful, extensible admin dashboard for Redis, Memcached, OPCache and APCu.
-                Visualize real-time metrics, manage keys and monitor server performance through a modern web GUI.
+                Stop switching between outdated, unmaintained tools. phpCacheAdmin is a blazing-fast, single dashboard that unifies your entire caching layer. Visualize metrics, manage keys, and optimize server performance through one sleek interface.
             </p>
 
             <div class="flex flex-wrap gap-4 justify-center">
@@ -156,8 +39,25 @@ ob_start(static function (string $html): string {
         </div>
 
         <div class="overflow-hidden mt-16 rounded-lg border-2 border-gray-200 shadow-2xl md:rounded-2xl dark:border-white/10 dark:shadow-black/50">
-            <img loading="lazy" class="w-full dark:hidden" src="assets/img/preview.webp" alt="phpCacheAdmin Dashboard Preview">
-            <img loading="lazy" class="hidden w-full dark:block" src="assets/img/preview-dark.webp" alt="phpCacheAdmin Dashboard Preview">
+            <img loading="lazy" class="w-full dark:hidden" src="assets/img/preview.webp" alt="phpCacheAdmin Dashboard Preview Light Mode">
+            <img loading="lazy" class="hidden w-full dark:block" src="assets/img/preview-dark.webp" alt="phpCacheAdmin Dashboard Preview Dark Mode">
+        </div>
+    </section>
+
+    <section class="px-4 pt-10 pb-10 mx-auto max-w-7xl" id="benefits">
+        <div class="grid grid-cols-1 gap-8 md:grid-cols-3 mt-10">
+            <div class="p-6 bg-white rounded-2xl border border-gray-100 shadow-sm dark:bg-slate-900 dark:border-white/5">
+                <h3 class="mb-3 text-xl font-bold dark:text-white text-slate-900">All-in-One Solution</h3>
+                <p class="text-gray-600 dark:text-gray-400 leading-relaxed">Why maintain separate installations of phpRedisAdmin, opcache-gui, and Memcached dashboards? phpCacheAdmin brings everything under one roof, saving you configuration time and server resources.</p>
+            </div>
+            <div class="p-6 bg-white rounded-2xl border border-gray-100 shadow-sm dark:bg-slate-900 dark:border-white/5">
+                <h3 class="mb-3 text-xl font-bold dark:text-white text-slate-900">Built for Modern Stacks</h3>
+                <p class="text-gray-600 dark:text-gray-400 leading-relaxed">Fully compatible with PHP 8.2+ environments. Choose the installation method that fits your needs—run it as a standalone application, deploy it instantly via Docker, or integrate it using Composer.</p>
+            </div>
+            <div class="p-6 bg-white rounded-2xl border border-gray-100 shadow-sm dark:bg-slate-900 dark:border-white/5">
+                <h3 class="mb-3 text-xl font-bold dark:text-white text-slate-900">Enterprise Ready</h3>
+                <p class="text-gray-600 dark:text-gray-400 leading-relaxed">Designed to handle complex setups including Redis Clusters and Access Control Lists (ACL). Securely monitor multiple remote servers directly from your centralized command center.</p>
+            </div>
         </div>
     </section>
 
@@ -165,7 +65,7 @@ ob_start(static function (string $html): string {
         <div class="mb-8 text-center">
             <h2 class="mb-4 text-3xl font-bold sm:text-4xl">Supported Cache Systems</h2>
             <p class="mx-auto max-w-2xl text-xl text-muted-foreground">
-                Manage all your PHP caching backends from one beautiful interface
+                Explore the deep integration capabilities for each caching backend.
             </p>
         </div>
 
@@ -198,7 +98,7 @@ ob_start(static function (string $html): string {
                         <?php echo svg('redis', 32); ?>
                     </div>
                     <div>
-                        <h3 class="text-2xl font-bold leading-none dark:text-white text-slate-900">Redis</h3>
+                        <h3 class="text-2xl font-bold leading-none dark:text-white text-slate-900">Redis Dashboard</h3>
                         <p class="mt-1 text-sm font-medium text-slate-500 dark:text-slate-400">Minimum version 4.0 &middot; Phpredis extension or Predis (bundled)</p>
                     </div>
                 </div>
@@ -206,17 +106,17 @@ ob_start(static function (string $html): string {
                 <ul class="grid grid-cols-1 gap-y-3 gap-x-4 md:grid-cols-2">
                     <?php
                     $features = [
-                        'Server statistics overview',
-                        'Metrics: Memory, Fragmentation, Hit rate, Commands per second',
-                        'Key Management (full CRUD)',
-                        'Import & Export keys',
-                        'Supports all Redis data types',
-                        'Slowlog monitoring',
-                        'Cluster Mode support',
-                        'ACL (Access Control List) support',
-                        'Smart retrieval (SCAN & KEYS support)',
-                        'Multi-server switching',
-                        'Database switching',
+                        'Comprehensive server telemetry and health monitoring',
+                        'Deep metrics tracking: Fragmentation, Memory, Hit/Miss ratio',
+                        'Advanced key management with native CRUD operations',
+                        'Seamless data import and export functionality',
+                        'Full compatibility with Strings, Hashes, Lists, Sets, and Sorted Sets',
+                        'Interactive Slowlog inspector for performance debugging',
+                        'Native Redis Cluster topology support',
+                        'Secure connections via ACL (Access Control List)',
+                        'Performance-optimized key retrieval using SCAN engine',
+                        'Quick toggle between multiple configured instances',
+                        'Instant database switching',
                     ];
 
                     foreach ($features as $feature) {
@@ -239,22 +139,22 @@ ob_start(static function (string $html): string {
                         <?php echo svg('memcached', 32); ?>
                     </div>
                     <div>
-                        <h3 class="text-2xl font-bold leading-none dark:text-white text-slate-900">Memcached</h3>
-                        <p class="mt-1 text-sm font-medium text-slate-500 dark:text-slate-400">Minimum version 1.4.31 &middot; No extension required</p>
+                        <h3 class="text-2xl font-bold leading-none dark:text-white text-slate-900">Memcached Manager</h3>
+                        <p class="mt-1 text-sm font-medium text-slate-500 dark:text-slate-400">Minimum version 1.4.31 &middot; No PHP extension required (Uses a custom client)</p>
                     </div>
                 </div>
 
                 <ul class="grid grid-cols-1 gap-y-3 gap-x-4 md:grid-cols-2">
                     <?php
                     $features = [
-                        'Server statistics overview',
-                        'Metrics: Hit rate, Memory, Requests',
-                        'Key Management (full CRUD)',
-                        'Import & Export keys',
-                        'Slabs & Items information',
-                        'Commands & Traffic statistics',
-                        'Request distribution details',
-                        'Multi-server switching',
+                        'Live monitoring of server health and uptime',
+                        'Visualized analytics for cache hit rates and memory allocation',
+                        'Direct data manipulation (Create, Read, Update, Delete)',
+                        'Reliable key export and import features',
+                        'Detailed breakdown of Slabs and Items distribution',
+                        'Real-time traffic and command execution statistics',
+                        'In-depth request distribution profiling',
+                        'Effortless navigation across multiple Memcached nodes',
                     ];
 
                     foreach ($features as $feature) {
@@ -280,18 +180,18 @@ ob_start(static function (string $html): string {
                         </div>
                         <div>
                             <h3 class="text-xl font-bold leading-none dark:text-white text-slate-900">OPCache</h3>
-                            <p class="mt-1 text-xs font-medium text-slate-500 dark:text-slate-400">Extension required</p>
+                            <p class="mt-1 text-xs font-medium text-slate-500 dark:text-slate-400">Requires OPcache extension</p>
                         </div>
                     </div>
 
                     <ul class="grid grid-cols-1 gap-y-3">
                         <?php
                         $features = [
-                            'Memory usage statistics',
-                            'View all cached scripts',
-                            'Invalidate specific scripts',
-                            'Optimization insights',
-                            'Hit & Miss metrics',
+                            'Live RAM consumption graphs',
+                            'Examine individually compiled PHP scripts',
+                            'Force-invalidate specific files on demand',
+                            'Compiler optimization suggestions',
+                            'Visual hit/miss execution metrics',
                         ];
                         foreach ($features as $feature) {
                             echo '<li class="flex gap-2.5 items-start text-sm font-medium leading-tight text-slate-700 dark:text-slate-300">';
@@ -312,18 +212,18 @@ ob_start(static function (string $html): string {
                         </div>
                         <div>
                             <h3 class="text-xl font-bold leading-none dark:text-white text-slate-900">APCu</h3>
-                            <p class="mt-1 text-xs font-medium text-slate-500 dark:text-slate-400">Extension required</p>
+                            <p class="mt-1 text-xs font-medium text-slate-500 dark:text-slate-400">Requires APCu extension</p>
                         </div>
                     </div>
 
                     <ul class="grid grid-cols-1 gap-y-3">
                         <?php
                         $features = [
-                            'Full memory breakdown',
-                            'Hit & Miss visualization',
-                            'Key Management (CRUD)',
-                            'Import & Export',
-                            'Fragmentation analysis',
+                            'Complete shared memory overview',
+                            'Success rate charting',
+                            'Inspect and edit user-cached variables',
+                            'Backup cache entries',
+                            'Memory fragmentation diagnostics',
                         ];
                         foreach ($features as $feature) {
                             echo '<li class="flex gap-2.5 items-start text-sm font-medium leading-tight text-slate-700 dark:text-slate-300">';
@@ -344,18 +244,18 @@ ob_start(static function (string $html): string {
                         </div>
                         <div>
                             <h3 class="text-xl font-bold leading-none dark:text-white text-slate-900">Realpath</h3>
-                            <p class="mt-1 text-xs font-medium text-slate-500 dark:text-slate-400">Stat Cache Monitor</p>
+                            <p class="mt-1 text-xs font-medium text-slate-500 dark:text-slate-400">PHP Stat Cache Monitor</p>
                         </div>
                     </div>
 
                     <ul class="grid grid-cols-1 gap-y-3">
                         <?php
                         $features = [
-                            'Cache memory usage',
-                            'View cached file paths',
-                            'Clear/Invalidate cache',
-                            'Path mapping inspection',
-                            'Dir vs File distinction',
+                            'Track stat cache buffer limits',
+                            'Audit resolved absolute paths',
+                            'Manual cache invalidation',
+                            'Symlink resolution viewer',
+                            'Directory and file type indicators',
                         ];
                         foreach ($features as $feature) {
                             echo '<li class="flex gap-2.5 items-start text-sm font-medium leading-tight text-slate-700 dark:text-slate-300">';
@@ -375,7 +275,7 @@ ob_start(static function (string $html): string {
         <div class="mb-10 text-center">
             <h2 class="mb-4 text-3xl font-bold sm:text-4xl dark:text-white text-slate-900">Get Started in Seconds</h2>
             <p class="text-lg text-gray-600 dark:text-gray-400">
-                Choose the installation method that fits your workflow.
+                Choose the installation method that fits your workflow. No complicated dependencies are required.
             </p>
         </div>
 
@@ -383,13 +283,13 @@ ob_start(static function (string $html): string {
             <div class="border-b border-gray-100 bg-gray-50/50 dark:border-white/5 dark:bg-white/5">
                 <div class="flex">
                     <button type="button" data-group="install" data-target="manual" class="tab-link active flex-1 py-4 text-sm font-bold text-center border-b-2 border-transparent transition-colors text-gray-500 hover:text-gray-800 hover:bg-gray-50 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-white/5 [&.active]:text-blue-600 [&.active]:border-blue-600 dark:[&.active]:text-white">
-                        Manual
+                        Manual Download
                     </button>
                     <button type="button" data-group="install" data-target="docker" class="tab-link flex-1 py-4 text-sm font-bold text-center border-b-2 border-transparent transition-colors text-gray-500 hover:text-gray-800 hover:bg-gray-50 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-white/5 [&.active]:text-blue-600 [&.active]:border-blue-600 dark:[&.active]:text-white">
-                        Docker
+                        Docker Image
                     </button>
                     <button type="button" data-group="install" data-target="composer" class="tab-link flex-1 py-4 text-sm font-bold text-center border-b-2 border-transparent transition-colors text-gray-500 hover:text-gray-800 hover:bg-gray-50 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-white/5 [&.active]:text-blue-600 [&.active]:border-blue-600 dark:[&.active]:text-white">
-                        Composer
+                        Composer Require
                     </button>
                 </div>
             </div>
@@ -419,7 +319,7 @@ ob_start(static function (string $html): string {
 
                     <div class="flex gap-3 p-4 text-sm text-emerald-800 bg-emerald-50 rounded-lg border border-emerald-100 dark:text-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/20">
                         <p><strong>Updating?</strong> Replace the files and delete the
-                            <code class="px-1 rounded bg-emerald-200/50 dark:bg-emerald-900/50">/tmp/twig</code> folder.
+                            <code class="px-1 rounded bg-emerald-200/50 dark:bg-emerald-900/50">/tmp/twig</code> folder to clear precompiled templates.
                         </p>
                     </div>
                 </div>
@@ -427,7 +327,7 @@ ob_start(static function (string $html): string {
                 <div id="docker" class="hidden space-y-6 tab-content">
                     <div>
                         <h3 class="mb-2 text-lg font-bold dark:text-white text-slate-900">Run with a single command</h3>
-                        <p class="mb-4 text-sm text-gray-600 dark:text-gray-400">The fastest way to get started. Runs on port 8080 by default.</p>
+                        <p class="mb-4 text-sm text-gray-600 dark:text-gray-400">The fastest way to get started. Pulls the lightweight image and exposes the interface on port 8080.</p>
 
                         <div class="overflow-x-auto relative p-5 rounded-xl border shadow-inner bg-slate-950 border-white/10">
                             <code class="font-mono text-sm leading-relaxed text-blue-100">
@@ -453,7 +353,7 @@ ob_start(static function (string $html): string {
                 <div id="composer" class="hidden space-y-8 tab-content">
                     <div>
                         <h3 class="mb-3 font-bold dark:text-white text-slate-900">Install via Composer</h3>
-                        <p class="relative mb-6 text-sm text-gray-600 dark:text-gray-400">Integrate into existing PHP projects.</p>
+                        <p class="relative mb-6 text-sm text-gray-600 dark:text-gray-400">Seamlessly integrate the dashboard into your existing PHP application or framework.</p>
 
                         <div class="p-4 rounded-lg border bg-slate-950 border-white/10">
                             <code class="font-mono text-sm text-gray-300">
@@ -479,22 +379,38 @@ ob_start(static function (string $html): string {
             </div>
         </div>
     </section>
-</main>
 
-<footer class="py-10 px-4 mx-auto max-w-7xl">
-    <div class="flex flex-col gap-4 justify-between items-center pt-8 border-t border-gray-200 md:flex-row dark:border-gray-800">
-        <div class="text-sm text-gray-600 dark:text-gray-400">
-            &copy; <span id="year"></span> phpCacheAdmin. Open source under MIT License.
+    <section class="px-4 pt-10 pb-20 mx-auto max-w-4xl" id="faq">
+        <div class="mb-10 text-center">
+            <h2 class="text-3xl font-bold sm:text-4xl dark:text-white text-slate-900">Frequently Asked Questions</h2>
         </div>
-        <div class="text-sm text-gray-600 dark:text-gray-400">
-            Made by
-            <a href="https://github.com/RobiNN1" target="_blank" rel="noopener noreferrer" class="font-semibold transition-colors hover:text-gray-900 dark:hover:text-white">RobiNN1</a>
+        <div class="space-y-6">
+            <div class="p-6 bg-white rounded-2xl border border-gray-100 dark:bg-slate-900 dark:border-white/5">
+                <h3 class="text-lg font-bold dark:text-white text-slate-900">Does phpCacheAdmin require a database?</h3>
+                <p class="mt-2 text-gray-600 dark:text-gray-400 text-sm">No external database like MySQL is needed. It communicates directly with your caching servers. Historical metrics are saved locally using PHP's native SQLite3 extension.</p>
+            </div>
+            <div class="p-6 bg-white rounded-2xl border border-gray-100 dark:bg-slate-900 dark:border-white/5">
+                <h3 class="text-lg font-bold dark:text-white text-slate-900">Can I manage multiple servers simultaneously?</h3>
+                <p class="mt-2 text-gray-600 dark:text-gray-400 text-sm">Yes, you can configure an unlimited number of Redis and Memcached instances in your configuration file and switch between them directly from the navigation bar.</p>
+            </div>
+            <div class="p-6 bg-white rounded-2xl border border-gray-100 dark:bg-slate-900 dark:border-white/5">
+                <h3 class="text-lg font-bold dark:text-white text-slate-900">Is it safe to use in a production environment?</h3>
+                <p class="mt-2 text-gray-600 dark:text-gray-400 text-sm">Yes, but a proper setup is required. You must enable authentication in the configuration file or secure the dashboard behind your own security layer (such as a reverse proxy). Additionally, it supports Redis ACL and configurable SCAN limits to prevent blocking the main Redis thread on large databases.</p>
+            </div>
+            <div class="p-6 bg-white rounded-2xl border border-gray-100 dark:bg-slate-900 dark:border-white/5">
+                <h3 class="text-lg font-bold dark:text-white text-slate-900">How do I fix "Fatal error: Allowed memory size exhausted"?</h3>
+                <p class="mt-2 text-gray-600 dark:text-gray-400 text-sm">This typically happens when you have millions of keys in Redis and limited PHP RAM, because the tool uses the
+                    <code>KEYS</code> command by default. To resolve this, open your configuration file and enable the
+                    <code>SCAN</code> command (e.g., set <code>PCA_REDIS_0_SCANSIZE</code> or uncomment
+                    <code>scansize</code> in <code>config.php</code>).</p>
+            </div>
+            <div class="p-6 bg-white rounded-2xl border border-gray-100 dark:bg-slate-900 dark:border-white/5">
+                <h3 class="text-lg font-bold dark:text-white text-slate-900">Can I collect metrics in the background?</h3>
+                <p class="mt-2 text-gray-600 dark:text-gray-400 text-sm">Yes, you can collect historical data even when the dashboard is not open in your browser by setting up a cronjob. Trigger the metrics endpoint for your desired cache periodically, for example:
+                    <code class="py-0.5 px-1 text-xs bg-gray-100 rounded dark:bg-black/40">curl -s "https://example.com/?dashboard=redis&amp;server=0&amp;ajax&amp;metrics" &gt; /dev/null</code>.
+                </p>
+            </div>
         </div>
-    </div>
-</footer>
-<script>document.getElementById('year').innerText = String(new Date().getFullYear());</script>
-<script src="assets/js/scripts.js?v=<?php echo filemtime(__DIR__.'/assets/js/scripts.js'); ?>"></script>
-</body>
-</html><?php
-// header('Content-type: plain/text');
-ob_end_flush();
+    </section>
+<?php
+require_once __DIR__.'/_footer.php';

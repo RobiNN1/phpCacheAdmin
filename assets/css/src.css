@@ -2,7 +2,7 @@
 @import 'tailwindcss/theme' theme(inline reference);
 
 @variant dark (&:where(.dark, .dark *));
-@source '../../index.php';
+@source '../../src/*.php';
 
 @theme {
     --color-redis: #ee5145;

@@ -40,7 +40,6 @@ $canonical_url = $canonical_url ?? 'https://phpcacheadmin.com/';
     <meta property="og:site_name" content="phpCacheAdmin">
     <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon.png">
     <meta name="theme-color" content="#ffffff">
-    <base href="http://pcadocs.host/">
     <link rel="stylesheet" href="assets/css/styles.css?v=<?php echo filemtime(__DIR__.'/../assets/css/styles.css'); ?>">
     <script>
         const theme = localStorage.getItem('theme') || 'system';

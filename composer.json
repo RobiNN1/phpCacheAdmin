@@ -25,12 +25,12 @@
   ],
   "require": {
     "php": ">=8.2",
-    "twig/twig": "^3.23"
+    "twig/twig": "^3.24"
   },
   "require-dev": {
     "clue/phar-composer": "^1.4",
     "phpstan/phpstan": "^2.1",
-    "phpunit/phpunit": "^11 || ^12.5 || ^13.0"
+    "phpunit/phpunit": "^11 || ^12.5 || ^13.1"
   },
   "suggest": {
     "ext-apcu": "Required for the APCu dashboard.",

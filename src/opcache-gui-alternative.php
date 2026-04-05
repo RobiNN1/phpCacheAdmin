@@ -1,8 +1,10 @@
 <?php
 declare(strict_types=1);
-$page_title = 'The Best opcache-gui Alternative - phpCacheAdmin';
-$page_desc = 'Looking for a modern alternative to amnuts/opcache-gui? phpCacheAdmin offers a sleek, dark-mode ready interface for OPCache, Redis, Memcached, and APCu.';
+
+$page_title = 'Best opcache-gui Alternative & PHP OPCache Dashboard';
+$page_desc = 'The ultimate alternative to amnuts/opcache-gui. Monitor PHP OPCache, APCu, Redis, and Memcached in a single, modern, dark-mode ready dashboard.';
 $canonical_url = 'https://phpcacheadmin.com/opcache-gui-alternative';
+$page_keywords = 'opcache-gui alternative, amnuts opcache-gui, PHP OPCache dashboard, OPCache monitor, phpCacheAdmin, PHP cache manager, clear opcache GUI';
 
 require __DIR__.'/_header.php';
 ?>

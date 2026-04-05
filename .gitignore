@@ -2,3 +2,8 @@
 .DS_Store
 node_modules
 package-lock.json
+index.html
+opcache-gui-alternative.html
+phpmemcachedadmin-alternative.html
+phpredisadmin-alternative.html
+sitemap.xml

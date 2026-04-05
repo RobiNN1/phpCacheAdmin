@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+
 $page_title = 'The Best phpMemcachedAdmin Alternative - phpCacheAdmin';
 $page_desc = 'Upgrade from the abandoned phpMemcachedAdmin. phpCacheAdmin is a modern, PHP 8.2+ compatible Memcached GUI with Redis, OPCache, and APCu support.';
 $canonical_url = 'https://phpcacheadmin.com/phpmemcachedadmin-alternative';

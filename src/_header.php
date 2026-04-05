@@ -20,6 +20,7 @@ if (!function_exists('svg')) {
 $page_title = $page_title ?? 'phpCacheAdmin - Modern GUI for Redis, Memcached, OPCache & APCu';
 $page_desc = $page_desc ?? 'The ultimate web dashboard for Redis, Memcached, APCu, OPCache, and Realpath. A modern, docker-ready alternative to phpRedisAdmin and opcache-gui with Cluster & ACL support.';
 $canonical_url = $canonical_url ?? 'https://phpcacheadmin.com/';
+$page_keywords = $page_keywords ?? 'phpCacheAdmin, Redis GUI, Memcached Admin, OPCache GUI, APCu Dashboard, Realpath Cache, phpRedisAdmin alternative, Redis Cluster, Docker, PHP cache manager';
 ?>
 <!doctype html>
 <html lang="en">
@@ -28,7 +29,7 @@ $canonical_url = $canonical_url ?? 'https://phpcacheadmin.com/';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo $page_title; ?></title>
     <meta name="description" content="<?php echo $page_desc; ?>">
-    <meta name="keywords" content="phpCacheAdmin, Redis GUI, Memcached Admin, OPCache GUI, APCu Dashboard, Realpath Cache, phpRedisAdmin alternative, Redis Cluster, Docker, PHP cache manager">
+    <meta name="keywords" content="<?php echo $page_keywords; ?>">
     <meta name="robots" content="index, follow">
     <meta name="author" content="RobiNN1">
     <link rel="canonical" href="<?php echo $canonical_url; ?>">

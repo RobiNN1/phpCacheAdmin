@@ -53,32 +53,3 @@ function autoload(string $path): void {
         }
     });
 }
-
-if (PHP_SAPI !== 'cli' && !extension_loaded('xdebug')) {
-    set_error_handler(static function (int $errno, string $errstr, string $errfile, int $errline): bool {
-        if ((error_reporting() & $errno) === 0) {
-            return false;
-        }
-
-        $type = static function (int $errno): string {
-            $constants = get_defined_constants(true);
-            if (array_key_exists('Core', $constants)) {
-                foreach ($constants['Core'] as $constant => $value) {
-                    if ($value === $errno && str_starts_with($constant, 'E_')) {
-                        return $constant;
-                    }
-                }
-            }
-
-            return 'E_UNKNOWN';
-        };
-
-        $errstr = htmlspecialchars($errstr);
-
-        echo '<div class="text-red-500">';
-        echo $type($errno).': '.$errstr.' in '.$errfile.' on line '.$errline;
-        echo '</div>';
-
-        return true;
-    });
-}

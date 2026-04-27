@@ -81,8 +81,8 @@ trait OPCacheTrait {
                 'title' => 'Stats',
                 'data'  => [
                     'Max accelerated_files' => Format::number($configuration['directives']['opcache.max_accelerated_files']),
-                    ['Cached scripts', Format::number($stats['num_cached_scripts']).' ('.$used_scripts.'%)', $used_scripts, 'higher'],
-                    ['Cached keys', Format::number($stats['num_cached_keys']).' ('.$used_keys.'%)', $used_keys, 'higher'],
+                    ['Cached scripts', Format::number($stats['num_cached_scripts']).' ('.$used_scripts.'%)', $used_scripts],
+                    ['Cached keys', Format::number($stats['num_cached_keys']).' ('.$used_keys.'%)', $used_keys],
                     'Max cached keys'       => Format::number($stats['max_cached_keys']),
                     ['Hits / Misses', Format::number($stats['hits']).' / '.Format::number($stats['misses']).' (Rate '.$hit_rate.'%)', $hit_rate, 'higher'],
                 ],

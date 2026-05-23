@@ -1,4 +1,4 @@
-<phpunit bootstrap="vendor/autoload.php" colors="true">
+<phpunit bootstrap="vendor/autoload.php" colors="true" displayDetailsOnPhpunitDeprecations="true">
     <testsuites>
         <testsuite name="phpCacheAdmin">
             <directory>tests</directory>

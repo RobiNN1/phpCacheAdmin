@@ -37,7 +37,7 @@ require __DIR__.'/_header.php';
 
                 <div>
                     <h3 class="text-xl font-bold text-memcached mb-2">2. Unified Caching Layer</h3>
-                    <p class="text-gray-600 dark:text-gray-400">Modern architectures rarely use just Memcached. phpCacheAdmin lets you manage Memcached, Redis, APCu, and OPCache from one sleek, unified interface.</p>
+                    <p class="text-gray-600 dark:text-gray-400">Modern architecture rarely uses just Memcached. phpCacheAdmin lets you manage Memcached, Redis, APCu, and OPCache from one sleek, unified interface.</p>
                 </div>
 
                 <div>

@@ -66,6 +66,7 @@ Replace all files and delete the `/tmp/twig` folder (it contains compiled Twig t
 
 If you get the error "Fatal error: Allowed memory size of x bytes exhausted" or a blank page, increase the PHP memory
 limit or enable the SCAN command (set `PCA_REDIS_0_SCANSIZE` or uncomment `scansize` in `config.php`).
+For Redis databases with more than 100 000 keys, SCAN is used automatically.
 
 ## Cronjob
 
@@ -101,7 +102,7 @@ Redis:
 - `PCA_REDIS_0_AUTHFILE` File with a password, e.g., Docker secrets (optional).
 - `PCA_REDIS_0_PATH` Unix domain socket (optional).
 - `PCA_REDIS_0_DATABASES` Number of databases, use this if the CONFIG command is disabled (optional).
-- `PCA_REDIS_0_SCANSIZE` Number of keys, the server will use the SCAN command instead of KEYS (optional).
+- `PCA_REDIS_0_SCANSIZE` Keys per SCAN (switches to SCAN command from KEYS). Auto-enabled if >100k keys or KEYS is disabled (optional).
 
 Memcached:
 

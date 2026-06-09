@@ -120,10 +120,10 @@ class Predis extends Client implements RedisCompatibilityInterface {
     public function scanKeys(string $pattern, int $count): array {
         $keys = [];
 
-        foreach (new Keyspace($this, $pattern) as $item) {
+        foreach (new Keyspace($this, $pattern, $count) as $item) {
             $keys[] = $item;
 
-            if (count($keys) === $count) {
+            if (count($keys) >= $count) {
                 break;
             }
         }

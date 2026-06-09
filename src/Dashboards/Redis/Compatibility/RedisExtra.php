@@ -70,7 +70,13 @@ trait RedisExtra {
      * @throws Exception
      */
     public function getModules(): array {
-        static $modules = [];
+        static $modules = null;
+
+        if ($modules !== null) {
+            return $modules;
+        }
+
+        $modules = [];
 
         try {
             $list = $this->rawCommand('MODULE', 'LIST'); // require Redis >= 4.0

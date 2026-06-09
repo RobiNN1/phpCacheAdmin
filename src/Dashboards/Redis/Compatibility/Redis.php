@@ -126,10 +126,10 @@ class Redis extends \Redis implements RedisCompatibilityInterface {
         while (false !== ($scan = $this->scan($iterator, $pattern, $count))) {
             foreach ($scan as $key) {
                 $keys[] = $key;
-            }
 
-            if (count($keys) === $count) {
-                break;
+                if (count($keys) >= $count) {
+                    return $keys;
+                }
             }
         }
 

@@ -24,6 +24,10 @@ use RobiNN\Pca\Value;
 trait RedisTrait {
     use RedisTypes;
 
+    private const SCAN_THRESHOLD = 100_000;
+
+    private const SCAN_DEFAULT_SIZE = 1000;
+
     /**
      * @return array<int|string, mixed>
      */
@@ -230,7 +234,7 @@ trait RedisTrait {
     /**
      * Format view array items.
      *
-     * @param array<int, mixed> $value_items
+     * @param array<int, array{0: int|string, 1: mixed}> $value_items
      *
      * @return array<int, mixed>
      *
@@ -239,7 +243,7 @@ trait RedisTrait {
     private function formatViewItems(string $key, array $value_items, string $type): array {
         $items = [];
 
-        foreach ($value_items as $item_key => $item_value) {
+        foreach ($value_items as [$item_key, $item_value]) {
             if (is_array($item_value)) {
                 try {
                     $item_value = json_encode($item_value, JSON_THROW_ON_ERROR);
@@ -322,9 +326,14 @@ trait RedisTrait {
         $is_formatted = null;
 
         if (is_array($value)) {
-            $items = $this->formatViewItems($key, $value, $type);
-            $paginator = new Paginator($this->template, $items, [['view', 'key', 'pp'], ['p' => '']]);
-            $value = $paginator->getPaginated();
+            $pairs = [];
+
+            foreach ($value as $item_key => $item_value) {
+                $pairs[] = [$item_key, $item_value];
+            }
+
+            $paginator = new Paginator($this->template, $pairs, [['view', 'key', 'pp'], ['p' => '']]);
+            $value = $this->formatViewItems($key, $paginator->getPaginated(), $type);
             $paginator = $paginator->render();
         } else {
             [$value, $encode_fn, $is_formatted] = Value::format($value);
@@ -429,7 +438,7 @@ trait RedisTrait {
     }
 
     /**
-     * @return array<int, array<string, string|int>>
+     * @return array<int, string>
      *
      * @throws Exception
      */
@@ -437,25 +446,27 @@ trait RedisTrait {
         $filter = Http::get('s', '*');
         $this->template->addGlobal('search_value', $filter);
 
-        if (isset($this->servers[$this->current_server]['scansize']) || !$this->isCommandSupported('KEYS')) {
-            $scansize = (int) ($this->servers[$this->current_server]['scansize'] ?? 1000);
-            $keys_array = $this->redis->scanKeys($filter, $scansize);
-        } else {
-            $keys_array = $this->redis->keys($filter);
+        $scansize = $this->servers[$this->current_server]['scansize'] ?? null;
+
+        if ($scansize !== null || $this->redis->databaseSize() > self::SCAN_THRESHOLD || !$this->isCommandSupported('KEYS')) {
+            return $this->redis->scanKeys($filter, (int) ($scansize ?? self::SCAN_DEFAULT_SIZE));
         }
 
-        return $keys_array;
+        return $this->redis->keys($filter);
     }
 
     public function isCommandSupported(string $command): bool {
-        try {
-            $commands = $this->redis->getCommands();
-            $is_supported = in_array(strtolower($command), $commands, true);
-        } catch (Exception) {
-            $is_supported = false;
+        static $commands = null;
+
+        if ($commands === null) {
+            try {
+                $commands = $this->redis->getCommands();
+            } catch (Exception) {
+                $commands = [];
+            }
         }
 
-        return $is_supported;
+        return in_array(strtolower($command), $commands, true);
     }
 
     /**
@@ -466,10 +477,13 @@ trait RedisTrait {
      * @throws Exception
      */
     private function pipeline(array $keys): array {
-        $keys = array_map(static fn ($key): array => ['key' => $key], $keys);
-        $keys_array = array_column($keys, 'key');
+        $data = [];
 
-        return $this->redis->pipelineKeys($keys_array);
+        foreach (array_chunk(array_values($keys), 1000) as $chunk) {
+            $data += $this->redis->pipelineKeys($chunk);
+        }
+
+        return $data;
     }
 
     /**

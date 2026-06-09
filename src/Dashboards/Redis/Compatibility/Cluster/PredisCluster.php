@@ -152,11 +152,11 @@ class PredisCluster extends PredisClient implements RedisCompatibilityInterface 
         $keys = [];
 
         foreach ($this->nodes as $node) {
-            foreach (new Keyspace($node, $pattern) as $item) {
+            foreach (new Keyspace($node, $pattern, $count) as $item) {
                 $keys[] = $item;
 
-                if (count($keys) === $count) {
-                    break;
+                if (count($keys) >= $count) {
+                    return $keys;
                 }
             }
         }

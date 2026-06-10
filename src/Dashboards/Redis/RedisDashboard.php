@@ -126,7 +126,7 @@ class RedisDashboard implements DashboardInterface {
                     $delete_key = $this->redis->del($key);
 
                     return is_int($delete_key) && $delete_key > 0;
-                }, true);
+                });
             }
         } catch (DashboardException|Exception $e) {
             return $e->getMessage();

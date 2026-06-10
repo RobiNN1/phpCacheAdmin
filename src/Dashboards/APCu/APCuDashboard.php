@@ -67,7 +67,7 @@ class APCuDashboard implements DashboardInterface {
                 return Helpers::alert($this->template, 'Invalid CSRF token.', 'error');
             }
 
-            return Helpers::deleteKey($this->template, static fn (string $key): bool => apcu_delete($key), true);
+            return Helpers::deleteKey($this->template, static fn (string $key): bool => apcu_delete($key));
         }
 
         return '';

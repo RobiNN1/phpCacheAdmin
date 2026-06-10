@@ -95,22 +95,20 @@ class Helpers {
         return $info;
     }
 
-    public static function deleteKey(Template $template, callable $delete_key, bool $base64 = false): string {
+    public static function deleteKey(Template $template, callable $delete_key): string {
         try {
             $keys = json_decode(Http::post('delete', ''), false, 512, JSON_THROW_ON_ERROR);
         } catch (JsonException) {
             $keys = [];
         }
 
-        $b64_decode = static fn ($key): string => $base64 ? base64_decode($key) : $key;
-
-        if (is_string($keys) && $delete_key($b64_decode($keys))) {
-            return self::alert($template, sprintf('Key "%s" has been deleted.', $b64_decode($keys)), 'success');
+        if (is_string($keys) && $delete_key(base64_decode($keys))) {
+            return self::alert($template, sprintf('Key "%s" has been deleted.', base64_decode($keys)), 'success');
         }
 
         if (is_array($keys) && count($keys)) {
             foreach ($keys as $key) {
-                $delete_key($b64_decode($key));
+                $delete_key(base64_decode($key));
             }
 
             return self::alert($template, 'Keys has been deleted.', 'success');

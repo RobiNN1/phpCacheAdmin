@@ -68,6 +68,41 @@ abstract class RedisTestCase extends TestCase {
     }
 
     /**
+     * @throws Exception
+     */
+    public function testAjax(): void {
+        $_GET['db'] = 10;
+
+        $_GET['panels'] = '';
+        $panels = $this->dashboard->ajax();
+        $this->assertJson($panels);
+        $this->assertStringNotContainsString('"error"', $panels);
+        unset($_GET['panels']);
+
+        $key = 'pu-test-ajax';
+        $this->redis->set($key, 'data');
+
+        $_GET['delete'] = '';
+        $_POST['delete'] = json_encode(base64_encode($key), JSON_THROW_ON_ERROR);
+
+        $this->setCsrfToken(false);
+        $this->assertSame(
+            Helpers::alert($this->template, 'Invalid CSRF token.', 'error'),
+            $this->dashboard->ajax()
+        );
+        $this->assertSame(1, $this->redis->exists($key));
+
+        $this->setCsrfToken();
+        $this->assertSame(
+            Helpers::alert($this->template, sprintf('Key "%s" has been deleted.', $key), 'success'),
+            $this->dashboard->ajax()
+        );
+        $this->assertSame(0, $this->redis->exists($key));
+
+        unset($_GET['delete'], $_GET['db'], $_POST['delete'], $_POST['csrf_token']);
+    }
+
+    /**
      * @param array<string, mixed> $post
      *
      * @throws Exception
@@ -87,7 +122,7 @@ abstract class RedisTestCase extends TestCase {
             $delete_key = $this->redis->del($key);
 
             return is_int($delete_key) && $delete_key > 0;
-        }, true);
+        });
     }
 
     /**
@@ -261,16 +296,14 @@ abstract class RedisTestCase extends TestCase {
 
         $expected = [
             [
-                'key'    => 'pu-test-table1',
-                'items'  => null,
-                'base64' => true,
-                'info'   => array_merge(['link_title' => 'pu-test-table1'], $info),
+                'key'   => 'pu-test-table1',
+                'items' => null,
+                'info'  => array_merge(['link_title' => 'pu-test-table1'], $info),
             ],
             [
-                'key'    => 'pu-test-table2',
-                'items'  => null,
-                'base64' => true,
-                'info'   => array_merge(['link_title' => 'pu-test-table2'], $info),
+                'key'   => 'pu-test-table2',
+                'items' => null,
+                'info'  => array_merge(['link_title' => 'pu-test-table2'], $info),
             ],
         ];
 
@@ -304,32 +337,29 @@ abstract class RedisTestCase extends TestCase {
                 'path'     => 'pu-test-tree1',
                 'children' => [
                     [
-                        'type'   => 'key',
-                        'name'   => 'sub1',
-                        'key'    => 'pu-test-tree1:sub1',
-                        'items'  => null,
-                        'base64' => true,
-                        'info'   => $info,
+                        'type'  => 'key',
+                        'name'  => 'sub1',
+                        'key'   => 'pu-test-tree1:sub1',
+                        'items' => null,
+                        'info'  => $info,
                     ],
                     [
-                        'type'   => 'key',
-                        'name'   => 'sub2',
-                        'key'    => 'pu-test-tree1:sub2',
-                        'items'  => null,
-                        'base64' => true,
-                        'info'   => $info,
+                        'type'  => 'key',
+                        'name'  => 'sub2',
+                        'key'   => 'pu-test-tree1:sub2',
+                        'items' => null,
+                        'info'  => $info,
                     ],
                 ],
                 'expanded' => false,
                 'count'    => 2,
             ],
             [
-                'type'   => 'key',
-                'name'   => 'pu-test-tree2',
-                'key'    => 'pu-test-tree2',
-                'items'  => null,
-                'base64' => true,
-                'info'   => $info,
+                'type'  => 'key',
+                'name'  => 'pu-test-tree2',
+                'key'   => 'pu-test-tree2',
+                'items' => null,
+                'info'  => $info,
             ],
         ];
 

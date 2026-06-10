@@ -134,7 +134,7 @@ trait OPCacheTrait {
 
         if (isset($status['scripts'])) {
             $ignore_pca = isset($_GET['ignore']) && $_GET['ignore'] === 'yes';
-            $pca_root = $_SERVER['DOCUMENT_ROOT'].str_replace('/index.php', '', $_SERVER['SCRIPT_NAME']);
+            $pca_root = ($_SERVER['DOCUMENT_ROOT'] ?? '').str_replace('/index.php', '', $_SERVER['SCRIPT_NAME'] ?? '');
 
             foreach ($status['scripts'] as $script) {
                 $full_path = str_replace('\\', '/', $script['full_path']);

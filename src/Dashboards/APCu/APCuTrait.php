@@ -224,9 +224,8 @@ trait APCuTrait {
 
         foreach ($keys as $key_data) {
             $formatted_keys[] = [
-                'key'    => $key_data['key'],
-                'base64' => true,
-                'info'   => [
+                'key'  => $key_data['key'],
+                'info' => [
                     'link_title'         => $key_data['key'],
                     'bytes_size'         => $key_data['mem_size'],
                     'number_hits'        => $key_data['num_hits'],
@@ -264,11 +263,10 @@ trait APCuTrait {
 
                 if ($i === count($parts) - 1) { // check last part
                     $current[] = [
-                        'type'   => 'key',
-                        'name'   => $part,
-                        'key'    => $key,
-                        'base64' => true,
-                        'info'   => [
+                        'type' => 'key',
+                        'name' => $part,
+                        'key'  => $key,
+                        'info' => [
                             'bytes_size'         => $key_data['mem_size'],
                             'number_hits'        => $key_data['num_hits'],
                             'timediff_last_used' => $key_data['access_time'],

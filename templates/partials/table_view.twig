@@ -29,7 +29,7 @@
         </thead>
         <tbody>
         {% for key in keys %}
-            <tr class="hover:bg-gray-50 dark:hover:bg-white/5" data-key="{{ key.base64 ? key.key|base64 : key.key }}">
+            <tr class="hover:bg-gray-50 dark:hover:bg-white/5" data-key="{{ key.key|base64 }}">
                 {% if show_actions %}
                     <td class="py-2 px-3 pl-6 border-b border-gray-200 dark:border-gray-700">{{ components.checkbox('check-key') }}</td>
                 {% endif %}

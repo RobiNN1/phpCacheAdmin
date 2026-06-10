@@ -19,7 +19,7 @@
             </div>
         {% else %}
             <div class="border-t border-gray-200 dark:border-gray-700 keywrapper" style="--level: {{ level }}">
-                <div data-key="{{ item.base64 ? item.key|base64 : item.key }}" class="flex justify-between py-1 px-6 text-sm hover:bg-gray-50 dark:hover:bg-white/5" style="padding-left: calc({{ level }} * 20px + 32px)">
+                <div data-key="{{ item.key|base64 }}" class="flex justify-between py-1 px-6 text-sm hover:bg-gray-50 dark:hover:bg-white/5" style="padding-left: calc({{ level }} * 20px + 32px)">
                     <div class="flex gap-2 items-center">
                         {% if show_actions %}
                             {{ components.checkbox('check-key mt-0') }}

@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace Tests\Dashboards;
 
 use Iterator;
+use JsonException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use RobiNN\Pca\Config;
 use RobiNN\Pca\Dashboards\DashboardException;
@@ -44,11 +45,45 @@ final class MemcachedTest extends TestCase {
      * @param array<int, string>|string $keys
      */
     private function deleteMemcachedKeys(array|string $keys): void {
-        $this->deleteKeysHelper($this->template, $keys, fn (string $key): bool => $this->memcached->delete($key), true);
+        $this->deleteKeysHelper($this->template, $keys, fn (string $key): bool => $this->memcached->delete($key));
     }
 
     public function testIsConnected(): void {
         $this->assertTrue($this->memcached->isConnected());
+    }
+
+    /**
+     * @throws MemcachedException|JsonException
+     */
+    public function testAjax(): void {
+        $_GET['panels'] = '';
+        $panels = $this->dashboard->ajax();
+        $this->assertJson($panels);
+        $this->assertStringNotContainsString('"error"', $panels);
+        unset($_GET['panels']);
+
+        $key = 'pu:test:ajax';
+        $this->memcached->set($key, 'data');
+
+        $encoded_key = urlencode($key);
+        $_GET['delete'] = '';
+        $_POST['delete'] = json_encode(base64_encode($encoded_key), JSON_THROW_ON_ERROR);
+
+        $this->setCsrfToken(false);
+        $this->assertSame(
+            Helpers::alert($this->template, 'Invalid CSRF token.', 'error'),
+            $this->dashboard->ajax()
+        );
+        $this->assertTrue($this->memcached->exists($key));
+
+        $this->setCsrfToken();
+        $this->assertSame(
+            Helpers::alert($this->template, sprintf('Key "%s" has been deleted.', $encoded_key), 'success'),
+            $this->dashboard->ajax()
+        );
+        $this->assertFalse($this->memcached->exists($key));
+
+        unset($_GET['delete'], $_POST['delete'], $_POST['csrf_token']);
     }
 
     /**

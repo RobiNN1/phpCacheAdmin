@@ -48,7 +48,8 @@ return [
             //'authfile'  => '/run/secrets/file_name', // File with a password, e.g., Docker secrets (optional).
             //'path'      => '/var/run/redis/redis-server.sock', // Unix domain socket (optional).
             //'databases' => 16, // Number of databases, use this if the CONFIG command is disabled (optional).
-            //'scansize'  => 1000, // Keys per SCAN (switches to SCAN command from KEYS). Auto-enabled if >100k keys or KEYS is disabled (optional).
+            //'scanthreshold' => 100_000, // Use SCAN automatically instead of KEYS when the database has more keys than this, 1000 keys are retrieved (optional). Default 100_000.
+            //'scansize'  => 1000, // Always use SCAN and retrieve at most this many keys, regardless of 'scanthreshold' (optional).
             //'separator' => ':', // Separator for tree view (optional).
         ],
     ],

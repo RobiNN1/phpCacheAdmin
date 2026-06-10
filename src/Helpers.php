@@ -15,6 +15,14 @@ class Helpers {
      * @param string $icon Icon name from `assets/icons/`, custom path or svg code.
      */
     public static function svg(string $icon, ?int $size = 16, ?string $class = null): string {
+        static $cache = [];
+
+        $cache_key = $icon.'|'.$size.'|'.$class;
+
+        if (isset($cache[$cache_key])) {
+            return $cache[$cache_key];
+        }
+
         $file = is_file($icon) ? $icon : __DIR__.'/../assets/icons/'.$icon.'.svg';
         $content = is_file($file) ? trim(file_get_contents($file)) : $icon;
 
@@ -25,7 +33,7 @@ class Helpers {
         $svg = preg_replace('~<svg([^<>]*)>~', '<svg'.($attributes[1] ?? '').$size_attr.$class_attr.'>', $content);
         $svg = preg_replace('/\s+/', ' ', $svg);
 
-        return str_replace("\n", '', $svg);
+        return $cache[$cache_key] = str_replace("\n", '', $svg);
     }
 
     public static function alert(Template $template, string $message, ?string $color = null): string {

@@ -42,6 +42,9 @@
   },
   "minimum-stability": "dev",
   "prefer-stable": true,
+  "config": {
+    "optimize-autoloader": true
+  },
   "autoload": {
     "psr-4": {
       "RobiNN\\Pca\\": "src/"

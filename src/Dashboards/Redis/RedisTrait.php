@@ -24,10 +24,6 @@ use RobiNN\Pca\Value;
 trait RedisTrait {
     use RedisTypes;
 
-    private const SCAN_THRESHOLD = 100_000;
-
-    private const SCAN_DEFAULT_SIZE = 1000;
-
     /**
      * @return array<int|string, mixed>
      */
@@ -447,9 +443,10 @@ trait RedisTrait {
         $this->template->addGlobal('search_value', $filter);
 
         $scansize = $this->servers[$this->current_server]['scansize'] ?? null;
+        $scan_threshold = $this->servers[$this->current_server]['scanthreshold'] ?? 100_000;
 
-        if ($scansize !== null || $this->redis->databaseSize() > self::SCAN_THRESHOLD || !$this->isCommandSupported('KEYS')) {
-            return $this->redis->scanKeys($filter, (int) ($scansize ?? self::SCAN_DEFAULT_SIZE));
+        if ($scansize !== null || $this->redis->databaseSize() > $scan_threshold || !$this->isCommandSupported('KEYS')) {
+            return $this->redis->scanKeys($filter, (int) ($scansize ?? 1000));
         }
 
         return $this->redis->keys($filter);

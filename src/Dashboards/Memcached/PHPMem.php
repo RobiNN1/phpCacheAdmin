@@ -32,20 +32,6 @@ class PHPMem {
 
     private ?Memcached $memcached = null;
 
-    private const NO_END_COMMANDS = [
-        'me' => true, 'incr' => true, 'decr' => true, 'version' => true,
-        'ms' => true, 'md' => true, 'ma' => true, 'cache_memlimit' => true,
-        'mn' => true, 'quit' => true, 'mg' => true,
-    ];
-
-    private const END_MARKERS = [
-        "ERROR\r\n", "CLIENT_ERROR\r\n", "SERVER_ERROR\r\n", "STORED\r\n",
-        "NOT_STORED\r\n", "EXISTS\r\n", "NOT_FOUND\r\n", "TOUCHED\r\n",
-        "DELETED\r\n", "OK\r\n", "END\r\n", "BUSY\r\n", "BADCLASS\r\n",
-        "NOSPARE\r\n", "NOTFULL\r\n", "UNSAFE\r\n", "SAME\r\n", "RESET\r\n",
-        "EN\r\n",
-    ];
-
     /**
      * @param array<string, int|string|bool> $server
      */
@@ -95,14 +81,19 @@ class PHPMem {
         }
 
         $key = preg_replace('/[\s\x00-\x1f]+/', '', $key);
-        $raw = $this->runCommand('get '.$key);
-        $data = explode("\r\n", $raw);
+        $this->sendCommand('get '.$key."\r\n");
+        $header = $this->readLine();
 
-        if ($data[0] === 'END') {
+        if (!str_starts_with($header, 'VALUE ')) {
             return false;
         }
 
-        return !isset($data[1]) || $data[1] === 'N;' ? '' : $data[1];
+        // "VALUE <key> <flags> <bytes>"
+        $value = $this->readBytes((int) (explode(' ', $header)[3] ?? 0));
+        $this->readLine(); // \r\n after the data block
+        $this->readLine(); // END line
+
+        return $value;
     }
 
 
@@ -217,9 +208,13 @@ class PHPMem {
      */
     public function getKeys(): array {
         if (version_compare($this->version(), '1.5.19', '>=')) {
-            $raw = $this->runCommand('lru_crawler metadump all');
-            $lines = explode("\n", $raw);
-            array_pop($lines);
+            $this->sendCommand("lru_crawler metadump all\r\n");
+            $lines = explode("\n", $this->readUntilEndLine());
+            $last = rtrim((string) array_pop($lines), "\r"); // END/EN terminator
+
+            if ($last !== 'END' && $last !== 'EN') {
+                throw new MemcachedException('metadump failed: '.$last);
+            }
 
             return $lines;
         }
@@ -290,7 +285,7 @@ class PHPMem {
     }
 
     /**
-     * Get key meta-data.
+     * Get key metadata.
      *
      * This command requires Memcached server >= 1.5.19
      *
@@ -318,7 +313,7 @@ class PHPMem {
         foreach ($this->getKeys() as $line) {
             $data = $this->parseLine($line);
 
-            if ($data['key'] === $key) {
+            if (($data['key'] ?? null) === $key) {
                 return $data;
             }
         }
@@ -332,6 +327,12 @@ class PHPMem {
      * @throws MemcachedException
      */
     public function exists(string $key): bool {
+        if (version_compare($this->version(), '1.5.19', '>=')) {
+            $key = preg_replace('/[\s\x00-\x1f]+/', '', $key);
+
+            return str_starts_with($this->runCommand('me '.$key), 'ME ');
+        }
+
         return $this->get($key) !== false;
     }
 
@@ -363,8 +364,8 @@ class PHPMem {
             throw new MemcachedException('Could not connect: '.$error_code.' - '.$error_message);
         }
 
-        stream_set_timeout($stream, 1);
-        stream_set_blocking($stream, false);
+        stream_set_timeout($stream, 5); // Read timeout, reads return early when data arrives
+        stream_set_chunk_size($stream, 65536); // With the default 8 kB, large dumps need 8x more reads
         $this->stream = $stream;
     }
 
@@ -423,17 +424,42 @@ class PHPMem {
      * @throws MemcachedException
      */
     public function runCommand(string $command): string {
-        $command_name = strtolower(strtok($command, ' '));
-        $command .= "\r\n";
-        $data = $this->streamConnection($command, $command_name);
+        $command_name = strtolower((string) strtok($command, ' '));
+        $this->sendCommand($command."\r\n");
 
-        return rtrim($data, "\r\n");
+        if ($command_name === 'quit') {
+            $this->disconnect(); // the server closes the connection without a reply
+
+            return '';
+        }
+
+        // Lists of lines, terminated by an END/EN line.
+        if ($command_name === 'stats' || ($command_name === 'lru_crawler' && (str_contains($command, 'metadump') || str_contains($command, 'mgdump')))) {
+            return $this->readUntilEndLine();
+        }
+
+        // "VALUE <key> <flags> <bytes>" headers with data blocks, terminated by an END line.
+        if (in_array($command_name, ['get', 'gets', 'gat', 'gats'], true)) {
+            return implode("\r\n", $this->readValueLines());
+        }
+
+        $line = $this->readLine();
+
+        // "mg <key> v" returns the value as a data block after the "VA <bytes> <flags>" header.
+        if ($command_name === 'mg' && str_starts_with($line, 'VA ')) {
+            $value = $this->readBytes((int) (explode(' ', $line)[1] ?? 0));
+            $this->readLine(); // the \r\n after the data block
+
+            return $line."\r\n".$value;
+        }
+
+        return $line;
     }
 
     /**
      * @throws MemcachedException
      */
-    private function streamConnection(string $command, string $command_name): string {
+    private function sendCommand(string $command): void {
         $this->connect();
 
         if (!is_resource($this->stream) || feof($this->stream)) {
@@ -441,71 +467,150 @@ class PHPMem {
             $this->connect();
         }
 
-        stream_set_blocking($this->stream, true);
-        fwrite($this->stream, $command);
-        stream_set_blocking($this->stream, false);
-
-        $buffer = '';
-        $start = microtime(true);
-        $select_timeout_usec = 100_000; // 100ms
-
-        while (microtime(true) - $start < 5) {
-            $read = [$this->stream];
-            $write = null;
-            $except = null;
-
-            $num = @stream_select($read, $write, $except, 0, $select_timeout_usec);
-
-            if ($num === false) {
-                usleep(1000);
-                continue;
-            }
-
-            if ($num === 0) {
-                if ($this->checkCommandEnd($buffer)) {
-                    break;
-                }
-
-                continue;
-            }
-
-            $chunk = fread($this->stream, 65536);
-
-            if ($chunk === false) {
-                continue;
-            }
-
-            if ($chunk === '') {
-                if ($this->checkCommandEnd($buffer)) {
-                    break;
-                }
-
-                continue;
-            }
-
-            $buffer .= $chunk;
-
-            // Commands without a specific end string.
-            if (isset(self::NO_END_COMMANDS[$command_name])) {
-                break;
-            }
-
-            // Loop until the server returns one of these end strings.
-            if ($this->checkCommandEnd($buffer)) {
-                break;
-            }
-        }
-
-        return $buffer;
+        $this->writeToStream($command);
     }
 
-    private function checkCommandEnd(string $buffer): bool {
-        if ($buffer === '') {
-            return false;
+    /**
+     * Write the whole command, fwrite() may write fewer bytes than given on a socket.
+     *
+     * @throws MemcachedException
+     */
+    private function writeToStream(string $command): void {
+        $length = strlen($command);
+
+        for ($written = 0; $written < $length; $written += $bytes) {
+            $bytes = fwrite($this->stream, substr($command, $written));
+
+            if ($bytes === false || $bytes === 0) {
+                $this->disconnect();
+                throw new MemcachedException('Failed to write to the socket.');
+            }
+        }
+    }
+
+    /**
+     * Read one response line, e.g. "STORED", "VERSION 1.6.42" or a "VALUE <key> <flags> <bytes>" header.
+     *
+     * @throws MemcachedException
+     */
+    private function readLine(): string {
+        $line = '';
+
+        do {
+            $chunk = fgets($this->stream);
+
+            if ($chunk === false || $chunk === '') {
+                if (feof($this->stream)) {
+                    return rtrim($line, "\r\n");
+                }
+
+                $this->disconnect();
+                throw new MemcachedException('Timed out while reading a response line.');
+            }
+
+            $line .= $chunk;
+        } while (!str_ends_with($line, "\n"));
+
+        return rtrim($line, "\r\n");
+    }
+
+    /**
+     * @throws MemcachedException
+     */
+    private function readChunk(int $max_bytes): string {
+        $chunk = fread($this->stream, $max_bytes);
+
+        if ($chunk === false || $chunk === '') {
+            $closed = feof($this->stream);
+            $this->disconnect();
+
+            throw new MemcachedException($closed ? 'The server closed the connection.' : 'Timed out while reading the response.');
         }
 
-        foreach (self::END_MARKERS as $marker) {
-            if (str_ends_with($buffer, $marker)) {
+        return $chunk;
+    }
+
+    /**
+     * Read a data block of an exact byte length.
+     * Data can contain anything (\r\n, "END", ...), so it cannot be read line by line.
+     *
+     * @throws MemcachedException
+     */
+    private function readBytes(int $bytes): string {
+        $data = '';
+
+        while (strlen($data) < $bytes) {
+            $data .= $this->readChunk(min(65536, $bytes - strlen($data)));
+        }
+
+        return $data;
+    }
+
+    /**
+     * Read a multi-line response (stats, metadump) until its terminating status line (END, EN, or an error reply such as BUSY).
+     *
+     * Reads in bulk and only examines the last complete line, checking line by
+     * line would be noticeably slower for large responses such as 'lru_crawler metadump all'.
+     *
+     * @throws MemcachedException
+     */
+    private function readUntilEndLine(): string {
+        $buffer = '';
+
+        do {
+            $buffer .= $this->readChunk(65536);
+        } while (!$this->endsWithStatusLine($buffer));
+
+        return rtrim($buffer, "\r\n");
+    }
+
+    /**
+     * Check whether the last complete line is a terminating status line.
+     * List responses contain no data blocks, so the terminator can only ever be the last line.
+     */
+    private function endsWithStatusLine(string $buffer): bool {
+        if (!str_ends_with($buffer, "\n")) {
+            return false; // last line is not complete yet
+        }
+
+        $newline = strlen($buffer) > 1 ? strrpos($buffer, "\n", -2) : false;
+        $last_line = substr($buffer, $newline === false ? 0 : $newline + 1);
+
+        return $this->isEndOfResponse(rtrim($last_line, "\r\n"));
+    }
+
+    /**
+     * Read "VALUE <key> <flags> <bytes>" headers with their data blocks until the END line.
+     *
+     * @return list<string>
+     *
+     * @throws MemcachedException
+     */
+    private function readValueLines(): array {
+        $parts = [];
+
+        while (true) {
+            $line = $this->readLine();
+
+            if (!str_starts_with($line, 'VALUE ')) {
+                $parts[] = $line; // END (or an error reply)
+
+                return $parts;
+            }
+
+            $parts[] = $line;
+            $parts[] = $this->readBytes((int) (explode(' ', $line)[3] ?? 0));
+            $this->readLine(); // \r\n after the data block
+        }
+    }
+
+    private function isEndOfResponse(string $line): bool {
+        if (in_array($line, ['END', 'EN', 'OK', 'RESET', 'ERROR'], true)) {
+            return true;
+        }
+
+        foreach (['ERROR ', 'CLIENT_ERROR ', 'SERVER_ERROR ', 'BUSY ', 'BADCLASS ', 'NOSPARE ', 'NOTFULL ', 'UNSAFE ', 'SAME '] as $prefix) {
+            if (str_starts_with($line, $prefix)) {
                 return true;
             }
         }

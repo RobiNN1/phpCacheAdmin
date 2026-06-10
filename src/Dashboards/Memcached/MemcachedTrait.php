@@ -245,8 +245,16 @@ trait MemcachedTrait {
         }
 
         $filtered_lines = [];
+
         foreach ($all_key_lines as $line) {
-            if (preg_match('/key=(\S+)/', $line, $match) && stripos($match[1], $search) !== false) {
+            $space = strpos($line, ' ');
+            $key = substr($line, 4, ($space === false ? strlen($line) : $space) - 4);
+
+            if (str_contains($key, '%')) {
+                $key = urldecode($key);
+            }
+
+            if (stripos($key, $search) !== false) {
                 $filtered_lines[] = $line;
             }
         }

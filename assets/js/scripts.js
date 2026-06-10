@@ -538,6 +538,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
 /**
  * Charts
+ *
+ * Updating:
+ * https://echarts.apache.org/en/builder/echarts.html?charts=line&components=gridSimple,title,legendScroll,tooltip&svg=true&api=true
  */
 const chart = (instance, options, timestamps) => {
     const {title, tooltip = {}, legend, yAxis, series} = options;

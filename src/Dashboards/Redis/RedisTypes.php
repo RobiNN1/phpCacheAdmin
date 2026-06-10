@@ -137,7 +137,7 @@ trait RedisTypes {
     }
 
     /**
-     * Save key with correct function.
+     * Save the key with the correct function.
      *
      * Used in saveKey().
      *

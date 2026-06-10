@@ -8,16 +8,11 @@ declare(strict_types=1);
 
 namespace RobiNN\Pca\Dashboards\Memcached;
 
-use JsonException;
 use PDO;
-use RobiNN\Pca\Config;
-use RobiNN\Pca\Helpers;
-use RobiNN\Pca\Http;
+use RobiNN\Pca\Dashboards\Metrics;
 use RobiNN\Pca\Template;
 
-readonly class MemcachedMetrics {
-    private PDO $pdo;
-
+readonly class MemcachedMetrics extends Metrics {
     private const RATE_COMMANDS = ['get', 'set', 'delete', 'incr', 'decr', 'cas', 'touch', 'flush'];
 
     private const HIT_RATE_COMMANDS = ['get', 'delete', 'incr', 'decr', 'cas', 'touch'];
@@ -26,24 +21,20 @@ readonly class MemcachedMetrics {
      * @param array<int, array<string, int|string>> $servers
      */
     public function __construct(
-        private PHPMem   $memcached,
-        private Template $template,
-        array            $servers,
-        int              $selected
+        private PHPMem $memcached,
+        Template       $template,
+        array          $servers,
+        int            $selected,
     ) {
-        $server_name = Helpers::getServerTitle($servers[$selected]);
-        $hash = md5($server_name.Config::get('hash', 'pca'));
-        $dir = Config::get('metricsdir', __DIR__.'/../../../tmp/metrics');
-        $db = $dir.'/memcached_metrics_'.$hash.'.db';
+        parent::__construct($template, $servers, $selected);
+    }
 
-        if (!is_dir($dir) && !mkdir($dir, 0777, true) && !is_dir($dir)) {
-            throw new \RuntimeException(sprintf('Directory "%s" was not created', $dir));
-        }
+    protected function dbPrefix(): string {
+        return 'memcached';
+    }
 
-        $this->pdo = new PDO('sqlite:'.$db);
-        $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
-        $schema = <<<SQL
+    protected function schema(): string {
+        return <<<SQL
         CREATE TABLE IF NOT EXISTS metrics (
             id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp INTEGER NOT NULL,
             memory_used INTEGER, memory_limit INTEGER, stored_items INTEGER, connections INTEGER,
@@ -56,38 +47,16 @@ readonly class MemcachedMetrics {
             cumulative_cmd_get INTEGER, cumulative_cmd_set INTEGER, cumulative_cmd_delete INTEGER, cumulative_cmd_incr INTEGER, cumulative_cmd_decr INTEGER, cumulative_cmd_cas INTEGER, cumulative_cmd_touch INTEGER, cumulative_cmd_flush INTEGER
         )
         SQL;
-
-        $this->pdo->exec($schema);
-    }
-
-    public function collectAndRespond(): string {
-        try {
-            $stats = $this->memcached->getServerStats();
-        } catch (MemcachedException) {
-            return Helpers::alert($this->template, 'Failed to retrieve Memcached stats.', 'error');
-        }
-
-        $metrics = $this->calculateMetrics($stats);
-        $this->insertMetrics($metrics);
-        $recent_data = $this->fetchRecentMetrics();
-        $formatted_data = $this->formatDataForResponse($recent_data);
-
-        header('Content-Type: application/json');
-        header('Cache-Control: no-cache, must-revalidate');
-
-        try {
-            return json_encode($formatted_data, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-        } catch (JsonException $e) {
-            return Helpers::alert($this->template, $e->getMessage(), 'error');
-        }
     }
 
     /**
-     * @param array<string, mixed> $stats
+     * @return array<string, int|float|string>
      *
-     * @return array<string, int|float>
+     * @throws MemcachedException
      */
-    private function calculateMetrics(array $stats): array {
+    protected function collect(): array {
+        $stats = $this->memcached->getServerStats();
+
         $last_point = $this->getLastMetricsPoint();
         $time_diff = $this->calculateTimeDifference($last_point);
 
@@ -97,6 +66,38 @@ readonly class MemcachedMetrics {
         $cumulative_metrics = $this->cumulativeMetrics($stats);
 
         return array_merge(['timestamp' => time()], $command_rates, $hit_rates, $core_metrics, $cumulative_metrics);
+    }
+
+    /**
+     * @param array<string, mixed> $row
+     *
+     * @return array<string, mixed>
+     */
+    protected function formatRow(array $row): array {
+        return [
+            'timestamp'           => date('Y-m-d H:i:s', (int) $row['timestamp']),
+            'unix_timestamp'      => (int) $row['timestamp'],
+            'hit_rates'           => [
+                'overall' => $row['hit_rate_overall'], 'get' => $row['hit_rate_get'], 'delete' => $row['hit_rate_delete'],
+                'incr'    => $row['hit_rate_incr'], 'decr' => $row['hit_rate_decr'], 'cas' => $row['hit_rate_cas'], 'touch' => $row['hit_rate_touch'],
+            ],
+            'request_rates'       => [
+                'overall' => $row['request_rate_overall'], 'get' => $row['request_rate_get'], 'set' => $row['request_rate_set'],
+                'delete'  => $row['request_rate_delete'], 'incr' => $row['request_rate_incr'], 'decr' => $row['request_rate_decr'],
+                'cas'     => $row['request_rate_cas'], 'touch' => $row['request_rate_touch'], 'flush' => $row['request_rate_flush'],
+            ],
+            'traffic'             => [
+                'received_rate' => $row['traffic_received_rate'],
+                'sent_rate'     => $row['traffic_sent_rate'],
+            ],
+            'memory_used'         => $row['memory_used'],
+            'memory_limit'        => $row['memory_limit'],
+            'stored_items'        => $row['stored_items'],
+            'eviction_rate'       => $row['eviction_rate'],
+            'expired_rate'        => $row['expired_rate'],
+            'connections'         => $row['connections'],
+            'new_connection_rate' => $row['new_connection_rate'],
+        ];
     }
 
     /**
@@ -230,77 +231,5 @@ readonly class MemcachedMetrics {
         }
 
         return $cumulative_metrics;
-    }
-
-    /**
-     * @param array<string, mixed> $metrics
-     */
-    private function insertMetrics(array $metrics): void {
-        $columns = implode(', ', array_keys($metrics));
-        $placeholders = rtrim(str_repeat('?, ', count($metrics)), ', ');
-        $sql = sprintf('INSERT INTO metrics (%s) VALUES (%s)', $columns, $placeholders);
-
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->execute(array_values($metrics));
-    }
-
-    /**
-     * @return array<int, array<string, mixed>>
-     */
-    private function fetchRecentMetrics(): array {
-        $filter = Http::post('filter', Config::get('metricstab', '1d'));
-
-        $seconds = match ($filter) {
-            '1h' => 3600,
-            '1w' => 604800,
-            '1m' => 2592000,
-            default => 86400,
-        };
-
-        $time_ago = time() - $seconds;
-
-        $stmt = $this->pdo->prepare('SELECT * FROM metrics WHERE timestamp >= :time_ago ORDER BY id DESC');
-        $stmt->bindValue(':time_ago', $time_ago, PDO::PARAM_INT);
-        $stmt->execute();
-
-        return array_reverse($stmt->fetchAll(PDO::FETCH_ASSOC));
-    }
-
-    /**
-     * @param array<int, array<string, mixed>> $db_rows
-     *
-     * @return array<int, array<string, mixed>>
-     */
-    private function formatDataForResponse(array $db_rows): array {
-        $formatted_results = [];
-
-        foreach ($db_rows as $row) {
-            $formatted_results[] = [
-                'timestamp'           => date('Y-m-d H:i:s', (int) $row['timestamp']),
-                'unix_timestamp'      => (int) $row['timestamp'],
-                'hit_rates'           => [
-                    'overall' => $row['hit_rate_overall'], 'get' => $row['hit_rate_get'], 'delete' => $row['hit_rate_delete'],
-                    'incr'    => $row['hit_rate_incr'], 'decr' => $row['hit_rate_decr'], 'cas' => $row['hit_rate_cas'], 'touch' => $row['hit_rate_touch'],
-                ],
-                'request_rates'       => [
-                    'overall' => $row['request_rate_overall'], 'get' => $row['request_rate_get'], 'set' => $row['request_rate_set'],
-                    'delete'  => $row['request_rate_delete'], 'incr' => $row['request_rate_incr'], 'decr' => $row['request_rate_decr'],
-                    'cas'     => $row['request_rate_cas'], 'touch' => $row['request_rate_touch'], 'flush' => $row['request_rate_flush'],
-                ],
-                'traffic'             => [
-                    'received_rate' => $row['traffic_received_rate'],
-                    'sent_rate'     => $row['traffic_sent_rate'],
-                ],
-                'memory_used'         => $row['memory_used'],
-                'memory_limit'        => $row['memory_limit'],
-                'stored_items'        => $row['stored_items'],
-                'eviction_rate'       => $row['eviction_rate'],
-                'expired_rate'        => $row['expired_rate'],
-                'connections'         => $row['connections'],
-                'new_connection_rate' => $row['new_connection_rate'],
-            ];
-        }
-
-        return $formatted_results;
     }
 }

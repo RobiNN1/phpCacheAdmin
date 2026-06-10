@@ -611,7 +611,7 @@ const fetch_metrics = (callback) => {
                 document.getElementById('alerts').innerHTML = response_text;
             }
         } else {
-            document.getElementById('alerts').innerHTML = `Server responded with status ${request.status}`;
+            document.getElementById('alerts').innerHTML = `Server responded with status ${request.currentTarget.status}`;
         }
     }, {filter: metrics_active_filter}, false);
 };

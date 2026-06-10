@@ -15,6 +15,7 @@ use RobiNN\Pca\Config;
 use RobiNN\Pca\Dashboards\DashboardException;
 use RobiNN\Pca\Dashboards\Memcached\MemcachedDashboard;
 use RobiNN\Pca\Dashboards\Memcached\MemcachedException;
+use RobiNN\Pca\Dashboards\Memcached\MemcachedMetrics;
 use RobiNN\Pca\Dashboards\Memcached\PHPMem;
 use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
@@ -84,6 +85,28 @@ final class MemcachedTest extends TestCase {
         $this->assertFalse($this->memcached->exists($key));
 
         unset($_GET['delete'], $_POST['delete'], $_POST['csrf_token']);
+    }
+
+    /**
+     * @throws JsonException
+     */
+    public function testMetrics(): void {
+        $server_name = 'pu-metrics-'.uniqid('', true);
+        $metrics = new MemcachedMetrics($this->memcached, $this->template, [['name' => $server_name]], 0);
+
+        $data = json_decode($metrics->collectAndRespond(), true, 512, JSON_THROW_ON_ERROR);
+
+        $this->assertIsArray($data);
+        $this->assertCount(1, $data);
+        $this->assertArrayHasKey('hit_rates', $data[0]);
+        $this->assertArrayHasKey('request_rates', $data[0]);
+        $this->assertArrayHasKey('memory_used', $data[0]);
+
+        $data = json_decode($metrics->collectAndRespond(), true, 512, JSON_THROW_ON_ERROR);
+        $this->assertCount(1, $data);
+
+        $dir = Config::get('metricsdir', dirname(__DIR__, 2).'/tmp/metrics');
+        @unlink($dir.'/memcached_metrics_'.md5($server_name.Config::get('hash', 'pca')).'.db');
     }
 
     /**

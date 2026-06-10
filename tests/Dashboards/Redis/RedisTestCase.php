@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace Tests\Dashboards\Redis;
 
 use Exception;
+use JsonException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use RobiNN\Pca\Config;
 use RobiNN\Pca\Dashboards\DashboardException;
@@ -17,6 +18,7 @@ use RobiNN\Pca\Dashboards\Redis\Compatibility\Cluster\RedisCluster;
 use RobiNN\Pca\Dashboards\Redis\Compatibility\Predis;
 use RobiNN\Pca\Dashboards\Redis\Compatibility\Redis;
 use RobiNN\Pca\Dashboards\Redis\RedisDashboard;
+use RobiNN\Pca\Dashboards\Redis\RedisMetrics;
 use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
 use RobiNN\Pca\Template;
@@ -100,6 +102,28 @@ abstract class RedisTestCase extends TestCase {
         $this->assertSame(0, $this->redis->exists($key));
 
         unset($_GET['delete'], $_GET['db'], $_POST['delete'], $_POST['csrf_token']);
+    }
+
+    /**
+     * @throws JsonException
+     */
+    public function testMetrics(): void {
+        $server_name = 'pu-metrics-'.uniqid('', true);
+        $metrics = new RedisMetrics($this->redis, $this->template, [['name' => $server_name]], 0);
+
+        $data = json_decode($metrics->collectAndRespond(), true, 512, JSON_THROW_ON_ERROR);
+
+        $this->assertIsArray($data);
+        $this->assertCount(1, $data);
+        $this->assertArrayHasKey('hit_rate', $data[0]);
+        $this->assertArrayHasKey('memory', $data[0]);
+        $this->assertIsArray($data[0]['commands_stats']);
+
+        $data = json_decode($metrics->collectAndRespond(), true, 512, JSON_THROW_ON_ERROR);
+        $this->assertCount(1, $data);
+
+        $dir = Config::get('metricsdir', dirname(__DIR__, 3).'/tmp/metrics');
+        @unlink($dir.'/redis_metrics_'.md5($server_name.Config::get('hash', 'pca')).'.db');
     }
 
     /**

@@ -53,7 +53,7 @@ class PHPMem {
      * @throws MemcachedException
      */
     public function set(string $key, mixed $value, int $expiration = 0): bool {
-        if ($this->memcached !== null) {
+        if ($this->memcached instanceof Memcached) {
             return $this->memcached->set($key, $value, $expiration);
         }
 
@@ -70,7 +70,7 @@ class PHPMem {
      * @throws MemcachedException
      */
     public function get(string $key): string|false {
-        if ($this->memcached !== null) {
+        if ($this->memcached instanceof Memcached) {
             $value = $this->memcached->get($key);
 
             if ($this->memcached->getResultCode() === Memcached::RES_NOTFOUND) {
@@ -592,13 +592,12 @@ class PHPMem {
         while (true) {
             $line = $this->readLine();
 
-            if (!str_starts_with($line, 'VALUE ')) {
-                $parts[] = $line; // END (or an error reply)
+            $parts[] = $line;
 
+            if (!str_starts_with($line, 'VALUE ')) {
                 return $parts;
             }
 
-            $parts[] = $line;
             $parts[] = $this->readBytes((int) (explode(' ', $line)[3] ?? 0));
             $this->readLine(); // \r\n after the data block
         }

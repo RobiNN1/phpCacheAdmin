@@ -28,7 +28,7 @@ trait RedisExtra {
         /** @var array<string, string|array<int, string>> $info */
         $info = $this->getInfo($section);
 
-        return array_map(static function ($value): array {
+        return array_map(static function (array|string $value): array {
             // Cluster mode
             if (is_array($value)) {
                 $aggregated = [];

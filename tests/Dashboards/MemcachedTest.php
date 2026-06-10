@@ -151,6 +151,9 @@ final class MemcachedTest extends TestCase {
         $this->assertArrayHasKey('version', $this->memcached->getServerStats());
     }
 
+    /**
+     * @return Iterator<array<int, string>>
+     */
     public static function commandDataProvider(): Iterator {
         yield 'test set' => ['STORED', 'set pu-test-rc-set 0 0 3\r\nidk'];
         yield 'test get' => ['VALUE pu-test-rc-set 0 3\r\nidk\r\nEND', 'get pu-test-rc-set'];

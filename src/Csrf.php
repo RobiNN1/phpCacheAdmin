@@ -35,7 +35,7 @@ class Csrf {
     public static function validateToken(?string $token): bool {
         $session_token = Http::session('csrf_token', '');
 
-        if ($session_token === '' || empty($token)) {
+        if ($session_token === '' || in_array($token, [null, '', '0'], true)) {
             return false;
         }
 

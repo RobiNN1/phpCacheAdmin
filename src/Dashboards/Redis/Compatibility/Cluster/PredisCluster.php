@@ -61,7 +61,7 @@ class PredisCluster extends PredisClient implements RedisCompatibilityInterface 
                 $this->nodes[] = new PredisClient('tcp://'.$node, $cluster_options);
             }
         } catch (Exception $e) {
-            throw new DashboardException($e->getMessage().' ['.implode(', ', $server['nodes']).']');
+            throw new DashboardException($e->getMessage().' ['.implode(', ', $server['nodes']).']', $e->getCode(), $e);
         }
     }
 
@@ -99,7 +99,11 @@ class PredisCluster extends PredisClient implements RedisCompatibilityInterface 
                     $response = $node->info($section_name);
                     $node_section_info = (is_array($response) && $response !== []) ? reset($response) : null;
 
-                    if (!$node_section_info || !is_array($node_section_info)) {
+                    if (!$node_section_info) {
+                        continue;
+                    }
+
+                    if (!is_array($node_section_info)) {
                         continue;
                     }
 

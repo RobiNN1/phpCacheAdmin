@@ -135,6 +135,9 @@ final class HelpersTest extends TestCase {
         $this->assertSame($expected, Helpers::sortKeys($this->template, $keys));
     }
 
+    /**
+     * @return Iterator<array<array<int, mixed>, mixed>>
+     */
     public static function sortKeysProvider(): Iterator {
         yield 'no sorting' => [
             'none',

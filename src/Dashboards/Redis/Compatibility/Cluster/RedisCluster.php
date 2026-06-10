@@ -52,7 +52,7 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
         try {
             parent::__construct($server['name'] ?? 'default', $server['nodes'], 3, 0, false, $auth);
         } catch (RedisClusterException $e) {
-            throw new DashboardException($e->getMessage().' ['.implode(',', $server['nodes']).']');
+            throw new DashboardException($e->getMessage().' ['.implode(',', $server['nodes']).']', $e->getCode(), $e);
         }
 
         $this->nodes = $this->_masters();

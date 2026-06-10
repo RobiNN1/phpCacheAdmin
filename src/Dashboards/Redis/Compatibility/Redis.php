@@ -58,7 +58,7 @@ class Redis extends \Redis implements RedisCompatibilityInterface {
             $this->select($server['database'] ?? 0);
         } catch (RedisException $e) {
             $connection = $server['path'] ?? $server['host'].':'.$server['port'];
-            throw new DashboardException($e->getMessage().' ['.$connection.']');
+            throw new DashboardException($e->getMessage().' ['.$connection.']', $e->getCode(), $e);
         }
     }
 

@@ -87,7 +87,7 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase {
      * @param array<int|string, mixed> $data
      * @param array<string>            $fields
      *
-     * @return array<int|string, mixed>
+     * @return mixed[][]
      */
     public function normalizeInfoFields(array $data, array $fields): array {
         return array_map(static function (array $item) use ($fields): array {

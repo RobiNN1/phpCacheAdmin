@@ -82,16 +82,9 @@ trait APCuTrait {
     }
 
     private function getKeySize(string $key): int {
-        $cache_info = apcu_cache_info();
+        $iterator = new APCUIterator('/^'.preg_quote($key, '/').'$/', APC_ITER_MEM_SIZE, 0, APC_LIST_ACTIVE);
 
-        // For some reason apcu_key_info() does not contain the key size
-        foreach ($cache_info['cache_list'] as $entry) {
-            if ($entry['info'] === $key) {
-                return $entry['mem_size'];
-            }
-        }
-
-        return 0;
+        return $iterator->valid() ? $iterator->current()['mem_size'] : 0;
     }
 
     private function viewKey(): string {
@@ -197,7 +190,8 @@ trait APCuTrait {
         $keys = [];
         $time = time();
 
-        $iterator = new APCUIterator('/.*/', APC_ITER_ALL, 0, APC_LIST_ACTIVE);
+        $fields = APC_ITER_KEY | APC_ITER_TTL | APC_ITER_MEM_SIZE | APC_ITER_NUM_HITS | APC_ITER_ATIME | APC_ITER_CTIME;
+        $iterator = new APCUIterator(null, $fields, 0, APC_LIST_ACTIVE);
 
         foreach ($iterator as $item) {
             $key = $item['key'];

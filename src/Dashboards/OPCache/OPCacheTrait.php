@@ -19,6 +19,11 @@ trait OPCacheTrait {
      */
     private function getPanelsData(): array {
         $status = opcache_get_status(false);
+
+        if ($status === false) {
+            return ['error' => 'OPcache is not available, it is either disabled (opcache.enable) or restricted (opcache.restrict_api).'];
+        }
+
         $configuration = opcache_get_configuration();
 
         $stats = $status['opcache_statistics'];
@@ -28,8 +33,8 @@ trait OPCacheTrait {
         $memory_usage = round((($memory['used_memory'] + $memory['wasted_memory']) / $total_memory) * 100, 2);
         $memory_wasted = round($memory['current_wasted_percentage'], 2);
 
-        $interned_strings = $status['interned_strings_usage'];
-        $interned_usage = round(($interned_strings['used_memory'] / $interned_strings['buffer_size']) * 100, 2);
+        $interned_strings = $status['interned_strings_usage'] ?? ['buffer_size' => 0, 'used_memory' => 0, 'free_memory' => 0, 'number_of_strings' => 0];
+        $interned_usage = $interned_strings['buffer_size'] > 0 ? round(($interned_strings['used_memory'] / $interned_strings['buffer_size']) * 100, 2) : 0;
 
         $used_scripts = round(($stats['num_cached_scripts'] / (int) ini_get('opcache.max_accelerated_files')) * 100);
         $used_keys = round(($stats['num_cached_keys'] / $stats['max_cached_keys']) * 100);
@@ -101,7 +106,11 @@ trait OPCacheTrait {
     }
 
     private function moreInfo(): string {
-        $status = (array) opcache_get_status(false);
+        $status = opcache_get_status(false);
+
+        if ($status === false) {
+            return 'OPcache is not available, it is either disabled (opcache.enable) or restricted (opcache.restrict_api).';
+        }
 
         $configuration = opcache_get_configuration();
         $status['ini_config'] = $configuration['directives'];
@@ -124,18 +133,17 @@ trait OPCacheTrait {
         $status = opcache_get_status();
 
         if (isset($status['scripts'])) {
+            $ignore_pca = isset($_GET['ignore']) && $_GET['ignore'] === 'yes';
+            $pca_root = $_SERVER['DOCUMENT_ROOT'].str_replace('/index.php', '', $_SERVER['SCRIPT_NAME']);
+
             foreach ($status['scripts'] as $script) {
                 $full_path = str_replace('\\', '/', $script['full_path']);
-                $pca_root = $_SERVER['DOCUMENT_ROOT'].str_replace('/index.php', '', $_SERVER['SCRIPT_NAME']);
 
-                if (
-                    (isset($_GET['ignore']) && $_GET['ignore'] === 'yes') &&
-                    str_starts_with(strtr($full_path, ['phar://' => '']), $pca_root)
-                ) {
+                if ($ignore_pca && str_starts_with(strtr($full_path, ['phar://' => '']), $pca_root)) {
                     continue;
                 }
 
-                if (stripos($script['full_path'], $search) !== false) {
+                if ($search === '' || stripos($script['full_path'], $search) !== false) {
                     $cached_scripts[] = [
                         'key'  => $script['full_path'],
                         'info' => [
@@ -162,7 +170,7 @@ trait OPCacheTrait {
 
         return $this->template->render('dashboards/opcache', [
             'cached_scripts' => $paginator->getPaginated(),
-            'all_keys'       => $status['opcache_statistics']['num_cached_scripts'],
+            'all_keys'       => $status !== false ? $status['opcache_statistics']['num_cached_scripts'] : 0,
             'paginator'      => $paginator->render(),
             'is_ignored'     => isset($_GET['ignore']) && $_GET['ignore'] === 'yes',
         ]);

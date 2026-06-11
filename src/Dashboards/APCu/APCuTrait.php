@@ -188,30 +188,36 @@ trait APCuTrait {
         $this->template->addGlobal('search_value', $search);
 
         $keys = [];
-        $time = time();
 
         $fields = APC_ITER_KEY | APC_ITER_TTL | APC_ITER_MEM_SIZE | APC_ITER_NUM_HITS | APC_ITER_ATIME | APC_ITER_CTIME;
         $iterator = new APCUIterator(null, $fields, 0, APC_LIST_ACTIVE);
 
         foreach ($iterator as $item) {
-            $key = $item['key'];
-
-            if ($search !== '' && stripos($key, $search) === false) {
+            if ($search !== '' && stripos($item['key'], $search) === false) {
                 continue;
             }
 
-            $ttl = $item['ttl'];
-            $keys[] = [
-                'key'           => $key,
-                'mem_size'      => $item['mem_size'] ?? 0,
-                'num_hits'      => $item['num_hits'] ?? 0,
-                'access_time'   => $item['access_time'] ?? 0,
-                'creation_time' => $item['creation_time'] ?? 0,
-                'ttl'           => $ttl === 0 ? 'Doesn\'t expire' : ($item['creation_time'] + $ttl - $time),
-            ];
+            $keys[] = $item;
         }
 
         return $keys;
+    }
+
+    /**
+     * @param array<string, mixed> $item
+     *
+     * @return array<string, string|int>
+     */
+    private function keyInfo(array $item): array {
+        $ttl = $item['ttl'] ?? 0;
+
+        return [
+            'bytes_size'         => $item['mem_size'] ?? 0,
+            'number_hits'        => $item['num_hits'] ?? 0,
+            'timediff_last_used' => $item['access_time'] ?? 0,
+            'time_created'       => $item['creation_time'] ?? 0,
+            'ttl'                => $ttl === 0 ? 'Doesn\'t expire' : (($item['creation_time'] ?? 0) + $ttl - time()),
+        ];
     }
 
     /**
@@ -225,14 +231,7 @@ trait APCuTrait {
         foreach ($keys as $key_data) {
             $formatted_keys[] = [
                 'key'  => $key_data['key'],
-                'info' => [
-                    'link_title'         => $key_data['key'],
-                    'bytes_size'         => $key_data['mem_size'],
-                    'number_hits'        => $key_data['num_hits'],
-                    'timediff_last_used' => $key_data['access_time'],
-                    'time_created'       => $key_data['creation_time'],
-                    'ttl'                => $key_data['ttl'],
-                ],
+                'info' => ['link_title' => $key_data['key']] + $this->keyInfo($key_data),
             ];
         }
 
@@ -266,13 +265,7 @@ trait APCuTrait {
                         'type' => 'key',
                         'name' => $part,
                         'key'  => $key,
-                        'info' => [
-                            'bytes_size'         => $key_data['mem_size'],
-                            'number_hits'        => $key_data['num_hits'],
-                            'timediff_last_used' => $key_data['access_time'],
-                            'time_created'       => $key_data['creation_time'],
-                            'ttl'                => $key_data['ttl'],
-                        ],
+                        'info' => $this->keyInfo($key_data),
                     ];
                 } else {
                     if (!isset($current[$part])) {
@@ -312,7 +305,12 @@ trait APCuTrait {
         $keys = $this->getAllKeys();
 
         if (isset($_GET['export_btn'])) {
-            Helpers::export($keys, 'apcu_backup', static fn (string $key): string => base64_encode(serialize(apcu_fetch($key))));
+            $export_keys = array_map(static fn (array $item): array => [
+                'key'  => $item['key'],
+                'info' => ['ttl' => (int) ($item['ttl'] ?? 0)],
+            ], $keys);
+
+            Helpers::export($export_keys, 'apcu_backup', static fn (string $key): string => base64_encode(serialize(apcu_fetch($key))));
         }
 
         $paginator = new Paginator($this->template, $keys);

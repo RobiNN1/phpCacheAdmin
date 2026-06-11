@@ -209,7 +209,7 @@ class PHPMem {
     public function getKeys(): array {
         if (version_compare($this->version(), '1.5.19', '>=')) {
             $this->sendCommand("lru_crawler metadump all\r\n");
-            $lines = explode("\n", $this->readUntilEndLine());
+            $lines = $this->readLines();
             $last = rtrim((string) array_pop($lines), "\r"); // END/EN terminator
 
             if ($last !== 'END' && $last !== 'EN') {
@@ -562,6 +562,37 @@ class PHPMem {
         } while (!$this->endsWithStatusLine($buffer));
 
         return rtrim($buffer, "\r\n");
+    }
+
+    /**
+     * Read a multi-line response as individual lines.
+     * The terminating status line (END, EN, or an error reply such as BUSY) is the last element.
+     *
+     * Unlike readUntilEndLine(), the whole response is never held in memory as one string,
+     * which matters for large outputs such as 'lru_crawler metadump all'.
+     *
+     * @return list<string>
+     *
+     * @throws MemcachedException
+     */
+    private function readLines(): array {
+        $lines = [];
+        $partial = '';
+
+        while (true) {
+            $split = explode("\n", $partial.$this->readChunk(65536));
+            $partial = (string) array_pop($split); // incomplete last line
+
+            if ($split === []) {
+                continue;
+            }
+
+            array_push($lines, ...$split);
+
+            if ($this->isEndOfResponse(rtrim((string) end($split), "\r"))) {
+                return $lines;
+            }
+        }
     }
 
     /**

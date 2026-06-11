@@ -453,17 +453,13 @@ trait RedisTrait {
     }
 
     public function isCommandSupported(string $command): bool {
-        static $commands = null;
+        static $supported = [];
 
-        if ($commands === null) {
-            try {
-                $commands = $this->redis->getCommands();
-            } catch (Exception) {
-                $commands = [];
-            }
+        try {
+            return $supported[$command] ??= $this->redis->commandExists(strtolower($command));
+        } catch (Exception) {
+            return false;
         }
-
-        return in_array(strtolower($command), $commands, true);
     }
 
     /**

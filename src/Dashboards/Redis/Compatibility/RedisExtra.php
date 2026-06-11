@@ -12,13 +12,33 @@ use Exception;
 
 trait RedisExtra {
     /**
-     * @return array<int, string>
+     * Parse the raw INFO output into sections.
+     * A single 'INFO all' call is a lot faster than requesting every section individually.
+     *
+     * @return array<string, array<string, string>>
      */
-    public function getInfoSections(): array {
-        return [
-            'server', 'clients', 'memory', 'persistence', 'threads', 'stats', 'replication', 'cpu',
-            'commandstats', 'latencystats', 'cluster', 'keyspace', 'errorstats',
-        ];
+    private function parseInfoOutput(string $raw): array {
+        $info = [];
+        $section = 'server'; // INFO always starts with a section header, just in case
+
+        foreach (preg_split('/\r?\n/', $raw) as $line) {
+            if ($line === '') {
+                continue;
+            }
+
+            if ($line[0] === '#') {
+                $section = strtolower(trim(substr($line, 1)));
+                continue;
+            }
+
+            $pos = strpos($line, ':');
+
+            if ($pos !== false) {
+                $info[$section][substr($line, 0, $pos)] = substr($line, $pos + 1);
+            }
+        }
+
+        return $info;
     }
 
     /**

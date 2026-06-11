@@ -93,32 +93,15 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
         $aggregated = [];
 
         foreach ($this->nodes as $node) {
-            foreach ($this->getInfoSections() as $section_name) {
-                try {
-                    $node_section_info = $this->info($node, $section_name);
+            try {
+                $node_info = $this->parseInfoOutput((string) $this->rawcommand($node, 'INFO', 'all'));
+            } catch (RedisClusterException) {
+                continue;
+            }
 
-                    if (!is_array($node_section_info)) {
-                        continue;
-                    }
-
-                    $section_lower = strtolower($section_name);
-
-                    foreach ($node_section_info as $key => $value) {
-                        if ($section_lower === 'commandstats' || $section_lower === 'keyspace') {
-                            $aggregated[$section_lower][$key][] = $value;
-                            continue;
-                        }
-
-                        if (is_array($value)) {
-                            foreach ($value as $sub_key => $sub_val) {
-                                $aggregated[$section_lower][$key][$sub_key][] = $sub_val;
-                            }
-                        } else {
-                            $aggregated[$section_lower][$key][] = $value;
-                        }
-                    }
-                } catch (RedisClusterException) {
-                    continue;
+            foreach ($node_info as $section => $section_data) {
+                foreach ($section_data as $key => $value) {
+                    $aggregated[$section][$key][] = $value;
                 }
             }
         }
@@ -313,14 +296,12 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
     }
 
     /**
-     * @return array<int, string>
-     *
      * @throws RedisClusterException
      */
-    public function getCommands(): array {
-        $commands = $this->rawcommand($this->nodes[0], 'COMMAND');
+    public function commandExists(string $command): bool {
+        $info = $this->rawcommand($this->nodes[0], 'COMMAND', 'INFO', $command);
 
-        return array_column($commands, 0);
+        return is_array($info[0] ?? null);
     }
 
     /**

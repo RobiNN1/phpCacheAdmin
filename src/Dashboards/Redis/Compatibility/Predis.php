@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace RobiNN\Pca\Dashboards\Redis\Compatibility;
 
+use Exception;
 use Predis\Client;
 use Predis\Collection\Iterator\Keyspace;
 
@@ -74,37 +75,11 @@ class Predis extends Client implements RedisCompatibilityInterface {
         static $info = null;
 
         if ($info === null) {
-            $section_info = [];
-
-            foreach ($this->getInfoSections() as $section) {
-                $response = $this->info($section);
-
-                $section_data = (is_array($response) && $response !== []) ? reset($response) : null;
-
-                if ($section_data && is_array($section_data)) {
-                    if ($section === 'keyspace') {
-                        $reformatted_keyspace = [];
-
-                        foreach ($section_data as $db => $keys_data_array) {
-                            $key_value_pairs = [];
-
-                            if (is_array($keys_data_array)) {
-                                foreach ($keys_data_array as $key => $value) {
-                                    $key_value_pairs[] = $key.'='.$value;
-                                }
-                            }
-
-                            $reformatted_keyspace[$db] = implode(',', $key_value_pairs);
-                        }
-
-                        $section_data = $reformatted_keyspace;
-                    }
-
-                    $section_info[strtolower($section)] = $section_data;
-                }
+            try {
+                $info = $this->parseInfoOutput((string) $this->executeRaw(['INFO', 'all']));
+            } catch (Exception) {
+                $info = [];
             }
-
-            $info = $section_info;
         }
 
         if ($option !== null) {
@@ -222,13 +197,10 @@ class Predis extends Client implements RedisCompatibilityInterface {
         return (string) $this->slowlog('RESET') === 'OK';
     }
 
-    /**
-     * @return array<int, string>
-     */
-    public function getCommands(): array {
-        $commands = $this->rawcommand('COMMAND');
+    public function commandExists(string $command): bool {
+        $info = $this->rawcommand('COMMAND', 'INFO', $command);
 
-        return array_column($commands, 0);
+        return is_array($info[0] ?? null);
     }
 
     public function restoreKeys(string $key, int $ttl, string $value): bool {

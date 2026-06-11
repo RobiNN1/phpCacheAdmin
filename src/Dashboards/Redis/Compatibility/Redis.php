@@ -89,21 +89,11 @@ class Redis extends \Redis implements RedisCompatibilityInterface {
         static $info = null;
 
         if ($info === null) {
-            $section_info = [];
-
-            foreach ($this->getInfoSections() as $section) {
-                try {
-                    $section_data = $this->info($section);
-
-                    if ($section_data) {
-                        $section_info[strtolower($section)] = $section_data;
-                    }
-                } catch (RedisException) {
-                    continue;
-                }
+            try {
+                $info = $this->parseInfoOutput((string) $this->rawcommand('INFO', 'all'));
+            } catch (RedisException) {
+                $info = [];
             }
-
-            $info = $section_info;
         }
 
         if ($option !== null) {
@@ -232,13 +222,10 @@ class Redis extends \Redis implements RedisCompatibilityInterface {
         return $this->slowlog('RESET');
     }
 
-    /**
-     * @return array<int, string>
-     */
-    public function getCommands(): array {
-        $commands = $this->rawcommand('COMMAND');
+    public function commandExists(string $command): bool {
+        $info = $this->rawcommand('COMMAND', 'INFO', $command);
 
-        return array_column($commands, 0);
+        return is_array($info[0] ?? null);
     }
 
     public function restoreKeys(string $key, int $ttl, string $value): bool {

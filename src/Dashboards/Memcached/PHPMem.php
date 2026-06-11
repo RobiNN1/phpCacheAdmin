@@ -30,6 +30,11 @@ class PHPMem {
 
     private ?string $server_version = null;
 
+    /**
+     * @var array<string, mixed>|null
+     */
+    private ?array $default_stats = null;
+
     private ?Memcached $memcached = null;
 
     /**
@@ -125,8 +130,12 @@ class PHPMem {
      * @throws MemcachedException
      */
     public function getServerStats(?string $type = null): array {
-        $type = in_array($type, ['settings', 'items', 'sizes', 'slabs', 'conns'], true) ? ' '.$type : '';
-        $raw = $this->runCommand('stats'.$type);
+        if ($type === null && $this->default_stats !== null) {
+            return $this->default_stats;
+        }
+
+        $suffix = in_array($type, ['settings', 'items', 'sizes', 'slabs', 'conns'], true) ? ' '.$type : '';
+        $raw = $this->runCommand('stats'.$suffix);
         $stats = [];
 
         foreach (explode("\r\n", $raw) as $line) {
@@ -134,6 +143,10 @@ class PHPMem {
                 [, $key, $value] = explode(' ', $line, 3);
                 $stats[$key] = is_numeric($value) ? (int) $value : $value;
             }
+        }
+
+        if ($type === null) {
+            $this->default_stats = $stats;
         }
 
         return $stats;

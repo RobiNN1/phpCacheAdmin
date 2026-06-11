@@ -96,37 +96,15 @@ class PredisCluster extends PredisClient implements RedisCompatibilityInterface 
         $aggregated = [];
 
         foreach ($this->nodes as $node) {
-            foreach ($this->getInfoSections() as $section_name) {
-                try {
-                    $response = $node->info($section_name);
-                    $node_section_info = (is_array($response) && $response !== []) ? reset($response) : null;
+            try {
+                $node_info = $this->parseInfoOutput((string) $node->executeRaw(['INFO', 'all']));
+            } catch (Exception) {
+                continue;
+            }
 
-                    if (!$node_section_info) {
-                        continue;
-                    }
-
-                    if (!is_array($node_section_info)) {
-                        continue;
-                    }
-
-                    $section_lower = strtolower($section_name);
-
-                    foreach ($node_section_info as $key => $value) {
-                        if ($section_lower === 'commandstats' || $section_lower === 'keyspace') {
-                            $aggregated[$section_lower][$key][] = $value;
-                            continue;
-                        }
-
-                        if (is_array($value)) {
-                            foreach ($value as $sub_key => $sub_val) {
-                                $aggregated[$section_lower][$key][$sub_key][] = $sub_val;
-                            }
-                        } else {
-                            $aggregated[$section_lower][$key][] = $value;
-                        }
-                    }
-                } catch (Exception) {
-                    continue;
+            foreach ($node_info as $section => $section_data) {
+                foreach ($section_data as $key => $value) {
+                    $aggregated[$section][$key][] = $value;
                 }
             }
         }
@@ -314,13 +292,10 @@ class PredisCluster extends PredisClient implements RedisCompatibilityInterface 
         return true;
     }
 
-    /**
-     * @return array<int, string>
-     */
-    public function getCommands(): array {
-        $commands = $this->nodes[0]->executeRaw(['COMMAND']);
+    public function commandExists(string $command): bool {
+        $info = $this->nodes[0]->executeRaw(['COMMAND', 'INFO', $command]);
 
-        return array_column($commands, 0);
+        return is_array($info[0] ?? null);
     }
 
     public function restoreKeys(string $key, int $ttl, string $value): bool {

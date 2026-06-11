@@ -29,24 +29,20 @@ class Format {
      * @link https://www.php.net/manual/en/faq.using.php#faq.using.shorthandbytes
      */
     public static function iniSizeToBytes(string $ini_size): int {
-        $size = (int) substr($ini_size, 0, -1);
         $unit = strtoupper(substr($ini_size, -1));
 
-        switch ($unit) {
-            case 'K':
-                $size *= 1024;
-                break;
-            case 'M':
-                $size *= 1024 * 1024;
-                break;
-            case 'G':
-                $size *= 1024 * 1024 * 1024;
-                break;
-            default:
-                break;
+        // Values without a shorthand suffix are plain bytes.
+        if (!in_array($unit, ['K', 'M', 'G'], true)) {
+            return (int) $ini_size;
         }
 
-        return $size;
+        $size = (int) substr($ini_size, 0, -1);
+
+        return match ($unit) {
+            'K' => $size * 1024,
+            'M' => $size * 1024 * 1024,
+            'G' => $size * 1024 * 1024 * 1024,
+        };
     }
 
     public static function seconds(int $time): string {

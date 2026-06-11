@@ -14,9 +14,9 @@ use RobiNN\Pca\Http;
 
 trait RealpathTrait {
     private function panels(): string {
-        $total_memory = Format::iniSizeToBytes(ini_get('realpath_cache_size'));
+        $total_memory = Format::iniSizeToBytes((string) ini_get('realpath_cache_size'));
         $memory_used = realpath_cache_size();
-        $memory_usage = round(($memory_used / $total_memory) * 100, 2);
+        $memory_usage = $total_memory > 0 ? round(($memory_used / $total_memory) * 100, 2) : 0;
 
         $panels = [
             [
@@ -42,7 +42,7 @@ trait RealpathTrait {
      * @return array<int, array<string, string|int>>
      */
     private function getAllKeys(): array {
-        static $keys = [];
+        $keys = [];
         $search = Http::get('s', '');
 
         $this->template->addGlobal('search_value', $search);

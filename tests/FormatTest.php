@@ -20,6 +20,9 @@ final class FormatTest extends TestCase {
         $this->assertSame(10_240, Format::iniSizeToBytes('10K'));
         $this->assertSame(10_485_760, Format::iniSizeToBytes('10M'));
         $this->assertSame(10_737_418_240, Format::iniSizeToBytes('10G'));
+        $this->assertSame(10_240, Format::iniSizeToBytes('10k'));
+        $this->assertSame(16_777_216, Format::iniSizeToBytes('16777216'));
+        $this->assertSame(0, Format::iniSizeToBytes('0'));
     }
 
     public function testSeconds(): void {

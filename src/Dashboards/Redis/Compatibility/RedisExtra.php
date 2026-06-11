@@ -17,7 +17,7 @@ trait RedisExtra {
      *
      * @return array<string, array<string, string>>
      */
-    private function parseInfoOutput(string $raw): array {
+    public function parseInfoOutput(string $raw): array {
         $info = [];
         $section = 'server'; // INFO always starts with a section header, just in case
 
@@ -133,7 +133,7 @@ trait RedisExtra {
      *
      * @return array<string, array<string, mixed>>
      */
-    private function aggregatedData(array $aggregated, ?array $combine = null): array {
+    public function aggregatedData(array $aggregated, ?array $combine = null): array {
         $combined_info = [];
 
         foreach ($aggregated as $section_name => $section_data) {
@@ -162,7 +162,7 @@ trait RedisExtra {
      * @param list<mixed>       $values
      * @param list<string>|null $combine
      */
-    private function combineValues(string $key, array $values, ?array $combine): mixed {
+    public function combineValues(string $key, array $values, ?array $combine): mixed {
         $unique = array_unique($values);
 
         if (count($unique) === 1) {

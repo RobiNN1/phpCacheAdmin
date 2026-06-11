@@ -196,6 +196,92 @@ abstract class RedisTestCase extends TestCase {
      */
     public function testGetInfo(): void {
         $this->assertArrayHasKey('redis_version', $this->redis->getInfo('server'));
+
+        foreach ($this->redis->getInfo('keyspace') as $db => $entry) {
+            $this->assertMatchesRegularExpression('/^db\d+$/', $db);
+
+            if (is_string($entry)) { // an array of strings in cluster mode
+                $this->assertStringContainsString('keys=', $entry);
+            }
+        }
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testParseInfoOutput(): void {
+        $parsed = $this->redis->parseInfoOutput("# Server\r\nredis_version:1.0.0\r\n\r\n# Keyspace\ndb0:keys=5,expires=0,avg_ttl=0\n");
+
+        $this->assertSame('1.0.0', $parsed['server']['redis_version']);
+        $this->assertSame('keys=5,expires=0,avg_ttl=0', $parsed['keyspace']['db0']);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testClusterValueAggregation(): void {
+        $this->assertSame('8.0.0', $this->redis->combineValues('redis_version', ['8.0.0', '8.0.0'], null)); // identical values collapse
+        $this->assertSame(30, $this->redis->combineValues('used_memory', [10, 20], ['used_memory'])); // listed keys are summed
+        $this->assertSame(1.5, $this->redis->combineValues('mem_fragmentation_ratio', [1.0, 2.0], null)); // averaged
+        $this->assertSame(20, $this->redis->combineValues('used_memory_peak', [10, 20], null)); // highest value
+        $this->assertSame([10, 20], $this->redis->combineValues('unknown_key', [10, 20], null)); // kept per node
+
+        $result = $this->redis->aggregatedData([
+            'stats'    => ['keyspace_hits' => [1, 2]],
+            'keyspace' => ['db0' => ['keys=1', 'keys=2']],
+        ], ['keyspace_hits']);
+
+        $this->assertSame(3, $result['stats']['keyspace_hits']);
+        $this->assertSame(['keys=1', 'keys=2'], $result['keyspace']['db0']); // keyspace stays per node
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testScanKeys(): void {
+        for ($i = 0; $i < 50; $i++) {
+            $this->redis->set('pu-scan:'.$i, 'value');
+        }
+
+        // SCAN batches can overshoot, the limit must still be honored.
+        $this->assertCount(10, $this->redis->scanKeys('pu-scan:*', 10));
+
+        $all = $this->redis->scanKeys('pu-scan:*', 1000);
+        $this->assertCount(50, $all);
+        $this->assertContains('pu-scan:25', $all);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testDeleteSubKey(): void {
+        $this->saveData(['rtype' => 'hash', 'key' => 'pu-del-hash', 'value' => 'v1', 'hash_key' => 'f1']);
+        $this->saveData(['rtype' => 'hash', 'key' => 'pu-del-hash', 'value' => 'v2', 'hash_key' => 'f2']);
+        $this->dashboard->deleteSubKey('hash', 'pu-del-hash', 'f1');
+        $this->assertSame(['f2' => 'v2'], $this->dashboard->getAllKeyValues('hash', 'pu-del-hash'));
+
+        foreach (['a', 'b', 'c'] as $value) {
+            $this->saveData(['rtype' => 'list', 'key' => 'pu-del-list', 'value' => $value, 'index' => '']);
+        }
+
+        $this->dashboard->deleteSubKey('list', 'pu-del-list', 1);
+        $this->assertSame(['a', 'c'], $this->dashboard->getAllKeyValues('list', 'pu-del-list'));
+
+        $this->saveData(['rtype' => 'set', 'key' => 'pu-del-set', 'value' => 'm1']);
+        $this->saveData(['rtype' => 'set', 'key' => 'pu-del-set', 'value' => 'm2']);
+        $this->dashboard->deleteSubKey('set', 'pu-del-set', 0); // members are addressed by their position
+        $this->assertCount(1, $this->dashboard->getAllKeyValues('set', 'pu-del-set'));
+
+        $this->saveData(['rtype' => 'zset', 'key' => 'pu-del-zset', 'value' => 'm1', 'score' => 1]);
+        $this->saveData(['rtype' => 'zset', 'key' => 'pu-del-zset', 'value' => 'm2', 'score' => 2]);
+        $this->dashboard->deleteSubKey('zset', 'pu-del-zset', 0); // ranges are sorted by score
+        $this->assertSame(['m2'], $this->dashboard->getAllKeyValues('zset', 'pu-del-zset'));
+
+        $this->saveData(['rtype' => 'stream', 'key' => 'pu-del-stream', 'value' => '{"f":"1"}', 'stream_id' => '*']);
+        $this->saveData(['rtype' => 'stream', 'key' => 'pu-del-stream', 'value' => '{"f":"2"}', 'stream_id' => '*']);
+        $ids = array_keys($this->dashboard->getAllKeyValues('stream', 'pu-del-stream'));
+        $this->dashboard->deleteSubKey('stream', 'pu-del-stream', $ids[0]);
+        $this->assertCount(1, $this->dashboard->getAllKeyValues('stream', 'pu-del-stream'));
     }
 
     /**

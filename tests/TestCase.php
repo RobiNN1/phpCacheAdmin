@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace Tests;
 
 use JsonException;
+use Random\RandomException;
 use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Template;
 
@@ -42,6 +43,7 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase {
 
     /**
      * @return array<int, mixed>
+     * @throws RandomException
      */
     public static function keysProvider(): array {
         return [
@@ -53,6 +55,9 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase {
             ['gzdeflate', gzdeflate('test'), gzdeflate('test')],
             ['array', ['key1', 'key2'], 'a:2:{i:0;s:4:"key1";i:1;s:4:"key2";}'],
             ['object', (object) ['key1', 'key2'], 'O:8:"stdClass":2:{s:1:"0";s:4:"key1";s:1:"1";s:4:"key2";}'],
+            ['multiline', "line one\r\nline two\r\nline three", "line one\r\nline two\r\nline three"],
+            ['protocol_end', "first\r\nEND\r\nlast", "first\r\nEND\r\nlast"],
+            ['binary_large', $binary = random_bytes(100_000), $binary], // forces multi-chunk socket reads
         ];
     }
 

@@ -175,6 +175,42 @@ final class MemcachedTest extends TestCase {
     }
 
     /**
+     * @throws MemcachedException
+     */
+    public function testGetAllKeysSearchWithEncodedName(): void {
+        $key = 'pu:colon:search-key';
+        $this->memcached->set($key, 'data');
+
+        $_GET['s'] = 'pu:colon';
+        $lines = $this->dashboard->getAllKeys();
+        unset($_GET['s']);
+
+        $this->assertCount(1, $lines);
+        $this->assertStringContainsString('key='.urlencode($key), $lines[0]);
+
+        $this->memcached->delete($key);
+    }
+
+    /**
+     * @throws MemcachedException
+     */
+    public function testGetKeyMeta(): void {
+        $key = 'pu-test-meta';
+        $this->memcached->set($key, 'some-value', 120);
+
+        $meta = $this->memcached->getKeyMeta($key);
+
+        $this->assertGreaterThan(0, $meta['size']);
+        $this->assertGreaterThan(0, $meta['exp']);
+        $this->assertLessThanOrEqual(120, $meta['exp']);
+
+        $this->memcached->set($key, 'some-value');
+        $this->assertSame(-1, $this->memcached->getKeyMeta($key)['exp']);
+
+        $this->memcached->delete($key);
+    }
+
+    /**
      * @return Iterator<array<int, string>>
      */
     public static function commandDataProvider(): Iterator {

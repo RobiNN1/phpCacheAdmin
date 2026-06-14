@@ -118,14 +118,18 @@ class Helpers {
     }
 
     public static function import(callable $exists, callable $store): void {
+        if (!isset($_FILES['import']) || $_FILES['import']['error'] !== UPLOAD_ERR_OK) {
+            return;
+        }
+
         if ($_FILES['import']['type'] === 'application/json') {
             $file = file_get_contents($_FILES['import']['tmp_name']);
 
             try {
                 $json = json_decode($file, true, 512, JSON_THROW_ON_ERROR);
 
-                foreach ($json as $data) {
-                    if (!$exists($data['key'])) {
+                foreach ((array) $json as $data) {
+                    if (is_array($data) && isset($data['key'], $data['value'], $data['ttl']) && !$exists($data['key'])) {
                         $store($data['key'], $data['value'], (int) $data['ttl']);
                     }
                 }

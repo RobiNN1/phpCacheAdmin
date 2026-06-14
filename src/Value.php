@@ -84,6 +84,10 @@ class Value {
 
         $converters = (array) Config::get('converters', []);
 
+        if (!isset($converters[$converter][$type])) {
+            return $value;
+        }
+
         // $type can be view (decode) or save (encode)
         if (
             is_callable($converters[$converter][$type]) &&

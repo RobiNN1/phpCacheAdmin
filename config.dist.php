@@ -92,7 +92,7 @@ return [
 
         if (
             !isset($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']) ||
-            $_SERVER['PHP_AUTH_USER'] !== $username || $_SERVER['PHP_AUTH_PW'] !== $password
+            !hash_equals($username, $_SERVER['PHP_AUTH_USER']) || !hash_equals($password, $_SERVER['PHP_AUTH_PW'])
         ) {
             header('WWW-Authenticate: Basic realm="phpCacheAdmin Login"');
             header('HTTP/1.0 401 Unauthorized');

@@ -12,15 +12,21 @@ const ajax = (endpoint, callback, data = null, send_json = true) => {
         const csrf_token = csrf_meta ? encodeURIComponent(csrf_meta.content) : '';
 
         if (send_json) {
-            data = `${endpoint}=${JSON.stringify(data)}&csrf_token=${csrf_token}`;
+            data = `${endpoint}=${encodeURIComponent(JSON.stringify(data))}&csrf_token=${csrf_token}`;
         } else {
             data = Object.keys(data).map(key => encodeURIComponent(key) + '=' + encodeURIComponent(data[key])).join('&');
             data += `&csrf_token=${csrf_token}`;
         }
     }
 
-    request.onload = callback;
+    request.onload = () => callback(request);
     request.send(data);
+};
+
+const ajax_ok = (request) => request.status >= 200 && request.status < 400;
+
+const set_alerts = (html) => {
+    document.getElementById('alerts').innerHTML = html;
 };
 
 const query_params = (params) => {
@@ -63,24 +69,27 @@ if (delete_selected) {
             return;
         }
 
-        let selected_keys = [];
+        const treeview = document.querySelector('.treeview');
+        const selected_keys = [];
 
         document.querySelectorAll('.check-key:checked').forEach(checkbox => {
-            let parent = checkbox.parentElement.parentElement;
+            const parent = checkbox.parentElement.parentElement;
             selected_keys.push(parent.dataset.key);
 
-            const treeview = document.querySelector('.treeview');
             if (treeview) {
                 parent.closest('.keywrapper').remove();
-                update_folder_counts();
             } else {
                 parent.remove();
             }
         });
 
-        ajax('delete', function (request) {
-            if (this.status >= 200 && this.status < 400) {
-                document.getElementById('alerts').innerHTML = request.currentTarget.response;
+        if (treeview) {
+            update_folder_counts();
+        }
+
+        ajax('delete', (request) => {
+            if (ajax_ok(request)) {
+                set_alerts(request.response);
             }
 
             delete_selected.disabled = true;
@@ -104,9 +113,9 @@ keys.forEach(key => {
                 return;
             }
 
-            ajax('delete', function (request) {
-                if (this.status >= 200 && this.status < 400) {
-                    document.getElementById('alerts').innerHTML = request.currentTarget.response;
+            ajax('delete', (request) => {
+                if (ajax_ok(request)) {
+                    set_alerts(request.response);
 
                     const treeview = document.querySelector('.treeview');
                     if (treeview) {
@@ -128,9 +137,9 @@ if (delete_all) {
             return;
         }
 
-        ajax('deleteall', function (request) {
-            if (this.status >= 200 && this.status < 400) {
-                document.getElementById('alerts').innerHTML = request.currentTarget.response;
+        ajax('deleteall', (request) => {
+            if (ajax_ok(request)) {
+                set_alerts(request.response);
 
                 const treeview = document.querySelector('.treeview');
                 if (treeview) {
@@ -255,9 +264,9 @@ const update_panel_data = (panel_element, key, value) => {
 };
 
 const refresh_panels = () => {
-    ajax('panels', function (request) {
-        if (request.currentTarget.status >= 200 && request.currentTarget.status < 400) {
-            const data = JSON.parse(request.currentTarget.response);
+    ajax('panels', (request) => {
+        if (ajax_ok(request)) {
+            const data = JSON.parse(request.response);
 
             for (const section_key in data) {
                 const panel_element = document.getElementById(section_key + '_panel');
@@ -463,7 +472,10 @@ const update_theme = () => {
     document.documentElement.classList.toggle('dark', current_theme === 'dark');
 
     const theme_colors = {light: '#fff', dark: '#1f2937'};
-    document.querySelector("meta[name='theme-color']").content = theme_colors[current_theme];
+    const theme_color_meta = document.querySelector("meta[name='theme-color']");
+    if (theme_color_meta) {
+        theme_color_meta.content = theme_colors[current_theme];
+    }
 };
 
 const init_theme_switcher = () => {
@@ -680,19 +692,19 @@ const charts_theme = (chart_config, callback) => {
 };
 
 const fetch_metrics = (callback) => {
-    ajax('metrics', function (request) {
-        if (request.currentTarget.status >= 200 && request.currentTarget.status < 400) {
-            const content_type = request.currentTarget.getResponseHeader('content-type');
-            const response_text = request.currentTarget.responseText;
+    ajax('metrics', (request) => {
+        if (ajax_ok(request)) {
+            const content_type = request.getResponseHeader('content-type');
+            const response_text = request.responseText;
 
             if (content_type && content_type.includes('application/json')) {
                 callback(JSON.parse(response_text));
-                document.getElementById('alerts').innerHTML = '';
+                set_alerts('');
             } else {
-                document.getElementById('alerts').innerHTML = response_text;
+                set_alerts(response_text);
             }
         } else {
-            document.getElementById('alerts').innerHTML = `Server responded with status ${request.currentTarget.status}`;
+            set_alerts(`Server responded with status ${request.status}`);
         }
     }, {filter: metrics_active_filter}, false);
 };

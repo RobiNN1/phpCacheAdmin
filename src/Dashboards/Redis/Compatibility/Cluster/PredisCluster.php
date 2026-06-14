@@ -51,6 +51,10 @@ class PredisCluster extends PredisClient implements RedisCompatibilityInterface 
 
         if (isset($server['password'])) {
             $cluster_options['parameters']['password'] = $server['password'];
+
+            if (isset($server['username'])) {
+                $cluster_options['parameters']['username'] = $server['username'];
+            }
         }
 
         try {

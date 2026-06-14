@@ -189,15 +189,25 @@ class PredisCluster extends PredisClient implements RedisCompatibilityInterface 
             return [];
         }
 
+        $results = $this->pipeline(static function ($pipe) use ($keys, $script_sha): void {
+            foreach ($keys as $key) {
+                $pipe->evalsha($script_sha, 1, $key);
+            }
+        });
+
+        if (!is_array($results)) {
+            return [];
+        }
+
         $data = [];
 
-        foreach ($keys as $key) {
-            $results = $this->evalsha($script_sha, 1, $key);
+        foreach (array_values($keys) as $i => $key) {
+            $result = $results[$i] ?? null;
 
-            if (is_array($results) && count($results) >= 3) {
+            if (is_array($result) && count($result) >= 3) {
                 $data[$key] = [
-                    'ttl'   => $results[0], 'type' => $results[1], 'size' => $results[2] ?? 0,
-                    'count' => isset($results[3]) && is_numeric($results[3]) ? (int) $results[3] : null,
+                    'ttl'   => $result[0], 'type' => $result[1], 'size' => $result[2] ?? 0,
+                    'count' => isset($result[3]) && is_numeric($result[3]) ? (int) $result[3] : null,
                 ];
             }
         }

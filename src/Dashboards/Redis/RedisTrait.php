@@ -345,6 +345,7 @@ trait RedisTrait {
             'formatted'      => $is_formatted,
             'add_subkey_url' => Http::queryString([], ['form' => 'new', 'key' => $key]),
             'edit_url'       => Http::queryString([], ['form' => 'edit', 'key' => $key]),
+            'view_url'       => Http::queryString([], ['view' => 'key', 'key' => $key]),
             'export_url'     => Http::queryString(['view', 'p', 'key'], ['export' => 'key']),
             'paginator'      => $paginator,
             'types'          => $this->typesTplOptions(),

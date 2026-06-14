@@ -52,6 +52,10 @@ class APCuDashboard implements DashboardInterface {
             return Helpers::getPanelsJson($this->getPanelsData());
         }
 
+        if (isset($_GET['view'], $_GET['key'])) {
+            return $this->viewKey();
+        }
+
         if (isset($_GET['deleteall'])) {
             if (!Csrf::validateToken(Http::post('csrf_token', ''))) {
                 return Helpers::alert($this->template, 'Invalid CSRF token.', 'error');

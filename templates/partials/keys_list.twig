@@ -90,3 +90,14 @@
     </div>
     <div class="py-4 px-6">{{ paginator|raw }}</div>
 </div>
+
+{% if config('keymodal', false) %}
+    {{ include('components/modal.twig', {modal_id: 'view-key-modal', title: '', content: '', wide: true}) }}
+
+    <template id="view-key-loading">
+        <div class="p-4 text-center text-gray-500 dark:text-gray-400">Loading...</div>
+    </template>
+    <template id="view-key-error">
+        <div class="p-4 text-center text-red-500">Failed to load the key.</div>
+    </template>
+{% endif %}

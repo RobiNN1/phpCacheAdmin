@@ -147,7 +147,8 @@ return [
     'timeformat'     => 'd. m. Y H:i:s',
     'decimalsep'     => ',',
     'thousandssep'   => ' ',
-    'listview'       => 'table', // table/tree - default key list view.
+    'listview'       => 'table', // table/tree - default key list view
+    'keymodal'       => false, // Open the key view in a modal instead of a separate page - default false
     'panelrefresh'   => 30, // In seconds, refresh interval for panels - default 30
     'metricsrefresh' => 60, // In seconds, refresh interval for metrics - default 60
     'metricstab'     => '1d', // Default tab in metrics, 1h - Last hour, 1d - Last day, 1w - Last week, 1m - Last month - default 1d

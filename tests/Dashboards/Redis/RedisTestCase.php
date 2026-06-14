@@ -81,6 +81,16 @@ abstract class RedisTestCase extends TestCase {
         $this->assertStringNotContainsString('"error"', $panels);
         unset($_GET['panels']);
 
+        $view_key = 'pu-test-ajax-view';
+        $this->redis->set($view_key, 'view-data');
+        $_GET['view'] = 'key';
+        $_GET['key'] = $view_key;
+        $rendered = $this->dashboard->ajax();
+        $this->assertStringContainsString($view_key, $rendered);
+        $this->assertStringContainsString('view-data', $rendered);
+        unset($_GET['view'], $_GET['key']);
+        $this->redis->del($view_key);
+
         $key = 'pu-test-ajax';
         $this->redis->set($key, 'data');
 

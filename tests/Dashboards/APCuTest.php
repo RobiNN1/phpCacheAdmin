@@ -179,6 +179,16 @@ final class APCuTest extends TestCase {
         $this->assertStringNotContainsString('"error"', $panels);
         unset($_GET['panels']);
 
+        $view_key = 'pu-test-ajax-view';
+        apcu_store($view_key, 'view-data');
+        $_GET['view'] = 'key';
+        $_GET['key'] = $view_key;
+        $rendered = $this->dashboard->ajax();
+        $this->assertStringContainsString($view_key, $rendered);
+        $this->assertStringContainsString('view-data', $rendered);
+        unset($_GET['view'], $_GET['key']);
+        apcu_delete($view_key);
+
         $key = 'pu-test-ajax';
         apcu_store($key, 'data');
 

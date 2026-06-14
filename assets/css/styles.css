@@ -1,4 +1,4 @@
-/*! tailwindcss v4.3.0 | MIT License | https://tailwindcss.com */
+/*! tailwindcss v4.3.1 | MIT License | https://tailwindcss.com */
 @layer properties;
 @layer theme, base, components, utilities;
 @layer theme {
@@ -178,7 +178,7 @@
     position: relative;
   }
   .inset-0 {
-    inset: calc(0.25rem * 0);
+    inset: 0;
   }
   .top-5 {
     top: calc(0.25rem * 5);
@@ -199,7 +199,10 @@
     margin: calc(0.25rem * -4);
   }
   .m-1 {
-    margin: calc(0.25rem * 1);
+    margin: 0.25rem;
+  }
+  .mx-4 {
+    margin-inline: calc(0.25rem * 4);
   }
   .my-4 {
     margin-block: calc(0.25rem * 4);
@@ -208,7 +211,7 @@
     margin-top: calc(0.25rem * -1.5);
   }
   .mt-0 {
-    margin-top: calc(0.25rem * 0);
+    margin-top: 0;
   }
   .mr-3 {
     margin-right: calc(0.25rem * 3);
@@ -256,6 +259,9 @@
   .h-90 {
     height: calc(0.25rem * 90);
   }
+  .max-h-\[85vh\] {
+    max-height: 85vh;
+  }
   .min-h-screen {
     min-height: 100vh;
   }
@@ -280,6 +286,9 @@
   .w-full {
     width: 100%;
   }
+  .max-w-6xl {
+    max-width: 72rem;
+  }
   .max-w-lg {
     max-width: 32rem;
   }
@@ -287,7 +296,7 @@
     max-width: 20rem;
   }
   .min-w-0 {
-    min-width: calc(0.25rem * 0);
+    min-width: 0;
   }
   .flex-1 {
     flex: 1;
@@ -329,7 +338,7 @@
     justify-content: flex-end;
   }
   .gap-1 {
-    gap: calc(0.25rem * 1);
+    gap: 0.25rem;
   }
   .gap-2 {
     gap: calc(0.25rem * 2);
@@ -512,7 +521,7 @@
     padding-inline: calc(0.25rem * 6);
   }
   .py-1 {
-    padding-block: calc(0.25rem * 1);
+    padding-block: 0.25rem;
   }
   .py-1\.5 {
     padding-block: calc(0.25rem * 1.5);
@@ -530,7 +539,7 @@
     padding-block: 0.4rem;
   }
   .pe-1 {
-    padding-inline-end: calc(0.25rem * 1);
+    padding-inline-end: 0.25rem;
   }
   .pe-5 {
     padding-inline-end: calc(0.25rem * 5);

@@ -125,6 +125,7 @@ trait APCuTrait {
             'encode_fn'  => $encode_fn,
             'formatted'  => $is_formatted,
             'edit_url'   => Http::queryString(['ttl'], ['form' => 'edit', 'key' => $key]),
+            'view_url'   => Http::queryString(['ttl'], ['view' => 'key', 'key' => $key]),
             'export_url' => Http::queryString(['ttl', 'view', 'p', 'key'], ['export' => 'key']),
         ]);
     }

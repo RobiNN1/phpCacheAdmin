@@ -1,21 +1,23 @@
-{{ include('components/button.twig', open_btn|merge({attributes: {'data-modal-target': '#' ~ modal_id}})) }}
+{% if open_btn is defined %}
+    {{ include('components/button.twig', open_btn|merge({attributes: {'data-modal-target': '#' ~ modal_id}})) }}
+{% endif %}
 
-{% macro modal(modal_id, title, content) %}
+{% macro modal(modal_id, title, content, wide = false) %}
     <div id="{{ modal_id }}" class="modal flex fixed inset-0 z-50 justify-center items-center opacity-0 transition-opacity duration-300 pointer-events-none">
         <div class="fixed inset-0 modal-backdrop bg-gray-500/75 dark:bg-gray-900/75"></div>
 
-        <div class="relative bg-white rounded-md shadow-sm dark:bg-gray-700">
-            <div class="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-600 md:min-w-[35rem]">
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ title }}</h3>
+        <div class="flex relative flex-col bg-white rounded-md shadow-sm dark:bg-gray-700{{ wide ? ' mx-4 w-full max-w-6xl max-h-[85vh]' : '' }}">
+            <div class="flex gap-4 justify-between items-center p-4 border-b border-gray-200 dark:border-gray-600{{ wide ? '' : ' md:min-w-[35rem]' }}">
+                <h3 id="{{ modal_id }}-title" class="text-lg font-semibold break-all text-gray-900 dark:text-white">{{ title }}</h3>
 
-                <button data-modal-dismiss type="button" class="inline-flex justify-center items-center text-sm text-gray-400 cursor-pointer hover:text-gray-900 dark:hover:text-white">
+                <button data-modal-dismiss type="button" class="inline-flex shrink-0 justify-center items-center text-sm text-gray-400 cursor-pointer hover:text-gray-900 dark:hover:text-white">
                     {{ svg('close', 13) }}
                 </button>
             </div>
 
-            <div class="p-4">{{ content|raw }}</div>
+            <div id="{{ modal_id }}-content" class="overflow-y-auto p-4">{{ content|raw }}</div>
         </div>
     </div>
 {% endmacro %}
 
-{{ add_global('modals', _self.modal(modal_id, title, content)) }}
+{{ add_global('modals', _self.modal(modal_id, title, content, wide ?? false)) }}

@@ -498,8 +498,30 @@ init_theme_switcher();
  * Modal
  */
 class Modal {
+    static #open_count = 0;
+
+    static #lock_body_scroll() {
+        if (Modal.#open_count === 0) {
+            const scrollbar_width = window.innerWidth - document.documentElement.clientWidth;
+            if (scrollbar_width > 0) {
+                document.body.style.paddingRight = scrollbar_width + 'px';
+            }
+            document.body.classList.add('overflow-hidden');
+        }
+        Modal.#open_count++;
+    }
+
+    static #unlock_body_scroll() {
+        Modal.#open_count = Math.max(0, Modal.#open_count - 1);
+        if (Modal.#open_count === 0) {
+            document.body.classList.remove('overflow-hidden');
+            document.body.style.paddingRight = '';
+        }
+    }
+
     constructor(element) {
         this.element = element;
+        this.is_open = false;
         this.open_buttons = document.querySelectorAll(`[data-modal-target='#${element.id}']`);
         this.close_buttons = element.querySelectorAll('[data-modal-dismiss]');
         this.backdrop = element.querySelector('.modal-backdrop');
@@ -518,12 +540,24 @@ class Modal {
     }
 
     open() {
+        if (this.is_open) {
+            return;
+        }
+
+        this.is_open = true;
         this.element.classList.remove('pointer-events-none', 'opacity-0');
+        Modal.#lock_body_scroll();
         document.addEventListener('keydown', this.escapeHandler);
     }
 
     close() {
+        if (!this.is_open) {
+            return;
+        }
+
+        this.is_open = false;
         this.element.classList.add('pointer-events-none', 'opacity-0');
+        Modal.#unlock_body_scroll();
         document.removeEventListener('keydown', this.escapeHandler);
     }
 
@@ -533,7 +567,54 @@ class Modal {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('.modal').forEach(modal => new Modal(modal));
+    const modals = {};
+    document.querySelectorAll('.modal').forEach(modal => {
+        modals[modal.id] = new Modal(modal);
+    });
+
+    /**
+     * View key in a modal
+     */
+    const view_key_modal = modals['view-key-modal'];
+    const view_key_content = document.getElementById('view-key-modal-content');
+
+    if (view_key_modal && view_key_content) {
+        const view_key_title = document.getElementById('view-key-modal-title');
+        const loading_template = document.getElementById('view-key-loading');
+        const error_template = document.getElementById('view-key-error');
+
+        const load_key = (href) => {
+            view_key_title.textContent = '';
+            view_key_content.innerHTML = loading_template.innerHTML;
+            view_key_modal.open();
+
+            fetch(href + (href.includes('?') ? '&' : '?') + 'ajax')
+                .then(response => response.text())
+                .then(html => {
+                    view_key_content.innerHTML = html;
+
+                    // Move the key name into the modal header.
+                    const name = view_key_content.querySelector('.view-key-name');
+                    if (name) {
+                        view_key_title.textContent = name.textContent;
+                        name.remove();
+                    }
+                })
+                .catch(() => {
+                    view_key_content.innerHTML = error_template.innerHTML;
+                });
+        };
+
+        document.addEventListener('click', (e) => {
+            const link = e.target.closest('[data-view-key]');
+            if (!link) {
+                return;
+            }
+
+            e.preventDefault();
+            load_key(link.getAttribute('href'));
+        });
+    }
 });
 
 /**

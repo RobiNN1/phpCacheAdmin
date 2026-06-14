@@ -206,7 +206,9 @@ class PredisCluster extends PredisClient implements RedisCompatibilityInterface 
 
             if (is_array($result) && count($result) >= 3) {
                 $data[$key] = [
-                    'ttl'   => $result[0], 'type' => $result[1], 'size' => $result[2] ?? 0,
+                    'ttl'   => $result[0],
+                    'type'  => $result[1],
+                    'size'  => $result[2] ?? 0,
                     'count' => isset($result[3]) && is_numeric($result[3]) ? (int) $result[3] : null,
                 ];
             }

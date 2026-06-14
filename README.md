@@ -80,6 +80,9 @@ Memcached `https://example.com/phpCacheAdmin/?dashboard=memcached&server=0&ajax&
 
 Metrics are collected whenever this link is refreshed, so you can set any time in the cronjob.
 
+If you have authentication enabled, set `authtoken` in `config.php` and append `&token=your-secret-token`
+to the cronjob URL so it can collect metrics without a login session.
+
 ## Environment variables
 
 All keys from the [config](https://github.com/RobiNN1/phpCacheAdmin/blob/master/config.dist.php) file are supported ENV variables,

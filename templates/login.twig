@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Login - phpCacheAdmin</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ config('pcapath', '') }}assets/favicon.png">
+    <link rel="stylesheet" href="{{ config('pcapath', '') }}assets/css/styles.css?v={{ version }}">
+    <script>
+        const theme = localStorage.getItem('theme') || 'system';
+        let current_theme = theme;
+
+        if (theme === 'system') {
+            current_theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+
+        document.documentElement.classList.toggle('dark', current_theme === 'dark');
+    </script>
+</head>
+<body class="flex justify-center items-center p-4 min-h-screen text-gray-900 bg-gray-100 dark:text-gray-200 dark:bg-gray-900">
+<div class="p-8 w-full max-w-sm bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+    <a class="block mx-auto mb-6 w-48" href="{{ config('url', '/') }}">{{ svg('logo', null) }}</a>
+
+    {% if error %}
+        <div class="p-3 mb-4 text-sm text-white bg-red-500 rounded-sm">{{ error }}</div>
+    {% endif %}
+
+    <form method="post" action="">
+        <input type="hidden" name="csrf_token" value="{{ csrf }}">
+
+        <div class="mb-4">
+            <label for="username" class="block mb-2 text-sm font-semibold">Username</label>
+            <input type="text" id="username" name="username" autofocus required autocomplete="username"
+                   class="block py-2 px-4 w-full text-sm bg-white rounded-sm border border-gray-300 focus:outline-hidden focus:ring-3 focus:ring-primary-200 focus:border-primary-300 dark:text-white dark:bg-gray-800 dark:border-gray-600 dark:focus:ring-primary-500 dark:focus:border-primary-400">
+        </div>
+
+        <div class="mb-4">
+            <label for="password" class="block mb-2 text-sm font-semibold">Password</label>
+            <input type="password" id="password" name="password" required autocomplete="current-password"
+                   class="block py-2 px-4 w-full text-sm bg-white rounded-sm border border-gray-300 focus:outline-hidden focus:ring-3 focus:ring-primary-200 focus:border-primary-300 dark:text-white dark:bg-gray-800 dark:border-gray-600 dark:focus:ring-primary-500 dark:focus:border-primary-400">
+        </div>
+
+        <button type="submit" name="pca_login" value="1"
+                class="py-2 px-4 w-full font-semibold text-white rounded-sm cursor-pointer bg-primary-500 hover:bg-primary-600">
+            Sign in
+        </button>
+    </form>
+</div>
+</body>
+</html>

@@ -87,6 +87,7 @@ class Http {
     public static function redirect(array $preserve = [], array $additional = []): void {
         if (self::$stop_redirect === false) {
             $location = self::queryString($preserve, $additional);
+            $location = $location !== '' ? $location : '?';
 
             if (!headers_sent()) {
                 header('Location: '.$location);

@@ -31,11 +31,6 @@ if (is_file(__DIR__.'/vendor/autoload.php')) {
     autoload($path);
 }
 
-$auth = false;
+RobiNN\Pca\Auth::check();
 
-if (is_callable(RobiNN\Pca\Config::get('auth'))) {
-    RobiNN\Pca\Config::get('auth')();
-    $auth = true;
-}
-
-echo (new RobiNN\Pca\Admin())->render($auth);
+echo (new RobiNN\Pca\Admin())->render();

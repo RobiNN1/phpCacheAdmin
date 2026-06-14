@@ -204,6 +204,9 @@
   .mx-4 {
     margin-inline: calc(0.25rem * 4);
   }
+  .mx-auto {
+    margin-inline: auto;
+  }
   .my-4 {
     margin-block: calc(0.25rem * 4);
   }
@@ -224,6 +227,9 @@
   }
   .mb-4 {
     margin-bottom: calc(0.25rem * 4);
+  }
+  .mb-6 {
+    margin-bottom: calc(0.25rem * 6);
   }
   .block {
     display: block;
@@ -280,6 +286,9 @@
   .w-44 {
     width: calc(0.25rem * 44);
   }
+  .w-48 {
+    width: calc(0.25rem * 48);
+  }
   .w-72 {
     width: calc(0.25rem * 72);
   }
@@ -291,6 +300,9 @@
   }
   .max-w-lg {
     max-width: 32rem;
+  }
+  .max-w-sm {
+    max-width: 24rem;
   }
   .max-w-xs {
     max-width: 20rem;
@@ -505,8 +517,14 @@
   .bg-white {
     background-color: #fff;
   }
+  .p-3 {
+    padding: calc(0.25rem * 3);
+  }
   .p-4 {
     padding: calc(0.25rem * 4);
+  }
+  .p-8 {
+    padding: calc(0.25rem * 8);
   }
   .px-2 {
     padding-inline: calc(0.25rem * 2);

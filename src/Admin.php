@@ -42,7 +42,7 @@ class Admin {
         return array_key_exists($current, $this->dashboards) ? $current : array_key_first($this->dashboards);
     }
 
-    public function render(bool $auth): string {
+    public function render(): string {
         $nav = array_map(static fn (DashboardInterface $d_dashboard): array => $d_dashboard->dashboardInfo(), $this->dashboards);
 
         $current = $this->currentDashboard();
@@ -67,7 +67,7 @@ class Admin {
             'colors'     => $colors,
             'site_title' => $info['title'],
             'nav'        => $nav,
-            'logout_url' => $auth ? Http::queryString([], ['logout' => 'yes']) : null,
+            'logout_url' => Auth::isEnabled() ? Http::queryString([], ['logout' => 'yes']) : null,
             'version'    => self::VERSION,
             'repo'       => 'https://github.com/RobiNN1/phpCacheAdmin',
             'dashboard'  => $dashboard->dashboard(),

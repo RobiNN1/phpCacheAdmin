@@ -63,42 +63,12 @@ return [
             //'extension' => true, // Enable Memcached extension only for get and set operations (optional).
         ],
     ],
-    'apcuseparator' => ':', // Separator for tree view (optional).
-    // Example of authentication with http auth.
-    /*'auth'           => static function (): void {
-        $username = 'admin';
-        $password = 'pass';
-
-        if (isset($_GET['logout'])) {
-            setcookie('auth_reset', '1', time() + 60, '/');
-
-            $clean_uri = strtok($_SERVER['REQUEST_URI'], '?');
-            $is_https = (
-                (isset($_SERVER['HTTPS']) && ($_SERVER['HTTPS'] === 'on' || $_SERVER['HTTPS'] === 1)) ||
-                (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https')
-            );
-
-            header('Location: http'.($is_https ? 's' : '').'://'.$_SERVER['HTTP_HOST'].$clean_uri);
-            exit;
-        }
-
-        if (isset($_COOKIE['auth_reset'])) {
-            setcookie('auth_reset', '', time() - 3600, '/');
-
-            header('WWW-Authenticate: Basic realm="phpCacheAdmin Login"');
-            header('HTTP/1.0 401 Unauthorized');
-            exit('You have been logged out.');
-        }
-
-        if (
-            !isset($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']) ||
-            !hash_equals($username, $_SERVER['PHP_AUTH_USER']) || !hash_equals($password, $_SERVER['PHP_AUTH_PW'])
-        ) {
-            header('WWW-Authenticate: Basic realm="phpCacheAdmin Login"');
-            header('HTTP/1.0 401 Unauthorized');
-            exit('Incorrect username or password!');
-        }
-    },*/
+    'apcuseparator'  => ':', // Separator for tree view (optional).
+    'authusers'      => [
+        // Auth is enabled when at least one user is defined. Leave it commented out (or empty) to disable.
+        //'admin' => 'your-password',
+    ],
+    'authtoken'      => 'your-secret-token', // Append &token=your-secret-token to the cronjob URL when auth is enabled.
     // Decoding / Encoding functions
     'converters'     => [
         'gzcompress' => [

@@ -263,6 +263,31 @@ trait RedisTrait {
     }
 
     /**
+     * @param array<int, array{0: int|string, 1: mixed}> $pairs
+     *
+     * @return array<int, array{0: int|string, 1: mixed}>
+     *
+     * @throws JsonException
+     */
+    private function filterSubItems(array $pairs, string $search): array {
+        $search = mb_strtolower($search);
+
+        $filtered = array_filter($pairs, static function (array $pair) use ($search): bool {
+            [$item_key, $item_value] = $pair;
+
+            if (is_array($item_value)) {
+                $item_value = json_encode($item_value, JSON_THROW_ON_ERROR);
+            }
+
+            $haystack = $item_key.' '.(is_scalar($item_value) ? (string) $item_value : '');
+
+            return str_contains(mb_strtolower($haystack), $search);
+        });
+
+        return array_values($filtered);
+    }
+
+    /**
      * @throws Exception
      */
     private function viewKey(): string {
@@ -292,7 +317,7 @@ trait RedisTrait {
                 };
 
                 $this->deleteSubKey($type, $key, $subkey);
-                Http::redirect(['key', 'view', 'p']);
+                Http::redirect(['key', 'view', 'p', 'subsearch']);
             }
         }
 
@@ -320,6 +345,8 @@ trait RedisTrait {
         $paginator = '';
         $encode_fn = null;
         $is_formatted = null;
+        $subsearch = (string) Http::get('subsearch', '');
+        $total_items = 0;
 
         if (is_array($value)) {
             $pairs = [];
@@ -328,7 +355,13 @@ trait RedisTrait {
                 $pairs[] = [$item_key, $item_value];
             }
 
-            $paginator = new Paginator($this->template, $pairs, [['view', 'key', 'pp'], ['p' => '']]);
+            $total_items = count($pairs);
+
+            if ($subsearch !== '') {
+                $pairs = $this->filterSubItems($pairs, $subsearch);
+            }
+
+            $paginator = new Paginator($this->template, $pairs, [['view', 'key', 'pp', 'subsearch'], ['p' => '']]);
             $value = $this->formatViewItems($key, $paginator->getPaginated(), $type);
             $paginator = $paginator->render();
         } else {
@@ -336,19 +369,21 @@ trait RedisTrait {
         }
 
         return $this->template->render('partials/view_key', [
-            'key'            => $key,
-            'value'          => $value,
-            'type'           => $type,
-            'ttl'            => Format::seconds($ttl),
-            'size'           => Format::bytes($this->redis->size($key)),
-            'encode_fn'      => $encode_fn,
-            'formatted'      => $is_formatted,
-            'add_subkey_url' => Http::queryString([], ['form' => 'new', 'key' => $key]),
-            'edit_url'       => Http::queryString([], ['form' => 'edit', 'key' => $key]),
-            'view_url'       => Http::queryString([], ['view' => 'key', 'key' => $key]),
-            'export_url'     => Http::queryString(['view', 'p', 'key'], ['export' => 'key']),
-            'paginator'      => $paginator,
-            'types'          => $this->typesTplOptions(),
+            'key'             => $key,
+            'value'           => $value,
+            'type'            => $type,
+            'ttl'             => Format::seconds($ttl),
+            'size'            => Format::bytes($this->redis->size($key)),
+            'encode_fn'       => $encode_fn,
+            'formatted'       => $is_formatted,
+            'add_subkey_url'  => Http::queryString([], ['form' => 'new', 'key' => $key]),
+            'edit_url'        => Http::queryString([], ['form' => 'edit', 'key' => $key]),
+            'view_url'        => Http::queryString([], ['view' => 'key', 'key' => $key]),
+            'export_url'      => Http::queryString(['view', 'p', 'key'], ['export' => 'key']),
+            'paginator'       => $paginator,
+            'types'           => $this->typesTplOptions(),
+            'subsearch_value' => $subsearch,
+            'total_items'     => $total_items,
         ]);
     }
 

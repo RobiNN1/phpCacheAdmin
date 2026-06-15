@@ -317,6 +317,38 @@ if (search_form) {
 }
 
 /**
+ * Sub-item search (view a key array)
+ *
+ * Delegated so it also works when the key view is loaded into a modal.
+ * Inside the modal the content is refreshed via ajax instead of navigating away.
+ */
+let view_key_loader = null;
+
+const submit_subsearch = (form) => {
+    const value = document.getElementById('subsearch_key').value;
+    const modal_content = document.getElementById('view-key-modal-content');
+
+    if (view_key_loader && modal_content && modal_content.contains(form)) {
+        view_key_loader(form.dataset.url + (value !== '' ? '&subsearch=' + encodeURIComponent(value) : ''));
+    } else {
+        query_params({p: null, subsearch: value || null});
+    }
+};
+
+document.addEventListener('click', e => {
+    if (e.target.closest('#submit_subsearch')) {
+        submit_subsearch(document.getElementById('subsearch_form'));
+    }
+});
+
+document.addEventListener('keypress', e => {
+    if (e.key === 'Enter' && e.target.id === 'subsearch_key') {
+        e.preventDefault();
+        submit_subsearch(document.getElementById('subsearch_form'));
+    }
+});
+
+/**
  * Table sorting
  */
 document.querySelectorAll('[data-sortcol]').forEach(element => {
@@ -594,8 +626,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const view_key_title = document.getElementById('view-key-modal-title');
         const loading_template = document.getElementById('view-key-loading');
         const error_template = document.getElementById('view-key-error');
+        let current_modal_url = null;
 
         const load_key = (href) => {
+            current_modal_url = href;
             view_key_title.textContent = '';
             view_key_content.innerHTML = loading_template.innerHTML;
             view_key_modal.open();
@@ -616,6 +650,31 @@ document.addEventListener('DOMContentLoaded', () => {
                     view_key_content.innerHTML = error_template.innerHTML;
                 });
         };
+
+        view_key_loader = load_key;
+
+        view_key_content.addEventListener('click', (e) => {
+            const link = e.target.closest('a[href]');
+            if (!link) {
+                return;
+            }
+
+            const params = new URL(link.href, location.href).searchParams;
+
+            if (params.get('view') === 'key' && !params.has('export')) {
+                e.preventDefault();
+                load_key(link.getAttribute('href'));
+            }
+        });
+
+        view_key_content.addEventListener('change', (e) => {
+            if (e.target.id === 'per_page' && current_modal_url) {
+                const url = new URL(current_modal_url, location.href);
+                url.searchParams.set('pp', e.target.value);
+                url.searchParams.delete('p');
+                load_key(url.search);
+            }
+        });
 
         document.addEventListener('click', (e) => {
             const link = e.target.closest('[data-view-key]');

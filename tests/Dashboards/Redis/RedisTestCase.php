@@ -297,6 +297,47 @@ abstract class RedisTestCase extends TestCase {
     /**
      * @throws Exception
      */
+    public function testViewKeySubSearch(): void {
+        $key = 'pu-test-subsearch-hash';
+
+        $this->saveData(['rtype' => 'hash', 'key' => $key, 'hash_key' => 'apple', 'value' => 'redfruit']);
+        $this->saveData(['rtype' => 'hash', 'key' => $key, 'hash_key' => 'banana', 'value' => 'yellowfruit']);
+        $this->saveData(['rtype' => 'hash', 'key' => $key, 'hash_key' => 'carrot', 'value' => 'orangeveg']);
+
+        $_GET['db'] = 10;
+        $_GET['view'] = 'key';
+        $_GET['key'] = $key;
+
+        // The search box is shown for collections with more than one item.
+        $rendered = $this->dashboard->ajax();
+        $this->assertStringContainsString('id="subsearch_key"', $rendered);
+
+        // Match by the subkey (hash field name).
+        $_GET['subsearch'] = 'banana';
+        $rendered = $this->dashboard->ajax();
+        $this->assertStringContainsString('yellowfruit', $rendered);
+        $this->assertStringNotContainsString('redfruit', $rendered);
+        $this->assertStringNotContainsString('orangeveg', $rendered);
+
+        // Match by the value.
+        $_GET['subsearch'] = 'orangeveg';
+        $rendered = $this->dashboard->ajax();
+        $this->assertStringContainsString('orangeveg', $rendered);
+        $this->assertStringNotContainsString('redfruit', $rendered);
+        $this->assertStringNotContainsString('yellowfruit', $rendered);
+
+        // No matches.
+        $_GET['subsearch'] = 'zzzznomatch';
+        $rendered = $this->dashboard->ajax();
+        $this->assertStringContainsString('No items match your search.', $rendered);
+
+        unset($_GET['db'], $_GET['view'], $_GET['key'], $_GET['subsearch']);
+        $this->redis->del($key);
+    }
+
+    /**
+     * @throws Exception
+     */
     public function testStringType(): void {
         $key = 'pu-test-type-string';
 

@@ -31,6 +31,8 @@ if (is_file(__DIR__.'/vendor/autoload.php')) {
     autoload($path);
 }
 
+RobiNN\Pca\Config::loadDotenv($path);
+
 RobiNN\Pca\Auth::check();
 
 echo (new RobiNN\Pca\Admin())->render();

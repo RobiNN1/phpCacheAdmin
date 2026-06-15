@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace RobiNN\Pca;
 
+use Dotenv\Dotenv;
 use JsonException;
 
 class Config {
@@ -29,6 +30,32 @@ class Config {
     public static function reset(): void {
         self::$config = null;
         self::$config_path = null;
+    }
+
+    /**
+     * Load environment variables from .env files.
+     *
+     * Requires vlucas/phpdotenv (composer require vlucas/phpdotenv).
+     *
+     * Real environment variables (e.g., set by Docker) always take precedence over the values defined in .env files.
+     */
+    public static function loadDotenv(?string $path = null): void {
+        if (!class_exists(Dotenv::class)) {
+            return;
+        }
+
+        $path ??= __DIR__.'/..';
+
+        $environment = getenv('PCA_ENV') ?: getenv('APP_ENV') ?: '';
+
+        $files = ['.env', '.env.local'];
+
+        if ($environment !== '') {
+            $files[] = '.env.'.$environment;
+            $files[] = '.env.'.$environment.'.local';
+        }
+
+        Dotenv::createUnsafeImmutable($path, $files, false)->safeLoad();
     }
 
     /**
@@ -69,7 +96,7 @@ class Config {
      *
      * All keys from the config file are supported ENV variables, they just must start with PCA_ prefix.
      *
-     * E.g.
+     * E.g.:
      * PCA_TIMEFORMAT
      * PCA_REDIS_1_HOST = 1 is server id
      * PCA_MEMCACHED_0_HOST ...

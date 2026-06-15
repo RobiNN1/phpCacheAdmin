@@ -124,6 +124,29 @@ Open the [config](https://github.com/RobiNN1/phpCacheAdmin/blob/master/config.di
 
 > To add another server, add the same environment variables, but change `0` to `1` (`2` for third server and so on).
 
+### .env files
+
+You can keep these variables in a `.env` file instead of exporting them in the shell.
+This requires [vlucas/phpdotenv](https://github.com/vlucas/phpdotenv):
+
+```bash
+composer require vlucas/phpdotenv
+```
+
+Copy [.env.example](https://github.com/RobiNN1/phpCacheAdmin/blob/master/.env.example) to `.env` and adjust the values.
+The following files are loaded automatically (in order of precedence, the more specific file wins):
+
+1. `.env.{environment}.local`
+2. `.env.{environment}`
+3. `.env.local`
+4. `.env`
+
+`{environment}` comes from the `PCA_ENV` (or `APP_ENV`) variable, e.g., `PCA_ENV=development` also loads `.env.development`.
+This lets you keep committed defaults in `.env` and override them locally in `.env.local`, which is git-ignored.
+
+Real environment variables (e.g., set by Docker) always take precedence over the values in `.env` files,
+so you can still override anything at runtime.
+
 ## Docker
 
 A Docker image is also available: https://hub.docker.com/r/robinn/phpcacheadmin

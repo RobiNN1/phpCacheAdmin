@@ -46,8 +46,6 @@ jobs:
 
       - name: Install dependencies
         run: composer update --prefer-dist --no-interaction --no-progress
-      - name: Install Predis
-        run: composer require predis/predis
       - name: Execute tests
         run: vendor/bin/phpunit
 
@@ -113,9 +111,6 @@ jobs:
 
       - name: Install dependencies
         run: composer update --prefer-dist --no-interaction --no-progress
-      - name: Install Predis
-        run: composer require predis/predis
-
       - name: Execute cluster tests
         env:
           PCA_REDIS_0_NODES: '["127.0.0.1:7000","127.0.0.1:7001","127.0.0.1:7002"]'

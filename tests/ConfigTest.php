@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace Tests;
 
+use Dotenv\Dotenv;
 use JsonException;
 use PHPUnit\Framework\TestCase;
 use RobiNN\Pca\Config;
@@ -87,5 +88,49 @@ final class ConfigTest extends TestCase {
         putenv('PCA_SOME_SNAKE_CASE_KEY=value');
 
         $this->assertSame('value', Config::get('some_snake_case_key'));
+    }
+
+    public function testDotenvLoading(): void {
+        if (!class_exists(Dotenv::class)) {
+            $this->markTestSkipped('vlucas/phpdotenv is not installed.');
+        }
+
+        $dir = sys_get_temp_dir().'/pca_dotenv_'.uniqid('', true);
+        mkdir($dir);
+        file_put_contents($dir.'/.env', "PCA_DOTENV_TEST=from_env_file\n");
+
+        Config::loadDotenv($dir);
+
+        $env_value = getenv('PCA_DOTENV_TEST');
+        $config_value = Config::get('dotenv_test');
+
+        putenv('PCA_DOTENV_TEST');
+        unlink($dir.'/.env');
+        rmdir($dir);
+
+        $this->assertSame('from_env_file', $env_value);
+        $this->assertSame('from_env_file', $config_value);
+    }
+
+    public function testDotenvLocalOverridesBase(): void {
+        if (!class_exists(Dotenv::class)) {
+            $this->markTestSkipped('vlucas/phpdotenv is not installed.');
+        }
+
+        $dir = sys_get_temp_dir().'/pca_dotenv_'.uniqid('', true);
+        mkdir($dir);
+        file_put_contents($dir.'/.env', "PCA_DOTENV_LAYER=base\n");
+        file_put_contents($dir.'/.env.local', "PCA_DOTENV_LAYER=local\n");
+
+        Config::loadDotenv($dir);
+
+        $env_value = getenv('PCA_DOTENV_LAYER');
+
+        putenv('PCA_DOTENV_LAYER');
+        unlink($dir.'/.env');
+        unlink($dir.'/.env.local');
+        rmdir($dir);
+
+        $this->assertSame('local', $env_value);
     }
 }

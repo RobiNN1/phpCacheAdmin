@@ -27,7 +27,7 @@ jobs:
         php: [ '8.2', '8.3', '8.4', '8.5' ]
         stability: [ prefer-stable ]
 
-    name: PHP ${{ matrix.php }} (Single-Node Redis)
+    name: PHP ${{ matrix.php }} (Single-Node)
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -62,7 +62,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
 
-      - name: Install Redis 8.8 for Cluster
+      - name: Install Redis for Cluster
         run: |
           curl -fsSL https://packages.redis.io/gpg | sudo gpg --dearmor -o /usr/share/keyrings/redis-archive-keyring.gpg
           echo "deb [signed-by=/usr/share/keyrings/redis-archive-keyring.gpg] https://packages.redis.io/deb $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/redis.list
@@ -103,8 +103,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
-          extensions: apcu, redis
-          ini-values: apc.enable_cli=1
+          extensions: redis
           coverage: none
         env:
           REDIS_CONFIGURE_OPTS: --enable-redis --enable-redis-igbinary --enable-redis-msgpack --enable-redis-lzf --with-liblzf --enable-redis-zstd --with-libzstd --enable-redis-lz4 --with-liblz4
@@ -112,7 +111,7 @@ jobs:
 
       - name: Install dependencies
         run: composer update --prefer-dist --no-interaction --no-progress
-      - name: Execute Redis cluster tests
+      - name: Execute tests
         env:
           PCA_REDIS_0_NODES: '["127.0.0.1:7000","127.0.0.1:7001","127.0.0.1:7002"]'
         run: vendor/bin/phpunit tests/Dashboards/Redis

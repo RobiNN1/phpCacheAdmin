@@ -35,7 +35,7 @@ class Config {
     /**
      * Load environment variables from .env files.
      *
-     * Requires vlucas/phpdotenv (composer require vlucas/phpdotenv).
+     * Requires vlucas/phpdotenv.
      *
      * Real environment variables (e.g., set by Docker) always take precedence over the values defined in .env files.
      */

@@ -37,7 +37,7 @@ class Auth {
      * @return array<array-key, scalar>
      */
     private static function users(): array {
-        return array_filter((array) Config::get('authusers', []), static fn (mixed $password): bool => is_scalar($password));
+        return array_filter((array) Config::get('authusers', []), is_scalar(...));
     }
 
     /**

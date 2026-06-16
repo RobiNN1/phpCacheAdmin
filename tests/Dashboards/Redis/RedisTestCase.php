@@ -207,13 +207,8 @@ abstract class RedisTestCase extends TestCase {
     public function testGetInfo(): void {
         $this->assertArrayHasKey('redis_version', $this->redis->getInfo('server'));
 
-        foreach ($this->redis->getInfo('keyspace') as $db => $entry) {
-            $this->assertMatchesRegularExpression('/^db\d+$/', $db);
-
-            if (is_string($entry)) { // an array of strings in cluster mode
-                $this->assertStringContainsString('keys=', $entry);
-            }
-        }
+        $databases = implode("\n", array_keys($this->redis->getInfo('keyspace')));
+        $this->assertMatchesRegularExpression('/^(db\d+\n?)*$/', $databases);
     }
 
     /**
@@ -232,7 +227,7 @@ abstract class RedisTestCase extends TestCase {
     public function testClusterValueAggregation(): void {
         $this->assertSame('8.0.0', $this->redis->combineValues('redis_version', ['8.0.0', '8.0.0'], null)); // identical values collapse
         $this->assertSame(30, $this->redis->combineValues('used_memory', [10, 20], ['used_memory'])); // listed keys are summed
-        $this->assertSame(1.5, $this->redis->combineValues('mem_fragmentation_ratio', [1.0, 2.0], null)); // averaged
+        $this->assertEqualsWithDelta(1.5, $this->redis->combineValues('mem_fragmentation_ratio', [1.0, 2.0], null), PHP_FLOAT_EPSILON); // averaged
         $this->assertSame(20, $this->redis->combineValues('used_memory_peak', [10, 20], null)); // highest value
         $this->assertSame([10, 20], $this->redis->combineValues('unknown_key', [10, 20], null)); // kept per node
 

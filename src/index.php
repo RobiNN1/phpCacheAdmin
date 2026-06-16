@@ -110,7 +110,7 @@ require_once __DIR__.'/_header.php';
                         'Deep metrics tracking: Fragmentation, Memory, Hit/Miss ratio',
                         'Advanced key management with native CRUD operations',
                         'Seamless data import and export functionality',
-                        'Full compatibility with Strings, Hashes, Lists, Sets, and Sorted Sets',
+                        'Full compatibility with Strings, Hashes, Lists, Sets, Sorted Sets, Streams, and JSON (RedisJSON)',
                         'Interactive Slowlog inspector for performance debugging',
                         'Native Redis Cluster topology support',
                         'Secure connections via ACL (Access Control List)',
@@ -312,7 +312,8 @@ require_once __DIR__.'/_header.php';
                             <p class="relative text-sm text-gray-600 dark:text-gray-400">
                                 Unzip the folder to your web directory. Optionally copy
                                 <code class="py-0.5 px-1 text-xs bg-gray-200 rounded dark:bg-black/40">config.dist.php</code> to
-                                <code class="py-0.5 px-1 text-xs bg-gray-200 rounded dark:bg-black/40">config.php</code>.
+                                <code class="py-0.5 px-1 text-xs bg-gray-200 rounded dark:bg-black/40">config.php</code>, or configure it with environment variables or a
+                                <code class="py-0.5 px-1 text-xs bg-gray-200 rounded dark:bg-black/40">.env</code> file.
                             </p>
                         </div>
                     </div>
@@ -366,14 +367,23 @@ require_once __DIR__.'/_header.php';
                         <h3 class="mb-3 font-bold dark:text-white text-slate-900">Embed in your application</h3>
                         <div class="overflow-x-auto p-4 rounded-lg border bg-slate-950 border-white/10">
                             <code class="font-mono text-sm leading-relaxed text-gray-300">
-                                <span class="text-gray-500">// Copy config file from the vendor folder or GitHub.</span><br>
-                                <span class="text-gray-500">// Set config path</span><br>
-                                <span class="text-yellow-100">\RobiNN\Pca\Config</span>::setConfigPath(__DIR__.<span class="text-green-400">'/pca.php'</span>);<br>
-                                <span class="text-gray-500">// Render dashboard</span><br>
-                                <span class="text-purple-400">echo</span> (<span class="text-blue-400">new</span>
-                                <span class="text-yellow-100">\RobiNN\Pca\Admin</span>())-&gt;render(<span class="text-blue-400">false</span>);
+                                <span class="text-gray-500">// Copy config.dist.php from the vendor folder and set 'pcapath' &amp; 'url'.</span><br>
+                                <span class="text-yellow-100">\RobiNN\Pca\Config</span>::setConfigPath(__DIR__.<span class="text-green-400">'/phpcacheadmin.config.php'</span>);<br>
+                                <br>
+                                <span class="text-gray-500">// Or configure it with a .env file (requires vlucas/phpdotenv).</span><br>
+                                <span class="text-yellow-100">\RobiNN\Pca\Config</span>::loadDotenv(__DIR__);<br>
+                                <br>
+                                <span class="text-gray-500">// Optional: built-in auth, or secure it behind your own route.</span><br>
+                                <span class="text-yellow-100">\RobiNN\Pca\Auth</span>::check();<br>
+                                <br>
+                                <span class="text-purple-400">echo</span> (<span class="text-blue-400">new</span> <span class="text-yellow-100">\RobiNN\Pca\Admin</span>())-&gt;render();
                             </code>
                         </div>
+                        <p class="mt-4 text-sm text-gray-600 dark:text-gray-400">
+                            Set <code class="py-0.5 px-1 text-xs bg-gray-200 rounded dark:bg-black/40">pcapath</code> (URL the assets are served from) and
+                            <code class="py-0.5 px-1 text-xs bg-gray-200 rounded dark:bg-black/40">url</code> (where the dashboard is mounted) in your config. See the
+                            <a href="https://github.com/RobiNN1/phpCacheAdmin/blob/master/example_embedded_version.php" target="_blank" rel="noopener noreferrer" class="font-medium text-blue-600 dark:text-blue-400 hover:underline">embedded example</a>.
+                        </p>
                     </div>
                 </div>
             </div>
@@ -403,7 +413,7 @@ require_once __DIR__.'/_header.php';
             </div>
             <div class="p-6 bg-white rounded-2xl border border-gray-100 dark:bg-slate-900 dark:border-white/5">
                 <h3 class="text-lg font-bold dark:text-white text-slate-900">Is it safe to use in a production environment?</h3>
-                <p class="mt-2 text-gray-600 dark:text-gray-400 text-sm">Yes, but a proper setup is required. You must enable authentication in the configuration file or secure the dashboard behind your own security layer (such as a reverse proxy). Additionally, it supports Redis ACL and configurable SCAN limits to prevent blocking the main Redis thread on large databases.</p>
+                <p class="mt-2 text-gray-600 dark:text-gray-400 text-sm">Yes, but a proper setup is required. It ships with built-in authentication &mdash; define one or more users in the <code>authusers</code> option (username =&gt; password) in your config to enable a login screen. Alternatively, secure the dashboard behind your own security layer (such as a reverse proxy or an authenticated route). Additionally, it supports Redis ACL and configurable SCAN limits to prevent blocking the main Redis thread on large databases.</p>
             </div>
             <div class="p-6 bg-white rounded-2xl border border-gray-100 dark:bg-slate-900 dark:border-white/5">
                 <h3 class="text-lg font-bold dark:text-white text-slate-900">How do I fix "Fatal error: Allowed memory size exhausted"?</h3>
@@ -416,6 +426,7 @@ require_once __DIR__.'/_header.php';
                 <h3 class="text-lg font-bold dark:text-white text-slate-900">Can I collect metrics in the background?</h3>
                 <p class="mt-2 text-gray-600 dark:text-gray-400 text-sm">Yes, you can collect historical data even when the dashboard is not open in your browser by setting up a cronjob. Trigger the metrics endpoint for your desired cache periodically, for example:
                     <code class="py-0.5 px-1 text-xs bg-gray-100 rounded dark:bg-black/40">curl -s "https://example.com/?dashboard=redis&amp;server=0&amp;ajax&amp;metrics" &gt; /dev/null</code>.
+                    If authentication is enabled, set the <code>authtoken</code> option in your config and append <code class="py-0.5 px-1 text-xs bg-gray-100 rounded dark:bg-black/40">&amp;token=your-secret-token</code> to the URL so the cronjob can run without a login session.
                 </p>
             </div>
         </div>

@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-$page_title = 'Best phpRedisAdmin Alternative & Modern PHP Redis Admin GUI<';
+$page_title = 'Best phpRedisAdmin Alternative & Modern PHP Redis Admin GUI';
 $page_desc = 'Upgrade from phpRedisAdmin to phpCacheAdmin. A modern, actively maintained PHP Redis admin GUI with Docker, Redis Cluster, and ACL support.';
 $canonical_url = 'https://phpcacheadmin.com/phpredisadmin-alternative';
 $page_keywords = 'phpRedisAdmin alternative, PHP Redis admin, Redis GUI, phpCacheAdmin, replace phpRedisAdmin, Redis Cluster GUI, Docker Redis dashboard';

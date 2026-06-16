@@ -18,9 +18,9 @@ if (!function_exists('svg')) {
 }
 
 $page_title = $page_title ?? 'phpCacheAdmin - Modern GUI for Redis, Memcached, OPCache & APCu';
-$page_desc = $page_desc ?? 'The ultimate web dashboard for Redis, Memcached, APCu, OPCache, and Realpath. A modern, docker-ready alternative to phpRedisAdmin and opcache-gui with Cluster & ACL support.';
+$page_desc = $page_desc ?? 'The ultimate web dashboard and manager for Redis, Memcached, APCu, OPCache, and Realpath. A modern, docker-ready alternative to phpRedisAdmin and opcache-gui with Cluster & ACL support.';
 $canonical_url = $canonical_url ?? 'https://phpcacheadmin.com/';
-$page_keywords = $page_keywords ?? 'phpCacheAdmin, Redis GUI, Memcached Admin, OPCache GUI, APCu Dashboard, Realpath Cache, phpRedisAdmin alternative, Redis Cluster, Docker, PHP cache manager';
+$page_keywords = $page_keywords ?? 'phpCacheAdmin, Redis GUI, Redis Manager, Memcached Admin, Memcached Manager, OPCache GUI, OPCache Manager, APCu Dashboard, APCu Manager, Realpath Cache, phpRedisAdmin alternative, Redis Cluster, Docker, PHP cache manager';
 ?>
 <!doctype html>
 <html lang="en">

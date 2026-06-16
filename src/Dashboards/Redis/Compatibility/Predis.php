@@ -11,6 +11,8 @@ namespace RobiNN\Pca\Dashboards\Redis\Compatibility;
 use Exception;
 use Predis\Client;
 use Predis\Collection\Iterator\Keyspace;
+use RuntimeException;
+use Throwable;
 
 /**
  * @method bool restore(string $key, int $ttl, string $value)
@@ -30,7 +32,7 @@ class Predis extends Client implements RedisCompatibilityInterface {
         'zset'      => 'zset',
         'hash'      => 'hash',
         'stream'    => 'stream',
-        'ReJSON-RL' => 'rejson',
+        'ReJSON-RL' => 'json',
     ];
 
     /**
@@ -159,7 +161,7 @@ class Predis extends Client implements RedisCompatibilityInterface {
 
             $data[$key] = [
                 'ttl'   => $result[0],
-                'type'  => $result[1],
+                'type'  => $this->data_types[(string) $result[1]] ?? $result[1],
                 'size'  => $result[2] ?? 0,
                 'count' => isset($result[3]) && is_numeric($result[3]) ? (int) $result[3] : null,
             ];
@@ -205,5 +207,34 @@ class Predis extends Client implements RedisCompatibilityInterface {
 
     public function restoreKeys(string $key, int $ttl, string $value): bool {
         return (string) $this->restore($key, $ttl, $value) === 'OK';
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function jsonGet(string $key): string {
+        return (string) $this->json('jsonget', [$key]);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function jsonSet(string $key, mixed $path): bool {
+        return (string) $this->json('jsonset', [$key, '$', $path]) === 'OK';
+    }
+
+    /**
+     * Run a native JSON command.
+     *
+     * @param array<int, mixed> $arguments
+     *
+     * @throws Exception
+     */
+    private function json(string $id, array $arguments): mixed {
+        try {
+            return $this->executeCommand($this->createCommand($id, $arguments));
+        } catch (Throwable $e) {
+            throw new RuntimeException($e->getMessage(), (int) $e->getCode(), $e);
+        }
     }
 }

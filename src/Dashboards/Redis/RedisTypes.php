@@ -27,7 +27,7 @@ trait RedisTypes {
         $exclude = ['none', 'other'];
 
         if (!$this->redis->checkModule('ReJSON')) {
-            $exclude[] = 'rejson';
+            $exclude[] = 'json';
         }
 
         foreach ($this->redis->data_types as $type) {
@@ -104,7 +104,7 @@ trait RedisTypes {
                 $value = $ranges[$stream_id] ?? [];
                 $value = json_encode($value, JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
                 break;
-            case 'rejson':
+            case 'json':
                 $value = $this->redis->jsonGet($key);
                 break;
             default:
@@ -131,7 +131,7 @@ trait RedisTypes {
             'zset' => $this->redis->zRange($key, 0, -1),
             'hash' => $this->redis->hGetAll($key),
             'stream' => $this->redis->xRange($key, '-', '+'),
-            'rejson' => $this->redis->jsonGet($key),
+            'json' => $this->redis->jsonGet($key),
             default => '',
         };
     }
@@ -202,7 +202,7 @@ trait RedisTypes {
 
                 $this->redis->streamAdd($key, $options['stream_id'], $fields);
                 break;
-            case 'rejson':
+            case 'json':
                 $this->redis->jsonSet($key, $value);
                 break;
             default:

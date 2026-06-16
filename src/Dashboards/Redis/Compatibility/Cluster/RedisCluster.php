@@ -34,7 +34,7 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
         Redis::REDIS_ZSET      => 'zset',
         Redis::REDIS_HASH      => 'hash',
         Redis::REDIS_STREAM    => 'stream',
-        'ReJSON-RL'            => 'rejson',
+        'ReJSON-RL'            => 'json',
     ];
 
     /**
@@ -184,7 +184,7 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
             if (is_array($results) && count($results) >= 3) {
                 $data[$key] = [
                     'ttl'   => $results[0],
-                    'type'  => $results[1],
+                    'type'  => $this->data_types[(string) $results[1]] ?? $results[1],
                     'size'  => $results[2] ?? 0,
                     'count' => isset($results[3]) && is_numeric($results[3]) ? (int) $results[3] : null,
                 ];
@@ -309,5 +309,28 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
      */
     public function restoreKeys(string $key, int $ttl, string $value): bool {
         return $this->restore($key, $ttl, $value);
+    }
+
+    /**
+     * @throws RedisClusterException
+     */
+    public function jsonGet(string $key): string {
+        return (string) $this->rawcommand($key, 'JSON.GET', $key);
+    }
+
+    /**
+     * @throws RedisClusterException
+     */
+    public function jsonSet(string $key, mixed $value): bool {
+        $raw = $this->rawcommand($key, 'JSON.SET', $key, '$', $value);
+
+        return $raw === true || $raw === 'OK';
+    }
+
+    /**
+     * @throws RedisClusterException
+     */
+    protected function moduleList(): mixed {
+        return $this->rawcommand($this->nodes[0], 'MODULE', 'LIST');
     }
 }

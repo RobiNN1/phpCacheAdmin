@@ -17,10 +17,9 @@ jobs:
         ports:
           - 11211:11211
       redis:
-        image: redis:6.0
+        image: redis:8.8
         ports:
           - 6379:6379
-        options: --entrypoint redis-server
 
     strategy:
       fail-fast: true
@@ -51,11 +50,6 @@ jobs:
 
   tests-cluster:
     runs-on: ubuntu-latest
-    services:
-      memcached:
-        image: memcached:1.6-alpine
-        ports:
-          - 11211:11211
 
     strategy:
       fail-fast: true
@@ -68,13 +62,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
 
-      - name: Install Redis Server for Cluster
+      - name: Install Redis 8.8 for Cluster
         run: |
+          curl -fsSL https://packages.redis.io/gpg | sudo gpg --dearmor -o /usr/share/keyrings/redis-archive-keyring.gpg
+          echo "deb [signed-by=/usr/share/keyrings/redis-archive-keyring.gpg] https://packages.redis.io/deb $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/redis.list
           sudo apt-get update
-          sudo apt-get install -y redis-server
+          sudo apt-get install -y redis
 
       - name: Start Redis Cluster
         run: |
+          REJSON=$(dpkg -S rejson.so 2>/dev/null | awk -F': ' '/rejson\.so$/ {print $2; exit}')
+          [ -n "$REJSON" ] || REJSON=$(find /usr/lib /opt -name rejson.so 2>/dev/null | head -1)
+          sudo sysctl -w vm.overcommit_memory=1 >/dev/null
           BASE_PORT=7000
           NODE_COUNT=3
           node_addresses=""
@@ -88,9 +87,11 @@ jobs:
           cluster-config-file nodes.conf
           cluster-node-timeout 5000
           appendonly no
+          databases 1
           daemonize yes
           bind 127.0.0.1
           dir "$(pwd)/redis-cluster/node-$port"
+          ${REJSON:+loadmodule $REJSON}
           EOF
               redis-server ./redis-cluster/node-$port/redis.conf
           done
@@ -111,7 +112,7 @@ jobs:
 
       - name: Install dependencies
         run: composer update --prefer-dist --no-interaction --no-progress
-      - name: Execute cluster tests
+      - name: Execute Redis cluster tests
         env:
           PCA_REDIS_0_NODES: '["127.0.0.1:7000","127.0.0.1:7001","127.0.0.1:7002"]'
-        run: vendor/bin/phpunit
+        run: vendor/bin/phpunit tests/Dashboards/Redis

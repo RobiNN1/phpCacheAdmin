@@ -437,6 +437,38 @@ abstract class RedisTestCase extends TestCase {
 
         $all_values = array_values($this->dashboard->getAllKeyValues('stream', $key));
         $this->assertEquals(['field3' => 'edited'], $all_values[1]);
+
+        unset($_GET['stream_id']);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testJSONType(): void {
+        if (!$this->redis->checkModule('ReJSON')) {
+            $this->markTestSkipped('The ReJSON module is not loaded.');
+        }
+
+        $key = 'pu-test-type-json';
+        $json = '{"name":"phpCacheAdmin","numbers":[1,2,3],"nested":{"enabled":true}}';
+
+        $this->saveData(['rtype' => 'json', 'key' => $key, 'value' => $json]);
+
+        $stored = $this->dashboard->getAllKeyValues('json', $key);
+        $this->assertJson($stored);
+        $this->assertEquals(
+            json_decode($json, true, 512, JSON_THROW_ON_ERROR),
+            json_decode($stored, true, 512, JSON_THROW_ON_ERROR)
+        );
+
+        $updated = '{"name":"updated","numbers":[4,5]}';
+        $this->saveData(['rtype' => 'json', 'key' => $key, 'value' => $updated]);
+        $this->assertEquals(
+            json_decode($updated, true, 512, JSON_THROW_ON_ERROR),
+            json_decode($this->dashboard->getAllKeyValues('json', $key), true, 512, JSON_THROW_ON_ERROR)
+        );
+
+        $this->redis->del($key);
     }
 
     /**

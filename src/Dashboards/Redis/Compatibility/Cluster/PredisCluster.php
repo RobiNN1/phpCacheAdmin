@@ -11,10 +11,13 @@ namespace RobiNN\Pca\Dashboards\Redis\Compatibility\Cluster;
 use Exception;
 use InvalidArgumentException;
 use Predis\Client as PredisClient;
+use Predis\Cluster\RedisStrategy;
 use Predis\Collection\Iterator\Keyspace;
 use RobiNN\Pca\Dashboards\DashboardException;
 use RobiNN\Pca\Dashboards\Redis\Compatibility\RedisCompatibilityInterface;
 use RobiNN\Pca\Dashboards\Redis\Compatibility\RedisExtra;
+use RuntimeException;
+use Throwable;
 
 /**
  * @method bool restore(string $key, int $ttl, string $value)
@@ -38,7 +41,7 @@ class PredisCluster extends PredisClient implements RedisCompatibilityInterface 
         'zset'      => 'zset',
         'hash'      => 'hash',
         'stream'    => 'stream',
-        'ReJSON-RL' => 'rejson',
+        'ReJSON-RL' => 'json',
     ];
 
     /**
@@ -207,7 +210,7 @@ class PredisCluster extends PredisClient implements RedisCompatibilityInterface 
             if (is_array($result) && count($result) >= 3) {
                 $data[$key] = [
                     'ttl'   => $result[0],
-                    'type'  => $result[1],
+                    'type'  => $this->data_types[(string) $result[1]] ?? $result[1],
                     'size'  => $result[2] ?? 0,
                     'count' => isset($result[3]) && is_numeric($result[3]) ? (int) $result[3] : null,
                 ];
@@ -316,5 +319,41 @@ class PredisCluster extends PredisClient implements RedisCompatibilityInterface 
 
     public function restoreKeys(string $key, int $ttl, string $value): bool {
         return (string) $this->restore($key, $ttl, $value) === 'OK';
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function jsonGet(string $key): string {
+        return (string) $this->json('jsonget', $key, [$key]);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function jsonSet(string $key, mixed $path): bool {
+        return (string) $this->json('jsonset', $key, [$key, '$', $path]) === 'OK';
+    }
+
+    /**
+     * Predis cannot route JSON.* commands on its own, so the slot is computed from the key and set on the (native) command explicitly.
+     *
+     * @param array<int, mixed> $arguments
+     *
+     * @throws Exception
+     */
+    private function json(string $id, string $key, array $arguments): mixed {
+        $command = $this->createCommand($id, $arguments);
+        $command->setSlot((new RedisStrategy())->getSlotByKey($key));
+
+        try {
+            return $this->executeCommand($command);
+        } catch (Throwable $e) {
+            throw new RuntimeException($e->getMessage(), (int) $e->getCode(), $e);
+        }
+    }
+
+    protected function moduleList(): mixed {
+        return $this->nodes[0]->executeRaw(['MODULE', 'LIST']);
     }
 }

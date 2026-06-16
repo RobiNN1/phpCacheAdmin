@@ -69,22 +69,6 @@ trait RedisExtra {
     }
 
     /**
-     * @throws Exception
-     */
-    public function jsonGet(string $key): string {
-        return $this->rawCommand('JSON.GET', $key);
-    }
-
-    /**
-     * @throws Exception
-     */
-    public function jsonSet(string $key, mixed $value): bool {
-        $raw = $this->rawCommand('JSON.SET', $key, '$', $value);
-
-        return $raw === true || $raw === 'OK';
-    }
-
-    /**
      * @return array<int, array<string, int|string>>
      *
      * @throws Exception
@@ -99,7 +83,7 @@ trait RedisExtra {
         $modules = [];
 
         try {
-            $list = $this->rawCommand('MODULE', 'LIST'); // require Redis >= 4.0
+            $list = $this->moduleList(); // require Redis >= 4.0
         } catch (Exception) {
             return [];
         }
@@ -116,6 +100,13 @@ trait RedisExtra {
         }
 
         return $modules;
+    }
+
+    /**
+     * @throws Exception
+     */
+    protected function moduleList(): mixed {
+        return $this->rawCommand('MODULE', 'LIST');
     }
 
     /**

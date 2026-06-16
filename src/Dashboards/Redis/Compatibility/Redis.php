@@ -25,7 +25,7 @@ class Redis extends \Redis implements RedisCompatibilityInterface {
         self::REDIS_ZSET      => 'zset',
         self::REDIS_HASH      => 'hash',
         self::REDIS_STREAM    => 'stream',
-        'ReJSON-RL'           => 'rejson',
+        'ReJSON-RL'           => 'json',
     ];
 
     /**
@@ -184,7 +184,7 @@ class Redis extends \Redis implements RedisCompatibilityInterface {
 
             $data[$key] = [
                 'ttl'   => $result[0],
-                'type'  => $result[1],
+                'type'  => $this->data_types[(string) $result[1]] ?? $result[1],
                 'size'  => $result[2] ?? 0,
                 'count' => isset($result[3]) && is_numeric($result[3]) ? (int) $result[3] : null,
             ];
@@ -230,5 +230,21 @@ class Redis extends \Redis implements RedisCompatibilityInterface {
 
     public function restoreKeys(string $key, int $ttl, string $value): bool {
         return $this->restore($key, $ttl, $value);
+    }
+
+    /**
+     * @throws RedisException
+     */
+    public function jsonGet(string $key): string {
+        return (string) $this->rawcommand('JSON.GET', $key);
+    }
+
+    /**
+     * @throws RedisException
+     */
+    public function jsonSet(string $key, mixed $value): bool {
+        $raw = $this->rawcommand('JSON.SET', $key, '$', $value);
+
+        return $raw === true || $raw === 'OK';
     }
 }

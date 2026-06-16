@@ -397,11 +397,11 @@ require_once __DIR__.'/_header.php';
         <div class="space-y-6">
             <div class="p-6 bg-white rounded-2xl border border-gray-100 dark:bg-slate-900 dark:border-white/5">
                 <h3 class="text-lg font-bold dark:text-white text-slate-900">Is phpCacheAdmin an alternative to phpRedisAdmin and phpMemcachedAdmin?</h3>
-                <p class="mt-2 text-gray-600 dark:text-gray-400 text-sm">Yes. It is a modern, actively maintained alternative that replaces both tools. It resolves common issues found in older scripts, such as memory exhaustion crashes, by using the SCAN command instead of KEYS. It also introduces support for Redis Clusters, ACL security, and seamless Docker integration.</p>
+                <p class="mt-2 text-gray-600 dark:text-gray-400 text-sm">Yes. It is a modern, actively maintained alternative that replaces both tools. It resolves common issues found in older scripts, such as memory exhaustion crashes, by using the SCAN command instead of KEYS. It also introduces support for Redis Clusters, ACL security, and seamless Docker integration. See how it compares as a <a href="phpredisadmin-alternative.php" class="font-medium text-blue-600 dark:text-blue-400 hover:underline">phpRedisAdmin alternative</a> or <a href="phpmemcachedadmin-alternative.php" class="font-medium text-blue-600 dark:text-blue-400 hover:underline">phpMemcachedAdmin alternative</a>.</p>
             </div>
             <div class="p-6 bg-white rounded-2xl border border-gray-100 dark:bg-slate-900 dark:border-white/5">
                 <h3 class="text-lg font-bold dark:text-white text-slate-900">Can I use this to replace opcache-gui?</h3>
-                <p class="mt-2 text-gray-600 dark:text-gray-400 text-sm">Absolutely. Instead of hosting a standalone script just for OPCache, phpCacheAdmin provides a comprehensive view of OPCache, APCu, and Realpath cache right alongside your Redis and Memcached instances, all within a single unified dashboard.</p>
+                <p class="mt-2 text-gray-600 dark:text-gray-400 text-sm">Absolutely. Instead of hosting a standalone script just for OPCache, phpCacheAdmin provides a comprehensive view of OPCache, APCu, and Realpath cache right alongside your Redis and Memcached instances, all within a single unified dashboard. See the full <a href="opcache-gui-alternative.php" class="font-medium text-blue-600 dark:text-blue-400 hover:underline">opcache-gui alternative</a> comparison.</p>
             </div>
             <div class="p-6 bg-white rounded-2xl border border-gray-100 dark:bg-slate-900 dark:border-white/5">
                 <h3 class="text-lg font-bold dark:text-white text-slate-900">Does phpCacheAdmin require a database?</h3>

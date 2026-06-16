@@ -18,7 +18,7 @@ if (!function_exists('svg')) {
 }
 
 $page_title = $page_title ?? 'phpCacheAdmin - Modern GUI for Redis, Memcached, OPCache & APCu';
-$page_desc = $page_desc ?? 'The ultimate web dashboard and manager for Redis, Memcached, APCu, OPCache, and Realpath. A modern, docker-ready alternative to phpRedisAdmin and opcache-gui with Cluster & ACL support.';
+$page_desc = $page_desc ?? 'Modern dashboard & manager for Redis, Memcached, APCu, OPCache and Realpath. A Docker-ready alternative to phpRedisAdmin & opcache-gui with Cluster & ACL.';
 $canonical_url = $canonical_url ?? 'https://phpcacheadmin.com/';
 $page_keywords = $page_keywords ?? 'phpCacheAdmin, Redis GUI, Redis Manager, Memcached Admin, Memcached Manager, OPCache GUI, OPCache Manager, APCu Dashboard, APCu Manager, Realpath Cache, phpRedisAdmin alternative, Redis Cluster, Docker, PHP cache manager';
 ?>
@@ -37,8 +37,12 @@ $page_keywords = $page_keywords ?? 'phpCacheAdmin, Redis GUI, Redis Manager, Mem
     <meta property="og:url" content="<?php echo $canonical_url; ?>">
     <meta property="og:title" content="<?php echo $page_title; ?>">
     <meta property="og:description" content="<?php echo $page_desc; ?>">
-    <meta property="og:image" content="https://phpcacheadmin.com/assets/og-image.jpg">
+    <meta property="og:image" content="https://phpcacheadmin.com/assets/img/og-image.png">
     <meta property="og:site_name" content="phpCacheAdmin">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="<?php echo $page_title; ?>">
+    <meta name="twitter:description" content="<?php echo $page_desc; ?>">
+    <meta name="twitter:image" content="https://phpcacheadmin.com/assets/img/og-image.png">
     <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon.png">
     <meta name="theme-color" content="#ffffff">
     <link rel="stylesheet" href="assets/css/styles.css?v=<?php echo filemtime(__DIR__.'/../assets/css/styles.css'); ?>">

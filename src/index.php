@@ -39,8 +39,8 @@ require_once __DIR__.'/_header.php';
         </div>
 
         <div class="overflow-hidden mt-16 rounded-lg border-2 border-gray-200 shadow-2xl md:rounded-2xl dark:border-white/10 dark:shadow-black/50">
-            <img loading="lazy" class="w-full dark:hidden" src="assets/img/preview.webp" alt="phpCacheAdmin Dashboard Preview Light Mode">
-            <img loading="lazy" class="hidden w-full dark:block" src="assets/img/preview-dark.webp" alt="phpCacheAdmin Dashboard Preview Dark Mode">
+            <img loading="lazy" class="w-full dark:hidden" src="assets/img/preview/redis-light.webp" alt="phpCacheAdmin Dashboard Preview Light Mode">
+            <img loading="lazy" class="hidden w-full dark:block" src="assets/img/preview/redis-dark.webp" alt="phpCacheAdmin Dashboard Preview Dark Mode">
         </div>
     </section>
 

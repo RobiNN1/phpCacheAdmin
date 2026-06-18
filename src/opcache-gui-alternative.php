@@ -24,6 +24,11 @@ require __DIR__.'/_header.php';
                 </a>
             </div>
         </div>
+
+        <div class="overflow-hidden mt-16 mx-auto max-w-5xl rounded-lg border-2 border-gray-200 shadow-2xl md:rounded-2xl dark:border-white/10 dark:shadow-black/50">
+            <img loading="lazy" class="w-full dark:hidden" src="assets/img/preview/opcache-light.webp" alt="phpCacheAdmin OPcache dashboard preview - light mode">
+            <img loading="lazy" class="hidden w-full dark:block" src="assets/img/preview/opcache-dark.webp" alt="phpCacheAdmin OPcache dashboard preview - dark mode">
+        </div>
     </section>
 
     <section class="px-4 pt-10 pb-20 mx-auto max-w-5xl">

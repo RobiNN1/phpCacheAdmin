@@ -188,6 +188,7 @@ require_once __DIR__.'/_header.php';
                         <?php
                         $features = [
                             'Live RAM consumption graphs',
+                            'Interactive memory map of cached scripts, sized by RAM usage',
                             'Examine individually compiled PHP scripts',
                             'Force-invalidate specific files on demand',
                             'Compiler optimization suggestions',

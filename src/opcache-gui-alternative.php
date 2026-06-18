@@ -52,7 +52,12 @@ require __DIR__.'/_header.php';
                 </div>
 
                 <div>
-                    <h3 class="text-xl font-bold text-opcache mb-2">4. Easy Deployment</h3>
+                    <h3 class="text-xl font-bold text-opcache mb-2">4. Cached Scripts Memory Map</h3>
+                    <p class="text-gray-600 dark:text-gray-400">An interactive treemap visualizes every cached PHP script sized by its memory consumption. Click a folder to zoom in and instantly see which parts of your codebase use the most OPcache memory.</p>
+                </div>
+
+                <div>
+                    <h3 class="text-xl font-bold text-opcache mb-2">5. Easy Deployment</h3>
                     <p class="text-gray-600 dark:text-gray-400">Install it exactly how you want. Whether you prefer a quick Docker container, a Composer dependency, or a standalone manual installation, phpCacheAdmin adapts to your workflow.</p>
                 </div>
             </div>

@@ -1,0 +1,98 @@
+<div class="mb-4 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+    <div class="flex flex-wrap gap-3 justify-between items-center py-4 px-6">
+        <h2 class="text-sm font-semibold text-gray-900 dark:text-white">Cached scripts memory map</h2>
+        {{ include('components/button.twig', {
+            text: (is_ignored ? 'Show' : 'Ignore') ~ ' scripts from this tool',
+            link: link(['tab'], {'ignore': (is_ignored ? 'no' : 'yes')}),
+        }) }}
+    </div>
+
+    <div class="p-4 border-t border-gray-200 dark:border-gray-700">
+        {% if treemap is empty %}
+            <div class="p-4 text-center text-gray-500 dark:text-gray-400">No cached scripts.</div>
+        {% else %}
+            <p class="mb-3 text-xs text-gray-500 dark:text-gray-400">
+                Boxes are sized by memory consumption. Click a folder to zoom in; use the breadcrumb below to go back.
+            </p>
+            <div id="opcache_treemap" style="height: 600px;"></div>
+        {% endif %}
+    </div>
+</div>
+
+{% if treemap is not empty %}
+    <script id="treemap_data" type="application/json">{{ treemap|json_encode|raw }}</script>
+    <script src="{{ config('pcapath', '') }}assets/js/echarts.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const element = document.getElementById('opcache_treemap');
+            const data = JSON.parse(document.getElementById('treemap_data').textContent);
+
+            let instance = null;
+
+            const render = () => {
+                const theme = document.documentElement.classList.contains('dark') ? 'dark' : null;
+
+                if (instance) {
+                    instance.dispose();
+                }
+
+                instance = echarts.init(element, theme, {renderer: 'svg'});
+
+                instance.setOption({
+                    backgroundColor: 'transparent',
+                    tooltip: {
+                        formatter: (info) => {
+                            const path = info.treePathInfo.map(node => node.name).filter(Boolean).join('/');
+
+                            return `<div style="max-width:420px;white-space:normal;word-break:break-all">${path}</div><strong>${format_bytes(info.value)}</strong>`;
+                        }
+                    },
+                    series: [{
+                        type: 'treemap',
+                        name: 'Cached scripts',
+                        data: data,
+                        leafDepth: 2,
+                        roam: false,
+                        nodeClick: 'zoomToNode',
+                        breadcrumb: {show: true, top: 'bottom', emptyItemWidth: 25},
+                        label: {
+                            show: true,
+                            overflow: 'truncate',
+                            formatter: (params) => `${params.name}\n${format_bytes(params.value)}`,
+                        },
+                        upperLabel: {
+                            show: true,
+                            height: 26,
+                            color: '#fff',
+                            overflow: 'truncate',
+                            formatter: (params) => `${params.name}  (${format_bytes(params.value)})`,
+                        },
+                        itemStyle: {borderColor: 'rgba(0,0,0,0.25)', borderWidth: 1, gapWidth: 1},
+                        levels: [
+                            {itemStyle: {borderWidth: 0, gapWidth: 2}},
+                            {itemStyle: {gapWidth: 2}, colorSaturation: [0.35, 0.6]},
+                            {itemStyle: {gapWidth: 1}, colorSaturation: [0.35, 0.55]},
+                        ],
+                    }],
+                });
+            };
+
+            render();
+
+            window.addEventListener('resize', () => {
+                if (instance) {
+                    instance.resize();
+                }
+            });
+
+            new MutationObserver((mutations) => {
+                for (const mutation of mutations) {
+                    if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                        render();
+                        break;
+                    }
+                }
+            }).observe(document.documentElement, {attributes: true});
+        });
+    </script>
+{% endif %}

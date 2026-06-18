@@ -121,6 +121,16 @@ trait OPCacheTrait {
         ]);
     }
 
+    private function ignorePcaScripts(): bool {
+        return isset($_GET['ignore']) && $_GET['ignore'] === 'yes';
+    }
+
+    private function isPcaScript(string $full_path): bool {
+        $pca_root = ($_SERVER['DOCUMENT_ROOT'] ?? '').str_replace('/index.php', '', $_SERVER['SCRIPT_NAME'] ?? '');
+
+        return str_starts_with(strtr($full_path, ['phar://' => '']), $pca_root);
+    }
+
     /**
      * @return array<int, array<string, string|int>>
      */
@@ -133,13 +143,12 @@ trait OPCacheTrait {
         $status = opcache_get_status();
 
         if (isset($status['scripts'])) {
-            $ignore_pca = isset($_GET['ignore']) && $_GET['ignore'] === 'yes';
-            $pca_root = ($_SERVER['DOCUMENT_ROOT'] ?? '').str_replace('/index.php', '', $_SERVER['SCRIPT_NAME'] ?? '');
+            $ignore_pca = $this->ignorePcaScripts();
 
             foreach ($status['scripts'] as $script) {
                 $full_path = str_replace('\\', '/', $script['full_path']);
 
-                if ($ignore_pca && str_starts_with(strtr($full_path, ['phar://' => '']), $pca_root)) {
+                if ($ignore_pca && $this->isPcaScript($full_path)) {
                     continue;
                 }
 
@@ -168,11 +177,92 @@ trait OPCacheTrait {
         $paginator = new Paginator($this->template, $cached_scripts, [['ignore', 'pp', 's'], ['p' => '']]);
         $status = opcache_get_status(false);
 
-        return $this->template->render('dashboards/opcache', [
+        return $this->template->render('dashboards/opcache/opcache', [
             'cached_scripts' => $paginator->getPaginated(),
             'all_keys'       => $status !== false ? $status['opcache_statistics']['num_cached_scripts'] : 0,
             'paginator'      => $paginator->render(),
-            'is_ignored'     => isset($_GET['ignore']) && $_GET['ignore'] === 'yes',
+            'is_ignored'     => $this->ignorePcaScripts(),
+        ]);
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function getScriptsMap(): array {
+        $status = opcache_get_status();
+        $ignore_pca = $this->ignorePcaScripts();
+        $tree = [];
+
+        foreach ($status['scripts'] ?? [] as $script) {
+            $full_path = str_replace(['\\', 'phar://'], ['/', ''], $script['full_path']);
+
+            if ($ignore_pca && $this->isPcaScript($full_path)) {
+                continue;
+            }
+
+            $parts = array_values(array_filter(explode('/', $full_path), static fn (string $part): bool => $part !== ''));
+
+            if ($parts === []) {
+                continue;
+            }
+
+            $node = &$tree;
+            $last = array_key_last($parts);
+
+            foreach ($parts as $i => $part) {
+                if ($i === $last) {
+                    $node[$part] = $script['memory_consumption'];
+                } else {
+                    if (!isset($node[$part]) || !is_array($node[$part])) {
+                        $node[$part] = [];
+                    }
+
+                    $node = &$node[$part];
+                }
+            }
+
+            unset($node);
+        }
+
+        return $this->buildTreemapNodes($tree);
+    }
+
+    /**
+     * @param array<string, mixed> $tree
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function buildTreemapNodes(array $tree): array {
+        $nodes = [];
+
+        foreach ($tree as $name => $value) {
+            if (is_array($value)) {
+                $children = $this->buildTreemapNodes($value);
+
+                while (count($children) === 1 && isset($children[0]['children'])) {
+                    $name .= '/'.$children[0]['name'];
+                    $children = $children[0]['children'];
+                }
+
+                $nodes[] = ['name' => $name, 'children' => $children];
+            } else {
+                $nodes[] = ['name' => $name, 'value' => $value];
+            }
+        }
+
+        return $nodes;
+    }
+
+    private function scriptsMap(): string {
+        $status = opcache_get_status(false);
+
+        if ($status === false) {
+            return 'OPcache is not available, it is either disabled (opcache.enable) or restricted (opcache.restrict_api).';
+        }
+
+        return $this->template->render('dashboards/opcache/opcache', [
+            'treemap'    => $this->getScriptsMap(),
+            'is_ignored' => $this->ignorePcaScripts(),
         ]);
     }
 }

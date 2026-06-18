@@ -81,6 +81,10 @@ class OPCacheDashboard implements DashboardInterface {
             return $this->moreInfo();
         }
 
+        if (Http::get('tab') === 'treemap') {
+            return $this->scriptsMap();
+        }
+
         return $this->mainDashboard();
     }
 }

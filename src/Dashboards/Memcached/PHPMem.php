@@ -229,6 +229,11 @@ class PHPMem {
                 throw new MemcachedException('metadump failed: '.$last);
             }
 
+            // Memcached >= 1.6.43 prefixes the dump with an OK line
+            if ($lines !== [] && rtrim($lines[0], "\r") === 'OK') {
+                array_shift($lines);
+            }
+
             return $lines;
         }
 

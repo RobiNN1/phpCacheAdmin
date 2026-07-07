@@ -126,10 +126,7 @@ trait OPCacheTrait {
         $configuration = opcache_get_configuration();
         $status['ini_config'] = $configuration['directives'];
 
-        return [
-            'panel_title' => 'OPCache Info',
-            'array'       => Helpers::convertTypesToString($status),
-        ];
+        return ['array' => Helpers::convertTypesToString($status)];
     }
 
     private function ignorePcaScripts(): bool {

@@ -1,7 +1,9 @@
 <div class="overflow-hidden mb-4 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
-    <div class="py-2 px-4 bg-gray-50 border-b border-gray-200 dark:border-gray-700 dark:bg-white/5">
-        <h2 class="text-sm font-semibold text-gray-900 dark:text-white">{{ panel_title }}</h2>
-    </div>
+    {% if panel_title|default %}
+        <div class="py-2 px-4 bg-gray-50 border-b border-gray-200 dark:border-gray-700 dark:bg-white/5">
+            <h2 class="text-sm font-semibold text-gray-900 dark:text-white">{{ panel_title }}</h2>
+        </div>
+    {% endif %}
 
     <div class="overflow-x-auto relative">
         <table class="w-full text-sm text-left table-auto">

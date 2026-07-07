@@ -85,10 +85,7 @@ trait APCuTrait {
 
         $info += Helpers::getExtIniInfo('apcu');
 
-        return [
-            'panel_title' => 'APCu Info',
-            'array'       => Helpers::convertTypesToString($info),
-        ];
+        return ['array' => Helpers::convertTypesToString($info)];
     }
 
     private function getKeySize(string $key): int {

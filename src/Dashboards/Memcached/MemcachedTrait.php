@@ -56,10 +56,7 @@ trait MemcachedTrait {
                 $info += Helpers::getExtIniInfo('memcached');
             }
 
-            return [
-                'panel_title' => Helpers::getServerTitle($this->servers[$this->current_server]),
-                'array'       => Helpers::convertTypesToString($info),
-            ];
+            return ['array' => Helpers::convertTypesToString($info)];
         } catch (MemcachedException $e) {
             return ['tab_error' => $e->getMessage()];
         }

@@ -62,10 +62,7 @@ trait RedisTrait {
                 $info += Helpers::getExtIniInfo('redis');
             }
 
-            return [
-                'panel_title' => Helpers::getServerTitle($this->servers[$this->current_server]),
-                'array'       => Helpers::convertTypesToString($info),
-            ];
+            return ['array' => Helpers::convertTypesToString($info)];
         } catch (Exception $e) {
             return ['tab_error' => $e->getMessage()];
         }

@@ -97,6 +97,8 @@ readonly class RedisMetrics extends Metrics {
      * @param array<string, mixed> $row
      *
      * @return array<string, mixed>
+     *
+     * @throws JsonException
      */
     protected function formatRow(array $row): array {
         return [
@@ -110,7 +112,7 @@ readonly class RedisMetrics extends Metrics {
                 'fragmentation' => $row['fragmentation_ratio'],
             ],
             'connections'         => $row['connections'],
-            'commands_stats'      => json_decode((string) $row['commands_stats'], true) ?? [],
+            'commands_stats'      => json_decode((string) $row['commands_stats'], true, 512, JSON_THROW_ON_ERROR) ?? [],
         ];
     }
 }

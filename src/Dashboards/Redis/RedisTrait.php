@@ -9,9 +9,7 @@ declare(strict_types=1);
 namespace RobiNN\Pca\Dashboards\Redis;
 
 use Exception;
-use JsonException;
 use PDO;
-use Predis\Client as Predis;
 use RobiNN\Pca\Config;
 use RobiNN\Pca\Csrf;
 use RobiNN\Pca\Dashboards\DashboardException;
@@ -19,181 +17,23 @@ use RobiNN\Pca\Format;
 use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
 use RobiNN\Pca\Paginator;
-use RobiNN\Pca\Value;
 
 trait RedisTrait {
     use RedisTypes;
+    use RedisPanels;
+    use RedisKeyView;
+    use RedisKeysList;
+    use RedisPubSub;
 
     /**
-     * @return array<int|string, mixed>
+     * @var array<string, string>
      */
-    private function getPanelsData(): array {
-        if ($this->client === 'redis') {
-            $title = 'Redis extension v'.phpversion('redis');
-        } elseif ($this->client === 'predis') {
-            $title = 'Predis v'.Predis::VERSION;
-        }
-
-        try {
-            $info = $this->redis->getInfo(null, [
-                'redis_version',
-                'valkey_version',
-                'used_memory',
-                'maxmemory',
-                'keyspace_hits',
-                'keyspace_misses',
-                'total_connections_received',
-                'total_commands_processed',
-            ]);
-
-            $panels = [
-                $this->mainPanel($info, $title ?? null),
-                $this->memoryPanel($info),
-                $this->statsPanel($info),
-            ];
-
-            $panels = array_filter($panels);
-
-            return array_values($panels);
-        } catch (Exception $e) {
-            return ['error' => $e->getMessage()];
-        }
-    }
-
-    /**
-     * @param array<string, array<string, mixed>> $info
-     *
-     * @return array{title: ?string, moreinfo: bool, data: array<int|string, mixed>}
-     *
-     * @throws Exception
-     */
-    private function mainPanel(array $info, ?string $title): array {
-        $server_info = $info['server'] ?? [];
-        $cluster_info = $info['cluster'] ?? [];
-        $replication_info = $info['replication'] ?? [];
-        $stats_info = $info['stats'] ?? [];
-
-        $hits = (int) ($stats_info['keyspace_hits'] ?? 0);
-        $misses = (int) ($stats_info['keyspace_misses'] ?? 0);
-        $total = $hits + $misses;
-        $hit_rate = $total > 0 ? round(($hits / $total) * 100, 2) : 0;
-
-        $role = null;
-
-        if (!$this->is_cluster && isset($replication_info['role'])) {
-            $slaves = $replication_info['connected_slaves'] ?? 0;
-            $role = ['Role', $replication_info['role'].', connected slaves '.$slaves];
-        }
-
-        if (isset($server_info['valkey_version'])) {
-            $version = 'Valkey '.$server_info['valkey_version'].' (Redis '.($server_info['redis_version'] ?? 'N/A').')';
-            $mode = $server_info['server_mode'] ?? null;
-        } elseif (str_contains((strtolower($server_info['executable'] ?? '')), 'keydb')) {
-            $version = 'KeyDB '.($server_info['redis_version'] ?? 'N/A');
-            $mode = $server_info['redis_mode'] ?? null;
-        } else {
-            $version = $server_info['redis_version'] ?? 'N/A';
-            $mode = $server_info['redis_mode'] ?? null;
-        }
-
-        $data = [
-            'Version' => $version.($mode !== null ? ', '.$mode.' mode' : ''),
-            'Cluster' => ($cluster_info['cluster_enabled'] ?? 0) ? 'Enabled' : 'Disabled',
-            'Uptime'  => Format::seconds((int) ($server_info['uptime_in_seconds'] ?? 0)),
-            $role,
-            'Keys'    => Format::number($this->getKeysCountFromInfo($info)).' (all databases)',
-            ['Hits / Misses', Format::number($hits).' / '.Format::number($misses).' ('.$hit_rate.'%)', $hit_rate, 'higher'],
-        ];
-
-        return [
-            'title'    => $title,
-            'moreinfo' => true,
-            'data'     => array_filter($data),
-        ];
-    }
-
-    /**
-     * @param array<string, array<string, mixed>> $info
-     *
-     * @throws Exception
-     */
-    private function getKeysCountFromInfo(array $info): int {
-        $count_of_all_keys = 0;
-
-        if (!$this->is_cluster) {
-            $keyspace_info = $info['keyspace'] ?? [];
-
-            foreach ($keyspace_info as $entry) {
-                if (is_string($entry) && str_contains($entry, 'keys=')) {
-                    parse_str(str_replace(',', '&', $entry), $parsed);
-                    $count_of_all_keys += (int) ($parsed['keys'] ?? 0);
-                }
-            }
-        } else {
-            $count_of_all_keys = $this->redis->databaseSize();
-        }
-
-        return $count_of_all_keys;
-    }
-
-    /**
-     * @param array<string, array<string, mixed>> $info
-     *
-     * @return array{title: string, data: array<int|string, mixed>}|null
-     */
-    private function memoryPanel(array $info): ?array {
-        if (!isset($info['memory'])) {
-            return null;
-        }
-
-        $memory_info = $info['memory'];
-        $used_memory = (int) ($memory_info['used_memory']);
-        $max_memory = (int) ($memory_info['maxmemory']);
-        $used_memory_formatted = ['Used', Format::bytes($used_memory)];
-
-        if ($max_memory > 0) {
-            $memory_usage = round(($used_memory / $max_memory) * 100, 2);
-            $used_memory_formatted = ['Used', Format::bytes($used_memory).' ('.$memory_usage.'%)', $memory_usage];
-        }
-
-        return [
-            'title' => 'Memory',
-            'data'  => [
-                'Total'               => $max_memory > 0 ? Format::bytes($max_memory, 0) : '∞',
-                $used_memory_formatted,
-                'Free'                => $max_memory > 0 ? Format::bytes($max_memory - $used_memory) : '∞',
-                'Peak memory usage'   => Format::bytes((int) ($memory_info['used_memory_peak'] ?? 0)),
-                'Fragmentation ratio' => $memory_info['mem_fragmentation_ratio'] ?? 'N/A',
-                'Lua memory usage'    => Format::bytes((int) ($memory_info['used_memory_lua'] ?? 0)),
-            ],
-        ];
-    }
-
-    /**
-     * @param array<string, array<string, mixed>> $info
-     *
-     * @return array{title: string, data: array<int|string, mixed>}|null
-     */
-    private function statsPanel(array $info): ?array {
-        if (!isset($info['stats'], $info['clients'])) {
-            return null;
-        }
-
-        $stats_info = $info['stats'];
-        $clients_info = $info['clients'];
-        $maxclients = isset($clients_info['maxclients']) ? ' / '.Format::number((int) $clients_info['maxclients']) : '';
-
-        return [
-            'title' => 'Stats',
-            'data'  => [
-                'Connected clients'            => Format::number((int) ($clients_info['connected_clients'] ?? 0)).$maxclients,
-                'Blocked clients'              => Format::number((int) ($clients_info['blocked_clients'] ?? 0)),
-                'Total connections received'   => Format::number((int) ($stats_info['total_connections_received'] ?? 0)),
-                'Total commands processed'     => Format::number((int) ($stats_info['total_commands_processed'] ?? 0)),
-                'Instantaneous ops per second' => Format::number((int) ($stats_info['instantaneous_ops_per_sec'] ?? 0)),
-            ],
-        ];
-    }
+    private array $tabs = [
+        'keys'    => 'Keys',
+        'slowlog' => 'Slow Log',
+        'metrics' => 'Metrics',
+        'pubsub'  => 'Pub/Sub',
+    ];
 
     /**
      * @throws Exception
@@ -225,377 +65,6 @@ trait RedisTrait {
         } catch (Exception $e) {
             return $e->getMessage();
         }
-    }
-
-    /**
-     * Format view array items.
-     *
-     * @param array<int, array{0: int|string, 1: mixed}> $value_items
-     *
-     * @return array<int, mixed>
-     *
-     * @throws Exception
-     */
-    private function formatViewItems(string $key, array $value_items, string $type): array {
-        $items = [];
-
-        foreach ($value_items as [$item_key, $item_value]) {
-            if (is_array($item_value)) {
-                try {
-                    $item_value = json_encode($item_value, JSON_THROW_ON_ERROR);
-                } catch (JsonException $e) {
-                    $item_value = $e->getMessage();
-                }
-            }
-
-            [$formatted_value, $encode_fn, $is_formatted] = Value::format($item_value);
-
-            $items[] = [
-                'key'       => $item_key,
-                'value'     => $formatted_value,
-                'encode_fn' => $encode_fn,
-                'formatted' => $is_formatted,
-                'sub_key'   => $type === 'zset' ? (string) $this->redis->zScore($key, $item_value) : $item_key,
-            ];
-        }
-
-        return $items;
-    }
-
-    /**
-     * @param array<int, array{0: int|string, 1: mixed}> $pairs
-     *
-     * @return array<int, array{0: int|string, 1: mixed}>
-     *
-     * @throws JsonException
-     */
-    private function filterSubItems(array $pairs, string $search): array {
-        $search = mb_strtolower($search);
-
-        $filtered = array_filter($pairs, static function (array $pair) use ($search): bool {
-            [$item_key, $item_value] = $pair;
-
-            if (is_array($item_value)) {
-                $item_value = json_encode($item_value, JSON_THROW_ON_ERROR);
-            }
-
-            $haystack = $item_key.' '.(is_scalar($item_value) ? (string) $item_value : '');
-
-            return str_contains(mb_strtolower($haystack), $search);
-        });
-
-        return array_values($filtered);
-    }
-
-    /**
-     * @throws Exception
-     */
-    private function viewKey(): string {
-        $key = Http::get('key', '');
-
-        if (!$this->redis->exists($key)) {
-            Http::redirect();
-        }
-
-        try {
-            $type = $this->redis->getKeyType($key);
-        } catch (DashboardException $e) {
-            return $e->getMessage();
-        }
-
-        if (isset($_POST['deletesub'])) {
-            if (!Csrf::validateToken(Http::post('csrf_token', ''))) {
-                Helpers::alert($this->template, 'Invalid CSRF token.', 'error');
-            } else {
-                $subkey = match ($type) {
-                    'set' => Http::post('member', 0),
-                    'list' => Http::post('index', 0),
-                    'zset' => Http::post('range', 0),
-                    'hash' => Http::post('hash_key', ''),
-                    'stream' => Http::post('stream_id', ''),
-                    default => null,
-                };
-
-                $this->deleteSubKey($type, $key, $subkey);
-                Http::redirect(['key', 'view', 'p', 'subsearch']);
-            }
-        }
-
-        if (isset($_POST['delete'])) {
-            if (!Csrf::validateToken(Http::post('csrf_token', ''))) {
-                Helpers::alert($this->template, 'Invalid CSRF token.', 'error');
-            } else {
-                $this->redis->del($key);
-                Http::redirect();
-            }
-        }
-
-        $ttl = $this->redis->ttl($key);
-
-        if (isset($_GET['export'])) {
-            Helpers::export(
-                [['key' => $key, 'ttl' => $ttl]],
-                $key,
-                fn (string $key): string => bin2hex($this->redis->dump($key))
-            );
-        }
-
-        $value = $this->getAllKeyValues($type, $key);
-
-        $paginator = '';
-        $encode_fn = null;
-        $is_formatted = null;
-        $subsearch = (string) Http::get('subsearch', '');
-        $total_items = 0;
-
-        if (is_array($value)) {
-            $pairs = [];
-
-            foreach ($value as $item_key => $item_value) {
-                $pairs[] = [$item_key, $item_value];
-            }
-
-            $total_items = count($pairs);
-
-            if ($subsearch !== '') {
-                $pairs = $this->filterSubItems($pairs, $subsearch);
-            }
-
-            $paginator = new Paginator($this->template, $pairs, [['view', 'key', 'pp', 'subsearch'], ['p' => '']]);
-            $value = $this->formatViewItems($key, $paginator->getPaginated(), $type);
-            $paginator = $paginator->render();
-        } else {
-            [$value, $encode_fn, $is_formatted] = Value::format($value);
-        }
-
-        return $this->template->render('partials/view_key', [
-            'key'             => $key,
-            'value'           => $value,
-            'type'            => $type,
-            'ttl'             => Format::seconds($ttl),
-            'size'            => Format::bytes($this->redis->size($key)),
-            'encode_fn'       => $encode_fn,
-            'formatted'       => $is_formatted,
-            'add_subkey_url'  => Http::queryString([], ['form' => 'new', 'key' => $key]),
-            'edit_url'        => Http::queryString([], ['form' => 'edit', 'key' => $key]),
-            'view_url'        => Http::queryString([], ['view' => 'key', 'key' => $key]),
-            'export_url'      => Http::queryString(['view', 'p', 'key'], ['export' => 'key']),
-            'paginator'       => $paginator,
-            'types'           => $this->typesTplOptions(),
-            'subsearch_value' => $subsearch,
-            'total_items'     => $total_items,
-        ]);
-    }
-
-    /**
-     * @throws Exception
-     */
-    public function saveKey(): void {
-        $key = Http::post('key', '');
-        $value = Value::converter(Http::post('value', ''), Http::post('encoder', ''), 'save');
-        $old_value = Http::post('old_value', '');
-        $type = Http::post('rtype', '');
-        $old_key = Http::post('old_key', '');
-
-        if ($old_key !== '' && $old_key !== $key) { // @phpstan-ignore-line
-            $this->redis->rename($old_key, $key);
-        }
-
-        $this->store($type, $key, $value, $old_value, [
-            'list_index' => $_POST['index'] ?? '',
-            'zset_score' => Http::post('score', 0),
-            'hash_key'   => Http::post('hash_key', ''),
-            'stream_id'  => Http::post('stream_id', '*'),
-            'ttl'        => Http::post('expire', 0),
-        ]);
-
-        Http::redirect([], ['view' => 'key', 'key' => $key]);
-    }
-
-    /**
-     * Add/edit a form.
-     *
-     * @throws Exception
-     */
-    private function form(): string {
-        $key = (string) Http::get('key', Http::post('key', ''));
-        $type = Http::post('rtype', 'string');
-        $index = $_POST['index'] ?? '';
-        $score = Http::post('score', 0);
-        $hash_key = Http::post('hash_key', '');
-        $expire = Http::post('expire', -1);
-        $encoder = Http::get('encoder', 'none');
-        $value = Http::post('value', '');
-        $stream_id = Http::post('stream_id', '*');
-
-        if (isset($_POST['submit'])) {
-            if (Csrf::validateToken(Http::post('csrf_token', ''))) {
-                $this->saveKey();
-            } else {
-                Helpers::alert($this->template, 'Invalid CSRF token.', 'error');
-            }
-        }
-
-        // edit|subkeys
-        if (isset($_GET['key']) && $this->redis->exists($key)) {
-            try {
-                $type = $this->redis->getKeyType($key);
-            } catch (DashboardException $e) {
-                Helpers::alert($this->template, $e->getMessage(), 'error');
-                $type = 'unknown';
-            }
-
-            $expire = $this->redis->ttl($key);
-        }
-
-        if (isset($_GET['key']) && $_GET['form'] === 'edit' && $this->redis->exists($key)) {
-            [$value, $index, $score, $hash_key, $stream_id] = $this->getKeyValue($type, $key);
-        }
-
-        $value = Value::converter($value, $encoder, 'view');
-
-        return $this->template->render('dashboards/redis/form', [
-            'key'       => $key,
-            'value'     => $value,
-            'types'     => $this->getAllTypes(),
-            'type'      => $type,
-            'index'     => $index,
-            'score'     => $score,
-            'hash_key'  => $hash_key,
-            'expire'    => $expire,
-            'encoders'  => Config::getEncoders(),
-            'encoder'   => $encoder,
-            'stream_id' => $stream_id,
-        ]);
-    }
-
-    /**
-     * @return array<int, string>
-     *
-     * @throws Exception
-     */
-    public function getAllKeys(): array {
-        $filter = Http::get('s', '*');
-        $this->template->addGlobal('search_value', $filter);
-
-        $scansize = $this->servers[$this->current_server]['scansize'] ?? null;
-        $scan_threshold = $this->servers[$this->current_server]['scanthreshold'] ?? 100_000;
-
-        if ($scansize !== null || $this->redis->databaseSize() > $scan_threshold || !$this->isCommandSupported('KEYS')) {
-            return $this->redis->scanKeys($filter, (int) ($scansize ?? 1000));
-        }
-
-        return $this->redis->keys($filter);
-    }
-
-    public function isCommandSupported(string $command): bool {
-        static $supported = [];
-
-        try {
-            return $supported[$command] ??= $this->redis->commandExists(strtolower($command));
-        } catch (Exception) {
-            return false;
-        }
-    }
-
-    /**
-     * @param array<int|string, mixed> $keys
-     *
-     * @return array<int|string, mixed>
-     *
-     * @throws Exception
-     */
-    private function pipeline(array $keys): array {
-        $data = [];
-
-        foreach (array_chunk(array_values($keys), 1000) as $chunk) {
-            $data += $this->redis->pipelineKeys($chunk);
-        }
-
-        return $data;
-    }
-
-    /**
-     * @param array<int|string, mixed> $keys_array
-     *
-     * @return array<int, array<string, string|int>>
-     *
-     * @throws Exception
-     */
-    public function keysTableView(array $keys_array): array {
-        $pipeline = $this->pipeline($keys_array);
-        $formatted_keys = [];
-
-        foreach ($keys_array as $key) {
-            $formatted_keys[] = [
-                'key'   => $key,
-                'items' => $pipeline[$key]['count'] ?? null,
-                'info'  => [
-                    'link_title' => $key,
-                    'bytes_size' => $pipeline[$key]['size'],
-                    'type'       => $pipeline[$key]['type'],
-                    'ttl'        => $pipeline[$key]['ttl'] === -1 ? 'Doesn\'t expire' : $pipeline[$key]['ttl'],
-                ],
-            ];
-        }
-
-        return Helpers::sortKeys($this->template, $formatted_keys);
-    }
-
-    /**
-     * @param array<int|string, mixed> $keys_array
-     *
-     * @return array<int, array<string, string|int>>
-     *
-     * @throws Exception
-     */
-    public function keysTreeView(array $keys_array): array {
-        $pipeline = $this->pipeline($keys_array);
-        $separator = $this->servers[$this->current_server]['separator'] ?? ':';
-        $this->template->addGlobal('separator', $separator);
-
-        $tree = [];
-
-        foreach ($keys_array as $key) {
-            $parts = explode($separator, $key);
-            /** @var array<int|string, mixed> $current */
-            $current = &$tree;
-            $path = '';
-
-            foreach ($parts as $i => $part) {
-                $path = $path !== '' && $path !== '0' ? $path.$separator.$part : $part;
-
-                if ($i === count($parts) - 1) { // check last part
-                    $current[] = [
-                        'type'  => 'key',
-                        'name'  => $part,
-                        'key'   => $key,
-                        'items' => $pipeline[$key]['count'] ?? null,
-                        'info'  => [
-                            'bytes_size' => $pipeline[$key]['size'],
-                            'type'       => $pipeline[$key]['type'],
-                            'ttl'        => $pipeline[$key]['ttl'] === -1 ? 'Doesn\'t expire' : $pipeline[$key]['ttl'],
-                        ],
-                    ];
-                } else {
-                    if (!isset($current[$part])) {
-                        $current[$part] = [
-                            'type'     => 'folder',
-                            'name'     => $part,
-                            'path'     => $path,
-                            'children' => [],
-                            'expanded' => false,
-                        ];
-                    }
-
-                    $current = &$current[$part]['children'];
-                }
-            }
-        }
-
-        Helpers::countChildren($tree);
-
-        return $tree;
     }
 
     /**
@@ -648,12 +117,59 @@ trait RedisTrait {
     }
 
     /**
+     * @return array<string, mixed>
+     *
      * @throws Exception
      */
-    private function slowlog(): string {
+    private function keysTab(): array {
+        if (isset($_POST['submit_import_key'])) {
+            if (Csrf::validateToken(Http::post('csrf_token', ''))) {
+                Helpers::import(
+                    function (string $key): bool {
+                        $exists = $this->redis->exists($key);
+
+                        return is_int($exists) && $exists > 0;
+                    },
+                    function (string $key, string $value, int $ttl): bool {
+                        return $this->redis->restoreKeys($key, ($ttl === -1 ? 0 : $ttl), hex2bin($value));
+                    }
+                );
+            } else {
+                echo Helpers::alert($this->template, 'Invalid CSRF token.', 'error');
+            }
+        }
+
+        $keys = $this->getAllKeys();
+
+        if (isset($_GET['export_btn'])) {
+            Helpers::export($this->keysTableView($keys), 'redis_backup', fn (string $key): string => bin2hex($this->redis->dump($key)));
+        }
+
+        $paginator = new Paginator($this->template, $keys);
+        $paginated_keys = $paginator->getPaginated();
+
+        if (Http::get('view', Config::get('listview', 'table')) === 'tree') {
+            $keys_to_display = $this->keysTreeView($paginated_keys);
+        } else {
+            $keys_to_display = $this->keysTableView($paginated_keys);
+        }
+
+        return [
+            'keys'      => $keys_to_display,
+            'all_keys'  => $this->redis->databaseSize(),
+            'paginator' => $paginator->render(),
+            'view_key'  => Http::queryString(['s'], ['view' => 'key', 'key' => '__key__']),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     *
+     * @throws Exception
+     */
+    private function slowlogTab(): array {
         if (!$this->isCommandSupported('SLOWLOG')) {
-            return $this->template->render('components/tabs', ['links' => ['keys' => 'Keys', 'slowlog' => 'Slow Log',]]).
-                'Slowlog is disabled on your server.';
+            return ['tab_error' => 'Slowlog is disabled on your server.'];
         }
 
         if (isset($_POST['resetlog'])) {
@@ -679,118 +195,40 @@ trait RedisTrait {
         $slowlog_items = $this->redis->getSlowlog($slowlog_max_items);
         $slowlog_slower_than = $this->redis->execConfig('GET', 'slowlog-log-slower-than')['slowlog-log-slower-than'];
 
-        return $this->template->render('dashboards/redis/redis', [
+        return [
             'slowlog' => [
                 'items'       => $slowlog_items ?? [],
                 'max_items'   => $slowlog_max_items,
                 'slower_than' => $slowlog_slower_than ?? 1000,
             ],
-        ]);
+        ];
     }
 
     /**
-     * @throws Exception
+     * @return array<string, mixed>
      */
-    private function pubSubAjax(): string {
-        header('Content-Type: application/json');
-
-        if (isset($_POST['publish'])) {
-            if (!Csrf::validateToken(Http::post('csrf_token', ''))) {
-                return json_encode(['error' => 'Invalid CSRF token.'], JSON_THROW_ON_ERROR | JSON_INVALID_UTF8_SUBSTITUTE);
-            }
-
-            $channel = Http::post('channel', '');
-
-            if ($channel === '') {
-                return json_encode(['error' => 'Channel name is required.'], JSON_THROW_ON_ERROR | JSON_INVALID_UTF8_SUBSTITUTE);
-            }
-
-            return json_encode([
-                'receivers' => $this->redis->publishMessage($channel, Http::post('message', '')),
-            ], JSON_THROW_ON_ERROR | JSON_INVALID_UTF8_SUBSTITUTE);
-        }
-
-        if (isset($_GET['subscribe'])) {
-            $pattern = (string) Http::get('subscribe', '*');
-            $window = min(max((int) Http::get('window', Config::get('pubsubwindow', 5)), 1), 10);
-
-            if (session_status() === PHP_SESSION_ACTIVE) {
-                session_write_close();
-            }
-
-            $messages = $this->redis->captureMessages($pattern === '' ? '*' : $pattern, $window, 100);
-
-            return json_encode(['messages' => $messages], JSON_THROW_ON_ERROR | JSON_INVALID_UTF8_SUBSTITUTE);
-        }
-
-        $stats = $this->redis->pubSubStats();
-        ksort($stats['channels']);
-
-        return json_encode($stats, JSON_THROW_ON_ERROR | JSON_INVALID_UTF8_SUBSTITUTE);
-    }
-
-    private function metrics(): string {
+    private function metricsTab(): array {
         if (!in_array('sqlite', PDO::getAvailableDrivers(), true)) {
-            return $this->template->render('components/tabs', ['links' => ['keys' => 'Keys', 'slowlog' => 'Slow Log',]]).
-                'Metrics are disabled because the PDO SQLite driver is not available. Install the sqlite3 extension for PHP.';
+            return ['tab_error' => 'Metrics are disabled because the PDO SQLite driver is not available. Install the sqlite3 extension for PHP.'];
         }
 
-        return $this->template->render('dashboards/redis/redis');
+        return [];
     }
 
     /**
      * @throws Exception
      */
     private function mainDashboard(): string {
-        if (isset($_POST['submit_import_key'])) {
-            if (Csrf::validateToken(Http::post('csrf_token', ''))) {
-                Helpers::import(
-                    function (string $key): bool {
-                        $exists = $this->redis->exists($key);
+        $tab = Http::get('tab', '');
+        $tab = array_key_exists($tab, $this->tabs) ? $tab : array_key_first($this->tabs);
 
-                        return is_int($exists) && $exists > 0;
-                    },
-                    function (string $key, string $value, int $ttl): bool {
-                        return $this->redis->restoreKeys($key, ($ttl === -1 ? 0 : $ttl), hex2bin($value));
-                    }
-                );
-            } else {
-                echo Helpers::alert($this->template, 'Invalid CSRF token.', 'error');
-            }
-        }
+        $data = match ($tab) {
+            'keys' => $this->keysTab(),
+            'slowlog' => $this->slowlogTab(),
+            'metrics' => $this->metricsTab(),
+            default => [],
+        };
 
-        if (Http::get('tab') === 'slowlog') {
-            return $this->slowlog();
-        }
-
-        if (Http::get('tab') === 'metrics') {
-            return $this->metrics();
-        }
-
-        if (Http::get('tab') === 'pubsub') {
-            return $this->template->render('dashboards/redis/redis');
-        }
-
-        $keys = $this->getAllKeys();
-
-        if (isset($_GET['export_btn'])) {
-            Helpers::export($this->keysTableView($keys), 'redis_backup', fn (string $key): string => bin2hex($this->redis->dump($key)));
-        }
-
-        $paginator = new Paginator($this->template, $keys);
-        $paginated_keys = $paginator->getPaginated();
-
-        if (Http::get('view', Config::get('listview', 'table')) === 'tree') {
-            $keys_to_display = $this->keysTreeView($paginated_keys);
-        } else {
-            $keys_to_display = $this->keysTableView($paginated_keys);
-        }
-
-        return $this->template->render('dashboards/redis/redis', [
-            'keys'      => $keys_to_display,
-            'all_keys'  => $this->redis->databaseSize(),
-            'paginator' => $paginator->render(),
-            'view_key'  => Http::queryString(['s'], ['view' => 'key', 'key' => '__key__']),
-        ]);
+        return $data['tab_error'] ?? $this->template->render('dashboards/redis/'.$tab, $data);
     }
 }

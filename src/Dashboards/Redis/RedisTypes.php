@@ -46,7 +46,7 @@ trait RedisTypes {
      *
      * @return array<string, array<string, array<int, string>|string>>
      */
-    private function typesTplOptions(): array {
+    public function typesTplOptions(): array {
         return [
             'extra'  => [
                 'hide_title' => ['set'],
@@ -68,7 +68,7 @@ trait RedisTypes {
      *
      * @throws Exception
      */
-    private function getKeyValue(string $type, string $key): array {
+    public function getKeyValue(string $type, string $key): array {
         $index = null;
         $score = 0;
         $hash_key = '';

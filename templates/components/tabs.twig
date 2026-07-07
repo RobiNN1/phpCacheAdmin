@@ -1,3 +1,6 @@
+{% if main %}
+    {% set class = '-m-4 px-4 relative bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700' %}
+{% endif %}
 <ul class="flex flex-wrap mb-4{{ pills ? ' gap-3' : '' }}{{ class|space }}">
     {% for link, title in links %}
         {% if tabs %}

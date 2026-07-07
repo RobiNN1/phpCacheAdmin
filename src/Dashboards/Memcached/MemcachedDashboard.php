@@ -136,19 +136,21 @@ class MemcachedDashboard implements DashboardInterface {
             $this->template->addGlobal('ajax_panels', true);
             $this->template->addGlobal('side', $this->template->render('partials/info', ['panels' => $this->getPanelsData()]));
 
+            $tabs = $this->template->render('components/tabs', ['links' => $this->tabs, 'main' => true,]);
+
             if (isset($_GET['moreinfo'])) {
-                return $this->moreInfo();
+                return $tabs.$this->moreInfo();
             }
 
             if (isset($_GET['view'], $_GET['key'])) {
-                return $this->viewKey();
+                return $tabs.$this->viewKey();
             }
 
             if (isset($_GET['form'])) {
-                return $this->form();
+                return $tabs.$this->form();
             }
 
-            return $this->mainDashboard();
+            return $tabs.$this->mainDashboard();
         } catch (DashboardException|MemcachedException $e) {
             return $e->getMessage();
         }

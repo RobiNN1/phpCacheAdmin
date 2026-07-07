@@ -101,4 +101,23 @@ interface RedisCompatibilityInterface {
      * Alias to a restore().
      */
     public function restoreKeys(string $key, int $ttl, string $value): bool;
+
+    /**
+     * Get active Pub/Sub channels with subscriber counts and the number of pattern subscriptions.
+     *
+     * @return array{channels: array<string, int>, patterns: int}
+     */
+    public function pubSubStats(string $pattern = '*'): array;
+
+    /**
+     * Publish a message to a channel and get the number of receivers.
+     */
+    public function publishMessage(string $channel, string $message): int;
+
+    /**
+     * Subscribe to a pattern and collect messages for a limited time window.
+     *
+     * @return array<int, array{channel: string, message: string, time: int}>
+     */
+    public function captureMessages(string $pattern, int $seconds, int $limit): array;
 }

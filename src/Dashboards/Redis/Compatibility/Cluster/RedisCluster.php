@@ -12,6 +12,7 @@ use InvalidArgumentException;
 use Redis;
 use RedisClusterException;
 use RobiNN\Pca\Dashboards\DashboardException;
+use RobiNN\Pca\Dashboards\Redis\Compatibility\Redis as PhpRedis;
 use RobiNN\Pca\Dashboards\Redis\Compatibility\RedisCompatibilityInterface;
 use RobiNN\Pca\Dashboards\Redis\Compatibility\RedisExtra;
 
@@ -42,17 +43,17 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
      *
      * @throws DashboardException
      */
-    public function __construct(array $server) {
+    public function __construct(private array $server) {
         $auth = null;
 
-        if (isset($server['password'])) {
-            $auth = isset($server['username']) ? [$server['username'], $server['password']] : $server['password'];
+        if (isset($this->server['password'])) {
+            $auth = isset($this->server['username']) ? [$this->server['username'], $this->server['password']] : $this->server['password'];
         }
 
         try {
-            parent::__construct($server['name'] ?? 'default', $server['nodes'], 3, 0, false, $auth);
+            parent::__construct($this->server['name'] ?? 'default', $this->server['nodes'], 3, 0, false, $auth);
         } catch (RedisClusterException $e) {
-            throw new DashboardException($e->getMessage().' ['.implode(',', $server['nodes']).']', $e->getCode(), $e);
+            throw new DashboardException($e->getMessage().' ['.implode(',', $this->server['nodes']).']', $e->getCode(), $e);
         }
 
         $this->nodes = $this->_masters();
@@ -332,5 +333,66 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
      */
     protected function moduleList(): mixed {
         return $this->rawcommand($this->nodes[0], 'MODULE', 'LIST');
+    }
+
+    /**
+     * @return array{channels: array<string, int>, patterns: int}
+     */
+    public function pubSubStats(string $pattern = '*'): array {
+        $channels = [];
+        $patterns = 0;
+
+        foreach ($this->nodes as $node) {
+            try {
+                $node_channels = $this->rawcommand($node, 'PUBSUB', 'CHANNELS', $pattern);
+
+                if (is_array($node_channels) && $node_channels !== []) {
+                    $numsub = $this->rawcommand($node, 'PUBSUB', 'NUMSUB', ...$node_channels);
+
+                    foreach ($this->parseNumSubReply(is_array($numsub) ? $numsub : []) as $channel => $subscribers) {
+                        $channels[$channel] = ($channels[$channel] ?? 0) + $subscribers;
+                    }
+                }
+
+                $numpat = $this->rawcommand($node, 'PUBSUB', 'NUMPAT');
+                $patterns += is_numeric($numpat) ? (int) $numpat : 0;
+            } catch (RedisClusterException) {
+                continue;
+            }
+        }
+
+        return ['channels' => $channels, 'patterns' => $patterns];
+    }
+
+    /**
+     * @throws RedisClusterException
+     */
+    public function publishMessage(string $channel, string $message): int {
+        $receivers = $this->publish($channel, $message);
+
+        return is_int($receivers) ? $receivers : 0;
+    }
+
+    /**
+     * Messages are broadcast to all cluster nodes, so subscribing to a single node is enough.
+     *
+     * @return array<int, array{channel: string, message: string, time: int}>
+     */
+    public function captureMessages(string $pattern, int $seconds, int $limit): array {
+        [$host, $port] = $this->nodes[0];
+
+        $server = ['host' => $host, 'port' => (int) $port];
+
+        foreach (['username', 'password'] as $key) {
+            if (isset($this->server[$key])) {
+                $server[$key] = $this->server[$key];
+            }
+        }
+
+        try {
+            return (new PhpRedis($server))->captureMessages($pattern, $seconds, $limit);
+        } catch (DashboardException) {
+            return [];
+        }
     }
 }

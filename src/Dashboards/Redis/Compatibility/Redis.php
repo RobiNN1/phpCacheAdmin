@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace RobiNN\Pca\Dashboards\Redis\Compatibility;
 
+use Exception;
 use RedisException;
 use RobiNN\Pca\Dashboards\DashboardException;
 
@@ -29,6 +30,11 @@ class Redis extends \Redis implements RedisCompatibilityInterface {
     ];
 
     /**
+     * @var array<string, mixed>
+     */
+    private array $server;
+
+    /**
      * @param array<string, mixed> $server
      *
      * @throws DashboardException
@@ -37,13 +43,22 @@ class Redis extends \Redis implements RedisCompatibilityInterface {
         parent::__construct();
 
         $server['port'] ??= 6379;
+        $server['scheme'] ??= 'tcp';
+        $this->server = $server;
+
+        $this->connectToServer();
+    }
+
+    /**
+     * @throws DashboardException
+     */
+    private function connectToServer(): void {
+        $server = $this->server;
 
         try {
             if (isset($server['path'])) {
                 $this->connect($server['path']);
             } else {
-                $server['scheme'] ??= 'tcp';
-
                 $this->connect($server['scheme'].'://'.$server['host'], (int) $server['port'], 3, null, 0, 0, [
                     'stream' => $server['ssl'] ?? [],
                 ]);
@@ -246,5 +261,59 @@ class Redis extends \Redis implements RedisCompatibilityInterface {
         $raw = $this->rawcommand('JSON.SET', $key, '$', $value);
 
         return $raw === true || $raw === 'OK';
+    }
+
+    /**
+     * @return array{channels: array<string, int>, patterns: int}
+     *
+     * @throws RedisException
+     */
+    public function pubSubStats(string $pattern = '*'): array {
+        $channels = $this->rawcommand('PUBSUB', 'CHANNELS', $pattern);
+        $numsub = is_array($channels) && $channels !== [] ? $this->rawcommand('PUBSUB', 'NUMSUB', ...$channels) : [];
+        $numpat = $this->rawcommand('PUBSUB', 'NUMPAT');
+
+        return [
+            'channels' => $this->parseNumSubReply(is_array($numsub) ? $numsub : []),
+            'patterns' => is_numeric($numpat) ? (int) $numpat : 0,
+        ];
+    }
+
+    /**
+     * @throws RedisException
+     */
+    public function publishMessage(string $channel, string $message): int {
+        $receivers = $this->publish($channel, $message);
+
+        return is_int($receivers) ? $receivers : 0;
+    }
+
+    /**
+     * @return array<int, array{channel: string, message: string, time: int}>
+     */
+    public function captureMessages(string $pattern, int $seconds, int $limit): array {
+        $messages = [];
+        $start = microtime(true);
+
+        try {
+            $this->setOption(self::OPT_READ_TIMEOUT, $seconds);
+            $this->psubscribe([$pattern], static function ($redis, string $p, string $channel, string $message) use (&$messages, $start, $seconds, $limit): void {
+                $messages[] = ['channel' => $channel, 'message' => $message, 'time' => time()];
+
+                if (count($messages) >= $limit || (microtime(true) - $start) >= $seconds) {
+                    throw new RedisException('Capture window finished.');
+                }
+            });
+        } catch (RedisException) {
+        } finally {
+            try {
+                $this->close();
+                $this->setOption(self::OPT_READ_TIMEOUT, 0);
+                $this->connectToServer();
+            } catch (Exception) {
+            }
+        }
+
+        return $messages;
     }
 }

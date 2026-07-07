@@ -688,6 +688,47 @@ trait RedisTrait {
         ]);
     }
 
+    /**
+     * @throws Exception
+     */
+    private function pubSubAjax(): string {
+        header('Content-Type: application/json');
+
+        if (isset($_POST['publish'])) {
+            if (!Csrf::validateToken(Http::post('csrf_token', ''))) {
+                return json_encode(['error' => 'Invalid CSRF token.'], JSON_THROW_ON_ERROR | JSON_INVALID_UTF8_SUBSTITUTE);
+            }
+
+            $channel = Http::post('channel', '');
+
+            if ($channel === '') {
+                return json_encode(['error' => 'Channel name is required.'], JSON_THROW_ON_ERROR | JSON_INVALID_UTF8_SUBSTITUTE);
+            }
+
+            return json_encode([
+                'receivers' => $this->redis->publishMessage($channel, Http::post('message', '')),
+            ], JSON_THROW_ON_ERROR | JSON_INVALID_UTF8_SUBSTITUTE);
+        }
+
+        if (isset($_GET['subscribe'])) {
+            $pattern = (string) Http::get('subscribe', '*');
+            $window = min(max((int) Http::get('window', Config::get('pubsubwindow', 5)), 1), 10);
+
+            if (session_status() === PHP_SESSION_ACTIVE) {
+                session_write_close();
+            }
+
+            $messages = $this->redis->captureMessages($pattern === '' ? '*' : $pattern, $window, 100);
+
+            return json_encode(['messages' => $messages], JSON_THROW_ON_ERROR | JSON_INVALID_UTF8_SUBSTITUTE);
+        }
+
+        $stats = $this->redis->pubSubStats();
+        ksort($stats['channels']);
+
+        return json_encode($stats, JSON_THROW_ON_ERROR | JSON_INVALID_UTF8_SUBSTITUTE);
+    }
+
     private function metrics(): string {
         if (!in_array('sqlite', PDO::getAvailableDrivers(), true)) {
             return $this->template->render('components/tabs', ['links' => ['keys' => 'Keys', 'slowlog' => 'Slow Log',]]).
@@ -724,6 +765,10 @@ trait RedisTrait {
 
         if (Http::get('tab') === 'metrics') {
             return $this->metrics();
+        }
+
+        if (Http::get('tab') === 'pubsub') {
+            return $this->template->render('dashboards/redis/redis');
         }
 
         $keys = $this->getAllKeys();

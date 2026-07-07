@@ -36,27 +36,31 @@ class Predis extends Client implements RedisCompatibilityInterface {
     ];
 
     /**
-     * @param array<string, int|string> $server
+     * @param array<string, mixed> $server
      */
-    public function __construct(array $server) {
-        if (isset($server['path'])) {
+    public function __construct(private array $server) {
+        if (isset($this->server['path'])) {
             $connect = [
                 'scheme' => 'unix',
-                'path'   => $server['path'],
+                'path'   => $this->server['path'],
             ];
         } else {
             $connect = [
-                'scheme' => $server['scheme'] ?? 'tcp',
-                'host'   => $server['host'],
-                'port'   => $server['port'] ??= 6379,
-                'ssl'    => $server['ssl'] ?? null,
+                'scheme' => $this->server['scheme'] ?? 'tcp',
+                'host'   => $this->server['host'],
+                'port'   => $this->server['port'] ??= 6379,
+                'ssl'    => $this->server['ssl'] ?? null,
             ];
         }
 
+        if (isset($this->server['read_write_timeout'])) {
+            $connect['read_write_timeout'] = $this->server['read_write_timeout'];
+        }
+
         parent::__construct($connect + [
-                'database' => $server['database'] ?? 0,
-                'username' => $server['username'] ?? null,
-                'password' => $server['password'] ?? null,
+                'database' => $this->server['database'] ?? 0,
+                'username' => $this->server['username'] ?? null,
+                'password' => $this->server['password'] ?? null,
             ]);
     }
 
@@ -236,5 +240,54 @@ class Predis extends Client implements RedisCompatibilityInterface {
         } catch (Throwable $e) {
             throw new RuntimeException($e->getMessage(), (int) $e->getCode(), $e);
         }
+    }
+
+    /**
+     * @return array{channels: array<string, int>, patterns: int}
+     */
+    public function pubSubStats(string $pattern = '*'): array {
+        $channels = $this->executeRaw(['PUBSUB', 'CHANNELS', $pattern]);
+        $numsub = is_array($channels) && $channels !== [] ? $this->executeRaw(array_merge(['PUBSUB', 'NUMSUB'], $channels)) : [];
+        $numpat = $this->executeRaw(['PUBSUB', 'NUMPAT']);
+
+        return [
+            'channels' => $this->parseNumSubReply(is_array($numsub) ? $numsub : []),
+            'patterns' => is_numeric($numpat) ? (int) $numpat : 0,
+        ];
+    }
+
+    public function publishMessage(string $channel, string $message): int {
+        return (int) $this->publish($channel, $message);
+    }
+
+    /**
+     * @return array<int, array{channel: string, message: string, time: int}>
+     */
+    public function captureMessages(string $pattern, int $seconds, int $limit): array {
+        $messages = [];
+        $start = microtime(true);
+
+        // A separate connection with a read timeout, so the blocking subscription can end.
+        $client = new self(['read_write_timeout' => $seconds] + $this->server);
+
+        try {
+            $pubsub = $client->pubSubLoop();
+            $pubsub->psubscribe($pattern);
+
+            foreach ($pubsub as $message) {
+                if ($message->kind === 'pmessage') {
+                    $messages[] = ['channel' => (string) $message->channel, 'message' => (string) $message->payload, 'time' => time()];
+                }
+
+                if (count($messages) >= $limit || (microtime(true) - $start) >= $seconds) {
+                    break;
+                }
+            }
+        } catch (Exception) {
+        }
+
+        $client->disconnect();
+
+        return $messages;
     }
 }

@@ -14,6 +14,7 @@ use Predis\Client as PredisClient;
 use Predis\Cluster\RedisStrategy;
 use Predis\Collection\Iterator\Keyspace;
 use RobiNN\Pca\Dashboards\DashboardException;
+use RobiNN\Pca\Dashboards\Redis\Compatibility\Predis;
 use RobiNN\Pca\Dashboards\Redis\Compatibility\RedisCompatibilityInterface;
 use RobiNN\Pca\Dashboards\Redis\Compatibility\RedisExtra;
 use RuntimeException;
@@ -49,26 +50,26 @@ class PredisCluster extends PredisClient implements RedisCompatibilityInterface 
      *
      * @throws DashboardException
      */
-    public function __construct(array $server) {
+    public function __construct(private readonly array $server) {
         $cluster_options = ['cluster' => 'redis'];
 
-        if (isset($server['password'])) {
-            $cluster_options['parameters']['password'] = $server['password'];
+        if (isset($this->server['password'])) {
+            $cluster_options['parameters']['password'] = $this->server['password'];
 
-            if (isset($server['username'])) {
-                $cluster_options['parameters']['username'] = $server['username'];
+            if (isset($this->server['username'])) {
+                $cluster_options['parameters']['username'] = $this->server['username'];
             }
         }
 
         try {
-            parent::__construct($server['nodes'], $cluster_options);
+            parent::__construct($this->server['nodes'], $cluster_options);
             $this->connect();
 
-            foreach ($server['nodes'] as $node) {
+            foreach ($this->server['nodes'] as $node) {
                 $this->nodes[] = new PredisClient('tcp://'.$node, $cluster_options);
             }
         } catch (Exception $e) {
-            throw new DashboardException($e->getMessage().' ['.implode(', ', $server['nodes']).']', $e->getCode(), $e);
+            throw new DashboardException($e->getMessage().' ['.implode(', ', $this->server['nodes']).']', $e->getCode(), $e);
         }
     }
 
@@ -355,5 +356,57 @@ class PredisCluster extends PredisClient implements RedisCompatibilityInterface 
 
     protected function moduleList(): mixed {
         return $this->nodes[0]->executeRaw(['MODULE', 'LIST']);
+    }
+
+    /**
+     * @return array{channels: array<string, int>, patterns: int}
+     */
+    public function pubSubStats(string $pattern = '*'): array {
+        $channels = [];
+        $patterns = 0;
+
+        foreach ($this->nodes as $node) {
+            try {
+                $node_channels = $node->executeRaw(['PUBSUB', 'CHANNELS', $pattern]);
+
+                if (is_array($node_channels) && $node_channels !== []) {
+                    $numsub = $node->executeRaw(array_merge(['PUBSUB', 'NUMSUB'], $node_channels));
+
+                    foreach ($this->parseNumSubReply(is_array($numsub) ? $numsub : []) as $channel => $subscribers) {
+                        $channels[$channel] = ($channels[$channel] ?? 0) + $subscribers;
+                    }
+                }
+
+                $numpat = $node->executeRaw(['PUBSUB', 'NUMPAT']);
+                $patterns += is_numeric($numpat) ? (int) $numpat : 0;
+            } catch (Exception) {
+                continue;
+            }
+        }
+
+        return ['channels' => $channels, 'patterns' => $patterns];
+    }
+
+    public function publishMessage(string $channel, string $message): int {
+        return (int) $this->nodes[0]->executeRaw(['PUBLISH', $channel, $message]);
+    }
+
+    /**
+     * Messages are broadcast to all cluster nodes, so subscribing to a single node is enough.
+     *
+     * @return array<int, array{channel: string, message: string, time: int}>
+     */
+    public function captureMessages(string $pattern, int $seconds, int $limit): array {
+        [$host, $port] = explode(':', (string) $this->server['nodes'][0]) + [1 => '6379'];
+
+        $server = ['host' => $host, 'port' => (int) $port];
+
+        foreach (['username', 'password'] as $key) {
+            if (isset($this->server[$key])) {
+                $server[$key] = $this->server[$key];
+            }
+        }
+
+        return (new Predis($server))->captureMessages($pattern, $seconds, $limit);
     }
 }

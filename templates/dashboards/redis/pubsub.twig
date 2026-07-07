@@ -1,0 +1,317 @@
+{% set pubsub_window = min(max(config('pubsubwindow', 5), 1), 10) %}
+
+<div class="gap-4 md:grid md:grid-cols-2">
+    <div class="col-span-2 p-4 mb-2 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+        <h2 class="mb-4 text-sm font-bold uppercase text-primary-900 dark:text-primary-400">Publish a message</h2>
+        <div class="gap-2 items-end md:flex">
+            <div class="md:w-1/4">
+                {{ include('components/input.twig', {
+                    id: 'pubsub_channel',
+                    label: 'Channel',
+                }) }}
+            </div>
+            <div class="md:flex-1">
+                {{ include('components/input.twig', {
+                    id: 'pubsub_message',
+                    label: 'Message',
+                }) }}
+            </div>
+            <div class="mb-4">
+                {{ include('components/button.twig', {
+                    id: 'pubsub_publish',
+                    text: 'Publish',
+                    color: 'green',
+                }) }}
+            </div>
+        </div>
+        <div id="pubsub_publish_result" class="text-xs"></div>
+    </div>
+
+    <div class="p-4 mb-2 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-sm font-bold uppercase text-primary-900 dark:text-primary-400">Active channels</h2>
+            <div class="text-xs">Pattern subscriptions: <span id="pubsub_numpat" class="font-semibold">0</span></div>
+        </div>
+        <table class="w-full text-left table-auto dark:text-gray-300">
+            <thead>
+            <tr class="border-b border-gray-200 dark:border-gray-700 text-primary-900 dark:text-primary-400">
+                <th class="py-2 px-2 text-xs font-bold uppercase">Channel</th>
+                <th class="py-2 px-2 text-xs font-bold uppercase w-32">Subscribers</th>
+            </tr>
+            </thead>
+            <tbody id="pubsub_channels">
+            <tr>
+                <td colspan="2" class="py-2 px-2 text-sm text-center">No active channels.</td>
+            </tr>
+            </tbody>
+        </table>
+
+        <template id="pubsub_channel_row">
+            <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
+                <td class="py-2 px-2 text-sm border-t border-gray-200 dark:border-gray-700 break-all cursor-pointer font-semibold text-primary-500 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-500"
+                    title="Use this channel in the publish form"></td>
+                <td class="py-2 px-2 text-sm border-t border-gray-200 dark:border-gray-700"></td>
+            </tr>
+        </template>
+
+        <template id="pubsub_no_channels">
+            <tr>
+                <td colspan="2" class="py-2 px-2 text-sm text-center">No active channels.</td>
+            </tr>
+        </template>
+        <div class="mt-2 text-xs">
+            Only channels with at least one direct (SUBSCRIBE) subscriber are listed, pattern subscriptions
+            (PSUBSCRIBE, including the message monitor) appear in the counter above instead.
+            Refreshed every {{ config('pubsubrefresh', 5) }}s.
+        </div>
+    </div>
+
+    <div class="p-4 mb-2 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+        <div class="justify-between items-end gap-2 mb-4 md:flex">
+            <h2 class="text-sm font-bold uppercase text-primary-900 dark:text-primary-400">Message monitor</h2>
+            <div class="flex gap-2 items-end">
+                <div class="w-48">
+                    {{ include('components/input.twig', {
+                        id: 'pubsub_pattern',
+                        label: 'Pattern',
+                        value: '*',
+                        inline_input: true,
+                    }) }}
+                </div>
+
+                {{ include('components/button.twig', {
+                    id: 'pubsub_subscribe',
+                    text: 'Subscribe',
+                    color: 'green',
+                }) }}
+
+                {{ include('components/button.twig', {
+                    id: 'pubsub_clear',
+                    text: 'Clear',
+                    color: 'red',
+                }) }}
+            </div>
+        </div>
+
+        <div id="pubsub_messages" class="overflow-y-auto p-2 h-80 font-mono text-xs rounded border border-gray-200 dark:border-gray-700">
+            <div id="pubsub_messages_empty" class="text-gray-500 dark:text-gray-400">Not subscribed.</div>
+        </div>
+
+        <template id="pubsub_message_row">
+            <div class="py-0.5 border-b border-gray-100 dark:border-gray-700/50 break-all">
+                <span class="text-gray-500 dark:text-gray-400"></span>
+                <span class="font-semibold text-primary-500 dark:text-primary-400"></span>
+                <span></span>
+            </div>
+        </template>
+        <div class="mt-2 text-xs">
+            Messages are captured via AJAX polling ({{ pubsub_window }}s window per request), so messages published
+            in the short gap between two requests may be missed. While subscribed, the monitor itself counts as one pattern subscription.
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const publish_btn = document.getElementById('pubsub_publish');
+        const publish_result = document.getElementById('pubsub_publish_result');
+        const channels_tbody = document.getElementById('pubsub_channels');
+        const numpat = document.getElementById('pubsub_numpat');
+        const subscribe_btn = document.getElementById('pubsub_subscribe');
+        const pattern_input = document.getElementById('pubsub_pattern');
+        const messages_box = document.getElementById('pubsub_messages');
+
+        const capture_window = parseInt("{{ pubsub_window }}", 10);
+        const stats_refresh_ms = parseInt("{{ config('pubsubrefresh', 5) }}", 10) * 1000;
+
+        const parse_json = (request) => {
+            try {
+                return JSON.parse(request.response);
+            } catch {
+                return null;
+            }
+        };
+
+        // Redis glob pattern (*, ?, [...]) to RegExp, to check if the monitor would receive a channel.
+        const channel_matches = (pattern, channel) => {
+            try {
+                const regex = pattern.replace(/[.+^${}()|\\]/g, '\\$&').replace(/\*/g, '.*').replace(/\?/g, '.');
+
+                return new RegExp(`^${regex}$`).test(channel);
+            } catch {
+                return false;
+            }
+        };
+
+        /**
+         * Publish
+         */
+        const publish = () => {
+            const channel = document.getElementById('pubsub_channel').value.trim();
+            const message = document.getElementById('pubsub_message').value;
+
+            if (channel === '') {
+                publish_result.textContent = 'Channel name is required.';
+                return;
+            }
+
+            publish_btn.disabled = true;
+
+            ajax('pubsub', (request) => {
+                publish_btn.disabled = false;
+                const data = ajax_ok(request) ? parse_json(request) : null;
+
+                if (data === null || data.error) {
+                    publish_result.textContent = data?.error ?? 'An error occurred while publishing the message.';
+                } else {
+                    publish_result.textContent = `Message delivered to ${data.receivers} subscriber(s).`;
+
+                    if (subscribed && channel_matches(pattern_input.value.trim() || '*', channel)) {
+                        append_message({channel: channel, message: message, time: Math.floor(Date.now() / 1000)});
+                        pending_local.push({channel: channel, message: message, at: Date.now()});
+                    }
+
+                    refresh_stats();
+                }
+            }, {publish: 1, channel: channel, message: message}, false);
+        };
+
+        publish_btn.addEventListener('click', publish);
+        ['pubsub_channel', 'pubsub_message'].forEach(id => {
+            document.getElementById(id).addEventListener('keypress', e => {
+                if (e.key === 'Enter') {
+                    publish();
+                }
+            });
+        });
+
+        /**
+         * Active channels
+         */
+        const refresh_stats = () => {
+            ajax('pubsub', (request) => {
+                const data = ajax_ok(request) ? parse_json(request) : null;
+
+                if (data === null || data.error) {
+                    return;
+                }
+
+                numpat.textContent = data.patterns;
+                channels_tbody.innerHTML = '';
+                const channels = Object.entries(data.channels);
+
+                if (channels.length === 0) {
+                    channels_tbody.appendChild(document.getElementById('pubsub_no_channels').content.cloneNode(true));
+                    return;
+                }
+
+                channels.forEach(([channel, subscribers]) => {
+                    const row = document.getElementById('pubsub_channel_row').content.cloneNode(true);
+                    const [channel_cell, subs_cell] = row.querySelectorAll('td');
+
+                    channel_cell.textContent = channel;
+                    channel_cell.dataset.channel = channel;
+                    subs_cell.textContent = subscribers;
+                    channels_tbody.appendChild(row);
+                });
+            });
+        };
+
+        channels_tbody.addEventListener('click', (e) => {
+            const channel = e.target.closest('[data-channel]');
+
+            if (channel) {
+                document.getElementById('pubsub_channel').value = channel.dataset.channel;
+                document.getElementById('pubsub_message').focus();
+            }
+        });
+
+        refresh_stats();
+        setInterval(refresh_stats, stats_refresh_ms);
+
+        /**
+         * Message monitor (long-poll loop, each request holds a time-boxed PSUBSCRIBE)
+         */
+        let subscribed = false;
+        const max_rendered_messages = 500;
+        const pending_local = []; // own published messages already shown, to skip when the capture also returns them
+
+        const append_message = (message) => {
+            const empty = document.getElementById('pubsub_messages_empty');
+            if (empty) {
+                empty.remove();
+            }
+
+            const line = document.getElementById('pubsub_message_row').content.cloneNode(true);
+            const [time, channel, payload] = line.querySelectorAll('span');
+
+            time.textContent = new Date(message.time * 1000).toLocaleTimeString();
+            channel.textContent = message.channel;
+            payload.textContent = message.message;
+            messages_box.appendChild(line);
+
+            while (messages_box.children.length > max_rendered_messages) {
+                messages_box.removeChild(messages_box.firstChild);
+            }
+
+            messages_box.scrollTop = messages_box.scrollHeight;
+        };
+
+        const poll_messages = () => {
+            if (!subscribed) {
+                return;
+            }
+
+            const pattern = pattern_input.value.trim() || '*';
+
+            ajax(`pubsub&subscribe=${encodeURIComponent(pattern)}&window=${capture_window}`, (request) => {
+                if (!subscribed) {
+                    return;
+                }
+
+                const data = ajax_ok(request) ? parse_json(request) : null;
+
+                if (data === null || data.error) {
+                    setTimeout(poll_messages, 2000);
+                    return;
+                }
+
+                (data.messages ?? []).forEach(message => {
+                    const local = pending_local.findIndex(p => p.channel === message.channel && p.message === message.message);
+
+                    if (local !== -1) {
+                        pending_local.splice(local, 1); // already shown when it was published
+                        return;
+                    }
+
+                    append_message(message);
+                });
+
+                // Drop own messages the capture never returned (published in a gap between requests).
+                const cutoff = Date.now() - (capture_window * 2 + 2) * 1000;
+
+                for (let i = pending_local.length - 1; i >= 0; i--) {
+                    if (pending_local[i].at < cutoff) {
+                        pending_local.splice(i, 1);
+                    }
+                }
+
+                poll_messages();
+            });
+        };
+
+        subscribe_btn.addEventListener('click', () => {
+            subscribed = !subscribed;
+            subscribe_btn.textContent = subscribed ? 'Stop' : 'Subscribe';
+            pattern_input.disabled = subscribed;
+
+            if (subscribed) {
+                poll_messages();
+            }
+        });
+
+        document.getElementById('pubsub_clear').addEventListener('click', () => {
+            messages_box.innerHTML = '';
+        });
+    });
+</script>

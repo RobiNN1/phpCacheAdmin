@@ -117,6 +117,31 @@ trait RedisExtra {
     }
 
     /**
+     * Parse a PUBSUB NUMSUB reply (flat or associative) into channel => subscribers pairs.
+     *
+     * @param array<int|string, mixed> $reply
+     *
+     * @return array<string, int>
+     */
+    public function parseNumSubReply(array $reply): array {
+        $channels = [];
+
+        if (array_is_list($reply)) {
+            $count = count($reply);
+
+            for ($i = 0; $i + 1 < $count; $i += 2) {
+                $channels[(string) $reply[$i]] = (int) $reply[$i + 1];
+            }
+        } else {
+            foreach ($reply as $channel => $subscribers) {
+                $channels[(string) $channel] = (int) $subscribers;
+            }
+        }
+
+        return $channels;
+    }
+
+    /**
      * Helper function for cluster mode.
      *
      * @param array<string, array<string, mixed>> $aggregated

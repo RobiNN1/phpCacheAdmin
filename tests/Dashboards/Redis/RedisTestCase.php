@@ -66,6 +66,9 @@ abstract class RedisTestCase extends TestCase {
      * @throws Exception
      */
     protected function tearDown(): void {
+        // A failed test would skip its own cleanup and leak these into the following tests.
+        unset($_GET['pubsub'], $_GET['db'], $_POST['publish'], $_POST['channel'], $_POST['message'], $_POST['csrf_token']);
+
         $this->redis->flushDatabase();
     }
 
@@ -623,6 +626,146 @@ abstract class RedisTestCase extends TestCase {
         $this->assertIsArray($slowlog_entries[1][3]);
         $this->redis->execConfig('SET', $config_key, $original_config_value);
         $this->assertTrue($this->redis->resetSlowlog());
+    }
+
+    /**
+     * @return array{0: string, 1: int} Host and port for raw Pub/Sub socket connections.
+     */
+    private function pubSubAddress(): array {
+        $server = Config::get('redis')[0];
+
+        if (self::$is_cluster) {
+            [$host, $port] = explode(':', (string) $server['nodes'][0]) + [1 => '6379'];
+
+            return [$host, (int) $port];
+        }
+
+        return [(string) $server['host'], (int) ($server['port'] ?? 6379)];
+    }
+
+    private function respCommand(string ...$args): string {
+        $command = '*'.count($args)."\r\n";
+
+        foreach ($args as $arg) {
+            $command .= '$'.strlen($arg)."\r\n".$arg."\r\n";
+        }
+
+        return $command;
+    }
+
+    public function testParseNumSubReply(): void {
+        $this->assertSame(['a' => 2, 'b' => 0], $this->redis->parseNumSubReply(['a', 2, 'b', 0]));
+        $this->assertSame(['a' => 2], $this->redis->parseNumSubReply(['a' => '2'])); // phpredis can return an associative reply
+        $this->assertSame([], $this->redis->parseNumSubReply([]));
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testPubSubStatsAndPublish(): void {
+        $channel = 'pu-pubsub-stats';
+
+        $baseline = $this->redis->publishMessage($channel, 'baseline');
+        $this->assertGreaterThanOrEqual(0, $baseline);
+
+        [$host, $port] = $this->pubSubAddress();
+        $subscriber = stream_socket_client('tcp://'.$host.':'.$port, $errno, $errstr, 3);
+        $this->assertNotFalse($subscriber, 'Could not open a raw subscriber socket: '.$errstr);
+        stream_set_timeout($subscriber, 3);
+
+        fwrite($subscriber, $this->respCommand('SUBSCRIBE', $channel));
+
+        for ($i = 0; $i < 6; $i++) { // subscribe confirmation (*3, $9, subscribe, $len, channel, :1)
+            fgets($subscriber);
+        }
+
+        $stats = $this->redis->pubSubStats('pu-pubsub-*');
+        $this->assertSame(1, $stats['channels'][$channel] ?? null);
+        $this->assertIsInt($stats['patterns']);
+
+        $receivers = $this->redis->publishMessage($channel, 'hello-subscriber');
+
+        if (!self::$is_cluster) {
+            $this->assertSame($baseline + 1, $receivers);
+        } else {
+            // In a cluster, the reply only counts receivers connected to the node that ran PUBLISH.
+            $this->assertGreaterThanOrEqual(0, $receivers);
+        }
+
+        // The message must reach the subscriber (in a cluster it is broadcast to all nodes).
+        $received = '';
+
+        while (($line = fgets($subscriber)) !== false) {
+            $received .= $line;
+
+            if (str_contains($received, 'hello-subscriber')) {
+                break;
+            }
+        }
+
+        $this->assertStringContainsString('hello-subscriber', $received);
+        fclose($subscriber);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testCaptureMessages(): void {
+        [$host, $port] = $this->pubSubAddress();
+
+        // Publish two messages from a background process while captureMessages() is blocking.
+        $payload = $this->respCommand('PUBLISH', 'pu-pubsub-cap-news', 'first message')
+            .$this->respCommand('PUBLISH', 'pu-pubsub-cap-news', 'second message');
+
+        $publisher = sprintf(
+            'usleep(400000); $s = stream_socket_client(%s); fwrite($s, base64_decode(%s)); fclose($s);',
+            var_export('tcp://'.$host.':'.$port, true),
+            var_export(base64_encode($payload), true)
+        );
+
+        exec(sprintf('%s -r %s > /dev/null 2>&1 &', escapeshellarg(PHP_BINARY), escapeshellarg($publisher)));
+
+        $messages = $this->redis->captureMessages('pu-pubsub-cap-*', 3, 2);
+
+        $this->assertCount(2, $messages);
+        $this->assertSame('pu-pubsub-cap-news', $messages[0]['channel']);
+        $this->assertSame('first message', $messages[0]['message']);
+        $this->assertSame('second message', $messages[1]['message']);
+        $this->assertEqualsWithDelta(time(), $messages[0]['time'], 10);
+
+        // The connection must remain usable after the blocking capture.
+        $this->redis->set('pu-pubsub-after', 'ok');
+        $this->assertSame('ok', Helpers::mixedToString($this->redis->get('pu-pubsub-after')));
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testPubSubAjax(): void {
+        $_GET['db'] = 10;
+        $_GET['pubsub'] = '';
+
+        $stats = json_decode($this->dashboard->ajax(), true, 512, JSON_THROW_ON_ERROR);
+        $this->assertArrayHasKey('channels', $stats);
+        $this->assertArrayHasKey('patterns', $stats);
+
+        $_POST['publish'] = '1';
+        $_POST['channel'] = 'pu-pubsub-ajax';
+        $_POST['message'] = 'hi';
+
+        $this->setCsrfToken(false);
+        $response = json_decode($this->dashboard->ajax(), true, 512, JSON_THROW_ON_ERROR);
+        $this->assertSame('Invalid CSRF token.', $response['error']);
+
+        $this->setCsrfToken();
+        $response = json_decode($this->dashboard->ajax(), true, 512, JSON_THROW_ON_ERROR);
+        $this->assertIsInt($response['receivers'] ?? null); // external pattern subscribers may also receive it
+
+        $_POST['channel'] = '';
+        $response = json_decode($this->dashboard->ajax(), true, 512, JSON_THROW_ON_ERROR);
+        $this->assertSame('Channel name is required.', $response['error']);
+
+        unset($_GET['db'], $_GET['pubsub'], $_POST['publish'], $_POST['channel'], $_POST['message'], $_POST['csrf_token']);
     }
 
     /**

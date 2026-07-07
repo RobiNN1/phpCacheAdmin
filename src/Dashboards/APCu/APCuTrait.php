@@ -19,6 +19,14 @@ use RobiNN\Pca\Value;
 
 trait APCuTrait {
     /**
+     * @var array<string, string>
+     */
+    private array $tabs = [
+        'keys'     => 'Keys',
+        'moreinfo' => 'More info',
+    ];
+
+    /**
      * @return array<int|string, mixed>
      */
     private function getPanelsData(): array {
@@ -35,9 +43,8 @@ trait APCuTrait {
 
         return [
             [
-                'title'    => 'APCu extension v'.phpversion('apcu'),
-                'moreinfo' => true,
-                'data'     => [
+                'title' => 'APCu extension v'.phpversion('apcu'),
+                'data'  => [
                     'Start time'       => Format::time($info['start_time']),
                     'Uptime'           => Format::seconds(time() - $info['start_time']),
                     'Cache full count' => $info['expunges'],
@@ -64,7 +71,10 @@ trait APCuTrait {
         ];
     }
 
-    private function moreInfo(): string {
+    /**
+     * @return array<string, mixed>
+     */
+    private function moreinfoTab(): array {
         $info = (array) apcu_cache_info(true);
 
         foreach (apcu_sma_info(true) as $mem_name => $mem_value) {
@@ -75,10 +85,10 @@ trait APCuTrait {
 
         $info += Helpers::getExtIniInfo('apcu');
 
-        return $this->template->render('partials/info_table', [
+        return [
             'panel_title' => 'APCu Info',
             'array'       => Helpers::convertTypesToString($info),
-        ]);
+        ];
     }
 
     private function getKeySize(string $key): int {
@@ -289,7 +299,10 @@ trait APCuTrait {
         return $tree;
     }
 
-    private function mainDashboard(): string {
+    /**
+     * @return array<string, mixed>
+     */
+    private function keysTab(): array {
         if (isset($_POST['submit_import_key'])) {
             if (Csrf::validateToken(Http::post('csrf_token', ''))) {
                 Helpers::import(
@@ -327,11 +340,27 @@ trait APCuTrait {
 
         $info = apcu_cache_info(true);
 
-        return $this->template->render('dashboards/apcu', [
+        return [
             'keys'      => $keys_to_display,
             'all_keys'  => (int) $info['num_entries'],
             'paginator' => $paginator->render(),
             'view_key'  => Http::queryString([], ['view' => 'key', 'key' => '__key__']),
-        ]);
+        ];
+    }
+
+    private function mainDashboard(): string {
+        $tab = Http::get('tab', '');
+        $tab = array_key_exists($tab, $this->tabs) ? $tab : array_key_first($this->tabs);
+
+        $tab_data = match ($tab) {
+            'keys' => $this->keysTab(),
+            'moreinfo' => ['data' => $this->moreinfoTab(), 'tpl' => 'partials/info_table'],
+            default => [],
+        };
+
+        $tpl = $tab_data['tpl'] ?? 'dashboards/apcu/'.$tab;
+        $data = $tab_data['data'] ?? $tab_data;
+
+        return $data['tab_error'] ?? $this->template->render($tpl, $data);
     }
 }

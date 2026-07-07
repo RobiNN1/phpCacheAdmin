@@ -1,0 +1,19 @@
+{{ include('partials/keys_list.twig', {
+    custom_buttons: [
+        include('components/button.twig', {
+            text: (is_ignored ? 'Show' : 'Ignore') ~ ' scripts from this tool',
+            link: link(['pp', 'p'], {'ignore': (is_ignored ? 'no' : 'yes')}),
+        })
+    ],
+    head_items: [
+        {'title': 'Filename', 'sort': 'title'},
+        {'title': 'Hits', 'class': 'w-16', 'sort': 'number_hits'},
+        {'title': 'Memory', 'class': 'w-24', 'sort': 'bytes_memory'},
+        {'title': 'Last used', 'class': 'w-32', 'sort': 'timediff_last_used'},
+        {'title': 'Created', 'class': 'w-44 hidden md:table-cell', 'sort': 'time_created'},
+    ],
+    classes: {
+        5: 'hidden md:table-cell',
+    },
+    keys: cached_scripts,
+}) }}

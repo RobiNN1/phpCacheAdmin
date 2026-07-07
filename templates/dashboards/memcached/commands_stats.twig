@@ -1,10 +1,8 @@
-<div class="py-4 px-6 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
-    <div class="md:grid md:grid-cols-3 md:gap-4">
-        {% for command in commands %}
-            {{ include('partials/panel.twig', {
-                panel_title: command.title,
-                array: command.data,
-            }) }}
-        {% endfor %}
-    </div>
+<div class="md:grid md:grid-cols-3 md:gap-4">
+    {% for command in commands %}
+        {{ include('partials/panel.twig', {
+            panel_title: command.title,
+            array: command.data,
+        }) }}
+    {% endfor %}
 </div>

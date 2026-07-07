@@ -31,9 +31,8 @@ trait MemcachedPanels {
 
             $stats = [
                 [
-                    'title'    => $title,
-                    'moreinfo' => true,
-                    'data'     => [
+                    'title' => $title,
+                    'data'  => [
                         'Version' => $info['version'],
                         'Uptime'  => Format::seconds($info['uptime'] ?? 0),
                     ],

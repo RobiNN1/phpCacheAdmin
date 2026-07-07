@@ -29,10 +29,11 @@ trait RedisTrait {
      * @var array<string, string>
      */
     private array $tabs = [
-        'keys'    => 'Keys',
-        'slowlog' => 'Slow Log',
-        'metrics' => 'Metrics',
-        'pubsub'  => 'Pub/Sub',
+        'keys'     => 'Keys',
+        'slowlog'  => 'Slow Log',
+        'metrics'  => 'Metrics',
+        'pubsub'   => 'Pub/Sub',
+        'moreinfo' => 'More info',
     ];
 
     /**
@@ -46,7 +47,10 @@ trait RedisTrait {
         return Helpers::alert($this->template, 'An error occurred while deleting all keys.', 'error');
     }
 
-    private function moreInfo(): string {
+    /**
+     * @return array<string, mixed>
+     */
+    private function moreinfoTab(): array {
         try {
             $info = $this->redis->getInfo();
 
@@ -58,12 +62,12 @@ trait RedisTrait {
                 $info += Helpers::getExtIniInfo('redis');
             }
 
-            return $this->template->render('partials/info_table', [
+            return [
                 'panel_title' => Helpers::getServerTitle($this->servers[$this->current_server]),
                 'array'       => Helpers::convertTypesToString($info),
-            ]);
+            ];
         } catch (Exception $e) {
-            return $e->getMessage();
+            return ['tab_error' => $e->getMessage()];
         }
     }
 
@@ -222,13 +226,17 @@ trait RedisTrait {
         $tab = Http::get('tab', '');
         $tab = array_key_exists($tab, $this->tabs) ? $tab : array_key_first($this->tabs);
 
-        $data = match ($tab) {
+        $tab_data = match ($tab) {
             'keys' => $this->keysTab(),
             'slowlog' => $this->slowlogTab(),
             'metrics' => $this->metricsTab(),
+            'moreinfo' => ['data' => $this->moreinfoTab(), 'tpl' => 'partials/info_table'],
             default => [],
         };
 
-        return $data['tab_error'] ?? $this->template->render('dashboards/redis/'.$tab, $data);
+        $tpl = $tab_data['tpl'] ?? 'dashboards/redis/'.$tab;
+        $data = $tab_data['data'] ?? $tab_data;
+
+        return $data['tab_error'] ?? $this->template->render($tpl, $data);
     }
 }

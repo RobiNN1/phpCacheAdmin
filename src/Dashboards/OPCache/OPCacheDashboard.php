@@ -77,14 +77,8 @@ class OPCacheDashboard implements DashboardInterface {
         $this->template->addGlobal('ajax_panels', true);
         $this->template->addGlobal('side', $this->template->render('partials/info', ['panels' => $this->getPanelsData()]));
 
-        if (isset($_GET['moreinfo'])) {
-            return $this->moreInfo();
-        }
+        $tabs = $this->template->render('components/tabs', ['links' => $this->tabs, 'main' => true,]);
 
-        if (Http::get('tab') === 'treemap') {
-            return $this->scriptsMap();
-        }
-
-        return $this->mainDashboard();
+        return $tabs.$this->mainDashboard();
     }
 }

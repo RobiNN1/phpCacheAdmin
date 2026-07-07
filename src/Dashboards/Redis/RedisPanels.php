@@ -52,7 +52,7 @@ trait RedisPanels {
     /**
      * @param array<string, array<string, mixed>> $info
      *
-     * @return array{title: ?string, moreinfo: bool, data: array<int|string, mixed>}
+     * @return array{title: ?string, data: array<int|string, mixed>}
      *
      * @throws Exception
      */
@@ -95,9 +95,8 @@ trait RedisPanels {
         ];
 
         return [
-            'title'    => $title,
-            'moreinfo' => true,
-            'data'     => array_filter($data),
+            'title' => $title,
+            'data'  => array_filter($data),
         ];
     }
 

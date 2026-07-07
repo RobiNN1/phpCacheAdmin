@@ -29,6 +29,7 @@ trait MemcachedTrait {
         'slabs'          => 'Slabs',
         'items'          => 'Items',
         'metrics'        => 'Metrics',
+        'moreinfo'       => 'More info',
     ];
 
     /**
@@ -42,7 +43,10 @@ trait MemcachedTrait {
         return Helpers::alert($this->template, 'An error occurred while deleting all keys.', 'error');
     }
 
-    private function moreInfo(): string {
+    /**
+     * @return array<string, mixed>
+     */
+    private function moreinfoTab(): array {
         try {
             $info = $this->memcached->getServerStats();
             $info += ['settings' => $this->memcached->getServerStats('settings')];
@@ -52,12 +56,12 @@ trait MemcachedTrait {
                 $info += Helpers::getExtIniInfo('memcached');
             }
 
-            return $this->template->render('partials/info_table', [
+            return [
                 'panel_title' => Helpers::getServerTitle($this->servers[$this->current_server]),
                 'array'       => Helpers::convertTypesToString($info),
-            ]);
+            ];
         } catch (MemcachedException $e) {
-            return $e->getMessage();
+            return ['tab_error' => $e->getMessage()];
         }
     }
 
@@ -231,15 +235,19 @@ trait MemcachedTrait {
         $tab = Http::get('tab', '');
         $tab = array_key_exists($tab, $this->tabs) ? $tab : array_key_first($this->tabs);
 
-        $data = match ($tab) {
+        $tab_data = match ($tab) {
             'keys' => $this->keysTab(),
             'commands_stats' => $this->commandsStatsTab(),
             'slabs' => $this->slabsTab(),
             'items' => $this->itemsTab(),
             'metrics' => $this->metricsTab(),
+            'moreinfo' => ['data' => $this->moreinfoTab(), 'tpl' => 'partials/info_table'],
             default => [],
         };
 
-        return $data['tab_error'] ?? $this->template->render('dashboards/memcached/'.$tab, $data);
+        $tpl = $tab_data['tpl'] ?? 'dashboards/memcached/'.$tab;
+        $data = $tab_data['data'] ?? $tab_data;
+
+        return $data['tab_error'] ?? $this->template->render($tpl, $data);
     }
 }

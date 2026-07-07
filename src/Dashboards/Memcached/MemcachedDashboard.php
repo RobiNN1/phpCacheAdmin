@@ -138,10 +138,6 @@ class MemcachedDashboard implements DashboardInterface {
 
             $tabs = $this->template->render('components/tabs', ['links' => $this->tabs, 'main' => true,]);
 
-            if (isset($_GET['moreinfo'])) {
-                return $tabs.$this->moreInfo();
-            }
-
             if (isset($_GET['view'], $_GET['key'])) {
                 return $tabs.$this->viewKey();
             }

@@ -15,6 +15,15 @@ use RobiNN\Pca\Paginator;
 
 trait OPCacheTrait {
     /**
+     * @var array<string, string>
+     */
+    private array $tabs = [
+        'scripts'  => 'Scripts',
+        'treemap'  => 'Memory map',
+        'moreinfo' => 'More info',
+    ];
+
+    /**
      * @return array<int|string, mixed>
      */
     private function getPanelsData(): array {
@@ -61,9 +70,8 @@ trait OPCacheTrait {
 
         return [
             [
-                'title'    => 'OPCache extension v'.phpversion('Zend OPcache'),
-                'moreinfo' => true,
-                'data'     => [
+                'title' => 'OPCache extension v'.phpversion('Zend OPcache'),
+                'data'  => [
                     'JIT'                 => $jit_enabled ? 'Enabled' : 'Disabled',
                     'Start time'          => Format::time($stats['start_time']),
                     'Uptime'              => Format::seconds(time() - $stats['start_time']),
@@ -105,20 +113,23 @@ trait OPCacheTrait {
         ];
     }
 
-    private function moreInfo(): string {
+    /**
+     * @return array<string, mixed>
+     */
+    private function moreinfoTab(): array {
         $status = opcache_get_status(false);
 
         if ($status === false) {
-            return 'OPcache is not available, it is either disabled (opcache.enable) or restricted (opcache.restrict_api).';
+            return ['tab_error' => 'OPcache is not available, it is either disabled (opcache.enable) or restricted (opcache.restrict_api).'];
         }
 
         $configuration = opcache_get_configuration();
         $status['ini_config'] = $configuration['directives'];
 
-        return $this->template->render('partials/info_table', [
+        return [
             'panel_title' => 'OPCache Info',
             'array'       => Helpers::convertTypesToString($status),
-        ]);
+        ];
     }
 
     private function ignorePcaScripts(): bool {
@@ -172,17 +183,37 @@ trait OPCacheTrait {
         return Helpers::sortKeys($this->template, $cached_scripts);
     }
 
-    private function mainDashboard(): string {
+    /**
+     * @return array<string, mixed>
+     */
+    private function scriptsTab(): array {
         $cached_scripts = $this->getCachedScripts();
         $paginator = new Paginator($this->template, $cached_scripts, [['ignore', 'pp', 's'], ['p' => '']]);
         $status = opcache_get_status(false);
 
-        return $this->template->render('dashboards/opcache/opcache', [
+        return [
             'cached_scripts' => $paginator->getPaginated(),
             'all_keys'       => $status !== false ? $status['opcache_statistics']['num_cached_scripts'] : 0,
             'paginator'      => $paginator->render(),
             'is_ignored'     => $this->ignorePcaScripts(),
-        ]);
+        ];
+    }
+
+    private function mainDashboard(): string {
+        $tab = Http::get('tab', '');
+        $tab = array_key_exists($tab, $this->tabs) ? $tab : array_key_first($this->tabs);
+
+        $tab_data = match ($tab) {
+            'scripts' => $this->scriptsTab(),
+            'treemap' => $this->treemapTab(),
+            'moreinfo' => ['data' => $this->moreinfoTab(), 'tpl' => 'partials/info_table'],
+            default => [],
+        };
+
+        $tpl = $tab_data['tpl'] ?? 'dashboards/opcache/'.$tab;
+        $data = $tab_data['data'] ?? $tab_data;
+
+        return $data['tab_error'] ?? $this->template->render($tpl, $data);
     }
 
     /**
@@ -253,16 +284,19 @@ trait OPCacheTrait {
         return $nodes;
     }
 
-    private function scriptsMap(): string {
+    /**
+     * @return array<string, mixed>
+     */
+    private function treemapTab(): array {
         $status = opcache_get_status(false);
 
         if ($status === false) {
-            return 'OPcache is not available, it is either disabled (opcache.enable) or restricted (opcache.restrict_api).';
+            return ['tab_error' => 'OPcache is not available, it is either disabled (opcache.enable) or restricted (opcache.restrict_api).'];
         }
 
-        return $this->template->render('dashboards/opcache/opcache', [
+        return [
             'treemap'    => $this->getScriptsMap(),
             'is_ignored' => $this->ignorePcaScripts(),
-        ]);
+        ];
     }
 }

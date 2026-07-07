@@ -4,7 +4,6 @@
             {{ include('partials/panel.twig', {
                 panel_title: panel.title,
                 array: panel.data,
-                moreinfo: panel.moreinfo,
             }) }}
         {% else %}
             {{ panel.error }}

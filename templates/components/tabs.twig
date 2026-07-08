@@ -1,7 +1,7 @@
 {% if main %}
     {% set class = '-m-4 px-4 relative bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700' %}
 {% endif %}
-<ul class="flex flex-wrap mb-4{{ pills ? ' gap-3' : '' }}{{ class|space }}">
+<ul class="flex overflow-x-auto mb-4{{ pills ? ' gap-3' : '' }}{{ class|space }}">
     {% for link, title in links %}
         {% if tabs %}
             {% set is_active = selected is defined ? (selected == link) : (links|keys|first == link) %}
@@ -9,11 +9,11 @@
             {% set is_active = get('tab', links|keys|first) == link %}
         {% endif %}
         {% if pills %}
-            {% set item_class = 'cursor-pointer text-sm font-semibold inline-flex py-2 px-4 bg-white border-2 border-gray-300 rounded-md hover:border-primary-300 dark:bg-gray-800 dark:border-gray-600 dark:hover:text-gray-300 dark:hover:border-gray-300 [&.active]:border-primary-500 [&.active]:text-primary-500' %}
+            {% set item_class = 'cursor-pointer text-sm font-semibold inline-flex whitespace-nowrap py-2 px-4 bg-white border-2 border-gray-300 rounded-md hover:border-primary-300 dark:bg-gray-800 dark:border-gray-600 dark:hover:text-gray-300 dark:hover:border-gray-300 [&.active]:border-primary-500 [&.active]:text-primary-500' %}
         {% else %}
-            {% set item_class = 'cursor-pointer text-sm font-semibold inline-flex py-3 px-4 border-b-2 border-transparent hover:text-gray-600 hover:border-gray-600 dark:hover:text-gray-300 dark:hover:border-gray-300 [&.active]:border-primary-500 [&.active]:text-primary-500' %}
+            {% set item_class = 'cursor-pointer text-sm font-semibold inline-flex whitespace-nowrap py-3 px-4 border-b-2 border-transparent hover:text-gray-600 hover:border-gray-600 dark:hover:text-gray-300 dark:hover:border-gray-300 [&.active]:border-primary-500 [&.active]:text-primary-500' %}
         {% endif %}
-        <li>
+        <li class="shrink-0">
             {% if tabs %}
                 <button data-tab="{{ link }}" class="{{ item_class }}{{ is_active ? ' active' : '' }}">{{ title }}</button>
             {% else %}

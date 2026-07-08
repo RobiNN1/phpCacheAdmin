@@ -177,8 +177,14 @@
   .relative {
     position: relative;
   }
+  .sticky {
+    position: sticky;
+  }
   .inset-0 {
     inset: 0;
+  }
+  .top-0 {
+    top: 0;
   }
   .top-5 {
     top: calc(0.25rem * 5);
@@ -186,8 +192,14 @@
   .right-5 {
     right: calc(0.25rem * 5);
   }
+  .z-10 {
+    z-index: 10;
+  }
   .z-50 {
     z-index: 50;
+  }
+  .order-last {
+    order: 9999;
   }
   .col-span-2 {
     grid-column: span 2 / span 2;
@@ -298,9 +310,6 @@
   .w-48 {
     width: calc(0.25rem * 48);
   }
-  .w-72 {
-    width: calc(0.25rem * 72);
-  }
   .w-full {
     width: 100%;
   }
@@ -376,12 +385,18 @@
   .gap-4 {
     gap: calc(0.25rem * 4);
   }
+  .gap-x-3 {
+    column-gap: calc(0.25rem * 3);
+  }
   .-space-x-px {
     :where(& > :not(:last-child)) {
       --tw-space-x-reverse: 0;
       margin-inline-start: calc(-1px * var(--tw-space-x-reverse));
       margin-inline-end: calc(-1px * calc(1 - var(--tw-space-x-reverse)));
     }
+  }
+  .gap-y-2 {
+    row-gap: calc(0.25rem * 2);
   }
   .divide-y {
     :where(& > :not(:last-child)) {
@@ -422,6 +437,10 @@
   }
   .rounded-sm {
     border-radius: 0.25rem;
+  }
+  .rounded-t-md {
+    border-top-left-radius: 0.375rem;
+    border-top-right-radius: 0.375rem;
   }
   .rounded-l {
     border-top-left-radius: 0.25rem;
@@ -957,9 +976,49 @@
       background-color: oklch(80.8% 0.114 19.571);
     }
   }
-  .md\:me-4 {
+  .sm\:ms-auto {
+    @media (width >= 40rem) {
+      margin-inline-start: auto;
+    }
+  }
+  .sm\:grid {
+    @media (width >= 40rem) {
+      display: grid;
+    }
+  }
+  .sm\:w-48 {
+    @media (width >= 40rem) {
+      width: calc(0.25rem * 48);
+    }
+  }
+  .sm\:w-60 {
+    @media (width >= 40rem) {
+      width: calc(0.25rem * 60);
+    }
+  }
+  .sm\:grid-cols-2 {
+    @media (width >= 40rem) {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  .sm\:gap-4 {
+    @media (width >= 40rem) {
+      gap: calc(0.25rem * 4);
+    }
+  }
+  .md\:order-3 {
     @media (width >= 48rem) {
-      margin-inline-end: calc(0.25rem * 4);
+      order: 3;
+    }
+  }
+  .md\:order-4 {
+    @media (width >= 48rem) {
+      order: 4;
+    }
+  }
+  .md\:order-5 {
+    @media (width >= 48rem) {
+      order: 5;
     }
   }
   .md\:flex {
@@ -992,6 +1051,11 @@
       width: 30%;
     }
   }
+  .md\:w-auto {
+    @media (width >= 48rem) {
+      width: auto;
+    }
+  }
   .md\:max-w-md {
     @media (width >= 48rem) {
       max-width: 28rem;
@@ -1012,19 +1076,24 @@
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
-  .md\:grid-cols-3 {
-    @media (width >= 48rem) {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-  }
-  .md\:grid-cols-4 {
-    @media (width >= 48rem) {
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-    }
-  }
   .md\:flex-row {
     @media (width >= 48rem) {
       flex-direction: row;
+    }
+  }
+  .md\:flex-wrap {
+    @media (width >= 48rem) {
+      flex-wrap: wrap;
+    }
+  }
+  .md\:items-center {
+    @media (width >= 48rem) {
+      align-items: center;
+    }
+  }
+  .md\:justify-between {
+    @media (width >= 48rem) {
+      justify-content: space-between;
     }
   }
   .md\:gap-2 {
@@ -1037,9 +1106,19 @@
       gap: calc(0.25rem * 4);
     }
   }
-  .lg\:flex {
+  .lg\:ms-0 {
     @media (width >= 64rem) {
-      display: flex;
+      margin-inline-start: 0;
+    }
+  }
+  .lg\:grid {
+    @media (width >= 64rem) {
+      display: grid;
+    }
+  }
+  .lg\:w-72 {
+    @media (width >= 64rem) {
+      width: calc(0.25rem * 72);
     }
   }
   .lg\:w-\[20\%\] {
@@ -1047,14 +1126,29 @@
       width: 20%;
     }
   }
-  .lg\:items-center {
+  .lg\:grid-cols-2 {
     @media (width >= 64rem) {
-      align-items: center;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
-  .lg\:gap-2 {
+  .lg\:grid-cols-3 {
     @media (width >= 64rem) {
-      gap: calc(0.25rem * 2);
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  .lg\:grid-cols-4 {
+    @media (width >= 64rem) {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+  .lg\:justify-center {
+    @media (width >= 64rem) {
+      justify-content: center;
+    }
+  }
+  .lg\:gap-4 {
+    @media (width >= 64rem) {
+      gap: calc(0.25rem * 4);
     }
   }
   .dark\:divide-white\/5 {

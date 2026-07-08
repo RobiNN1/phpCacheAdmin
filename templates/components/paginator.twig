@@ -23,11 +23,13 @@
                 {% set first_item = loop.first ? ' rounded-l' : '' %}
                 {% set last_item = loop.last ? ' rounded-r' : '' %}
 
-                {% if page == '...' %}
-                    <div><span class="px-3 bg-white border border-gray-300 dark:text-gray-300 dark:bg-gray-800 dark:border-gray-600 py-[0.4rem]">{{ page }}</span></div>
-                {% else %}
-                    <div><a href="{{ url ~ page }}" class="py-[0.4rem] px-3 border {{ class }}{{ first_item ~ last_item }}">{{ page }}</a></div>
-                {% endif %}
+                <div>
+                    {% if page == '...' %}
+                        <span class="px-3 bg-white border border-gray-300 dark:text-gray-300 dark:bg-gray-800 dark:border-gray-600 py-[0.4rem]">{{ page }}</span>
+                    {% else %}
+                        <a href="{{ url ~ page }}" class="py-[0.4rem] px-3 border {{ class }}{{ first_item ~ last_item }}">{{ page }}</a>
+                    {% endif %}
+                </div>
             {% endfor %}
         </nav>
     {% endif %}

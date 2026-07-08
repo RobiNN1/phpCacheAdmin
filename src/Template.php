@@ -109,6 +109,12 @@ class Template {
         $twig->addFunction(new TwigFunction('config', Config::get(...)));
         $twig->addFunction(new TwigFunction('is_numeric', is_numeric(...)));
 
+        $twig->addFunction(new TwigFunction('asset', static function (string $file): string {
+            $full_path = __DIR__.'/../'.$file;
+            $version = is_file($full_path) ? filemtime($full_path) : Admin::VERSION;
+            return Config::get('pcapath', '').$file.'?v='.$version;
+        }));
+
         $twig->addFilter(new TwigFilter('space', static function (?string $value, bool $right = false): string {
             $right_side = $right ? $value.' ' : ' '.$value;
 

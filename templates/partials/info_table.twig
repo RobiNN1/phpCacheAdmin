@@ -1,42 +1,40 @@
-<div class="overflow-hidden mb-4 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+<div class="mb-4 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
     {% if panel_title|default %}
-        <div class="py-2 px-4 bg-gray-50 border-b border-gray-200 dark:border-gray-700 dark:bg-white/5">
+        <div class="py-2 px-4 bg-gray-50 rounded-t-md border-b border-gray-200 dark:border-gray-700 dark:bg-white/5">
             <h2 class="text-sm font-semibold text-gray-900 dark:text-white">{{ panel_title }}</h2>
         </div>
     {% endif %}
 
-    <div class="overflow-x-auto relative">
-        <table class="w-full text-sm text-left table-auto">
-            <tbody class="divide-y divide-gray-900/5 dark:divide-white/5">
-            {% for name, value in array %}
-                {% if value is iterable and value|length > 0 %}
-                    <tr class="bg-gray-50 dark:bg-white/5">
-                        <td colspan="2" class="py-1.5 px-4 text-xs uppercase text-primary-600 dark:text-primary-400">
-                            {{ name|replace({'_': ' '}) }}
+    <table class="w-full text-sm text-left table-auto">
+        <tbody class="divide-y divide-gray-900/5 dark:divide-white/5">
+        {% for name, value in array %}
+            {% if value is iterable and value|length > 0 %}
+                <tr>
+                    <td colspan="2" class="sticky top-0 z-10 py-1.5 px-4 text-xs uppercase border-b border-gray-200 text-primary-600 bg-gray-100 dark:text-primary-400 dark:border-gray-600 dark:bg-gray-700{{ loop.first and panel_title|default is empty ? ' rounded-t-md' : '' }}">
+                        {{ name|replace({'_': ' '}) }}
+                    </td>
+                </tr>
+                {% for sub_name, sub_value in value %}
+                    <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
+                        <td class="py-1.5 px-4 text-gray-900 whitespace-nowrap dark:text-white">{{ sub_name }}</td>
+                        <td class="py-1.5 px-4 font-semibold text-gray-700 break-all dark:text-gray-300">
+                            {% if sub_value is not iterable %}
+                                {{ sub_value|raw }}
+                            {% else %}
+                                {% for node, node_value in sub_value %}
+                                    Node {{ node }}: {{ node_value|raw }}<br>
+                                {% endfor %}
+                            {% endif %}
                         </td>
                     </tr>
-                    {% for sub_name, sub_value in value %}
-                        <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
-                            <td class="py-1.5 px-4 text-gray-900 whitespace-nowrap dark:text-white">{{ sub_name }}</td>
-                            <td class="py-1.5 px-4 font-semibold text-gray-700 dark:text-gray-300">
-                                {% if sub_value is not iterable %}
-                                    {{ sub_value|raw }}
-                                {% else %}
-                                    {% for node, node_value in sub_value %}
-                                        Node {{ node }}: {{ node_value|raw }}<br>
-                                    {% endfor %}
-                                {% endif %}
-                            </td>
-                        </tr>
-                    {% endfor %}
-                {% elseif not value is iterable %}
-                    <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
-                        <td class="py-1.5 px-4 text-gray-900 whitespace-nowrap dark:text-white">{{ name }}</td>
-                        <td class="py-1.5 px-4 font-semibold text-gray-700 dark:text-gray-300">{{ value|raw }}</td>
-                    </tr>
-                {% endif %}
-            {% endfor %}
-            </tbody>
-        </table>
-    </div>
+                {% endfor %}
+            {% elseif not value is iterable %}
+                <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
+                    <td class="py-1.5 px-4 text-gray-900 whitespace-nowrap dark:text-white">{{ name }}</td>
+                    <td class="py-1.5 px-4 font-semibold text-gray-700 break-all dark:text-gray-300">{{ value|raw }}</td>
+                </tr>
+            {% endif %}
+        {% endfor %}
+        </tbody>
+    </table>
 </div>

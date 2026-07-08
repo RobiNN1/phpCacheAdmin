@@ -1,20 +1,20 @@
 {% import 'components/macros.twig' as components %}
 <div class="view-key-name mb-2 text-lg font-semibold break-all dark:text-gray-300">{{ key }}</div>
-<div class="mb-4 lg:flex lg:gap-2 lg:items-center dark:text-gray-300">
+<div class="flex flex-wrap gap-x-3 gap-y-2 items-center mb-4 dark:text-gray-300">
     {% if type %}
-        <span>Type {{ components.key_type(type) }}</span>
+        <span class="inline-flex gap-1 items-center">Type {{ components.key_type(type) }}</span>
     {% endif %}
 
     {% if ttl %}
-        <span>TTL {{ components.badge(ttl == -1 ? 'Doesn\'t expire' : ttl, 'indigo', 'uppercase') }}</span>
+        <span class="inline-flex gap-1 items-center">TTL {{ components.badge(ttl == -1 ? 'Doesn\'t expire' : ttl, 'indigo', 'uppercase') }}</span>
     {% endif %}
 
     {% if size %}
-        <span>Size {{ components.badge(size, 'sky') }}</span>
+        <span class="inline-flex gap-1 items-center">Size {{ components.badge(size, 'sky') }}</span>
     {% endif %}
 
     {% if encode_fn %}
-        <span>Encoded with {{ components.badge(encode_fn, 'blue', 'uppercase') }}</span>
+        <span class="inline-flex gap-1 items-center">Encoded with {{ components.badge(encode_fn, 'blue', 'uppercase') }}</span>
         {% set encode_url = '&encoder=' ~ encode_fn %}
     {% endif %}
 
@@ -22,21 +22,19 @@
         {{ components.badge('Formatted', 'blue', 'uppercase') }}
     {% endif %}
 
-    <span>
-        {% if export_url %}
-            <a href="{{ export_url }}" class="inline-flex gap-1 items-center font-semibold text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
-                {{ svg('export', 16) }} Export
-            </a>
-        {% endif %}
+    {% if export_url %}
+        <a href="{{ export_url }}" class="inline-flex gap-1 items-center font-semibold text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
+            {{ svg('export', 16) }} Export
+        </a>
+    {% endif %}
 
-        <form method="post" action="{{ view_url|default('') }}" class="inline">
-            <input type="hidden" name="csrf_token" value="{{ csrf }}">
-            <button type="submit" name="delete" class="inline-flex gap-1 items-center font-semibold text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
-                    onclick="return confirm('Are you sure you want to remove this item?');">
-                {{ svg('trash', 16) }} Delete
-            </button>
-        </form>
-    </span>
+    <form method="post" action="{{ view_url|default('') }}" class="inline-flex">
+        <input type="hidden" name="csrf_token" value="{{ csrf }}">
+        <button type="submit" name="delete" class="inline-flex gap-1 items-center font-semibold text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
+                onclick="return confirm('Are you sure you want to remove this item?');">
+            {{ svg('trash', 16) }} Delete
+        </button>
+    </form>
 </div>
 
 {% if value is iterable %}

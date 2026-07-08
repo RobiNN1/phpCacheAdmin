@@ -3,7 +3,7 @@
     <div class="text-sm font-semibold text-gray-900 dark:text-white">{{ meta.total_malloced|bytes }}</div>
 </div>
 
-<div class="md:grid md:grid-cols-4 md:gap-4">
+<div class="sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:gap-4">
     {% for slab, data in slabs %}
         {{ include('partials/panel.twig', {
             panel_title: 'Slab ' ~ slab,

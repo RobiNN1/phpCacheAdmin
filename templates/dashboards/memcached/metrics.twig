@@ -10,7 +10,7 @@
     },
 }) }}
 
-<div class="gap-4 md:grid md:grid-cols-4">
+<div class="gap-4 lg:grid lg:grid-cols-4">
     <div class="col-span-4 p-4 mb-2 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
         <div id="hit_rate_chart" class="h-90"></div>
     </div>
@@ -34,7 +34,7 @@
     </div>
 </div>
 
-<script src="{{ config('pcapath', '') }}assets/js/echarts.min.js"></script>
+<script src="{{ asset('assets/js/echarts.min.js') }}"></script>
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const initial_theme = document.documentElement.classList.contains('dark') ? 'dark' : null;

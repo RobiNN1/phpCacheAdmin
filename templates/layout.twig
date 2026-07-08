@@ -6,7 +6,7 @@
     <title>{{ site_title }} - phpCacheAdmin</title>
     <link rel="icon" type="image/png" sizes="32x32" href="{{ config('pcapath', '') }}assets/favicon.png">
     <meta name="theme-color" content="#ffffff">
-    <link rel="stylesheet" href="{{ config('pcapath', '') }}assets/css/styles.css?v={{ version }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/styles.css') }}">
     <meta name="csrf-token" content="{{ csrf }}">
 
     {%- if colors -%}
@@ -39,13 +39,10 @@
 </head>
 <body class="flex flex-col min-h-screen text-gray-900 bg-gray-100 dark:text-gray-200 dark:bg-gray-900" data-dashboard="{{ current }}">
 <div id="alerts">{{ alerts|raw }}</div>
-<header class="p-4 bg-white border-b border-gray-200 md:grid md:grid-cols-3 dark:bg-gray-800 dark:border-gray-700">
-    <div class="flex">
-        <a class="block w-72 md:me-4" href="{{ config('url', '/') }}">{{ svg('logo', null) }}</a>
-        <div class="w-72">{{ servers|raw }}</div>
-    </div>
+<header class="flex flex-wrap gap-4 items-center p-4 bg-white border-b border-gray-200 lg:grid lg:grid-cols-3 dark:bg-gray-800 dark:border-gray-700">
+    <a class="block w-48 shrink-0 lg:w-72" href="{{ config('url', '/') }}">{{ svg('logo', null) }}</a>
 
-    <div class="flex gap-4 justify-center items-center">
+    <div class="flex flex-wrap gap-3 items-center lg:gap-4 lg:justify-center">
         {% for link, item in nav %}
             {% set link_bg = item.colors ? ' style="--link-bg:' ~ item.colors.500 ~ ';--link-bg-hover:' ~ item.colors.700 ~ ';--link-active:' ~ item.colors.300 ~ ';--link-active-dark:' ~ item.colors.900 ~ ';"' : '' %}
             {% set server = get('server') and get('dashboard') == link ? '&server=' ~ get('server') : '' %}
@@ -55,24 +52,30 @@
         {% endfor %}
     </div>
 
-    <div class="flex gap-4 justify-end items-center">
-        {% if logout_url %}
-            <a class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" href="{{ logout_url }}" title="Logout">{{ svg('logout', 28) }}</a>
+    <div class="flex flex-wrap gap-3 justify-end items-center sm:ms-auto lg:gap-4 lg:ms-0">
+        {% if servers|default %}
+            <div class="w-full sm:w-60">{{ servers|raw }}</div>
         {% endif %}
 
-        <div class="flex border rounded-sm overflow-hidden border-gray-300 dark:border-gray-600 [&>.active]:text-gray-600 dark:[&>.active]:text-gray-300 [&>.active]:bg-gray-200 dark:[&>.active]:bg-gray-950">
-            <button class="flex justify-center items-center py-2 px-3 text-gray-400 cursor-pointer dark:text-gray-500" type="button" data-theme="light" title="Light">
-                {{ svg('sun', 18) }}
-            </button>
-            <button class="flex justify-center items-center py-2 px-3 text-gray-400 border-l border-gray-300 cursor-pointer dark:text-gray-500 dark:border-gray-600" type="button" data-theme="dark" title="Dark">
-                {{ svg('moon', 18) }}
-            </button>
-            <button class="flex justify-center items-center py-2 px-3 text-gray-400 border-l border-gray-300 cursor-pointer dark:text-gray-500 dark:border-gray-600" type="button" data-theme="system" title="System">
-                {{ svg('system', 18) }}
-            </button>
-        </div>
+        <div class="flex gap-4 items-center">
+            {% if logout_url %}
+                <a class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" href="{{ logout_url }}" title="Logout">{{ svg('logout', 28) }}</a>
+            {% endif %}
 
-        <a class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" href="{{ repo }}" title="GitHub" target="_blank" rel="noopener">{{ svg('github', 28) }}</a>
+            <div class="flex border rounded-sm overflow-hidden border-gray-300 dark:border-gray-600 [&>.active]:text-gray-600 dark:[&>.active]:text-gray-300 [&>.active]:bg-gray-200 dark:[&>.active]:bg-gray-950">
+                <button class="flex justify-center items-center py-2 px-3 text-gray-400 cursor-pointer dark:text-gray-500" type="button" data-theme="light" title="Light">
+                    {{ svg('sun', 18) }}
+                </button>
+                <button class="flex justify-center items-center py-2 px-3 text-gray-400 border-l border-gray-300 cursor-pointer dark:text-gray-500 dark:border-gray-600" type="button" data-theme="dark" title="Dark">
+                    {{ svg('moon', 18) }}
+                </button>
+                <button class="flex justify-center items-center py-2 px-3 text-gray-400 border-l border-gray-300 cursor-pointer dark:text-gray-500 dark:border-gray-600" type="button" data-theme="system" title="System">
+                    {{ svg('system', 18) }}
+                </button>
+            </div>
+
+            <a class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" href="{{ repo }}" title="GitHub" target="_blank" rel="noopener">{{ svg('github', 28) }}</a>
+        </div>
     </div>
 </header>
 <main id="maincontent" class="flex flex-col flex-1 md:flex-row">
@@ -103,6 +106,6 @@
     </div>
 </main>
 {{ modals|raw }}
-<script src="{{ config('pcapath', '') }}assets/js/scripts.js?v={{ version }}"></script>
+<script src="{{ asset('assets/js/scripts.js') }}"></script>
 </body>
 </html>

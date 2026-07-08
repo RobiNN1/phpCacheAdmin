@@ -112,6 +112,7 @@ class Template {
         $twig->addFunction(new TwigFunction('asset', static function (string $file): string {
             $full_path = __DIR__.'/../'.$file;
             $version = is_file($full_path) ? filemtime($full_path) : Admin::VERSION;
+
             return Config::get('pcapath', '').$file.'?v='.$version;
         }));
 

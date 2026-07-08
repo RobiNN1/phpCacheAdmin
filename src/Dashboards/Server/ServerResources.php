@@ -211,6 +211,9 @@ trait ServerResources {
         return ['total' => $total, 'used' => $used, 'free' => $total - $used];
     }
 
+    /**
+     * @return array{cpu: int|null, total: int, free: int}
+     */
     private function windowsStats(): array {
         static $stats = null;
 

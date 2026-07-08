@@ -449,6 +449,14 @@ function number_format(number, decimals = 0) {
 }
 
 function format_bytes(bytes, decimals = 2) {
+    if (bytes > 1099511627776) {
+        return number_format(bytes / 1099511627776, decimals) + 'TB';
+    }
+
+    if (bytes > 1073741824) {
+        return number_format(bytes / 1073741824, decimals) + 'GB';
+    }
+
     if (bytes > 1048576) {
         return number_format(bytes / 1048576, decimals) + 'MB';
     }

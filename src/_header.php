@@ -17,6 +17,15 @@ if (!function_exists('svg')) {
     }
 }
 
+if (!function_exists('asset')) {
+    function asset(string $path): string {
+        $file = __DIR__.'/../'.ltrim($path, '/');
+        $version = is_file($file) ? filemtime($file) : time();
+
+        return $path.'?v='.$version;
+    }
+}
+
 $page_title = $page_title ?? 'phpCacheAdmin - Modern GUI for Redis, Memcached, OPCache & APCu';
 $page_desc = $page_desc ?? 'Modern dashboard & manager for Redis, Memcached, APCu, OPCache and Realpath. A Docker-ready alternative to phpRedisAdmin & opcache-gui with Cluster & ACL.';
 $canonical_url = $canonical_url ?? 'https://phpcacheadmin.com/';

@@ -39,8 +39,8 @@ require_once __DIR__.'/_header.php';
         </div>
 
         <div class="overflow-hidden mt-16 rounded-lg border-2 border-gray-200 shadow-2xl md:rounded-2xl dark:border-white/10 dark:shadow-black/50">
-            <img loading="lazy" class="w-full dark:hidden" src="assets/img/preview/redis-light.webp" alt="phpCacheAdmin Dashboard Preview Light Mode">
-            <img loading="lazy" class="hidden w-full dark:block" src="assets/img/preview/redis-dark.webp" alt="phpCacheAdmin Dashboard Preview Dark Mode">
+            <img loading="lazy" class="w-full dark:hidden" src="<?php echo asset('assets/img/preview/redis-light.webp'); ?>" alt="phpCacheAdmin Dashboard Preview Light Mode">
+            <img loading="lazy" class="hidden w-full dark:block" src="<?php echo asset('assets/img/preview/redis-dark.webp'); ?>" alt="phpCacheAdmin Dashboard Preview Dark Mode">
         </div>
     </section>
 
@@ -112,6 +112,7 @@ require_once __DIR__.'/_header.php';
                         'Seamless data import and export functionality',
                         'Full compatibility with Strings, Hashes, Lists, Sets, Sorted Sets, Streams, and JSON (RedisJSON)',
                         'Interactive Slowlog inspector for performance debugging',
+                        'Real-time Pub/Sub channel monitoring and message publishing',
                         'Native Redis Cluster topology support',
                         'Secure connections via ACL (Access Control List)',
                         'Performance-optimized key retrieval using SCAN engine',
@@ -377,11 +378,13 @@ require_once __DIR__.'/_header.php';
                                 <span class="text-gray-500">// Optional: built-in auth, or secure it behind your own route.</span><br>
                                 <span class="text-yellow-100">\RobiNN\Pca\Auth</span>::check();<br>
                                 <br>
-                                <span class="text-purple-400">echo</span> (<span class="text-blue-400">new</span> <span class="text-yellow-100">\RobiNN\Pca\Admin</span>())-&gt;render();
+                                <span class="text-purple-400">echo</span> (<span class="text-blue-400">new</span>
+                                <span class="text-yellow-100">\RobiNN\Pca\Admin</span>())-&gt;render();
                             </code>
                         </div>
                         <p class="mt-4 text-sm text-gray-600 dark:text-gray-400">
-                            Set <code class="py-0.5 px-1 text-xs bg-gray-200 rounded dark:bg-black/40">pcapath</code> (URL the assets are served from) and
+                            Set
+                            <code class="py-0.5 px-1 text-xs bg-gray-200 rounded dark:bg-black/40">pcapath</code> (URL the assets are served from) and
                             <code class="py-0.5 px-1 text-xs bg-gray-200 rounded dark:bg-black/40">url</code> (where the dashboard is mounted) in your config. See the
                             <a href="https://github.com/RobiNN1/phpCacheAdmin/blob/master/example_embedded_version.php" target="_blank" rel="noopener noreferrer" class="font-medium text-blue-600 dark:text-blue-400 hover:underline">embedded example</a>.
                         </p>
@@ -398,11 +401,16 @@ require_once __DIR__.'/_header.php';
         <div class="space-y-6">
             <div class="p-6 bg-white rounded-2xl border border-gray-100 dark:bg-slate-900 dark:border-white/5">
                 <h3 class="text-lg font-bold dark:text-white text-slate-900">Is phpCacheAdmin an alternative to phpRedisAdmin and phpMemcachedAdmin?</h3>
-                <p class="mt-2 text-gray-600 dark:text-gray-400 text-sm">Yes. It is a modern, actively maintained alternative that replaces both tools. It resolves common issues found in older scripts, such as memory exhaustion crashes, by using the SCAN command instead of KEYS. It also introduces support for Redis Clusters, ACL security, and seamless Docker integration. See how it compares as a <a href="phpredisadmin-alternative.php" class="font-medium text-blue-600 dark:text-blue-400 hover:underline">phpRedisAdmin alternative</a> or <a href="phpmemcachedadmin-alternative.php" class="font-medium text-blue-600 dark:text-blue-400 hover:underline">phpMemcachedAdmin alternative</a>.</p>
+                <p class="mt-2 text-gray-600 dark:text-gray-400 text-sm">Yes. It is a modern, actively maintained alternative that replaces both tools. It resolves common issues found in older scripts, such as memory exhaustion crashes, by using the SCAN command instead of KEYS. It also introduces support for Redis Clusters, ACL security, and seamless Docker integration. See how it compares as a
+                    <a href="phpredisadmin-alternative.php" class="font-medium text-blue-600 dark:text-blue-400 hover:underline">phpRedisAdmin alternative</a> or
+                    <a href="phpmemcachedadmin-alternative.php" class="font-medium text-blue-600 dark:text-blue-400 hover:underline">phpMemcachedAdmin alternative</a>.
+                </p>
             </div>
             <div class="p-6 bg-white rounded-2xl border border-gray-100 dark:bg-slate-900 dark:border-white/5">
                 <h3 class="text-lg font-bold dark:text-white text-slate-900">Can I use this to replace opcache-gui?</h3>
-                <p class="mt-2 text-gray-600 dark:text-gray-400 text-sm">Absolutely. Instead of hosting a standalone script just for OPCache, phpCacheAdmin provides a comprehensive view of OPCache, APCu, and Realpath cache right alongside your Redis and Memcached instances, all within a single unified dashboard. See the full <a href="opcache-gui-alternative.php" class="font-medium text-blue-600 dark:text-blue-400 hover:underline">opcache-gui alternative</a> comparison.</p>
+                <p class="mt-2 text-gray-600 dark:text-gray-400 text-sm">Absolutely. Instead of hosting a standalone script just for OPCache, phpCacheAdmin provides a comprehensive view of OPCache, APCu, and Realpath cache right alongside your Redis and Memcached instances, all within a single unified dashboard. See the full
+                    <a href="opcache-gui-alternative.php" class="font-medium text-blue-600 dark:text-blue-400 hover:underline">opcache-gui alternative</a> comparison.
+                </p>
             </div>
             <div class="p-6 bg-white rounded-2xl border border-gray-100 dark:bg-slate-900 dark:border-white/5">
                 <h3 class="text-lg font-bold dark:text-white text-slate-900">Does phpCacheAdmin require a database?</h3>
@@ -414,7 +422,9 @@ require_once __DIR__.'/_header.php';
             </div>
             <div class="p-6 bg-white rounded-2xl border border-gray-100 dark:bg-slate-900 dark:border-white/5">
                 <h3 class="text-lg font-bold dark:text-white text-slate-900">Is it safe to use in a production environment?</h3>
-                <p class="mt-2 text-gray-600 dark:text-gray-400 text-sm">Yes, but a proper setup is required. It ships with built-in authentication &mdash; define one or more users in the <code>authusers</code> option (username =&gt; password) in your config to enable a login screen. Alternatively, secure the dashboard behind your own security layer (such as a reverse proxy or an authenticated route). Additionally, it supports Redis ACL and configurable SCAN limits to prevent blocking the main Redis thread on large databases.</p>
+                <p class="mt-2 text-gray-600 dark:text-gray-400 text-sm">Yes, but a proper setup is required. It ships with built-in authentication &mdash; define one or more users in the
+                    <code>authusers</code> option (username =&gt; password) in your config to enable a login screen. Alternatively, secure the dashboard behind your own security layer (such as a reverse proxy or an authenticated route). Additionally, it supports Redis ACL and configurable SCAN limits to prevent blocking the main Redis thread on large databases.
+                </p>
             </div>
             <div class="p-6 bg-white rounded-2xl border border-gray-100 dark:bg-slate-900 dark:border-white/5">
                 <h3 class="text-lg font-bold dark:text-white text-slate-900">How do I fix "Fatal error: Allowed memory size exhausted"?</h3>
@@ -427,7 +437,8 @@ require_once __DIR__.'/_header.php';
                 <h3 class="text-lg font-bold dark:text-white text-slate-900">Can I collect metrics in the background?</h3>
                 <p class="mt-2 text-gray-600 dark:text-gray-400 text-sm">Yes, you can collect historical data even when the dashboard is not open in your browser by setting up a cronjob. Trigger the metrics endpoint for your desired cache periodically, for example:
                     <code class="py-0.5 px-1 text-xs bg-gray-100 rounded dark:bg-black/40">curl -s "https://example.com/?dashboard=redis&amp;server=0&amp;ajax&amp;metrics" &gt; /dev/null</code>.
-                    If authentication is enabled, set the <code>authtoken</code> option in your config and append <code class="py-0.5 px-1 text-xs bg-gray-100 rounded dark:bg-black/40">&amp;token=your-secret-token</code> to the URL so the cronjob can run without a login session.
+                    If authentication is enabled, set the <code>authtoken</code> option in your config and append
+                    <code class="py-0.5 px-1 text-xs bg-gray-100 rounded dark:bg-black/40">&amp;token=your-secret-token</code> to the URL so the cronjob can run without a login session.
                 </p>
             </div>
         </div>

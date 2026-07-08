@@ -26,8 +26,8 @@ require __DIR__.'/_header.php';
         </div>
 
         <div class="overflow-hidden mt-16 mx-auto max-w-5xl rounded-lg border-2 border-gray-200 shadow-2xl md:rounded-2xl dark:border-white/10 dark:shadow-black/50">
-            <img loading="lazy" class="w-full dark:hidden" src="assets/img/preview/redis-light.webp" alt="phpCacheAdmin Redis dashboard preview - light mode">
-            <img loading="lazy" class="hidden w-full dark:block" src="assets/img/preview/redis-dark.webp" alt="phpCacheAdmin Redis dashboard preview - dark mode">
+            <img loading="lazy" class="w-full dark:hidden" src="<?php echo asset('assets/img/preview/redis-light.webp'); ?>" alt="phpCacheAdmin Redis dashboard preview - light mode">
+            <img loading="lazy" class="hidden w-full dark:block" src="<?php echo asset('assets/img/preview/redis-dark.webp'); ?>" alt="phpCacheAdmin Redis dashboard preview - dark mode">
         </div>
     </section>
 
@@ -57,7 +57,17 @@ require __DIR__.'/_header.php';
                 </div>
 
                 <div>
-                    <h3 class="text-xl font-bold text-redis mb-2">5. Beautiful Dark Mode</h3>
+                    <h3 class="text-xl font-bold text-redis mb-2">5. Interactive Slowlog Inspector</h3>
+                    <p class="text-gray-600 dark:text-gray-400">Diagnose performance bottlenecks without touching the CLI. phpCacheAdmin surfaces the Redis Slowlog directly in the dashboard, so you can spot expensive commands and optimize them at a glance &mdash; something phpRedisAdmin never offered.</p>
+                </div>
+
+                <div>
+                    <h3 class="text-xl font-bold text-redis mb-2">6. Real-time Pub/Sub Monitoring</h3>
+                    <p class="text-gray-600 dark:text-gray-400">Watch messages flow across your channels live and publish your own from the interface. Debugging event-driven and real-time applications is finally built into the tool instead of requiring a separate terminal session.</p>
+                </div>
+
+                <div>
+                    <h3 class="text-xl font-bold text-redis mb-2">7. Beautiful Dark Mode</h3>
                     <p class="text-gray-600 dark:text-gray-400">A clean, responsive UI with a highly requested dark mode is built right in. It looks and feels like a modern developer tool should.</p>
                 </div>
             </div>

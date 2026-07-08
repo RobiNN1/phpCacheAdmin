@@ -13,7 +13,11 @@ use RobiNN\Pca\Format;
 
 final class FormatTest extends TestCase {
     public function testBytes(): void {
+        $this->assertSame('512,00B', Format::bytes(512));
+        $this->assertSame('1,50KB', Format::bytes(1536));
         $this->assertSame('127,38MB', Format::bytes(133_567_600));
+        $this->assertSame('2,50GB', Format::bytes(2_684_354_560));
+        $this->assertSame('1,50TB', Format::bytes(1_649_267_441_664));
     }
 
     public function testIniSizeToBytes(): void {

@@ -10,6 +10,7 @@ namespace RobiNN\Pca\Dashboards\Server;
 
 use JsonException;
 use RobiNN\Pca\Format;
+use Throwable;
 
 trait ServerResources {
     /**
@@ -100,9 +101,12 @@ trait ServerResources {
             return $this->linuxCpuUsage();
         }
 
+        if (PHP_OS_FAMILY === 'Windows') {
+            return $this->windowsStats()['cpu'];
+        }
+
         $command = match (PHP_OS_FAMILY) {
             'Darwin' => 'top -l 1 | grep -E "^CPU" | tail -1 | awk \'{ print $3 + $5 }\'',
-            'Windows' => 'wmic cpu get loadpercentage | more +1',
             'BSD' => 'top -b -d 2 | grep "CPU: " | tail -1 | awk \'{print $10}\' | grep -Eo \'[0-9]+\.[0-9]+\' | awk \'{ print 100 - $1 }\'',
             default => null,
         };
@@ -192,9 +196,9 @@ trait ServerResources {
                 $used = $pages * $pagesize;
                 break;
             case 'Windows':
-                $total = $this->windowsMemory('(Get-CimInstance Win32_ComputerSystem).TotalPhysicalMemory', 'ComputerSystem get TotalPhysicalMemory', false);
-                $free = $this->windowsMemory('(Get-CimInstance Win32_OperatingSystem).FreePhysicalMemory', 'OS get FreePhysicalMemory', true);
-                $used = $total - $free;
+                $win = $this->windowsStats();
+                $total = $win['total'];
+                $used = $total - $win['free'];
                 break;
         }
 
@@ -207,20 +211,73 @@ trait ServerResources {
         return ['total' => $total, 'used' => $used, 'free' => $total - $used];
     }
 
-    /**
-     * Windows memory value in bytes, PowerShell CIM with a wmic fallback for older systems.
-     * FreePhysicalMemory is reported in kB, TotalPhysicalMemory in bytes.
-     */
-    private function windowsMemory(string $powershell, string $wmic, bool $in_kb): int {
-        $output = $this->shell('powershell -NoProfile -Command "'.$powershell.'"');
+    private function windowsStats(): array {
+        static $stats = null;
 
-        if (!is_numeric($output)) {
-            $output = $this->shell('wmic '.$wmic.' | more +1');
+        if ($stats === null) {
+            $stats = $this->windowsStatsCom() ?? $this->windowsStatsPowershell();
         }
 
-        $value = (int) $output;
+        return $stats;
+    }
 
-        return $in_kb ? $value * 1024 : $value;
+    /**
+     * @return array{cpu: int|null, total: int, free: int}|null
+     */
+    private function windowsStatsCom(): ?array {
+        if (!class_exists('COM')) {
+            return null;
+        }
+
+        try {
+            $wmi = new \COM('winmgmts://./root/cimv2');
+
+            $cpu = null;
+
+            foreach ($wmi->ExecQuery("SELECT PercentProcessorTime FROM Win32_PerfFormattedData_PerfOS_Processor WHERE Name='_Total'") as $row) {
+                $cpu = min(100, max(0, (int) round((float) $row->PercentProcessorTime)));
+            }
+
+            $total = 0;
+
+            foreach ($wmi->ExecQuery('SELECT TotalPhysicalMemory FROM Win32_ComputerSystem') as $row) {
+                $total = (int) $row->TotalPhysicalMemory;
+            }
+
+            $free = 0;
+
+            foreach ($wmi->ExecQuery('SELECT FreePhysicalMemory FROM Win32_OperatingSystem') as $row) {
+                $free = (int) $row->FreePhysicalMemory * 1024;
+            }
+
+            return ['cpu' => $cpu, 'total' => $total, 'free' => $free];
+        } catch (Throwable) {
+            return null;
+        }
+    }
+
+    /**
+     * @return array{cpu: int|null, total: int, free: int}
+     */
+    private function windowsStatsPowershell(): array {
+        $output = $this->shell('powershell -NoProfile -NonInteractive -Command "'.
+            '(Get-CimInstance Win32_PerfFormattedData_PerfOS_Processor | Where-Object Name -eq \'_Total\').PercentProcessorTime; '.
+            '(Get-CimInstance Win32_ComputerSystem).TotalPhysicalMemory; '.
+            '(Get-CimInstance Win32_OperatingSystem).FreePhysicalMemory"');
+
+        $lines = [];
+
+        if ($output !== null) {
+            $lines = preg_split('/\r\n|\n|\r/', $output) ?: [];
+        }
+
+        $cpu = isset($lines[0]) && is_numeric(trim($lines[0])) ? min(100, max(0, (int) round((float) $lines[0]))) : null;
+
+        return [
+            'cpu'   => $cpu,
+            'total' => isset($lines[1]) ? (int) trim($lines[1]) : 0,
+            'free'  => isset($lines[2]) ? (int) trim($lines[2]) * 1024 : 0,
+        ];
     }
 
     private function shell(string $command): ?string {
@@ -235,8 +292,7 @@ trait ServerResources {
             return null;
         }
 
-        // Prepend the standard system paths so tools like sysctl (/usr/sbin) resolve even under a
-        // restricted PATH (some PHP-FPM setups). The Windows shell handles its own commands.
+        // Prepend the standard system paths so tools like sysctl (/usr/sbin) resolve even under a restricted PATH (some PHP-FPM setups).
         if (PHP_OS_FAMILY !== 'Windows') {
             $command = 'export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:$PATH"; '.$command;
         }

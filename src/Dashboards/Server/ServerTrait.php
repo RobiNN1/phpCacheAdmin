@@ -8,7 +8,11 @@ declare(strict_types=1);
 
 namespace RobiNN\Pca\Dashboards\Server;
 
+use RobiNN\Pca\Format;
+
 trait ServerTrait {
+    use ServerResources;
+
     private function getDisabledFunctions(): string {
         $disabled_functions = 'None';
         $ini_value = ini_get('disable_functions');
@@ -26,26 +30,68 @@ trait ServerTrait {
      */
     private function panels(): array {
         return [
-            [
-                'title' => 'PHP Info',
-                'data'  => [
-                    'PHP Version'         => PHP_VERSION,
-                    'Disabled functions'  => $this->getDisabledFunctions(),
-                    'Loaded php.ini file' => php_ini_loaded_file(),
-                    'Memory limit'        => ini_get('memory_limit'),
-                    'Max execution time'  => ini_get('max_execution_time').'s',
-                    'Xdebug'              => extension_loaded('xdebug') ? 'Enabled - v'.phpversion('xdebug') : 'Disabled',
-                ],
+            $this->phpPanel(),
+            $this->phpConfigPanel(),
+            $this->serverPanel(),
+            $this->resourcesPanel(),
+        ];
+    }
+
+    /**
+     * @return array{title: string, data: array<int|string, mixed>}
+     */
+    private function phpPanel(): array {
+        return [
+            'title' => 'PHP',
+            'data'  => [
+                'PHP Version'         => PHP_VERSION,
+                'Zend Engine'         => zend_version(),
+                'Server API'          => PHP_SAPI,
+                'Loaded php.ini file' => php_ini_loaded_file() ?: 'None',
+                'Disabled functions'  => $this->getDisabledFunctions(),
             ],
-            [
-                'title' => 'Server Info',
-                'data'  => [
-                    'OS'         => PHP_OS,
-                    'Server'     => php_uname(),
-                    'Web Server' => $_SERVER['SERVER_SOFTWARE'],
-                    'Server API' => PHP_SAPI,
-                    'User Agent' => $_SERVER['HTTP_USER_AGENT'],
-                ],
+        ];
+    }
+
+    /**
+     * @return array{title: string, data: array<int|string, mixed>}
+     */
+    private function phpConfigPanel(): array {
+        $memory_used = memory_get_usage(true);
+        $memory_limit = Format::iniSizeToBytes((string) ini_get('memory_limit'));
+
+        $data = [
+            'Max execution time'  => ini_get('max_execution_time').'s',
+            'Upload max filesize' => ini_get('upload_max_filesize'),
+            'Post max size'       => ini_get('post_max_size'),
+            'Default timezone'    => date_default_timezone_get(),
+        ];
+
+        if ($memory_limit > 0) {
+            $usage = round(($memory_used / $memory_limit) * 100, 2);
+            $data[] = ['PHP memory usage', Format::bytes($memory_used).' / '.Format::bytes($memory_limit, 0).' ('.$usage.'%)', $usage];
+        } else {
+            $data['PHP memory usage'] = Format::bytes($memory_used);
+        }
+
+        $data['PHP peak memory'] = Format::bytes(memory_get_peak_usage(true));
+
+        return [
+            'title' => 'PHP Configuration',
+            'data'  => $data,
+        ];
+    }
+
+    /**
+     * @return array{title: string, data: array<int|string, mixed>}
+     */
+    private function serverPanel(): array {
+        return [
+            'title' => 'Server',
+            'data'  => [
+                'OS'         => PHP_OS.' ('.php_uname('m').')',
+                'Host'       => php_uname('n'),
+                'Web Server' => $_SERVER['SERVER_SOFTWARE'] ?? 'N/A',
             ],
         ];
     }

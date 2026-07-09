@@ -19,6 +19,7 @@ trait MemcachedTrait {
     use MemcachedPanels;
     use MemcachedKeyView;
     use MemcachedKeysList;
+    use MemcachedConsole;
 
     /**
      * @var array<string, string>
@@ -29,6 +30,7 @@ trait MemcachedTrait {
         'slabs'          => 'Slabs',
         'items'          => 'Items',
         'metrics'        => 'Metrics',
+        'console'        => 'Console',
         'moreinfo'       => 'More info',
     ];
 

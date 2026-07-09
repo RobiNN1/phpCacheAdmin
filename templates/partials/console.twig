@@ -1,0 +1,40 @@
+<div class="bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+    <div class="flex flex-wrap gap-2 justify-between items-center py-3 px-4 border-b border-gray-200 dark:border-gray-700">
+        <h2 class="text-sm font-bold uppercase text-primary-900 dark:text-primary-400">Console</h2>
+        {{ include('components/button.twig', {
+            id: 'console_clear',
+            text: 'Clear',
+            color: 'red',
+        }) }}
+    </div>
+
+    <div id="console" class="overflow-y-auto p-4 h-96 font-mono text-xs leading-relaxed text-gray-800 bg-gray-50 cursor-text dark:text-gray-200 dark:bg-gray-900/60">
+        <div id="console_welcome" class="text-gray-500 dark:text-gray-400">{{ welcome|raw }}</div>
+
+        <div id="console_prompt_row" class="flex items-center mt-2">
+            <span class="mr-2 font-semibold whitespace-nowrap select-none text-primary-600 dark:text-primary-400">{{ prompt }}</span>
+            <div class="relative flex-1 min-w-0">
+                <div id="console_hint" aria-hidden="true" class="flex absolute inset-0 items-center font-mono text-xs whitespace-pre pointer-events-none select-none overflow-hidden">
+                    <span id="console_hint_typed" class="invisible"></span><span id="console_hint_text" class="text-gray-400 dark:text-gray-500"></span>
+                </div>
+                <input id="console_input" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Command" class="relative z-10 w-full font-mono text-xs text-gray-800 bg-transparent border-0 outline-hidden focus:outline-hidden focus:ring-0 dark:text-gray-200">
+            </div>
+        </div>
+    </div>
+
+    <template id="console_line">
+        <div class="console-entry mt-2">
+            <div class="flex">
+                <span class="mr-2 font-semibold whitespace-nowrap select-none text-primary-600 dark:text-primary-400"></span>
+                <span class="break-all whitespace-pre-wrap"></span>
+            </div>
+            <div class="mt-0.5 break-all whitespace-pre-wrap"></div>
+        </div>
+    </template>
+
+    <div class="py-2 px-4 text-xs border-t border-gray-200 dark:text-gray-400 dark:border-gray-700">{{ note|raw }}</div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => pcaConsole({commandsUrl: "{{ commands_url }}"}));
+</script>

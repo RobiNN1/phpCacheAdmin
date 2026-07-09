@@ -1,0 +1,11 @@
+{{ include('partials/console.twig', {
+    prompt: 'memcached>',
+    commands_url: asset('assets/memcached-commands.json'),
+    welcome: 'Type a Memcached command and press Enter (e.g. <span class="font-semibold">version</span>,
+        <span class="font-semibold">get foo</span>, <span class="font-semibold">stats</span>).
+        Storage commands take the value as a <span class="font-semibold">\\n</span> escape, e.g.
+        <span class="font-semibold">set foo 0 0 3\\nbar</span>. Type <span class="font-semibold">clear</span> to reset the output.',
+    note: 'Each command runs over the raw text protocol on a fresh connection. Streaming/administrative
+        commands (watch, shutdown) are disabled. Use &uarr;/&darr; for command history and
+        &#8677; Tab to complete command names.',
+}) }}

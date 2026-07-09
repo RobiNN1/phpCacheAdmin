@@ -798,3 +798,212 @@ const init_metrics = (render_charts, chart_config) => {
 
     setInterval(update_page_charts, metrics_refresh_interval);
 };
+
+/**
+ * Interactive command console.
+ */
+const pcaConsole = (options) => {
+    const output = document.getElementById('console');
+    const input = document.getElementById('console_input');
+
+    if (!output || !input) {
+        return;
+    }
+
+    // Keep the input row as the last child so new output appears above it.
+    const input_row = document.getElementById('console_prompt_row');
+    const prompt = input_row.querySelector('span').textContent;
+
+    const history = [];
+    let history_index = 0; // points one past the last entry (i.e., the "new" line)
+
+    const scroll_bottom = () => output.scrollTop = output.scrollHeight;
+
+    const hint_typed = document.getElementById('console_hint_typed');
+    const hint_text = document.getElementById('console_hint_text');
+
+    let commands = {};
+    let command_names = [];
+
+    // Resolve the command being typed, preferring a two-word one (e.g., CONFIG GET, STATS ITEMS).
+    const command_key = (value) => {
+        const tokens = value.trimStart().split(/\s+/);
+        const first = (tokens[0] || '').toUpperCase();
+
+        if (tokens.length >= 2) {
+            const two = first + ' ' + tokens[1].toUpperCase();
+
+            if (commands[two]) {
+                return two;
+            }
+        }
+
+        return commands[first] ? first : null;
+    };
+
+    const update_hint = () => {
+        const value = input.value;
+        const key = value.trim() === '' ? null : command_key(value);
+        const args = key && commands[key] ? commands[key].args : null;
+
+        hint_typed.textContent = value;
+        hint_text.textContent = args ? (value.endsWith(' ') ? '' : ' ') + args : '';
+    };
+
+    let tab_matches = [];
+    let tab_index = -1;
+    let tab_last = '';
+
+    const complete_command = () => {
+        const value = input.value;
+
+        if (value.includes(' ')) {
+            return; // only the command name is completed
+        }
+
+        if (tab_index === -1 || value !== tab_last) {
+            const prefix = value.toUpperCase();
+            tab_matches = command_names.filter(name => name.startsWith(prefix));
+            tab_index = -1;
+        }
+
+        if (tab_matches.length === 0) {
+            return;
+        }
+
+        tab_index = (tab_index + 1) % tab_matches.length;
+        input.value = tab_matches[tab_index].toLowerCase();
+        tab_last = input.value;
+        update_hint();
+    };
+
+    input.addEventListener('input', update_hint);
+
+    const append_line = (command, result, is_error) => {
+        const line = document.getElementById('console_line').content.cloneNode(true);
+        const [prompt_span, command_span] = line.querySelectorAll('.flex > span');
+        const result_div = line.querySelector('div > div:last-child');
+
+        prompt_span.textContent = prompt;
+        command_span.textContent = command;
+
+        if (result === '') {
+            result_div.remove();
+        } else {
+            result_div.textContent = result;
+            result_div.classList.add(...(is_error ? ['text-red-500', 'dark:text-red-400'] : ['text-gray-600', 'dark:text-gray-400']));
+        }
+
+        output.insertBefore(line, input_row);
+        scroll_bottom();
+    };
+
+    const parse_json = (request) => {
+        try {
+            return JSON.parse(request.response);
+        } catch {
+            return null;
+        }
+    };
+
+    const run = (command) => {
+        input.value = '';
+        update_hint();
+        input.disabled = true;
+
+        ajax('console', (request) => {
+            input.disabled = false;
+            const data = ajax_ok(request) ? parse_json(request) : null;
+
+            if (data === null) {
+                append_line(command, 'An error occurred while running the command.', true);
+            } else if (data.error) {
+                append_line(command, '(error) ' + data.error, true);
+            } else {
+                append_line(command, data.output ?? '', false);
+            }
+
+            input.focus();
+        }, {command: command}, false);
+    };
+
+    const clear_output = () => {
+        output.querySelectorAll('.console-entry').forEach(el => el.remove());
+        document.getElementById('console_welcome')?.remove();
+    };
+
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            const command = input.value.trim();
+
+            if (command === '') {
+                return;
+            }
+
+            history.push(command);
+            history_index = history.length;
+
+            if (command.toLowerCase() === 'clear') {
+                clear_output();
+                input.value = '';
+                update_hint();
+                return;
+            }
+
+            run(command);
+        } else if (e.key === 'Tab') {
+            e.preventDefault();
+            complete_command();
+        } else if (e.key === 'ArrowUp') {
+            if (history_index > 0) {
+                history_index--;
+                input.value = history[history_index];
+                update_hint();
+                e.preventDefault();
+            }
+        } else if (e.key === 'ArrowDown') {
+            if (history_index < history.length - 1) {
+                history_index++;
+                input.value = history[history_index];
+            } else {
+                history_index = history.length;
+                input.value = '';
+            }
+            update_hint();
+            e.preventDefault();
+        }
+    });
+
+    // Clicking anywhere in the terminal (but not to select text) focuses the input.
+    output.addEventListener('click', () => {
+        if ((window.getSelection() ?? '').toString() === '') {
+            input.focus();
+        }
+    });
+
+    document.getElementById('console_clear').addEventListener('click', () => {
+        clear_output();
+        input.focus();
+    });
+
+    ajax('console&history', (request) => {
+        const data = ajax_ok(request) ? parse_json(request) : null;
+
+        if (data && Array.isArray(data.history)) {
+            history.push(...data.history);
+            history_index = history.length;
+        }
+    });
+
+    fetch(options.commandsUrl)
+        .then(response => response.ok ? response.json() : {})
+        .then(data => {
+            commands = data || {};
+            command_names = Object.keys(commands).filter(name => !name.includes(' '));
+            update_hint();
+        })
+        .catch(() => {
+        });
+
+    input.focus();
+};

@@ -264,6 +264,73 @@ final class MemcachedTest extends TestCase {
     }
 
     /**
+     * @throws JsonException|MemcachedException
+     */
+    public function testConsoleAjax(): void {
+        $_GET['console'] = '';
+
+        $this->setCsrfToken(false);
+        $_POST['command'] = 'version';
+        $response = json_decode($this->dashboard->ajax(), true, 512, JSON_THROW_ON_ERROR);
+        $this->assertSame('Invalid CSRF token.', $response['error']);
+
+        $this->setCsrfToken();
+        $_POST['command'] = 'version';
+        $response = json_decode($this->dashboard->ajax(), true, 512, JSON_THROW_ON_ERROR);
+        $this->assertStringStartsWith('VERSION', $response['output']);
+
+        // A storage command with its value provided as a "\n" escape.
+        $_POST['command'] = 'set pu-console 0 0 3\nabc';
+        $response = json_decode($this->dashboard->ajax(), true, 512, JSON_THROW_ON_ERROR);
+        $this->assertSame('STORED', $response['output']);
+
+        $_POST['command'] = 'get pu-console';
+        $response = json_decode($this->dashboard->ajax(), true, 512, JSON_THROW_ON_ERROR);
+        $this->assertStringContainsString('abc', $response['output']);
+        $this->memcached->delete('pu-console');
+
+        $_POST['command'] = 'notacommand';
+        $response = json_decode($this->dashboard->ajax(), true, 512, JSON_THROW_ON_ERROR);
+        $this->assertArrayHasKey('error', $response);
+
+        $_POST['command'] = 'shutdown';
+        $response = json_decode($this->dashboard->ajax(), true, 512, JSON_THROW_ON_ERROR);
+        $this->assertStringContainsString('not allowed', $response['error']);
+
+        $_POST['command'] = '   ';
+        $response = json_decode($this->dashboard->ajax(), true, 512, JSON_THROW_ON_ERROR);
+        $this->assertSame('Empty command.', $response['error']);
+
+        unset($_GET['console'], $_POST['command'], $_POST['csrf_token']);
+    }
+
+    /**
+     * @throws JsonException
+     */
+    public function testConsoleHistory(): void {
+        $dir = Config::get('tmpdir', dirname(__DIR__, 2).'/tmp').'/console';
+        $file = $dir.'/memcached_history_'.md5(Helpers::getServerTitle(Config::get('memcached')[0]).Config::get('hash', 'pca')).'.json';
+        @unlink($file);
+
+        $_GET['console'] = '';
+        $this->setCsrfToken();
+
+        foreach (['version', 'stats', 'stats'] as $command) { // the repeated command must be stored only once
+            $_POST['command'] = $command;
+            $this->dashboard->ajax();
+        }
+
+        unset($_POST['command']);
+        $_GET['history'] = '';
+        $response = json_decode($this->dashboard->ajax(), true, 512, JSON_THROW_ON_ERROR);
+
+        $this->assertSame(['version', 'stats'], $response['history']);
+
+        @unlink($file);
+        unset($_GET['console'], $_GET['history'], $_POST['csrf_token']);
+    }
+
+    /**
      * @throws MemcachedException
      */
     public function testGetAllKeysTableView(): void {

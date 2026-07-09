@@ -125,6 +125,7 @@ return [
     'pubsubrefresh'  => 5, // In seconds, refresh interval for the Pub/Sub active channels list - default 5
     'pubsubwindow'   => 5, // In seconds, how long one Pub/Sub monitor request captures messages (1-10) - default 5
     'hash'           => 'pca', // Any random string to secure a metrics DB file.
+    'tmpdir'         => __DIR__.'/tmp', // Directory for temporary files.
     'metricsdir'     => __DIR__.'/tmp/metrics', // Directory for metrics DB files.
     'twigcache'      => __DIR__.'/tmp/twig', // Directory for Twig cache files.
     //'pcapath'        => 'vendor/robinn/phpcacheadmin/', // Path to the package when installed via composer. Used for assets.

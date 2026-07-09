@@ -65,6 +65,8 @@
     "phar:predis": "phar-composer build predis/predis",
     "phar:twig": "phar-composer build twig/twig",
     "phpstan": "phpstan --ansi",
-    "test": "phpunit --colors=always --display-skipped"
+    "test": "phpunit --colors=always --display-skipped",
+    "test-cluster": "PCA_REDIS_0_NODES='[\"127.0.0.1:6380\",\"127.0.0.1:6381\",\"127.0.0.1:6382\"]' phpunit --colors=always --display-skipped tests/Dashboards/Redis",
+    "redis-commands": "php bin/generate-redis-commands.php"
   }
 }

@@ -11,6 +11,8 @@ namespace RobiNN\Pca\Dashboards\Redis\Compatibility;
 use Exception;
 use Predis\Client;
 use Predis\Collection\Iterator\Keyspace;
+use Predis\Command\RawCommand;
+use Predis\Response\Status;
 use RuntimeException;
 use Throwable;
 
@@ -257,7 +259,18 @@ class Predis extends Client implements RedisCompatibilityInterface {
     }
 
     public function publishMessage(string $channel, string $message): int {
-        return (int) $this->publish($channel, $message);
+        return $this->publish($channel, $message);
+    }
+
+    /**
+     * @param array<int, string> $args
+     *
+     * @throws Throwable
+     */
+    public function consoleCommand(array $args): mixed {
+        $reply = $this->executeCommand(RawCommand::create(...$args));
+
+        return $reply instanceof Status ? $reply->getPayload() : $reply;
     }
 
     /**

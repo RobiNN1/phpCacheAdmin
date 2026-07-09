@@ -62,7 +62,7 @@ trait RedisExtra {
                 return $aggregated;
             }
 
-            parse_str(str_replace(',', '&', (string) $value), $parsed);
+            parse_str(str_replace(',', '&', $value), $parsed);
 
             return $parsed;
         }, $info);

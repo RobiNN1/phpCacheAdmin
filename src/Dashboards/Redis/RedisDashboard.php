@@ -113,6 +113,10 @@ class RedisDashboard implements DashboardInterface {
                 return $this->pubSubAjax();
             }
 
+            if (isset($_GET['console'])) {
+                return $this->consoleAjax();
+            }
+
             if (isset($_GET['view'], $_GET['key'])) {
                 return $this->viewKey();
             }

@@ -120,4 +120,11 @@ interface RedisCompatibilityInterface {
      * @return array<int, array{channel: string, message: string, time: int}>
      */
     public function captureMessages(string $pattern, int $seconds, int $limit): array;
+
+    /**
+     * Run a raw command entered in the console and return its reply.
+     *
+     * @param array<int, string> $args Command name and its arguments, e.g. ['GET', 'mykey'].
+     */
+    public function consoleCommand(array $args): mixed;
 }

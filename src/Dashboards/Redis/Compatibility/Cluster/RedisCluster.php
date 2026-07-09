@@ -43,7 +43,7 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
      *
      * @throws DashboardException
      */
-    public function __construct(private array $server) {
+    public function __construct(private readonly array $server) {
         $auth = null;
 
         if (isset($this->server['password'])) {
@@ -394,5 +394,24 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
         } catch (DashboardException) {
             return [];
         }
+    }
+
+    /**
+     * @param array<int, string> $args
+     *
+     * @throws RedisClusterException
+     */
+    public function consoleCommand(array $args): mixed {
+        $this->setOption(Redis::OPT_REPLY_LITERAL, true);
+        $this->clearLastError();
+
+        $target = $args[1] ?? $this->nodes[0];
+        $reply = $this->rawcommand($target, ...$args);
+
+        if ($reply === false && ($error = $this->getLastError()) !== null) {
+            throw new RedisClusterException($error);
+        }
+
+        return $reply;
     }
 }

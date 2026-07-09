@@ -23,6 +23,7 @@ use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
 use RobiNN\Pca\Template;
 use Tests\TestCase;
+use Throwable;
 
 abstract class RedisTestCase extends TestCase {
     private Template $template;
@@ -766,6 +767,90 @@ abstract class RedisTestCase extends TestCase {
         $this->assertSame('Channel name is required.', $response['error']);
 
         unset($_GET['db'], $_GET['pubsub'], $_POST['publish'], $_POST['channel'], $_POST['message'], $_POST['csrf_token']);
+    }
+
+    /**
+     * @throws Exception
+     * @throws Throwable
+     */
+    public function testConsoleCommand(): void {
+        $this->assertSame('OK', Helpers::mixedToString($this->redis->consoleCommand(['SET', 'pu-console-key', 'hello'])));
+        $this->assertSame('hello', Helpers::mixedToString($this->redis->consoleCommand(['GET', 'pu-console-key'])));
+        $this->assertSame('string', Helpers::mixedToString($this->redis->consoleCommand(['TYPE', 'pu-console-key'])));
+        $this->assertIsInt($this->redis->consoleCommand(['APPEND', 'pu-console-key', '!']));
+
+        $this->redis->consoleCommand(['RPUSH', 'pu-console-list', 'a', 'b']);
+        $list = $this->redis->consoleCommand(['LRANGE', 'pu-console-list', '0', '-1']);
+        $this->assertSame(['a', 'b'], $list);
+    }
+
+    /**
+     * @throws Exception
+     *
+     * @throws Throwable
+     */
+    public function testConsoleUnknownCommand(): void {
+        $this->expectException(Exception::class);
+        $this->redis->consoleCommand(['NOTAREALCOMMAND']);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testConsoleAjax(): void {
+        $_GET['db'] = 10;
+        $_GET['console'] = '';
+
+        $this->setCsrfToken(false);
+        $_POST['command'] = 'PING';
+        $response = json_decode($this->dashboard->ajax(), true, 512, JSON_THROW_ON_ERROR);
+        $this->assertSame('Invalid CSRF token.', $response['error']);
+
+        $this->setCsrfToken();
+        $_POST['command'] = 'SET pu-console-ajax "hi there"';
+        $response = json_decode($this->dashboard->ajax(), true, 512, JSON_THROW_ON_ERROR);
+        $this->assertSame('OK', $response['output']);
+
+        $_POST['command'] = 'GET pu-console-ajax';
+        $response = json_decode($this->dashboard->ajax(), true, 512, JSON_THROW_ON_ERROR);
+        $this->assertSame('hi there', $response['output']);
+
+        $_POST['command'] = 'MONITOR';
+        $response = json_decode($this->dashboard->ajax(), true, 512, JSON_THROW_ON_ERROR);
+        $this->assertStringContainsString('not allowed', $response['error']);
+
+        $_POST['command'] = '   ';
+        $response = json_decode($this->dashboard->ajax(), true, 512, JSON_THROW_ON_ERROR);
+        $this->assertSame('Empty command.', $response['error']);
+
+        unset($_GET['db'], $_GET['console'], $_POST['command'], $_POST['csrf_token']);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testConsoleHistory(): void {
+        $dir = Config::get('tmpdir', __DIR__.'/../../../tmp').'/console';
+        $file = $dir.'/history_'.md5(Helpers::getServerTitle(Config::get('redis')[0]).Config::get('hash', 'pca')).'.json';
+        @unlink($file);
+
+        $_GET['db'] = 10;
+        $_GET['console'] = '';
+        $this->setCsrfToken();
+
+        foreach (['PING', 'DBSIZE', 'DBSIZE'] as $command) { // the repeated command must be stored only once
+            $_POST['command'] = $command;
+            $this->dashboard->ajax();
+        }
+
+        unset($_POST['command']);
+        $_GET['history'] = '';
+        $response = json_decode($this->dashboard->ajax(), true, 512, JSON_THROW_ON_ERROR);
+
+        $this->assertSame(['PING', 'DBSIZE'], $response['history']);
+
+        @unlink($file);
+        unset($_GET['db'], $_GET['console'], $_GET['history'], $_POST['csrf_token']);
     }
 
     /**

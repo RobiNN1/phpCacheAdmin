@@ -24,6 +24,7 @@ trait RedisTrait {
     use RedisKeyView;
     use RedisKeysList;
     use RedisPubSub;
+    use RedisConsole;
 
     /**
      * @var array<string, string>
@@ -33,6 +34,7 @@ trait RedisTrait {
         'slowlog'  => 'Slow Log',
         'metrics'  => 'Metrics',
         'pubsub'   => 'Pub/Sub',
+        'console'  => 'Console',
         'moreinfo' => 'More info',
     ];
 

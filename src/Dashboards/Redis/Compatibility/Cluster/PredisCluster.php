@@ -13,6 +13,8 @@ use InvalidArgumentException;
 use Predis\Client as PredisClient;
 use Predis\Cluster\RedisStrategy;
 use Predis\Collection\Iterator\Keyspace;
+use Predis\Command\RawCommand;
+use Predis\Response\Status;
 use RobiNN\Pca\Dashboards\DashboardException;
 use RobiNN\Pca\Dashboards\Redis\Compatibility\Predis;
 use RobiNN\Pca\Dashboards\Redis\Compatibility\RedisCompatibilityInterface;
@@ -408,5 +410,16 @@ class PredisCluster extends PredisClient implements RedisCompatibilityInterface 
         }
 
         return (new Predis($server))->captureMessages($pattern, $seconds, $limit);
+    }
+
+    /**
+     * @param array<int, string> $args
+     *
+     * @throws Throwable
+     */
+    public function consoleCommand(array $args): mixed {
+        $reply = $this->executeCommand(RawCommand::create(...$args));
+
+        return $reply instanceof Status ? $reply->getPayload() : $reply;
     }
 }

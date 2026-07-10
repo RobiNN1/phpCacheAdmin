@@ -67,7 +67,12 @@ require __DIR__.'/_header.php';
                 </div>
 
                 <div>
-                    <h3 class="text-xl font-bold text-redis mb-2">7. Beautiful Dark Mode</h3>
+                    <h3 class="text-xl font-bold text-redis mb-2">7. Built-in Command Console</h3>
+                    <p class="text-gray-600 dark:text-gray-400">Run raw Redis commands straight from the dashboard with an interactive console. No need to SSH into the server or open a separate <code>redis-cli</code> session &mdash; execute, inspect, and debug commands right where you manage your keys.</p>
+                </div>
+
+                <div>
+                    <h3 class="text-xl font-bold text-redis mb-2">8. Beautiful Dark Mode</h3>
                     <p class="text-gray-600 dark:text-gray-400">A clean, responsive UI with a highly requested dark mode is built right in. It looks and feels like a modern developer tool should.</p>
                 </div>
             </div>

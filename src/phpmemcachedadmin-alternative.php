@@ -51,7 +51,12 @@ require __DIR__.'/_header.php';
                 </div>
 
                 <div>
-                    <h3 class="text-xl font-bold text-memcached mb-2">4. Beautiful UI with Dark Mode</h3>
+                    <h3 class="text-xl font-bold text-memcached mb-2">4. Built-in Command Console</h3>
+                    <p class="text-gray-600 dark:text-gray-400">Send raw Memcached commands straight from the dashboard with an interactive console. No need to telnet into the server &mdash; execute, inspect, and debug commands right where you manage your cache.</p>
+                </div>
+
+                <div>
+                    <h3 class="text-xl font-bold text-memcached mb-2">5. Beautiful UI with Dark Mode</h3>
                     <p class="text-gray-600 dark:text-gray-400">Say goodbye to outdated 2010s HTML tables. Enjoy a responsive, Tailwind-styled dashboard with native Dark Mode support and intuitive data visualization.</p>
                 </div>
             </div>

@@ -378,6 +378,16 @@ if (treeview) {
     let is_expanded = false;
     const expand_toggle = treeview.querySelector('.expand-toggle');
 
+    const url_params = new URLSearchParams(window.location.search);
+    const storage_key = 'open_folders_' + [
+        document.body.dataset.dashboard || '',
+        url_params.get('server') || '0',
+        url_params.get('db') || '0',
+    ].join(':');
+
+    const get_open_folders = () => JSON.parse(localStorage.getItem(storage_key) || '[]');
+    const save_open_folders = paths => localStorage.setItem(storage_key, JSON.stringify(paths));
+
     expand_toggle.addEventListener('click', function () {
         is_expanded = !is_expanded;
         expand_toggle.textContent = is_expanded ? 'Collapse all' : 'Expand all';
@@ -386,7 +396,7 @@ if (treeview) {
         folders.forEach(button => toggle_folder(button, is_expanded));
 
         const paths = [...folders].map(f => f.dataset.path).filter(Boolean);
-        localStorage.setItem('open_folders', is_expanded ? JSON.stringify(paths) : '[]');
+        save_open_folders(is_expanded ? paths : []);
     });
 
     function toggle_folder(button, show = null) {
@@ -412,7 +422,7 @@ if (treeview) {
             const path = toggle_btn.dataset.path;
 
             if (path) {
-                const open_folders = JSON.parse(localStorage.getItem('open_folders') || '[]');
+                const open_folders = get_open_folders();
 
                 if (is_open) {
                     if (!open_folders.includes(path)) open_folders.push(path);
@@ -421,13 +431,13 @@ if (treeview) {
                     if (index > -1) open_folders.splice(index, 1);
                 }
 
-                localStorage.setItem('open_folders', JSON.stringify(open_folders));
+                save_open_folders(open_folders);
             }
         }
     });
 
     function init_expand_state() {
-        const open_folders = JSON.parse(localStorage.getItem('open_folders') || '[]');
+        const open_folders = get_open_folders();
         if (open_folders.length > 0) {
             is_expanded = true;
             expand_toggle.textContent = 'Collapse all';

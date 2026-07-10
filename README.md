@@ -19,6 +19,8 @@
 - Switch between multiple configured servers for Redis, Memcached.
 - Back up and restore your data.
 - Quickly find keys across your cache.
+- View any key's details in a **modal** without leaving the list.
+- Optional **login page** with basic authentication (enabled by defining users in `authusers`).
 - **No composer required to run**.
 - **Docker ready**.
 
@@ -26,6 +28,9 @@
 
 - Works with both **phpredis** and **Predis** clients.
 - View, add, edit, and delete keys. Supports all Redis data types.
+- Search within a key's sub-items (hash fields, set/list/sorted set members).
+- **Console** for running Redis commands interactively.
+- **PUB/SUB** support to browse channels, subscribe, and publish messages.
 - **Cluster support**.
 - Supports ACL.
 - Detailed server statistics including command calls, memory usage, uptime, connected clients, and general info.
@@ -36,6 +41,7 @@
 
 - Uses a custom client, so **no memcache(d) extension** is required.
 - View, add, edit, and delete keys.
+- **Console** for running Memcached commands interactively.
 - Server Stats including uptime, memory usage, connections, and more.
 - Slabs & Items info.
 - Commands Stats.
@@ -48,6 +54,7 @@
 - **OPcache**:
     - View and invalidate cached scripts.
     - Get statistics on memory usage, hit rates, and cached keys.
+    - **Treemap** visualization of cached scripts by memory usage.
 - **Realpath Cache**:
     - View and clear PHP's realpath cache entries.
 

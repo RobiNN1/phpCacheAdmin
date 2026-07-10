@@ -17,7 +17,7 @@
             {% if tabs %}
                 <button data-tab="{{ link }}" class="{{ item_class }}{{ is_active ? ' active' : '' }}">{{ title }}</button>
             {% else %}
-                <a href="{{ link([], {'tab': link}) }}" class="{{ item_class }}{{ is_active ? ' active' : '' }}">{{ title }}</a>
+                <a href="{{ link([], {tab: link}) }}" class="{{ item_class }}{{ is_active ? ' active' : '' }}">{{ title }}</a>
             {% endif %}
         </li>
     {% endfor %}

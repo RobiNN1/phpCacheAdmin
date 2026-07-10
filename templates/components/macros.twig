@@ -6,15 +6,15 @@
            aria-label=""{{ (disabled is defined and disabled) ? ' disabled' : '' }}>
 {% endmacro %}
 
-{% macro badge(text, color, class='') %}
+{% macro badge(text, color, class = '') %}
     {% set colors = {
-        'green': 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-        'sky': 'bg-sky-100 text-sky-800 dark:bg-sky-900 dark:text-sky-200',
-        'orange': 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
-        'red': 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
-        'purple': 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
-        'indigo': 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200',
-        'blue': 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+        green: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+        sky: 'bg-sky-100 text-sky-800 dark:bg-sky-900 dark:text-sky-200',
+        orange: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
+        red: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
+        purple: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
+        indigo: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200',
+        blue: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
     } %}
 
     <span class="inline-block py-1 px-3 font-bold text-xs rounded-full {{ colors[color] ?? colors.blue }}{{ class|space }}">{{ text|raw }}</span>
@@ -22,13 +22,13 @@
 
 {% macro key_type(type) %}
     {% set type_colors = {
-        'string': 'green',
-        'set': 'sky',
-        'list': 'orange',
-        'zset': 'red',
-        'hash': 'purple',
-        'stream': 'indigo',
-        'json': 'blue',
+        string: 'green',
+        set: 'sky',
+        list: 'orange',
+        zset: 'red',
+        hash: 'purple',
+        stream: 'indigo',
+        json: 'blue',
     } %}
 
     {{ _self.badge(type, type_colors[type] ?? 'blue', 'uppercase') }}

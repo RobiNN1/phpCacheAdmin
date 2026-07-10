@@ -1,7 +1,7 @@
 {% import 'components/macros.twig' as components %}
 {% set show_actions = hide_actions is not defined or hide_actions == false %}
 
-{% macro render_tree(items, level=0, show_actions, view_key, components) %}
+{% macro render_tree(items, level = 0, show_actions, view_key, components) %}
     {% for key, item in items %}
         {% if item.type == 'folder' %}
             <div class="tree-group border-t border-gray-200 dark:border-gray-700" style="--level: {{ level }}">
@@ -26,7 +26,7 @@
                         {% endif %}
 
                         <span class="font-semibold text-primary-500 dark:text-primary-400 dark:hover:text-primary-300 hover:text-primary-700">
-                            {% set link = view_key|replace({'__key__': item.key}) %}
+                            {% set link = view_key|replace({__key__: item.key}) %}
                             <a class="font-semibold text-primary-500 dark:text-primary-400 dark:hover:text-primary-300 hover:text-primary-700" href="{{ link }}"{{ config('keymodal', false) ? ' data-view-key' : '' }}>
                                 {{ item.name }}
                                 {% if item.items %}

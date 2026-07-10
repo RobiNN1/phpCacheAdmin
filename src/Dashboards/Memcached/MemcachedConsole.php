@@ -95,7 +95,7 @@ trait MemcachedConsole {
 
         $data = json_decode((string) file_get_contents($file), true, 512, JSON_THROW_ON_ERROR);
 
-        return is_array($data) ? array_values(array_filter($data, 'is_string')) : [];
+        return is_array($data) ? array_values(array_filter($data, is_string(...))) : [];
     }
 
     /**

@@ -3,7 +3,7 @@
         <h2 class="text-sm font-semibold text-gray-900 dark:text-white">Cached scripts memory map</h2>
         {{ include('components/button.twig', {
             text: (is_ignored ? 'Show' : 'Ignore') ~ ' scripts from this tool',
-            link: link(['tab'], {'ignore': (is_ignored ? 'no' : 'yes')}),
+            link: link(['tab'], {ignore: (is_ignored ? 'no' : 'yes')}),
         }) }}
     </div>
 

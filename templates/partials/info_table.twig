@@ -11,7 +11,7 @@
             {% if value is iterable and value|length > 0 %}
                 <tr>
                     <td colspan="2" class="sticky top-0 z-10 py-1.5 px-4 text-xs uppercase border-b border-gray-200 text-primary-600 bg-gray-100 dark:text-primary-400 dark:border-gray-600 dark:bg-gray-700{{ loop.first and panel_title|default is empty ? ' rounded-t-md' : '' }}">
-                        {{ name|replace({'_': ' '}) }}
+                        {{ name|replace({_: ' '}) }}
                     </td>
                 </tr>
                 {% for sub_name, sub_value in value %}

@@ -92,7 +92,7 @@ trait RedisConsole {
 
         $data = json_decode((string) file_get_contents($file), true, 512, JSON_THROW_ON_ERROR);
 
-        return is_array($data) ? array_values(array_filter($data, 'is_string')) : [];
+        return is_array($data) ? array_values(array_filter($data, is_string(...))) : [];
     }
 
     /**
@@ -160,9 +160,11 @@ trait RedisConsole {
                     $current .= $char;
                 }
             } elseif ($char === '"') {
-                $in_double = $has_token = true;
+                $in_double = true;
+                $has_token = true;
             } elseif ($char === "'") {
-                $in_single = $has_token = true;
+                $in_single = true;
+                $has_token = true;
             } elseif ($char === ' ' || $char === "\t") {
                 if ($has_token) {
                     $args[] = $current;

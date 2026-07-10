@@ -23,7 +23,7 @@ trait RedisTypes {
      * @throws Exception
      */
     public function getAllTypes(): array {
-        static $types = [];
+        $types = [];
         $exclude = ['none', 'other'];
 
         if (!$this->redis->checkModule('ReJSON')) {

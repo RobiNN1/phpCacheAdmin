@@ -84,15 +84,21 @@ class Helpers {
      * @return array<string, array<string, int|string|bool>>
      */
     public static function getExtIniInfo(string $extension): array {
-        static $info = [];
+        static $cache = [];
 
-        if (extension_loaded($extension)) {
-            foreach (ini_get_all($extension) as $ini_name => $ini_value) {
-                $info['ini_config'][$ini_name] = $ini_value['local_value'];
-            }
+        if (isset($cache[$extension])) {
+            return $cache[$extension];
         }
 
-        return $info;
+        if (!extension_loaded($extension)) {
+            return $cache[$extension] = [];
+        }
+
+        $ini_config = array_map(static function ($ini_value) {
+            return $ini_value['local_value'];
+        }, ini_get_all($extension));
+
+        return $cache[$extension] = ['ini_config' => $ini_config];
     }
 
     public static function deleteKey(Template $template, callable $delete_key): string {
@@ -111,7 +117,7 @@ class Helpers {
                 $delete_key(base64_decode($key));
             }
 
-            return self::alert($template, 'Keys has been deleted.', 'success');
+            return self::alert($template, 'Keys have been deleted.', 'success');
         }
 
         return self::alert($template, 'No keys are selected.');
@@ -122,23 +128,21 @@ class Helpers {
             return;
         }
 
-        if ($_FILES['import']['type'] === 'application/json') {
-            $file = file_get_contents($_FILES['import']['tmp_name']);
+        $file = (string) file_get_contents($_FILES['import']['tmp_name']);
 
-            try {
-                $json = json_decode($file, true, 512, JSON_THROW_ON_ERROR);
+        try {
+            $json = json_decode($file, true, 512, JSON_THROW_ON_ERROR);
 
-                foreach ((array) $json as $data) {
-                    if (is_array($data) && isset($data['key'], $data['value'], $data['ttl']) && !$exists($data['key'])) {
-                        $store($data['key'], $data['value'], (int) $data['ttl']);
-                    }
+            foreach ((array) $json as $data) {
+                if (is_array($data) && isset($data['key'], $data['value'], $data['ttl']) && !$exists($data['key'])) {
+                    $store($data['key'], $data['value'], (int) $data['ttl']);
                 }
-            } catch (JsonException) {
-                //
             }
-
-            Http::redirect(['view']);
+        } catch (JsonException) {
+            //
         }
+
+        Http::redirect(['view']);
     }
 
     /**
@@ -153,7 +157,8 @@ class Helpers {
                 continue;
             }
 
-            $ttl = isset($key['info']['ttl']) && is_int($key['info']['ttl']) ? $key['info']['ttl'] : 0;
+            $ttl = $key['info']['ttl'] ?? $key['ttl'] ?? 0;
+            $ttl = is_int($ttl) ? $ttl : 0;
 
             $json[] = [
                 'key'   => $key['key'],
@@ -232,6 +237,59 @@ class Helpers {
         });
 
         return $keys;
+    }
+
+    /**
+     * Build a folder tree for the tree view from a flat list of keys.
+     *
+     * Each item must contain the full key name under 'key'; everything else ('info', 'items', ...) is copied to the leaf node as is.
+     *
+     * @param array<int, array<string, mixed>> $keys
+     * @param callable|null                    $leaf_name Optional formatter for the displayed leaf name.
+     *
+     * @return array<int|string, mixed>
+     */
+    public static function keysTree(array $keys, string $separator, ?callable $leaf_name = null): array {
+        $tree = [];
+
+        foreach ($keys as $key_item) {
+            $key = (string) $key_item['key'];
+            $parts = explode($separator, $key);
+            $last = count($parts) - 1;
+
+            /** @var array<int|string, mixed> $current */
+            $current = &$tree;
+            $path = '';
+
+            foreach ($parts as $i => $part) {
+                $path = $path === '' ? $part : $path.$separator.$part;
+
+                if ($i === $last) {
+                    $current[] = [
+                            'type' => 'key',
+                            'name' => $leaf_name !== null ? $leaf_name($part) : $part,
+                        ] + $key_item;
+                } else {
+                    if (!isset($current[$part])) {
+                        $current[$part] = [
+                            'type'     => 'folder',
+                            'name'     => $part,
+                            'path'     => $path,
+                            'children' => [],
+                            'expanded' => false,
+                        ];
+                    }
+
+                    $current = &$current[$part]['children'];
+                }
+            }
+
+            unset($current);
+        }
+
+        self::countChildren($tree);
+
+        return $tree;
     }
 
     /**

@@ -47,10 +47,10 @@ class Value {
 
     public static function formatted(string $value, bool &$is_formatted = false): string {
         foreach (Config::get('formatters', []) as $formatter) {
-            if (is_callable($formatter) && $formatter($value) !== null) {
+            if (is_callable($formatter) && ($formatted = $formatter($value)) !== null) {
                 $is_formatted = true;
 
-                return $formatter($value);
+                return $formatted;
             }
         }
 

@@ -60,6 +60,24 @@ trait RedisKeysList {
     }
 
     /**
+     * A key can disappear between the listing and the pipeline call, so fall back to safe defaults.
+     *
+     * @param array<int|string, mixed> $pipeline
+     *
+     * @return array<string, string|int>
+     */
+    private function keyInfo(array $pipeline, string $key): array {
+        $data = $pipeline[$key] ?? [];
+        $ttl = $data['ttl'] ?? -1;
+
+        return [
+            'bytes_size' => $data['size'] ?? 0,
+            'type'       => $data['type'] ?? 'unknown',
+            'ttl'        => $ttl === -1 ? 'Doesn\'t expire' : $ttl,
+        ];
+    }
+
+    /**
      * @param array<int|string, mixed> $keys_array
      *
      * @return array<int, array<string, string|int>>
@@ -74,12 +92,7 @@ trait RedisKeysList {
             $formatted_keys[] = [
                 'key'   => $key,
                 'items' => $pipeline[$key]['count'] ?? null,
-                'info'  => [
-                    'link_title' => $key,
-                    'bytes_size' => $pipeline[$key]['size'],
-                    'type'       => $pipeline[$key]['type'],
-                    'ttl'        => $pipeline[$key]['ttl'] === -1 ? 'Doesn\'t expire' : $pipeline[$key]['ttl'],
-                ],
+                'info'  => ['link_title' => $key] + $this->keyInfo($pipeline, $key),
             ];
         }
 
@@ -89,7 +102,7 @@ trait RedisKeysList {
     /**
      * @param array<int|string, mixed> $keys_array
      *
-     * @return array<int, array<string, string|int>>
+     * @return array<int|string, mixed>
      *
      * @throws Exception
      */
@@ -98,47 +111,16 @@ trait RedisKeysList {
         $separator = $this->servers[$this->current_server]['separator'] ?? ':';
         $this->template->addGlobal('separator', $separator);
 
-        $tree = [];
+        $keys = [];
 
         foreach ($keys_array as $key) {
-            $parts = explode($separator, $key);
-            /** @var array<int|string, mixed> $current */
-            $current = &$tree;
-            $path = '';
-
-            foreach ($parts as $i => $part) {
-                $path = $path !== '' && $path !== '0' ? $path.$separator.$part : $part;
-
-                if ($i === count($parts) - 1) { // check last part
-                    $current[] = [
-                        'type'  => 'key',
-                        'name'  => $part,
-                        'key'   => $key,
-                        'items' => $pipeline[$key]['count'] ?? null,
-                        'info'  => [
-                            'bytes_size' => $pipeline[$key]['size'],
-                            'type'       => $pipeline[$key]['type'],
-                            'ttl'        => $pipeline[$key]['ttl'] === -1 ? 'Doesn\'t expire' : $pipeline[$key]['ttl'],
-                        ],
-                    ];
-                } else {
-                    if (!isset($current[$part])) {
-                        $current[$part] = [
-                            'type'     => 'folder',
-                            'name'     => $part,
-                            'path'     => $path,
-                            'children' => [],
-                            'expanded' => false,
-                        ];
-                    }
-
-                    $current = &$current[$part]['children'];
-                }
-            }
+            $keys[] = [
+                'key'   => $key,
+                'items' => $pipeline[$key]['count'] ?? null,
+                'info'  => $this->keyInfo($pipeline, $key),
+            ];
         }
 
-        Helpers::countChildren($tree);
-
-        return $tree;
+        return Helpers::keysTree($keys, $separator);
     }
 }

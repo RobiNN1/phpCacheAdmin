@@ -88,7 +88,14 @@ class Auth {
             return false;
         }
 
-        return hash_equals((string) $users[$user], $password);
+        $stored = (string) $users[$user];
+
+        // Passwords can be stored as password_hash() hashes instead of plaintext.
+        if (password_get_info($stored)['algo'] !== null) {
+            return password_verify($password, $stored);
+        }
+
+        return hash_equals($stored, $password);
     }
 
     /**

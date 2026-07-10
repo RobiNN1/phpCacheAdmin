@@ -57,6 +57,14 @@ final class AuthTest extends TestCase {
         $this->assertFalse(Auth::validate($this->users, 'nobody', 'secret'));
     }
 
+    public function testHashedPassword(): void {
+        $users = ['admin' => password_hash('secret', PASSWORD_DEFAULT)];
+
+        $this->assertTrue(Auth::validate($users, 'admin', 'secret'));
+        $this->assertFalse(Auth::validate($users, 'admin', 'wrong'));
+        $this->assertFalse(Auth::validate($users, 'admin', $users['admin'])); // The hash itself is not the password.
+    }
+
     public function testMissingCredentials(): void {
         $this->assertFalse(Auth::validate($this->users, null, null));
         $this->assertFalse(Auth::validate($this->users, 'admin', null));

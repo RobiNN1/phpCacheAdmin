@@ -831,7 +831,7 @@ abstract class RedisTestCase extends TestCase {
      */
     public function testConsoleHistory(): void {
         $dir = Config::get('tmpdir', __DIR__.'/../../../tmp').'/console';
-        $file = $dir.'/history_'.md5(Helpers::getServerTitle(Config::get('redis')[0]).Config::get('hash', 'pca')).'.json';
+        $file = $dir.'/redis_history_'.md5(Helpers::getServerTitle(Config::get('redis')[0]).Config::get('hash', 'pca')).'.json';
         @unlink($file);
 
         $_GET['db'] = 10;

@@ -81,7 +81,13 @@ class RedisDashboard implements DashboardInterface {
         $server['database'] = Http::get('db', $server['database'] ?? 0);
 
         if (!empty($server['authfile'])) {
-            $server['password'] = trim(file_get_contents($server['authfile']));
+            $password = is_readable($server['authfile']) ? file_get_contents($server['authfile']) : false;
+
+            if ($password === false) {
+                throw new DashboardException(sprintf('Unable to read the password file "%s".', $server['authfile']));
+            }
+
+            $server['password'] = trim($password);
         }
 
         $this->is_cluster = !empty($server['nodes']) && is_array($server['nodes']);

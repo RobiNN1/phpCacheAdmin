@@ -43,6 +43,10 @@ class Admin {
     }
 
     public function render(): string {
+        if ($this->dashboards === []) {
+            return 'No dashboards are available. Enable at least one dashboard in the configuration ("dashboards" option).';
+        }
+
         $nav = array_map(static fn (DashboardInterface $d_dashboard): array => $d_dashboard->dashboardInfo(), $this->dashboards);
 
         $current = $this->currentDashboard();

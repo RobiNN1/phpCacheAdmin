@@ -249,51 +249,22 @@ trait APCuTrait {
     /**
      * @param array<int|string, mixed> $keys
      *
-     * @return array<int, array<string, string|int>>
+     * @return array<int|string, mixed>
      */
     public function keysTreeView(array $keys): array {
         $separator = Config::get('apcuseparator', ':');
         $this->template->addGlobal('separator', $separator);
 
-        $tree = [];
+        $tree_keys = [];
 
         foreach ($keys as $key_data) {
-            $key = $key_data['key'];
-            $parts = explode($separator, $key);
-
-            /** @var array<int|string, mixed> $current */
-            $current = &$tree;
-            $path = '';
-
-            foreach ($parts as $i => $part) {
-                $path = $path !== '' && $path !== '0' ? $path.$separator.$part : $part;
-
-                if ($i === count($parts) - 1) { // check last part
-                    $current[] = [
-                        'type' => 'key',
-                        'name' => $part,
-                        'key'  => $key,
-                        'info' => $this->keyInfo($key_data),
-                    ];
-                } else {
-                    if (!isset($current[$part])) {
-                        $current[$part] = [
-                            'type'     => 'folder',
-                            'name'     => $part,
-                            'path'     => $path,
-                            'children' => [],
-                            'expanded' => false,
-                        ];
-                    }
-
-                    $current = &$current[$part]['children'];
-                }
-            }
+            $tree_keys[] = [
+                'key'  => $key_data['key'],
+                'info' => $this->keyInfo($key_data),
+            ];
         }
 
-        Helpers::countChildren($tree);
-
-        return $tree;
+        return Helpers::keysTree($tree_keys, $separator);
     }
 
     /**

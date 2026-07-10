@@ -169,15 +169,8 @@ class Config {
             return [];
         }
 
-        $encoders_array = array_keys($encoders);
-        $encoders_array[] = 'none';
+        $names = [...array_keys($encoders), 'none'];
 
-        static $array = [];
-
-        foreach ($encoders_array as $encoder) {
-            $array[$encoder] = $encoder;
-        }
-
-        return $array;
+        return array_combine($names, $names);
     }
 }

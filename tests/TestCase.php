@@ -27,7 +27,7 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase {
         }
 
         $this->assertSame(
-            Helpers::alert($template, (is_array($keys) ? 'Keys' : 'Key "'.$keys.'"').' has been deleted.', 'success'),
+            Helpers::alert($template, is_array($keys) ? 'Keys have been deleted.' : 'Key "'.$keys.'" has been deleted.', 'success'),
             Helpers::deleteKey($template, $delete_key)
         );
     }

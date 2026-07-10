@@ -76,7 +76,7 @@ trait MemcachedKeysList {
     /**
      * @param array<int, string> $raw_lines
      *
-     * @return array<string, mixed>
+     * @return array<int|string, mixed>
      * @throws MemcachedException
      */
     public function keysTreeView(array $raw_lines): array {
@@ -90,7 +90,7 @@ trait MemcachedKeysList {
 
         $time = time();
 
-        $tree = [];
+        $keys = [];
 
         foreach ($raw_lines as $line) {
             $key_data = $this->memcached->parseLine($line);
@@ -100,46 +100,17 @@ trait MemcachedKeysList {
             }
 
             $ttl = $key_data['exp'] ?? null;
-            $ttl_display = $ttl === -1 ? 'Doesn\'t expire' : $ttl - $time;
 
-            $parts = explode($separator, $key_data['key']);
-
-            /** @var array<int|string, mixed> $current */
-            $current = &$tree;
-            $path = '';
-
-            foreach ($parts as $i => $part) {
-                $path = $path !== '' && $path !== '0' ? $path.$separator.$part : $part;
-
-                if ($i === count($parts) - 1) { // check last part
-                    $current[] = [
-                        'type' => 'key',
-                        'name' => urldecode($part),
-                        'key'  => $key_data['key'],
-                        'info' => [
-                            'bytes_size'           => $key_data['size'] ?? 0,
-                            'timediff_last_access' => $key_data['la'] ?? 0,
-                            'ttl'                  => $ttl_display,
-                        ],
-                    ];
-                } else {
-                    if (!isset($current[$part])) {
-                        $current[$part] = [
-                            'type'     => 'folder',
-                            'name'     => $part,
-                            'path'     => $path,
-                            'children' => [],
-                            'expanded' => false,
-                        ];
-                    }
-
-                    $current = &$current[$part]['children'];
-                }
-            }
+            $keys[] = [
+                'key'  => $key_data['key'],
+                'info' => [
+                    'bytes_size'           => $key_data['size'] ?? 0,
+                    'timediff_last_access' => $key_data['la'] ?? 0,
+                    'ttl'                  => $ttl === -1 ? 'Doesn\'t expire' : $ttl - $time,
+                ],
+            ];
         }
 
-        Helpers::countChildren($tree);
-
-        return $tree;
+        return Helpers::keysTree($keys, $separator, urldecode(...));
     }
 }

@@ -57,401 +57,6 @@ const select_and_redirect = (id, param) => {
     }
 };
 
-/**
- * Keys
- */
-const delete_selected = document.getElementById('delete_selected');
-if (delete_selected) {
-    delete_selected.disabled = true;
-
-    delete_selected.addEventListener('click', () => {
-        if (!window.confirm('Are you sure you want to remove selected items?')) {
-            return;
-        }
-
-        const treeview = document.querySelector('.treeview');
-        const selected_keys = [];
-
-        document.querySelectorAll('.check-key:checked').forEach(checkbox => {
-            const parent = checkbox.parentElement.parentElement;
-            selected_keys.push(parent.dataset.key);
-
-            if (treeview) {
-                parent.closest('.keywrapper').remove();
-            } else {
-                parent.remove();
-            }
-        });
-
-        if (treeview) {
-            update_folder_counts();
-        }
-
-        ajax('delete', (request) => {
-            if (ajax_ok(request)) {
-                set_alerts(request.response);
-            }
-
-            delete_selected.disabled = true;
-        }, selected_keys);
-    });
-}
-
-const keys = document.querySelectorAll('[data-key]');
-keys.forEach(key => {
-    const check_key = key.querySelector('.check-key');
-    if (check_key && delete_selected) {
-        check_key.addEventListener('change', () => {
-            delete_selected.disabled = document.querySelectorAll('.check-key:checked').length < 1;
-        });
-    }
-
-    const delete_key = key.querySelector('.delete-key');
-    if (delete_key) {
-        delete_key.addEventListener('click', () => {
-            if (!window.confirm('Are you sure you want to remove this item?')) {
-                return;
-            }
-
-            ajax('delete', (request) => {
-                if (ajax_ok(request)) {
-                    set_alerts(request.response);
-
-                    const treeview = document.querySelector('.treeview');
-                    if (treeview) {
-                        key.closest('.keywrapper').remove();
-                        update_folder_counts();
-                    } else {
-                        key.remove();
-                    }
-                }
-            }, key.dataset.key);
-        });
-    }
-});
-
-const delete_all = document.getElementById('delete_all');
-if (delete_all) {
-    delete_all.addEventListener('click', () => {
-        if (!window.confirm('Are you sure you want to remove all items?')) {
-            return;
-        }
-
-        ajax('deleteall', (request) => {
-            if (ajax_ok(request)) {
-                set_alerts(request.response);
-
-                const treeview = document.querySelector('.treeview');
-                if (treeview) {
-                    document.querySelector('.tree-content').remove();
-                } else {
-                    keys.forEach(key => {
-                        key.remove();
-                    });
-                }
-
-                document.getElementById('table-no-keys').classList.remove('hidden');
-            }
-        }, {});
-    });
-}
-
-// Check all keys in a table or treeview
-document.addEventListener('change', (e) => {
-    if (!e.target.matches('input[type="checkbox"].check-all')) {
-        return;
-    }
-
-    let scope;
-
-    if (e.target.closest('.tree-group')) {
-        const tree_group = e.target.closest('.tree-group');
-        const children = tree_group.querySelector(':scope > .tree-children');
-        scope = children || tree_group;
-    } else {
-        scope = e.target.closest('table') || e.target.closest('.treeview');
-    }
-
-    if (!scope) {
-        return;
-    }
-
-    const checkboxes = scope.querySelectorAll('input[type="checkbox"]:not(.check-all)');
-
-    checkboxes.forEach(cb => {
-        cb.checked = e.target.checked;
-        cb.dispatchEvent(new Event('change', {bubbles: true}));
-    });
-});
-
-// Shift-click multi-select
-let last_checked = null;
-document.addEventListener('click', (e) => {
-    if (!e.target.matches('input[type="checkbox"]') || e.target.classList.contains('check-all')) {
-        return;
-    }
-
-    const tree = e.target.closest('.treeview');
-    const table = e.target.closest('table');
-    let checkboxes;
-
-    if (tree) {
-        checkboxes = Array.from(tree.querySelectorAll('.keywrapper input[type="checkbox"]:not(.check-all)'));
-    } else if (table) {
-        checkboxes = Array.from(table.querySelectorAll('input[type="checkbox"]:not(.check-all)'));
-    } else {
-        return;
-    }
-
-    if (e.shiftKey && last_checked) {
-        const start = checkboxes.indexOf(last_checked);
-        const end = checkboxes.indexOf(e.target);
-
-        if (start !== -1 && end !== -1) {
-            for (let i = Math.min(start, end); i <= Math.max(start, end); i++) {
-                checkboxes[i].checked = e.target.checked;
-                checkboxes[i].dispatchEvent(new Event('change', {bubbles: true}));
-            }
-        }
-    }
-
-    last_checked = e.target;
-});
-
-/**
- * Ajax panels
- */
-const update_progress_bar = (progress_element, percentage) => {
-    let color_class;
-
-    if (progress_element.dataset.type === 'higher') {
-        if (percentage >= 80) {
-            color_class = 'bg-green-600';
-        } else if (percentage >= 50) {
-            color_class = 'bg-orange-600';
-        } else {
-            color_class = 'bg-red-600';
-        }
-    } else {
-        if (percentage <= 50) {
-            color_class = 'bg-green-600';
-        } else if (percentage <= 80) {
-            color_class = 'bg-orange-600';
-        } else {
-            color_class = 'bg-red-600';
-        }
-    }
-
-    progress_element.classList.remove('bg-red-600', 'bg-orange-600', 'bg-green-600');
-    progress_element.classList.add(color_class);
-    progress_element.style.width = percentage + '%';
-};
-
-const update_panel_data = (panel_element, key, value) => {
-    const element = panel_element.querySelector(`[data-value="${key}"]`);
-
-    if (!element) return;
-
-    if (Array.isArray(value)) {
-        element.textContent = value[0];
-        const progress_element = panel_element.querySelector(`[data-progress="${key}"]`);
-        if (progress_element) {
-            update_progress_bar(progress_element, value[1]);
-        }
-    } else {
-        element.textContent = value;
-    }
-};
-
-const refresh_panels = () => {
-    ajax('panels', (request) => {
-        if (ajax_ok(request)) {
-            const data = JSON.parse(request.response);
-
-            for (const section_key in data) {
-                const panel_element = document.getElementById(section_key + '_panel');
-
-                if (panel_element) {
-                    const section_data = data[section_key];
-                    for (const item_key in section_data) {
-                        update_panel_data(panel_element, item_key, section_data[item_key]);
-                    }
-                }
-            }
-        } else {
-            console.error('Error fetching panel data.');
-        }
-    });
-};
-
-document.addEventListener('DOMContentLoaded', function () {
-    if (ajax_panels) {
-        refresh_panels();
-        setInterval(refresh_panels, panels_refresh_interval);
-    }
-});
-
-/**
- * Redirects
- */
-select_and_redirect('per_page', 'pp');
-select_and_redirect('server_select', 'server');
-select_and_redirect('db_select', 'db');
-
-/**
- * Search form
- */
-const search_form = document.getElementById('search_form');
-if (search_form) {
-    const submit_search = document.getElementById('submit_search');
-    submit_search.addEventListener('click', () => {
-        query_params({p: null, s: document.getElementById('search_key').value});
-    });
-
-    const search_key = document.getElementById('search_key');
-    search_key.addEventListener('keypress', e => {
-        if (e.key === 'Enter') {
-            submit_search.click();
-        }
-    });
-}
-
-/**
- * Sub-item search (view a key array)
- *
- * Delegated so it also works when the key view is loaded into a modal.
- * Inside the modal the content is refreshed via ajax instead of navigating away.
- */
-let view_key_loader = null;
-
-const submit_subsearch = (form) => {
-    const value = document.getElementById('subsearch_key').value;
-    const modal_content = document.getElementById('view-key-modal-content');
-
-    if (view_key_loader && modal_content && modal_content.contains(form)) {
-        view_key_loader(form.dataset.url + (value !== '' ? '&subsearch=' + encodeURIComponent(value) : ''));
-    } else {
-        query_params({p: null, subsearch: value || null});
-    }
-};
-
-document.addEventListener('click', e => {
-    if (e.target.closest('#submit_subsearch')) {
-        submit_subsearch(document.getElementById('subsearch_form'));
-    }
-});
-
-document.addEventListener('keypress', e => {
-    if (e.key === 'Enter' && e.target.id === 'subsearch_key') {
-        e.preventDefault();
-        submit_subsearch(document.getElementById('subsearch_form'));
-    }
-});
-
-/**
- * Table sorting
- */
-document.querySelectorAll('[data-sortcol]').forEach(element => {
-    element.addEventListener('click', () => {
-        const sort_col = element.getAttribute('data-sortcol');
-        const search_params = new URLSearchParams(window.location.search);
-        const current_sort_dir = search_params.get('sortcol') === sort_col ? search_params.get('sortdir') || 'none' : 'none';
-
-        const sort_dir_cycle = ['none', 'asc', 'desc'];
-        const current_index = sort_dir_cycle.indexOf(current_sort_dir);
-        const new_sort_dir = sort_dir_cycle[(current_index + 1) % sort_dir_cycle.length];
-        element.setAttribute('data-sortdir', new_sort_dir);
-
-        if (new_sort_dir === 'none') {
-            query_params({sortdir: null, sortcol: null});
-        } else {
-            query_params({sortdir: new_sort_dir, sortcol: sort_col});
-        }
-    });
-});
-
-/**
- * Tree view
- */
-const treeview = document.querySelector('.treeview');
-if (treeview) {
-    let is_expanded = false;
-    const expand_toggle = treeview.querySelector('.expand-toggle');
-
-    const url_params = new URLSearchParams(window.location.search);
-    const storage_key = 'open_folders_' + [
-        document.body.dataset.dashboard || '',
-        url_params.get('server') || '0',
-        url_params.get('db') || '0',
-    ].join(':');
-
-    const get_open_folders = () => JSON.parse(localStorage.getItem(storage_key) || '[]');
-    const save_open_folders = paths => localStorage.setItem(storage_key, JSON.stringify(paths));
-
-    expand_toggle.addEventListener('click', function () {
-        is_expanded = !is_expanded;
-        expand_toggle.textContent = is_expanded ? 'Collapse all' : 'Expand all';
-
-        const folders = treeview.querySelectorAll('.tree-toggle');
-        folders.forEach(button => toggle_folder(button, is_expanded));
-
-        const paths = [...folders].map(f => f.dataset.path).filter(Boolean);
-        save_open_folders(is_expanded ? paths : []);
-    });
-
-    function toggle_folder(button, show = null) {
-        const children = button.closest('div').parentElement.querySelector('.tree-children');
-        if (!children) return false;
-
-        const chevron = button.querySelector('svg');
-        const will_show = show !== null ? show : children.classList.contains('hidden');
-
-        children.classList.toggle('hidden', !will_show);
-        chevron.style.transform = will_show ? 'rotate(90deg)' : '';
-
-        return will_show;
-    }
-
-    treeview.addEventListener('click', function (e) {
-        const toggle_btn = e.target.closest('.tree-toggle');
-        if (toggle_btn) {
-            e.preventDefault();
-            e.stopPropagation();
-
-            const is_open = toggle_folder(toggle_btn);
-            const path = toggle_btn.dataset.path;
-
-            if (path) {
-                const open_folders = get_open_folders();
-
-                if (is_open) {
-                    if (!open_folders.includes(path)) open_folders.push(path);
-                } else {
-                    const index = open_folders.indexOf(path);
-                    if (index > -1) open_folders.splice(index, 1);
-                }
-
-                save_open_folders(open_folders);
-            }
-        }
-    });
-
-    function init_expand_state() {
-        const open_folders = get_open_folders();
-        if (open_folders.length > 0) {
-            is_expanded = true;
-            expand_toggle.textContent = 'Collapse all';
-        }
-
-        open_folders.forEach(path => {
-            const button = treeview.querySelector(`.tree-toggle[data-path="${path}"]`);
-            if (button) toggle_folder(button, true);
-        });
-    }
-
-    init_expand_state();
-}
-
 function number_format(number, decimals = 0) {
     let parts = parseFloat(number).toFixed(decimals).split('.');
     parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, thousandssep);
@@ -478,87 +83,463 @@ function format_bytes(bytes, decimals = 2) {
     return number_format(bytes, decimals) + 'B';
 }
 
-function update_folder_counts() {
-    document.querySelectorAll('.tree-toggle').forEach(folder => {
-        const children_wrapper = folder.closest('.tree-group').querySelector('.tree-children');
+class TreeView {
+    constructor(element) {
+        this.element = element;
+        this.is_expanded = false;
+        this.expand_toggle = element.querySelector('.expand-toggle');
 
-        if (children_wrapper) {
-            const total_items = children_wrapper.querySelectorAll('.keywrapper').length;
-            let total_bytes = 0;
-            children_wrapper.querySelectorAll('.file-size').forEach(el => {
-                const bytes = parseFloat(el.getAttribute('data-bytes')) || 0;
-                total_bytes += bytes;
+        // Folder state is stored per dashboard/server/database.
+        const url_params = new URLSearchParams(window.location.search);
+        this.storage_key = 'open_folders_' + [
+            document.body.dataset.dashboard || '',
+            url_params.get('server') || '0',
+            url_params.get('db') || '0',
+        ].join(':');
+
+        this.expand_toggle.addEventListener('click', () => this.#toggle_all());
+        this.element.addEventListener('click', e => this.#handle_toggle_click(e));
+
+        this.#init_expand_state();
+        this.update_counts();
+    }
+
+    #open_folders() {
+        return JSON.parse(localStorage.getItem(this.storage_key) || '[]');
+    }
+
+    #save_open_folders(paths) {
+        localStorage.setItem(this.storage_key, JSON.stringify(paths));
+    }
+
+    #toggle_all() {
+        this.is_expanded = !this.is_expanded;
+        this.expand_toggle.textContent = this.is_expanded ? 'Collapse all' : 'Expand all';
+
+        const folders = this.element.querySelectorAll('.tree-toggle');
+        folders.forEach(button => this.#toggle_folder(button, this.is_expanded));
+
+        const paths = [...folders].map(f => f.dataset.path).filter(Boolean);
+        this.#save_open_folders(this.is_expanded ? paths : []);
+    }
+
+    #toggle_folder(button, show = null) {
+        const children = button.closest('div').parentElement.querySelector('.tree-children');
+        if (!children) return false;
+
+        const chevron = button.querySelector('svg');
+        const will_show = show !== null ? show : children.classList.contains('hidden');
+
+        children.classList.toggle('hidden', !will_show);
+        chevron.style.transform = will_show ? 'rotate(90deg)' : '';
+
+        return will_show;
+    }
+
+    #handle_toggle_click(e) {
+        const toggle_btn = e.target.closest('.tree-toggle');
+        if (!toggle_btn) {
+            return;
+        }
+
+        e.preventDefault();
+        e.stopPropagation();
+
+        const is_open = this.#toggle_folder(toggle_btn);
+        const path = toggle_btn.dataset.path;
+
+        if (path) {
+            const open_folders = this.#open_folders();
+
+            if (is_open) {
+                if (!open_folders.includes(path)) open_folders.push(path);
+            } else {
+                const index = open_folders.indexOf(path);
+                if (index > -1) open_folders.splice(index, 1);
+            }
+
+            this.#save_open_folders(open_folders);
+        }
+    }
+
+    #init_expand_state() {
+        const open_folders = this.#open_folders();
+
+        if (open_folders.length > 0) {
+            this.is_expanded = true;
+            this.expand_toggle.textContent = 'Collapse all';
+        }
+
+        open_folders.forEach(path => {
+            const button = this.element.querySelector(`.tree-toggle[data-path="${path}"]`);
+            if (button) this.#toggle_folder(button, true);
+        });
+    }
+
+    update_counts() {
+        this.element.querySelectorAll('.tree-toggle').forEach(folder => {
+            const children_wrapper = folder.closest('.tree-group').querySelector('.tree-children');
+
+            if (children_wrapper) {
+                const total_items = children_wrapper.querySelectorAll('.keywrapper').length;
+                let total_bytes = 0;
+                children_wrapper.querySelectorAll('.file-size').forEach(el => {
+                    total_bytes += parseFloat(el.getAttribute('data-bytes')) || 0;
+                });
+
+                const items_count_span = folder.parentElement.querySelector('.items-count');
+                if (items_count_span) {
+                    items_count_span.textContent = `(${total_items} items, ${format_bytes(total_bytes)})`;
+                }
+            }
+        });
+    }
+}
+
+class KeyList {
+    constructor(tree_view = null) {
+        this.tree_view = tree_view;
+        this.keys = document.querySelectorAll('[data-key]');
+        this.delete_selected = document.getElementById('delete_selected');
+
+        this.#init_delete_selected();
+        this.#init_key_rows();
+        this.#init_delete_all();
+        this.#init_check_all();
+        this.#init_shift_select();
+        this.#init_search();
+        this.#init_sorting();
+    }
+
+    #remove_key_element(element) {
+        if (this.tree_view) {
+            element.closest('.keywrapper').remove();
+        } else {
+            element.remove();
+        }
+    }
+
+    #init_delete_selected() {
+        if (!this.delete_selected) {
+            return;
+        }
+
+        this.delete_selected.disabled = true;
+
+        this.delete_selected.addEventListener('click', () => {
+            if (!window.confirm('Are you sure you want to remove selected items?')) {
+                return;
+            }
+
+            const selected_keys = [];
+
+            document.querySelectorAll('.check-key:checked').forEach(checkbox => {
+                const parent = checkbox.parentElement.parentElement;
+                selected_keys.push(parent.dataset.key);
+                this.#remove_key_element(parent);
             });
 
-            const items_count_span = folder.parentElement.querySelector('.items-count');
-            if (items_count_span) {
-                items_count_span.textContent = `(${total_items} items, ${format_bytes(total_bytes)})`;
+            this.tree_view?.update_counts();
+
+            ajax('delete', (request) => {
+                if (ajax_ok(request)) {
+                    set_alerts(request.response);
+                }
+
+                this.delete_selected.disabled = true;
+            }, selected_keys);
+        });
+    }
+
+    #init_key_rows() {
+        this.keys.forEach(key => {
+            const check_key = key.querySelector('.check-key');
+            if (check_key && this.delete_selected) {
+                check_key.addEventListener('change', () => {
+                    this.delete_selected.disabled = document.querySelectorAll('.check-key:checked').length < 1;
+                });
             }
+
+            const delete_key = key.querySelector('.delete-key');
+            if (delete_key) {
+                delete_key.addEventListener('click', () => {
+                    if (!window.confirm('Are you sure you want to remove this item?')) {
+                        return;
+                    }
+
+                    ajax('delete', (request) => {
+                        if (ajax_ok(request)) {
+                            set_alerts(request.response);
+                            this.#remove_key_element(key);
+                            this.tree_view?.update_counts();
+                        }
+                    }, key.dataset.key);
+                });
+            }
+        });
+    }
+
+    #init_delete_all() {
+        const delete_all = document.getElementById('delete_all');
+        if (!delete_all) {
+            return;
         }
-    });
-}
 
-document.addEventListener('DOMContentLoaded', () => {
-    update_folder_counts();
-});
+        delete_all.addEventListener('click', () => {
+            if (!window.confirm('Are you sure you want to remove all items?')) {
+                return;
+            }
 
-/**
- * Light / Dark mode
- */
-if (!('theme' in localStorage)) {
-    localStorage.theme = 'system';
-}
-const update_theme = () => {
-    const theme = localStorage.getItem('theme');
-    let current_theme = theme;
+            ajax('deleteall', (request) => {
+                if (ajax_ok(request)) {
+                    set_alerts(request.response);
 
-    if (theme === 'system') {
-        current_theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-        document.documentElement.setAttribute('color-theme', 'system');
-    } else {
-        document.documentElement.setAttribute('color-theme', theme);
+                    if (this.tree_view) {
+                        document.querySelector('.tree-content').remove();
+                    } else {
+                        this.keys.forEach(key => {
+                            key.remove();
+                        });
+                    }
+
+                    document.getElementById('table-no-keys').classList.remove('hidden');
+                }
+            }, {});
+        });
     }
 
-    document.documentElement.classList.toggle('dark', current_theme === 'dark');
+    // Check all keys in a table or a tree view group (delegated, the per-folder checkboxes are nested).
+    #init_check_all() {
+        document.addEventListener('change', (e) => {
+            if (!e.target.matches('input[type="checkbox"].check-all')) {
+                return;
+            }
 
-    const theme_colors = {light: '#fff', dark: '#1f2937'};
-    const theme_color_meta = document.querySelector("meta[name='theme-color']");
-    if (theme_color_meta) {
-        theme_color_meta.content = theme_colors[current_theme];
+            let scope;
+
+            if (e.target.closest('.tree-group')) {
+                const tree_group = e.target.closest('.tree-group');
+                const children = tree_group.querySelector(':scope > .tree-children');
+                scope = children || tree_group;
+            } else {
+                scope = e.target.closest('table') || e.target.closest('.treeview');
+            }
+
+            if (!scope) {
+                return;
+            }
+
+            scope.querySelectorAll('input[type="checkbox"]:not(.check-all)').forEach(cb => {
+                cb.checked = e.target.checked;
+                cb.dispatchEvent(new Event('change', {bubbles: true}));
+            });
+        });
     }
-};
 
-const init_theme_switcher = () => {
-    const theme_switchers = document.querySelectorAll("[data-theme]");
+    // Shift-click multi-select.
+    #init_shift_select() {
+        let last_checked = null;
 
-    theme_switchers.forEach(button => {
-        const theme = button.getAttribute('data-theme');
+        document.addEventListener('click', (e) => {
+            if (!e.target.matches('input[type="checkbox"]') || e.target.classList.contains('check-all')) {
+                return;
+            }
 
-        button.addEventListener('click', () => {
-            localStorage.setItem('theme', theme);
-            update_theme();
-            theme_switchers.forEach(btn => btn.classList.remove('active'));
-            button.classList.add('active');
+            const tree = e.target.closest('.treeview');
+            const table = e.target.closest('table');
+            let checkboxes;
+
+            if (tree) {
+                checkboxes = Array.from(tree.querySelectorAll('.keywrapper input[type="checkbox"]:not(.check-all)'));
+            } else if (table) {
+                checkboxes = Array.from(table.querySelectorAll('input[type="checkbox"]:not(.check-all)'));
+            } else {
+                return;
+            }
+
+            if (e.shiftKey && last_checked) {
+                const start = checkboxes.indexOf(last_checked);
+                const end = checkboxes.indexOf(e.target);
+
+                if (start !== -1 && end !== -1) {
+                    for (let i = Math.min(start, end); i <= Math.max(start, end); i++) {
+                        checkboxes[i].checked = e.target.checked;
+                        checkboxes[i].dispatchEvent(new Event('change', {bubbles: true}));
+                    }
+                }
+            }
+
+            last_checked = e.target;
+        });
+    }
+
+    #init_search() {
+        const search_form = document.getElementById('search_form');
+        if (!search_form) {
+            return;
+        }
+
+        const submit_search = document.getElementById('submit_search');
+        submit_search.addEventListener('click', () => {
+            query_params({p: null, s: document.getElementById('search_key').value});
         });
 
-        if (theme === localStorage.getItem('theme')) {
-            button.classList.add('active');
+        document.getElementById('search_key').addEventListener('keypress', e => {
+            if (e.key === 'Enter') {
+                submit_search.click();
+            }
+        });
+    }
+
+    #init_sorting() {
+        document.querySelectorAll('[data-sortcol]').forEach(element => {
+            element.addEventListener('click', () => {
+                const sort_col = element.getAttribute('data-sortcol');
+                const search_params = new URLSearchParams(window.location.search);
+                const current_sort_dir = search_params.get('sortcol') === sort_col ? search_params.get('sortdir') || 'none' : 'none';
+
+                const sort_dir_cycle = ['none', 'asc', 'desc'];
+                const current_index = sort_dir_cycle.indexOf(current_sort_dir);
+                const new_sort_dir = sort_dir_cycle[(current_index + 1) % sort_dir_cycle.length];
+                element.setAttribute('data-sortdir', new_sort_dir);
+
+                if (new_sort_dir === 'none') {
+                    query_params({sortdir: null, sortcol: null});
+                } else {
+                    query_params({sortdir: new_sort_dir, sortcol: sort_col});
+                }
+            });
+        });
+    }
+}
+
+class Panels {
+    constructor(refresh_interval) {
+        this.refresh();
+        setInterval(() => this.refresh(), refresh_interval);
+    }
+
+    refresh() {
+        ajax('panels', (request) => {
+            if (!ajax_ok(request)) {
+                console.error('Error fetching panel data.');
+                return;
+            }
+
+            const data = JSON.parse(request.response);
+
+            for (const section_key in data) {
+                const panel_element = document.getElementById(section_key + '_panel');
+
+                if (panel_element) {
+                    const section_data = data[section_key];
+                    for (const item_key in section_data) {
+                        this.#update_panel(panel_element, item_key, section_data[item_key]);
+                    }
+                }
+            }
+        });
+    }
+
+    #update_panel(panel_element, key, value) {
+        const element = panel_element.querySelector(`[data-value="${key}"]`);
+
+        if (!element) return;
+
+        if (Array.isArray(value)) {
+            element.textContent = value[0];
+            const progress_element = panel_element.querySelector(`[data-progress="${key}"]`);
+            if (progress_element) {
+                this.#update_progress_bar(progress_element, value[1]);
+            }
+        } else {
+            element.textContent = value;
         }
-    });
+    }
 
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-        if (localStorage.getItem('theme') === 'system') {
-            update_theme();
+    #update_progress_bar(progress_element, percentage) {
+        let color_class;
+
+        if (progress_element.dataset.type === 'higher') {
+            if (percentage >= 80) {
+                color_class = 'bg-green-600';
+            } else if (percentage >= 50) {
+                color_class = 'bg-orange-600';
+            } else {
+                color_class = 'bg-red-600';
+            }
+        } else {
+            if (percentage <= 50) {
+                color_class = 'bg-green-600';
+            } else if (percentage <= 80) {
+                color_class = 'bg-orange-600';
+            } else {
+                color_class = 'bg-red-600';
+            }
         }
-    });
-};
 
-update_theme();
-init_theme_switcher();
+        progress_element.classList.remove('bg-red-600', 'bg-orange-600', 'bg-green-600');
+        progress_element.classList.add(color_class);
+        progress_element.style.width = percentage + '%';
+    }
+}
 
-/**
- * Modal
- */
+class ThemeSwitcher {
+    constructor() {
+        if (!('theme' in localStorage)) {
+            localStorage.theme = 'system';
+        }
+
+        this.update();
+        this.#init_buttons();
+
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+            if (localStorage.getItem('theme') === 'system') {
+                this.update();
+            }
+        });
+    }
+
+    update() {
+        const theme = localStorage.getItem('theme');
+        let current_theme = theme;
+
+        if (theme === 'system') {
+            current_theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            document.documentElement.setAttribute('color-theme', 'system');
+        } else {
+            document.documentElement.setAttribute('color-theme', theme);
+        }
+
+        document.documentElement.classList.toggle('dark', current_theme === 'dark');
+
+        const theme_colors = {light: '#fff', dark: '#1f2937'};
+        const theme_color_meta = document.querySelector("meta[name='theme-color']");
+        if (theme_color_meta) {
+            theme_color_meta.content = theme_colors[current_theme];
+        }
+    }
+
+    #init_buttons() {
+        const theme_switchers = document.querySelectorAll('[data-theme]');
+
+        theme_switchers.forEach(button => {
+            const theme = button.getAttribute('data-theme');
+
+            button.addEventListener('click', () => {
+                localStorage.setItem('theme', theme);
+                this.update();
+                theme_switchers.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+            });
+
+            if (theme === localStorage.getItem('theme')) {
+                button.classList.add('active');
+            }
+        });
+    }
+}
+
 class Modal {
     static #open_count = 0;
 
@@ -628,50 +609,22 @@ class Modal {
     };
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    const modals = {};
-    document.querySelectorAll('.modal').forEach(modal => {
-        modals[modal.id] = new Modal(modal);
-    });
+/**
+ * View key in a modal: loads the key detail over ajax and handles navigation inside the modal.
+ */
+class ViewKeyModal {
+    static instance = null;
 
-    /**
-     * View key in a modal
-     */
-    const view_key_modal = modals['view-key-modal'];
-    const view_key_content = document.getElementById('view-key-modal-content');
+    constructor(modal) {
+        this.modal = modal;
+        this.content = document.getElementById('view-key-modal-content');
+        this.title = document.getElementById('view-key-modal-title');
+        this.loading_template = document.getElementById('view-key-loading');
+        this.error_template = document.getElementById('view-key-error');
+        this.current_url = null;
 
-    if (view_key_modal && view_key_content) {
-        const view_key_title = document.getElementById('view-key-modal-title');
-        const loading_template = document.getElementById('view-key-loading');
-        const error_template = document.getElementById('view-key-error');
-        let current_modal_url = null;
-
-        const load_key = (href) => {
-            current_modal_url = href;
-            view_key_title.textContent = '';
-            view_key_content.innerHTML = loading_template.innerHTML;
-            view_key_modal.open();
-
-            fetch(href + (href.includes('?') ? '&' : '?') + 'ajax')
-                .then(response => response.text())
-                .then(html => {
-                    view_key_content.innerHTML = html;
-
-                    // Move the key name into the modal header.
-                    const name = view_key_content.querySelector('.view-key-name');
-                    if (name) {
-                        view_key_title.textContent = name.textContent;
-                        name.remove();
-                    }
-                })
-                .catch(() => {
-                    view_key_content.innerHTML = error_template.innerHTML;
-                });
-        };
-
-        view_key_loader = load_key;
-
-        view_key_content.addEventListener('click', (e) => {
+        // Links inside the modal are loaded via ajax instead of navigating away.
+        this.content.addEventListener('click', (e) => {
             const link = e.target.closest('a[href]');
             if (!link) {
                 return;
@@ -681,16 +634,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (params.get('view') === 'key' && !params.has('export')) {
                 e.preventDefault();
-                load_key(link.getAttribute('href'));
+                this.load(link.getAttribute('href'));
             }
         });
 
-        view_key_content.addEventListener('change', (e) => {
-            if (e.target.id === 'per_page' && current_modal_url) {
-                const url = new URL(current_modal_url, location.href);
+        this.content.addEventListener('change', (e) => {
+            if (e.target.id === 'per_page' && this.current_url) {
+                const url = new URL(this.current_url, location.href);
                 url.searchParams.set('pp', e.target.value);
                 url.searchParams.delete('p');
-                load_key(url.search);
+                this.load(url.search);
             }
         });
 
@@ -701,8 +654,67 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             e.preventDefault();
-            load_key(link.getAttribute('href'));
+            this.load(link.getAttribute('href'));
         });
+
+        ViewKeyModal.instance = this;
+    }
+
+    load(href) {
+        this.current_url = href;
+        this.title.textContent = '';
+        this.content.innerHTML = this.loading_template.innerHTML;
+        this.modal.open();
+
+        fetch(href + (href.includes('?') ? '&' : '?') + 'ajax')
+            .then(response => response.text())
+            .then(html => {
+                this.content.innerHTML = html;
+
+                // Move the key name into the modal header.
+                const name = this.content.querySelector('.view-key-name');
+                if (name) {
+                    this.title.textContent = name.textContent;
+                    name.remove();
+                }
+            })
+            .catch(() => {
+                this.content.innerHTML = this.error_template.innerHTML;
+            });
+    }
+
+    contains(element) {
+        return this.content.contains(element);
+    }
+}
+
+/**
+ * Sub-item search (view a key array)
+ *
+ * Delegated so it also works when the key view is loaded into a modal.
+ */
+const submit_subsearch = () => {
+    const form = document.getElementById('subsearch_form');
+    const value = document.getElementById('subsearch_key').value;
+    const modal = ViewKeyModal.instance;
+
+    if (modal && modal.contains(form)) {
+        modal.load(form.dataset.url + (value !== '' ? '&subsearch=' + encodeURIComponent(value) : ''));
+    } else {
+        query_params({p: null, subsearch: value || null});
+    }
+};
+
+document.addEventListener('click', e => {
+    if (e.target.closest('#submit_subsearch')) {
+        submit_subsearch();
+    }
+});
+
+document.addEventListener('keypress', e => {
+    if (e.key === 'Enter' && e.target.id === 'subsearch_key') {
+        e.preventDefault();
+        submit_subsearch();
     }
 });
 
@@ -727,174 +739,195 @@ const chart = (instance, options, timestamps) => {
     });
 };
 
-const time_switcher = (callback) => {
-    const time_buttons = document.querySelectorAll('[data-tab]');
+class Metrics {
+    constructor(render_charts, chart_config) {
+        this.render_charts = render_charts;
+        this.chart_config = chart_config;
+        this.full_data = [];
 
-    time_buttons.forEach(button => {
-        button.addEventListener('click', () => {
-            time_buttons.forEach(btn => btn.classList.remove('active'));
-            button.classList.add('active');
+        this.#init_time_switcher();
+        this.#init_resize_and_theme();
 
-            metrics_active_filter = button.dataset.tab;
-            callback();
-        });
-    });
-};
-
-const charts_theme = (chart_config, callback) => {
-    window.addEventListener('resize', () => {
-        for (const chart of Object.values(chart_config)) {
-            chart.resize();
-        }
-    });
-
-    const theme_observer = new MutationObserver((mutations_list) => {
-        for (const mutation of mutations_list) {
-            if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
-                const theme = document.documentElement.classList.contains('dark') ? 'dark' : null;
-
-                for (const key of Object.keys(chart_config)) {
-                    chart_config[key].dispose();
-                    const chart_element = document.getElementById(`${key}_chart`);
-                    chart_config[key] = echarts.init(chart_element, theme, {renderer: 'svg'});
-                }
-
-                callback();
-                break;
-            }
-        }
-    });
-
-    theme_observer.observe(document.documentElement, {attributes: true});
-};
-
-const fetch_metrics = (callback) => {
-    ajax('metrics', (request) => {
-        if (ajax_ok(request)) {
-            const content_type = request.getResponseHeader('content-type');
-            const response_text = request.responseText;
-
-            if (content_type && content_type.includes('application/json')) {
-                callback(JSON.parse(response_text));
-                set_alerts('');
-            } else {
-                set_alerts(response_text);
-            }
-        } else {
-            set_alerts(`Server responded with status ${request.status}`);
-        }
-    }, {filter: metrics_active_filter}, false);
-};
-
-const init_metrics = (render_charts, chart_config) => {
-    let full_data = [];
-
-    const update_page_charts = () => {
-        fetch_metrics((data) => {
-            full_data = data;
-            render_charts(full_data);
-        });
-    };
-
-    time_switcher(update_page_charts);
-
-    charts_theme(chart_config, function () {
-        if (full_data && full_data.length > 0) {
-            render_charts(full_data);
-        }
-    });
-
-    update_page_charts();
-
-    setInterval(update_page_charts, metrics_refresh_interval);
-};
-
-/**
- * Interactive command console.
- */
-const pcaConsole = (options) => {
-    const output = document.getElementById('console');
-    const input = document.getElementById('console_input');
-
-    if (!output || !input) {
-        return;
+        this.update();
+        setInterval(() => this.update(), metrics_refresh_interval);
     }
 
-    // Keep the input row as the last child so new output appears above it.
-    const input_row = document.getElementById('console_prompt_row');
-    const prompt = input_row.querySelector('span').textContent;
+    update() {
+        this.#fetch((data) => {
+            this.full_data = data;
+            this.render_charts(this.full_data);
+        });
+    }
 
-    const history = [];
-    let history_index = 0; // points one past the last entry (i.e., the "new" line)
+    #fetch(callback) {
+        ajax('metrics', (request) => {
+            if (ajax_ok(request)) {
+                const content_type = request.getResponseHeader('content-type');
+                const response_text = request.responseText;
 
-    const scroll_bottom = () => output.scrollTop = output.scrollHeight;
+                if (content_type && content_type.includes('application/json')) {
+                    callback(JSON.parse(response_text));
+                    set_alerts('');
+                } else {
+                    set_alerts(response_text);
+                }
+            } else {
+                set_alerts(`Server responded with status ${request.status}`);
+            }
+        }, {filter: metrics_active_filter}, false);
+    }
 
-    const hint_typed = document.getElementById('console_hint_typed');
-    const hint_text = document.getElementById('console_hint_text');
+    #init_time_switcher() {
+        const time_buttons = document.querySelectorAll('[data-tab]');
 
-    let commands = {};
-    let command_names = [];
+        time_buttons.forEach(button => {
+            button.addEventListener('click', () => {
+                time_buttons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+
+                metrics_active_filter = button.dataset.tab;
+                this.update();
+            });
+        });
+    }
+
+    #init_resize_and_theme() {
+        window.addEventListener('resize', () => {
+            for (const chart_instance of Object.values(this.chart_config)) {
+                chart_instance.resize();
+            }
+        });
+
+        // Echarts cannot change its theme in place, so the instances are recreated.
+        const theme_observer = new MutationObserver((mutations_list) => {
+            for (const mutation of mutations_list) {
+                if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                    const theme = document.documentElement.classList.contains('dark') ? 'dark' : null;
+
+                    for (const key of Object.keys(this.chart_config)) {
+                        this.chart_config[key].dispose();
+                        const chart_element = document.getElementById(`${key}_chart`);
+                        this.chart_config[key] = echarts.init(chart_element, theme, {renderer: 'svg'});
+                    }
+
+                    if (this.full_data && this.full_data.length > 0) {
+                        this.render_charts(this.full_data);
+                    }
+
+                    break;
+                }
+            }
+        });
+
+        theme_observer.observe(document.documentElement, {attributes: true});
+    }
+}
+
+class Console {
+    constructor(options) {
+        this.output = document.getElementById('console');
+        this.input = document.getElementById('console_input');
+
+        if (!this.output || !this.input) {
+            return;
+        }
+
+        // Keep the input row as the last child so new output appears above it.
+        this.input_row = document.getElementById('console_prompt_row');
+        this.prompt = this.input_row.querySelector('span').textContent;
+
+        this.hint_typed = document.getElementById('console_hint_typed');
+        this.hint_text = document.getElementById('console_hint_text');
+
+        this.history = [];
+        this.history_index = 0; // points one past the last entry (i.e., the "new" line)
+
+        this.commands = {};
+        this.command_names = [];
+
+        this.tab_matches = [];
+        this.tab_index = -1;
+        this.tab_last = '';
+
+        this.input.addEventListener('input', () => this.#update_hint());
+        this.input.addEventListener('keydown', e => this.#handle_keydown(e));
+
+        // Clicking anywhere in the terminal (but not to select text) focuses the input.
+        this.output.addEventListener('click', () => {
+            if ((window.getSelection() ?? '').toString() === '') {
+                this.input.focus();
+            }
+        });
+
+        document.getElementById('console_clear').addEventListener('click', () => {
+            this.#clear_output();
+            this.input.focus();
+        });
+
+        this.#load_history();
+        this.#load_commands(options.commandsUrl);
+
+        this.input.focus();
+    }
+
+    #scroll_bottom() {
+        this.output.scrollTop = this.output.scrollHeight;
+    }
 
     // Resolve the command being typed, preferring a two-word one (e.g., CONFIG GET, STATS ITEMS).
-    const command_key = (value) => {
+    #command_key(value) {
         const tokens = value.trimStart().split(/\s+/);
         const first = (tokens[0] || '').toUpperCase();
 
         if (tokens.length >= 2) {
             const two = first + ' ' + tokens[1].toUpperCase();
 
-            if (commands[two]) {
+            if (this.commands[two]) {
                 return two;
             }
         }
 
-        return commands[first] ? first : null;
-    };
+        return this.commands[first] ? first : null;
+    }
 
-    const update_hint = () => {
-        const value = input.value;
-        const key = value.trim() === '' ? null : command_key(value);
-        const args = key && commands[key] ? commands[key].args : null;
+    #update_hint() {
+        const value = this.input.value;
+        const key = value.trim() === '' ? null : this.#command_key(value);
+        const args = key && this.commands[key] ? this.commands[key].args : null;
 
-        hint_typed.textContent = value;
-        hint_text.textContent = args ? (value.endsWith(' ') ? '' : ' ') + args : '';
-    };
+        this.hint_typed.textContent = value;
+        this.hint_text.textContent = args ? (value.endsWith(' ') ? '' : ' ') + args : '';
+    }
 
-    let tab_matches = [];
-    let tab_index = -1;
-    let tab_last = '';
-
-    const complete_command = () => {
-        const value = input.value;
+    #complete_command() {
+        const value = this.input.value;
 
         if (value.includes(' ')) {
-            return; // only the command name is completed
+            return; // Only the command name is completed
         }
 
-        if (tab_index === -1 || value !== tab_last) {
+        if (this.tab_index === -1 || value !== this.tab_last) {
             const prefix = value.toUpperCase();
-            tab_matches = command_names.filter(name => name.startsWith(prefix));
-            tab_index = -1;
+            this.tab_matches = this.command_names.filter(name => name.startsWith(prefix));
+            this.tab_index = -1;
         }
 
-        if (tab_matches.length === 0) {
+        if (this.tab_matches.length === 0) {
             return;
         }
 
-        tab_index = (tab_index + 1) % tab_matches.length;
-        input.value = tab_matches[tab_index].toLowerCase();
-        tab_last = input.value;
-        update_hint();
-    };
+        this.tab_index = (this.tab_index + 1) % this.tab_matches.length;
+        this.input.value = this.tab_matches[this.tab_index].toLowerCase();
+        this.tab_last = this.input.value;
+        this.#update_hint();
+    }
 
-    input.addEventListener('input', update_hint);
-
-    const append_line = (command, result, is_error) => {
+    #append_line(command, result, is_error) {
         const line = document.getElementById('console_line').content.cloneNode(true);
         const [prompt_span, command_span] = line.querySelectorAll('.flex > span');
         const result_div = line.querySelector('div > div:last-child');
 
-        prompt_span.textContent = prompt;
+        prompt_span.textContent = this.prompt;
         command_span.textContent = command;
 
         if (result === '') {
@@ -904,116 +937,135 @@ const pcaConsole = (options) => {
             result_div.classList.add(...(is_error ? ['text-red-500', 'dark:text-red-400'] : ['text-gray-600', 'dark:text-gray-400']));
         }
 
-        output.insertBefore(line, input_row);
-        scroll_bottom();
-    };
+        this.output.insertBefore(line, this.input_row);
+        this.#scroll_bottom();
+    }
 
-    const parse_json = (request) => {
+    #parse_json(request) {
         try {
             return JSON.parse(request.response);
         } catch {
             return null;
         }
-    };
+    }
 
-    const run = (command) => {
-        input.value = '';
-        update_hint();
-        input.disabled = true;
+    #run(command) {
+        this.input.value = '';
+        this.#update_hint();
+        this.input.disabled = true;
 
         ajax('console', (request) => {
-            input.disabled = false;
-            const data = ajax_ok(request) ? parse_json(request) : null;
+            this.input.disabled = false;
+            const data = ajax_ok(request) ? this.#parse_json(request) : null;
 
             if (data === null) {
-                append_line(command, 'An error occurred while running the command.', true);
+                this.#append_line(command, 'An error occurred while running the command.', true);
             } else if (data.error) {
-                append_line(command, '(error) ' + data.error, true);
+                this.#append_line(command, '(error) ' + data.error, true);
             } else {
-                append_line(command, data.output ?? '', false);
+                this.#append_line(command, data.output ?? '', false);
             }
 
-            input.focus();
+            this.input.focus();
         }, {command: command}, false);
-    };
+    }
 
-    const clear_output = () => {
-        output.querySelectorAll('.console-entry').forEach(el => el.remove());
+    #clear_output() {
+        this.output.querySelectorAll('.console-entry').forEach(el => el.remove());
         document.getElementById('console_welcome')?.remove();
-    };
+    }
 
-    input.addEventListener('keydown', (e) => {
+    #handle_keydown(e) {
         if (e.key === 'Enter') {
-            const command = input.value.trim();
+            const command = this.input.value.trim();
 
             if (command === '') {
                 return;
             }
 
-            history.push(command);
-            history_index = history.length;
+            this.history.push(command);
+            this.history_index = this.history.length;
 
             if (command.toLowerCase() === 'clear') {
-                clear_output();
-                input.value = '';
-                update_hint();
+                this.#clear_output();
+                this.input.value = '';
+                this.#update_hint();
                 return;
             }
 
-            run(command);
+            this.#run(command);
         } else if (e.key === 'Tab') {
             e.preventDefault();
-            complete_command();
+            this.#complete_command();
         } else if (e.key === 'ArrowUp') {
-            if (history_index > 0) {
-                history_index--;
-                input.value = history[history_index];
-                update_hint();
+            if (this.history_index > 0) {
+                this.history_index--;
+                this.input.value = this.history[this.history_index];
+                this.#update_hint();
                 e.preventDefault();
             }
         } else if (e.key === 'ArrowDown') {
-            if (history_index < history.length - 1) {
-                history_index++;
-                input.value = history[history_index];
+            if (this.history_index < this.history.length - 1) {
+                this.history_index++;
+                this.input.value = this.history[this.history_index];
             } else {
-                history_index = history.length;
-                input.value = '';
+                this.history_index = this.history.length;
+                this.input.value = '';
             }
-            update_hint();
+            this.#update_hint();
             e.preventDefault();
         }
-    });
+    }
 
-    // Clicking anywhere in the terminal (but not to select text) focuses the input.
-    output.addEventListener('click', () => {
-        if ((window.getSelection() ?? '').toString() === '') {
-            input.focus();
-        }
-    });
+    #load_history() {
+        ajax('console&history', (request) => {
+            const data = ajax_ok(request) ? this.#parse_json(request) : null;
 
-    document.getElementById('console_clear').addEventListener('click', () => {
-        clear_output();
-        input.focus();
-    });
-
-    ajax('console&history', (request) => {
-        const data = ajax_ok(request) ? parse_json(request) : null;
-
-        if (data && Array.isArray(data.history)) {
-            history.push(...data.history);
-            history_index = history.length;
-        }
-    });
-
-    fetch(options.commandsUrl)
-        .then(response => response.ok ? response.json() : {})
-        .then(data => {
-            commands = data || {};
-            command_names = Object.keys(commands).filter(name => !name.includes(' '));
-            update_hint();
-        })
-        .catch(() => {
+            if (data && Array.isArray(data.history)) {
+                this.history.push(...data.history);
+                this.history_index = this.history.length;
+            }
         });
+    }
 
-    input.focus();
-};
+    #load_commands(url) {
+        fetch(url)
+            .then(response => response.ok ? response.json() : {})
+            .then(data => {
+                this.commands = data || {};
+                this.command_names = Object.keys(this.commands).filter(name => !name.includes(' '));
+                this.#update_hint();
+            })
+            .catch(() => {
+            });
+    }
+}
+
+/**
+ * Bootstrap
+ */
+new ThemeSwitcher();
+
+document.addEventListener('DOMContentLoaded', () => {
+    const treeview_element = document.querySelector('.treeview');
+    const tree_view = treeview_element ? new TreeView(treeview_element) : null;
+
+    new KeyList(tree_view);
+
+    select_and_redirect('per_page', 'pp');
+    select_and_redirect('server_select', 'server');
+    select_and_redirect('db_select', 'db');
+
+    if (ajax_panels) {
+        new Panels(panels_refresh_interval);
+    }
+
+    const modals = {};
+    document.querySelectorAll('.modal').forEach(modal => {
+        modals[modal.id] = new Modal(modal);
+    });
+
+    if (modals['view-key-modal'] && document.getElementById('view-key-modal-content')) {
+        new ViewKeyModal(modals['view-key-modal']);
+    }
+});

@@ -94,7 +94,7 @@ class Helpers {
             return $cache[$extension] = [];
         }
 
-        $ini_config = array_map(static function ($ini_value) {
+        $ini_config = array_map(static function (array $ini_value) {
             return $ini_value['local_value'];
         }, ini_get_all($extension));
 

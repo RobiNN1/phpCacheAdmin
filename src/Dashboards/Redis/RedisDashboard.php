@@ -163,7 +163,7 @@ class RedisDashboard implements DashboardInterface {
         try {
             $this->redis = $this->connect($this->servers[$this->current_server]);
             $this->template->addGlobal('ajax_panels', true);
-            $panels = $this->template->render('partials/info', ['panels' => $this->getPanelsData()]);
+            $panels = Helpers::panels($this->template, $this->getPanelsData());
             $this->template->addGlobal('side', $this->dbSelect().$panels);
 
             $tabs = $this->template->render('components/tabs', ['links' => $this->tabs, 'main' => true,]);

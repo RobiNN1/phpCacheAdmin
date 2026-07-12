@@ -35,7 +35,7 @@ trait RealpathTrait {
             ],
         ];
 
-        return $this->template->render('partials/info', ['panels' => $panels]);
+        return Helpers::panels($this->template, $panels);
     }
 
     /**

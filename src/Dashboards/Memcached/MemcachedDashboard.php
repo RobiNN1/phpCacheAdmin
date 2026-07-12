@@ -138,7 +138,7 @@ class MemcachedDashboard implements DashboardInterface {
         try {
             $this->memcached = $this->connect($this->servers[$this->current_server]);
             $this->template->addGlobal('ajax_panels', true);
-            $this->template->addGlobal('side', $this->template->render('partials/info', ['panels' => $this->getPanelsData()]));
+            $this->template->addGlobal('side', Helpers::panels($this->template, $this->getPanelsData()));
 
             $tabs = $this->template->render('components/tabs', ['links' => $this->tabs, 'main' => true,]);
 

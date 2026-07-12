@@ -213,6 +213,28 @@ class Helpers {
     }
 
     /**
+     * @param array<int|string, mixed> $panels
+     */
+    public static function panels(Template $template, array $panels): string {
+        if (isset($panels['error']) && is_string($panels['error'])) {
+            return $panels['error'];
+        }
+
+        $html = '';
+
+        foreach ($panels as $panel) {
+            if (is_array($panel) && $panel !== []) {
+                $html .= $template->render('partials/panel', [
+                    'panel_title' => $panel['title'] ?? null,
+                    'array'       => $panel['data'] ?? [],
+                ]);
+            }
+        }
+
+        return $html;
+    }
+
+    /**
      * @param array<int, array<string, int|string>> $servers
      */
     public static function serverSelector(Template $template, array $servers, int $selected): string {

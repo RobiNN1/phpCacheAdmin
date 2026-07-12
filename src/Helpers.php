@@ -194,6 +194,24 @@ class Helpers {
         return $name.$host.$port;
     }
 
+    public static function cronjobUrl(string $dashboard, int $server_id): string {
+        $https = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ||
+            ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https' ||
+            ($_SERVER['SERVER_PORT'] ?? 0) === 443;
+        $host = ($_SERVER['HTTP_HOST'] ?? 'localhost');
+        $path = (parse_url(($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH) ?: '/');
+
+        $url = ($https ? 'https' : 'http').'://'.$host.$path.'?dashboard='.$dashboard.'&server='.$server_id.'&ajax&metrics';
+
+        $token = (string) Config::get('authtoken', '');
+
+        if ($token !== '' && Auth::isEnabled()) {
+            $url .= '&token='.rawurlencode($token);
+        }
+
+        return $url;
+    }
+
     /**
      * @param array<int, array<string, int|string>> $servers
      */

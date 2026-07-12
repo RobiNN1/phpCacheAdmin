@@ -124,6 +124,7 @@ class Template {
         $twig->addFunction(new TwigFunction('get', Http::get(...)));
         $twig->addFunction(new TwigFunction('config', Config::get(...)));
         $twig->addFunction(new TwigFunction('is_numeric', is_numeric(...)));
+        $twig->addFunction(new TwigFunction('cronjob_url', Helpers::cronjobUrl(...)));
 
         $twig->addFunction(new TwigFunction('asset', static function (string $file): string {
             $full_path = __DIR__.'/../'.$file;

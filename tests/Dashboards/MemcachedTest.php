@@ -286,7 +286,7 @@ final class MemcachedTest extends TestCase {
 
         $_POST['command'] = 'get pu-console';
         $response = json_decode($this->dashboard->ajax(), true, 512, JSON_THROW_ON_ERROR);
-        $this->assertStringContainsString('abc', $response['output']);
+        $this->assertStringContainsString('abc', (string) $response['output']);
         $this->memcached->delete('pu-console');
 
         $_POST['command'] = 'notacommand';
@@ -295,7 +295,7 @@ final class MemcachedTest extends TestCase {
 
         $_POST['command'] = 'shutdown';
         $response = json_decode($this->dashboard->ajax(), true, 512, JSON_THROW_ON_ERROR);
-        $this->assertStringContainsString('not allowed', $response['error']);
+        $this->assertStringContainsString('not allowed', (string) $response['error']);
 
         $_POST['command'] = '   ';
         $response = json_decode($this->dashboard->ajax(), true, 512, JSON_THROW_ON_ERROR);

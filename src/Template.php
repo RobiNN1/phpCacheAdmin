@@ -77,7 +77,7 @@ class Template {
     }
 
     /**
-     * Add global Twig variable.
+     * Add a global Twig variable.
      */
     public function addGlobal(string $name, mixed $value): void {
         if ($name === 'modals') {
@@ -168,7 +168,8 @@ class Template {
             }
         } catch (LogicException) {
             // A global name not known at init time appeared, rebuild the environment with it registered.
-            $twig = $this->twig = $this->initTwig();
+            $twig = $this->initTwig();
+            $this->twig = $twig;
         }
 
         try {

@@ -817,7 +817,7 @@ abstract class RedisTestCase extends TestCase {
 
         $_POST['command'] = 'MONITOR';
         $response = json_decode($this->dashboard->ajax(), true, 512, JSON_THROW_ON_ERROR);
-        $this->assertStringContainsString('not allowed', $response['error']);
+        $this->assertStringContainsString('not allowed', (string) $response['error']);
 
         $_POST['command'] = '   ';
         $response = json_decode($this->dashboard->ajax(), true, 512, JSON_THROW_ON_ERROR);

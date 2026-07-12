@@ -61,7 +61,7 @@ class Value {
         if (!is_numeric($value) && json_validate($value)) {
             try {
                 $json_array = json_decode($value, false, 512, JSON_THROW_ON_ERROR);
-                $value = json_encode($json_array, JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT);
+                $value = json_encode($json_array, JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
                 return '<pre class="json-code">'.htmlspecialchars($value).'</pre>';
             } catch (JsonException) {

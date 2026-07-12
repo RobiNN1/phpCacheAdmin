@@ -23,8 +23,6 @@ use RobiNN\Pca\Template;
 use Tests\TestCase;
 
 final class MemcachedTest extends TestCase {
-    private Template $template;
-
     private MemcachedDashboard $dashboard;
 
     private PHPMem $memcached;
@@ -33,8 +31,7 @@ final class MemcachedTest extends TestCase {
      * @throws DashboardException
      */
     protected function setUp(): void {
-        $this->template = new Template();
-        $this->dashboard = new MemcachedDashboard($this->template);
+        $this->dashboard = new MemcachedDashboard(new Template());
         $this->memcached = $this->dashboard->connect([
             'host' => Config::get('memcached')[0]['host'],
             'port' => Config::get('memcached')[0]['port'],
@@ -46,7 +43,7 @@ final class MemcachedTest extends TestCase {
      * @param array<int, string>|string $keys
      */
     private function deleteMemcachedKeys(array|string $keys): void {
-        $this->deleteKeysHelper($this->template, $keys, fn (string $key): bool => $this->memcached->delete($key));
+        $this->deleteKeysHelper($keys, fn (string $key): bool => $this->memcached->delete($key));
     }
 
     public function testIsConnected(): void {
@@ -82,14 +79,14 @@ final class MemcachedTest extends TestCase {
 
         $this->setCsrfToken(false);
         $this->assertSame(
-            Helpers::alert($this->template, 'Invalid CSRF token.', 'error'),
+            Helpers::alert('Invalid CSRF token.', 'error'),
             $this->dashboard->ajax()
         );
         $this->assertTrue($this->memcached->exists($key));
 
         $this->setCsrfToken();
         $this->assertSame(
-            Helpers::alert($this->template, sprintf('Key "%s" has been deleted.', $encoded_key), 'success'),
+            Helpers::alert(sprintf('Key "%s" has been deleted.', $encoded_key), 'success'),
             $this->dashboard->ajax()
         );
         $this->assertFalse($this->memcached->exists($key));
@@ -102,7 +99,7 @@ final class MemcachedTest extends TestCase {
      */
     public function testMetrics(): void {
         $server_name = 'pu-metrics-'.uniqid('', true);
-        $metrics = new MemcachedMetrics($this->memcached, $this->template, [['name' => $server_name]], 0);
+        $metrics = new MemcachedMetrics($this->memcached, [['name' => $server_name]], 0);
 
         $data = json_decode($metrics->collectAndRespond(), true, 512, JSON_THROW_ON_ERROR);
 

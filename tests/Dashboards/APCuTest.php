@@ -17,8 +17,6 @@ use RobiNN\Pca\Template;
 use Tests\TestCase;
 
 final class APCuTest extends TestCase {
-    private Template $template;
-
     private APCuDashboard $dashboard;
 
     public static function setUpBeforeClass(): void {
@@ -28,15 +26,14 @@ final class APCuTest extends TestCase {
     }
 
     protected function setUp(): void {
-        $this->template = new Template();
-        $this->dashboard = new APCuDashboard($this->template);
+        $this->dashboard = new APCuDashboard(new Template());
     }
 
     /**
      * @param array<int, string>|string $keys
      */
     private function deleteApcuKeys(array|string $keys): void {
-        $this->deleteKeysHelper($this->template, $keys, static fn (string $key): bool => apcu_delete($key));
+        $this->deleteKeysHelper($keys, static fn (string $key): bool => apcu_delete($key));
     }
 
     public function testDeleteKey(): void {
@@ -197,14 +194,14 @@ final class APCuTest extends TestCase {
 
         $this->setCsrfToken(false);
         $this->assertSame(
-            Helpers::alert($this->template, 'Invalid CSRF token.', 'error'),
+            Helpers::alert('Invalid CSRF token.', 'error'),
             $this->dashboard->ajax()
         );
         $this->assertTrue(apcu_exists($key));
 
         $this->setCsrfToken();
         $this->assertSame(
-            Helpers::alert($this->template, sprintf('Key "%s" has been deleted.', $key), 'success'),
+            Helpers::alert(sprintf('Key "%s" has been deleted.', $key), 'success'),
             $this->dashboard->ajax()
         );
         $this->assertFalse(apcu_exists($key));

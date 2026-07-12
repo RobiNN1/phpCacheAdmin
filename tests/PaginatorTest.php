@@ -10,7 +10,6 @@ namespace Tests;
 
 use PHPUnit\Framework\TestCase;
 use RobiNN\Pca\Paginator;
-use RobiNN\Pca\Template;
 
 final class PaginatorTest extends TestCase {
     private Paginator $paginator;
@@ -26,7 +25,7 @@ final class PaginatorTest extends TestCase {
         $_GET['p'] = 2;
         $_GET['pp'] = 2;
 
-        $this->paginator = new Paginator(new Template(), $items);
+        $this->paginator = new Paginator($items);
     }
 
     public function testGetPaginated(): void {

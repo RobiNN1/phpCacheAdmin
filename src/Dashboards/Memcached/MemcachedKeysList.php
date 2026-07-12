@@ -70,7 +70,7 @@ trait MemcachedKeysList {
             ];
         }
 
-        return Helpers::sortKeys($this->template, $formatted_keys);
+        return Helpers::sortKeys($formatted_keys);
     }
 
     /**

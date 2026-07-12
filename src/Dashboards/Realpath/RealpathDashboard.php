@@ -57,12 +57,12 @@ class RealpathDashboard implements DashboardInterface {
     public function ajax(): string {
         if (isset($_GET['deleteall'])) {
             if (!Csrf::validateToken(Http::post('csrf_token', ''))) {
-                return Helpers::alert($this->template, 'Invalid CSRF token.', 'error');
+                return Helpers::alert('Invalid CSRF token.', 'error');
             }
 
             clearstatcache(true);
 
-            return Helpers::alert($this->template, 'Cache has been cleaned.', 'success');
+            return Helpers::alert('Cache has been cleaned.', 'success');
         }
 
         return '';
@@ -74,7 +74,7 @@ class RealpathDashboard implements DashboardInterface {
         $this->template->addGlobal('side', $this->panels());
 
         $keys = $this->getAllKeys();
-        $paginator = new Paginator($this->template, $keys);
+        $paginator = new Paginator($keys);
 
         return $this->template->render('dashboards/realpath', [
             'keys'      => $paginator->getPaginated(),

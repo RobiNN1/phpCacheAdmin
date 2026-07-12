@@ -54,20 +54,20 @@ class OPCacheDashboard implements DashboardInterface {
 
         if (isset($_GET['deleteall'])) {
             if (!Csrf::validateToken(Http::post('csrf_token', ''))) {
-                return Helpers::alert($this->template, 'Invalid CSRF token.', 'error');
+                return Helpers::alert('Invalid CSRF token.', 'error');
             }
 
             if (opcache_reset()) {
-                return Helpers::alert($this->template, 'Cache has been cleaned.', 'success');
+                return Helpers::alert('Cache has been cleaned.', 'success');
             }
         }
 
         if (isset($_GET['delete'])) {
             if (!Csrf::validateToken(Http::post('csrf_token', ''))) {
-                return Helpers::alert($this->template, 'Invalid CSRF token.', 'error');
+                return Helpers::alert('Invalid CSRF token.', 'error');
             }
 
-            return Helpers::deleteKey($this->template, static fn (string $key): bool => opcache_invalidate($key, true));
+            return Helpers::deleteKey(static fn (string $key): bool => opcache_invalidate($key, true));
         }
 
         return '';
@@ -75,7 +75,7 @@ class OPCacheDashboard implements DashboardInterface {
 
     public function dashboard(): string {
         $this->template->addGlobal('ajax_panels', true);
-        $this->template->addGlobal('side', Helpers::panels($this->template, $this->getPanelsData()));
+        $this->template->addGlobal('side', Helpers::panels($this->getPanelsData()));
 
         $tabs = $this->template->render('components/tabs', ['links' => $this->tabs, 'main' => true,]);
 

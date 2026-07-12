@@ -19,6 +19,8 @@ use Twig\TwigFilter;
 use Twig\TwigFunction;
 
 class Template {
+    private static ?Template $instance = null;
+
     private ?Environment $twig = null;
 
     /**
@@ -44,6 +46,8 @@ class Template {
     private array $paths = [];
 
     public function __construct() {
+        self::$instance = $this;
+
         $app_version = Admin::VERSION;
         $cache_dir = Config::get('twigcache', __DIR__.'/../tmp/twig');
         $version_file = $cache_dir.'/app_version.txt';
@@ -59,6 +63,10 @@ class Template {
 
             file_put_contents($version_file, $app_version);
         }
+    }
+
+    public static function get(): self {
+        return self::$instance ?? new self();
     }
 
     private function clearTwigCache(string $target_dir): void {

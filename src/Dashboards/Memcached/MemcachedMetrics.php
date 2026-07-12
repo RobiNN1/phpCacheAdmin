@@ -10,7 +10,6 @@ namespace RobiNN\Pca\Dashboards\Memcached;
 
 use PDO;
 use RobiNN\Pca\Dashboards\Metrics;
-use RobiNN\Pca\Template;
 
 readonly class MemcachedMetrics extends Metrics {
     private const RATE_COMMANDS = ['get', 'set', 'delete', 'incr', 'decr', 'cas', 'touch', 'flush'];
@@ -22,11 +21,10 @@ readonly class MemcachedMetrics extends Metrics {
      */
     public function __construct(
         private PHPMem $memcached,
-        Template       $template,
         array          $servers,
         int            $selected,
     ) {
-        parent::__construct($template, $servers, $selected);
+        parent::__construct($servers, $selected);
     }
 
     protected function dbPrefix(): string {

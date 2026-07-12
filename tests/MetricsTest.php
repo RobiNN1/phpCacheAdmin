@@ -12,7 +12,6 @@ use JsonException;
 use PDO;
 use PHPUnit\Framework\TestCase;
 use RobiNN\Pca\Dashboards\Metrics;
-use RobiNN\Pca\Template;
 
 readonly class DummyMetrics extends Metrics {
     protected function dbPrefix(): string {
@@ -42,7 +41,7 @@ final class MetricsTest extends TestCase {
     private string $db_file;
 
     protected function setUp(): void {
-        $this->metrics = new DummyMetrics(new Template(), [['name' => 'pu-metrics-'.uniqid('', true)]], 0);
+        $this->metrics = new DummyMetrics([['name' => 'pu-metrics-'.uniqid('', true)]], 0);
 
         $database = $this->metrics->db()->query('PRAGMA database_list')->fetch(PDO::FETCH_ASSOC);
         $this->db_file = (string) $database['file'];

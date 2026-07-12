@@ -43,10 +43,10 @@ trait RedisTrait {
      */
     private function deleteAllKeys(): string {
         if ($this->redis->flushDatabase()) {
-            return Helpers::alert($this->template, 'All keys from the current database have been removed.', 'success');
+            return Helpers::alert('All keys from the current database have been removed.', 'success');
         }
 
-        return Helpers::alert($this->template, 'An error occurred while deleting all keys.', 'error');
+        return Helpers::alert('An error occurred while deleting all keys.', 'error');
     }
 
     /**
@@ -138,7 +138,7 @@ trait RedisTrait {
                     }
                 );
             } else {
-                echo Helpers::alert($this->template, 'Invalid CSRF token.', 'error');
+                echo Helpers::alert('Invalid CSRF token.', 'error');
             }
         }
 
@@ -148,7 +148,7 @@ trait RedisTrait {
             Helpers::export($this->keysTableView($keys), 'redis_backup', fn (string $key): string => bin2hex($this->redis->dump($key)));
         }
 
-        $paginator = new Paginator($this->template, $keys);
+        $paginator = new Paginator($keys);
         $paginated_keys = $paginator->getPaginated();
 
         if (Http::get('view', Config::get('listview', 'table')) === 'tree') {
@@ -177,7 +177,7 @@ trait RedisTrait {
 
         if (isset($_POST['resetlog'])) {
             if (!Csrf::validateToken(Http::post('csrf_token', ''))) {
-                Helpers::alert($this->template, 'Invalid CSRF token.', 'error');
+                Helpers::alert('Invalid CSRF token.', 'error');
             } else {
                 $this->redis->resetSlowlog();
                 Http::redirect(['tab']);
@@ -186,7 +186,7 @@ trait RedisTrait {
 
         if (isset($_POST['save'])) {
             if (!Csrf::validateToken(Http::post('csrf_token', ''))) {
-                Helpers::alert($this->template, 'Invalid CSRF token.', 'error');
+                Helpers::alert('Invalid CSRF token.', 'error');
             } else {
                 $this->redis->execConfig('SET', 'slowlog-max-len', Http::post('slowlog_max_items', '50'));
                 $this->redis->execConfig('SET', 'slowlog-log-slower-than', Http::post('slowlog_slower_than', '1000'));

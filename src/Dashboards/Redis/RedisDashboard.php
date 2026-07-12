@@ -112,7 +112,7 @@ class RedisDashboard implements DashboardInterface {
             }
 
             if (isset($_GET['metrics'])) {
-                return (new RedisMetrics($this->redis, $this->template, $this->servers, $this->current_server))->collectAndRespond();
+                return (new RedisMetrics($this->redis, $this->servers, $this->current_server))->collectAndRespond();
             }
 
             if (isset($_GET['pubsub'])) {
@@ -129,7 +129,7 @@ class RedisDashboard implements DashboardInterface {
 
             if (isset($_GET['deleteall'])) {
                 if (!Csrf::validateToken(Http::post('csrf_token', ''))) {
-                    return Helpers::alert($this->template, 'Invalid CSRF token.', 'error');
+                    return Helpers::alert('Invalid CSRF token.', 'error');
                 }
 
                 return $this->deleteAllKeys();
@@ -137,10 +137,10 @@ class RedisDashboard implements DashboardInterface {
 
             if (isset($_GET['delete'])) {
                 if (!Csrf::validateToken(Http::post('csrf_token', ''))) {
-                    return Helpers::alert($this->template, 'Invalid CSRF token.', 'error');
+                    return Helpers::alert('Invalid CSRF token.', 'error');
                 }
 
-                return Helpers::deleteKey($this->template, function (string $key): bool {
+                return Helpers::deleteKey(function (string $key): bool {
                     $delete_key = $this->redis->del($key);
 
                     return is_int($delete_key) && $delete_key > 0;
@@ -158,12 +158,12 @@ class RedisDashboard implements DashboardInterface {
             return 'No servers';
         }
 
-        $this->template->addGlobal('servers', Helpers::serverSelector($this->template, $this->servers, $this->current_server));
+        $this->template->addGlobal('servers', Helpers::serverSelector($this->servers, $this->current_server));
 
         try {
             $this->redis = $this->connect($this->servers[$this->current_server]);
             $this->template->addGlobal('ajax_panels', true);
-            $panels = Helpers::panels($this->template, $this->getPanelsData());
+            $panels = Helpers::panels($this->getPanelsData());
             $this->template->addGlobal('side', $this->dbSelect().$panels);
 
             $tabs = $this->template->render('components/tabs', ['links' => $this->tabs, 'main' => true,]);

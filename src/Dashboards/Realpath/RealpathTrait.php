@@ -35,7 +35,7 @@ trait RealpathTrait {
             ],
         ];
 
-        return Helpers::panels($this->template, $panels);
+        return Helpers::panels($panels);
     }
 
     /**
@@ -61,6 +61,6 @@ trait RealpathTrait {
             }
         }
 
-        return Helpers::sortKeys($this->template, $keys);
+        return Helpers::sortKeys($keys);
     }
 }

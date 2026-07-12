@@ -14,7 +14,6 @@ use RobiNN\Pca\Dashboards\Redis\Compatibility\Cluster\PredisCluster;
 use RobiNN\Pca\Dashboards\Redis\Compatibility\Cluster\RedisCluster;
 use RobiNN\Pca\Dashboards\Redis\Compatibility\Predis;
 use RobiNN\Pca\Dashboards\Redis\Compatibility\Redis;
-use RobiNN\Pca\Template;
 
 readonly class RedisMetrics extends Metrics {
     /**
@@ -22,11 +21,10 @@ readonly class RedisMetrics extends Metrics {
      */
     public function __construct(
         private Redis|Predis|RedisCluster|PredisCluster $redis,
-        Template                                        $template,
         array                                           $servers,
         int                                             $selected,
     ) {
-        parent::__construct($template, $servers, $selected);
+        parent::__construct($servers, $selected);
 
         $this->updateSchema([
             'commands_stats' => 'TEXT',

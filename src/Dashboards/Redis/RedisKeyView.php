@@ -38,7 +38,7 @@ trait RedisKeyView {
 
         if (isset($_POST['deletesub'])) {
             if (!Csrf::validateToken(Http::post('csrf_token', ''))) {
-                Helpers::alert($this->template, 'Invalid CSRF token.', 'error');
+                Helpers::alert('Invalid CSRF token.', 'error');
             } else {
                 $subkey = match ($type) {
                     'set' => Http::post('member', 0),
@@ -56,7 +56,7 @@ trait RedisKeyView {
 
         if (isset($_POST['delete'])) {
             if (!Csrf::validateToken(Http::post('csrf_token', ''))) {
-                Helpers::alert($this->template, 'Invalid CSRF token.', 'error');
+                Helpers::alert('Invalid CSRF token.', 'error');
             } else {
                 $this->redis->del($key);
                 Http::redirect();
@@ -94,7 +94,7 @@ trait RedisKeyView {
                 $pairs = $this->filterSubItems($pairs, $subsearch);
             }
 
-            $paginator = new Paginator($this->template, $pairs, [['view', 'key', 'pp', 'subsearch'], ['p' => '']]);
+            $paginator = new Paginator($pairs, [['view', 'key', 'pp', 'subsearch'], ['p' => '']]);
             $value = $this->formatViewItems($key, $paginator->getPaginated(), $type);
             $paginator = $paginator->render();
         } else {
@@ -225,7 +225,7 @@ trait RedisKeyView {
             if (Csrf::validateToken(Http::post('csrf_token', ''))) {
                 $this->saveKey();
             } else {
-                Helpers::alert($this->template, 'Invalid CSRF token.', 'error');
+                Helpers::alert('Invalid CSRF token.', 'error');
             }
         }
 
@@ -234,7 +234,7 @@ trait RedisKeyView {
             try {
                 $type = $this->redis->getKeyType($key);
             } catch (DashboardException $e) {
-                Helpers::alert($this->template, $e->getMessage(), 'error');
+                Helpers::alert($e->getMessage(), 'error');
                 $type = 'unknown';
             }
 

@@ -95,7 +95,7 @@ class MemcachedDashboard implements DashboardInterface {
             }
 
             if (isset($_GET['metrics'])) {
-                return (new MemcachedMetrics($this->memcached, $this->template, $this->servers, $this->current_server))->collectAndRespond();
+                return (new MemcachedMetrics($this->memcached, $this->servers, $this->current_server))->collectAndRespond();
             }
 
             if (isset($_GET['console'])) {
@@ -108,7 +108,7 @@ class MemcachedDashboard implements DashboardInterface {
 
             if (isset($_GET['deleteall'])) {
                 if (!Csrf::validateToken(Http::post('csrf_token', ''))) {
-                    return Helpers::alert($this->template, 'Invalid CSRF token.', 'error');
+                    return Helpers::alert('Invalid CSRF token.', 'error');
                 }
 
                 return $this->deleteAllKeys();
@@ -116,10 +116,10 @@ class MemcachedDashboard implements DashboardInterface {
 
             if (isset($_GET['delete'])) {
                 if (!Csrf::validateToken(Http::post('csrf_token', ''))) {
-                    return Helpers::alert($this->template, 'Invalid CSRF token.', 'error');
+                    return Helpers::alert('Invalid CSRF token.', 'error');
                 }
 
-                return Helpers::deleteKey($this->template, fn (string $key): bool => $this->memcached->delete(urldecode($key)));
+                return Helpers::deleteKey(fn (string $key): bool => $this->memcached->delete(urldecode($key)));
             }
         } catch (DashboardException|MemcachedException $e) {
             return $e->getMessage();
@@ -133,12 +133,12 @@ class MemcachedDashboard implements DashboardInterface {
             return 'No servers';
         }
 
-        $this->template->addGlobal('servers', Helpers::serverSelector($this->template, $this->servers, $this->current_server));
+        $this->template->addGlobal('servers', Helpers::serverSelector($this->servers, $this->current_server));
 
         try {
             $this->memcached = $this->connect($this->servers[$this->current_server]);
             $this->template->addGlobal('ajax_panels', true);
-            $this->template->addGlobal('side', Helpers::panels($this->template, $this->getPanelsData()));
+            $this->template->addGlobal('side', Helpers::panels($this->getPanelsData()));
 
             $tabs = $this->template->render('components/tabs', ['links' => $this->tabs, 'main' => true,]);
 

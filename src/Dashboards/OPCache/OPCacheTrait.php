@@ -177,7 +177,7 @@ trait OPCacheTrait {
 
         unset($status);
 
-        return Helpers::sortKeys($this->template, $cached_scripts);
+        return Helpers::sortKeys($cached_scripts);
     }
 
     /**
@@ -185,7 +185,7 @@ trait OPCacheTrait {
      */
     private function scriptsTab(): array {
         $cached_scripts = $this->getCachedScripts();
-        $paginator = new Paginator($this->template, $cached_scripts, [['ignore', 'pp', 's'], ['p' => '']]);
+        $paginator = new Paginator($cached_scripts, [['ignore', 'pp', 's'], ['p' => '']]);
         $status = opcache_get_status(false);
 
         return [

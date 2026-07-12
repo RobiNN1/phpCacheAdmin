@@ -14,7 +14,6 @@ use PDO;
 use RobiNN\Pca\Config;
 use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
-use RobiNN\Pca\Template;
 use RuntimeException;
 
 abstract readonly class Metrics {
@@ -23,7 +22,7 @@ abstract readonly class Metrics {
     /**
      * @param array<int, array<string, int|string>> $servers
      */
-    public function __construct(protected Template $template, array $servers, int $selected) {
+    public function __construct(array $servers, int $selected) {
         $server_name = Helpers::getServerTitle($servers[$selected]);
         $hash = md5($server_name.Config::get('hash', 'pca'));
         $dir = Config::get('metricsdir', __DIR__.'/../../tmp/metrics');
@@ -71,7 +70,7 @@ abstract readonly class Metrics {
             try {
                 $this->insertMetrics($this->collect());
             } catch (Exception $e) {
-                return Helpers::alert($this->template, $e->getMessage(), 'error');
+                return Helpers::alert($e->getMessage(), 'error');
             }
         }
 
@@ -85,7 +84,7 @@ abstract readonly class Metrics {
         try {
             return json_encode($formatted_data, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         } catch (JsonException $e) {
-            return Helpers::alert($this->template, $e->getMessage(), 'error');
+            return Helpers::alert($e->getMessage(), 'error');
         }
     }
 

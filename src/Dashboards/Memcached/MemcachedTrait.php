@@ -39,10 +39,10 @@ trait MemcachedTrait {
      */
     private function deleteAllKeys(): string {
         if ($this->memcached->flush()) {
-            return Helpers::alert($this->template, 'All keys have been removed.', 'success');
+            return Helpers::alert('All keys have been removed.', 'success');
         }
 
-        return Helpers::alert($this->template, 'An error occurred while deleting all keys.', 'error');
+        return Helpers::alert('An error occurred while deleting all keys.', 'error');
     }
 
     /**
@@ -77,7 +77,7 @@ trait MemcachedTrait {
                     fn (string $key, string $value, int $ttl): bool => $this->memcached->set(urldecode($key), base64_decode($value), $ttl)
                 );
             } else {
-                echo Helpers::alert($this->template, 'Invalid CSRF token.', 'error');
+                echo Helpers::alert('Invalid CSRF token.', 'error');
             }
         }
 
@@ -102,7 +102,7 @@ trait MemcachedTrait {
             });
         }
 
-        $paginator = new Paginator($this->template, $raw_key_lines);
+        $paginator = new Paginator($raw_key_lines);
         $paginated_raw_lines = $paginator->getPaginated();
 
         if (Http::get('view', Config::get('listview', 'table')) === 'tree') {

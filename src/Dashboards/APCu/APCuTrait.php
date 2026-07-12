@@ -115,7 +115,7 @@ trait APCuTrait {
 
         if (isset($_POST['delete'])) {
             if (!Csrf::validateToken(Http::post('csrf_token', ''))) {
-                Helpers::alert($this->template, 'Invalid CSRF token.', 'error');
+                Helpers::alert('Invalid CSRF token.', 'error');
             } else {
                 apcu_delete($key);
                 Http::redirect();
@@ -172,7 +172,7 @@ trait APCuTrait {
             if (Csrf::validateToken(Http::post('csrf_token', ''))) {
                 $this->saveKey();
             } else {
-                Helpers::alert($this->template, 'Invalid CSRF token.', 'error');
+                Helpers::alert('Invalid CSRF token.', 'error');
             }
         }
 
@@ -243,7 +243,7 @@ trait APCuTrait {
             ];
         }
 
-        return Helpers::sortKeys($this->template, $formatted_keys);
+        return Helpers::sortKeys($formatted_keys);
     }
 
     /**
@@ -280,7 +280,7 @@ trait APCuTrait {
                     }
                 );
             } else {
-                echo Helpers::alert($this->template, 'Invalid CSRF token.', 'error');
+                echo Helpers::alert('Invalid CSRF token.', 'error');
             }
         }
 
@@ -295,7 +295,7 @@ trait APCuTrait {
             Helpers::export($export_keys, 'apcu_backup', static fn (string $key): string => base64_encode(serialize(apcu_fetch($key))));
         }
 
-        $paginator = new Paginator($this->template, $keys);
+        $paginator = new Paginator($keys);
         $paginated_keys = $paginator->getPaginated();
 
         if (Http::get('view', Config::get('listview', 'table')) === 'tree') {

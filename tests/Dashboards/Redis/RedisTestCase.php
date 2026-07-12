@@ -26,8 +26,6 @@ use Tests\TestCase;
 use Throwable;
 
 abstract class RedisTestCase extends TestCase {
-    private Template $template;
-
     private RedisDashboard $dashboard;
 
     private Redis|Predis|RedisCluster|PredisCluster $redis;
@@ -46,8 +44,7 @@ abstract class RedisTestCase extends TestCase {
      * @throws DashboardException
      */
     protected function setUp(): void {
-        $this->template = new Template();
-        $this->dashboard = new RedisDashboard($this->template, $this->client);
+        $this->dashboard = new RedisDashboard(new Template(), $this->client);
 
         if (self::$is_cluster) {
             $config = ['nodes' => Config::get('redis')[0]['nodes']];
@@ -103,14 +100,14 @@ abstract class RedisTestCase extends TestCase {
 
         $this->setCsrfToken(false);
         $this->assertSame(
-            Helpers::alert($this->template, 'Invalid CSRF token.', 'error'),
+            Helpers::alert('Invalid CSRF token.', 'error'),
             $this->dashboard->ajax()
         );
         $this->assertSame(1, $this->redis->exists($key));
 
         $this->setCsrfToken();
         $this->assertSame(
-            Helpers::alert($this->template, sprintf('Key "%s" has been deleted.', $key), 'success'),
+            Helpers::alert(sprintf('Key "%s" has been deleted.', $key), 'success'),
             $this->dashboard->ajax()
         );
         $this->assertSame(0, $this->redis->exists($key));
@@ -123,7 +120,7 @@ abstract class RedisTestCase extends TestCase {
      */
     public function testMetrics(): void {
         $server_name = 'pu-metrics-'.uniqid('', true);
-        $metrics = new RedisMetrics($this->redis, $this->template, [['name' => $server_name]], 0);
+        $metrics = new RedisMetrics($this->redis, [['name' => $server_name]], 0);
 
         $data = json_decode($metrics->collectAndRespond(), true, 512, JSON_THROW_ON_ERROR);
 
@@ -156,7 +153,7 @@ abstract class RedisTestCase extends TestCase {
      * @param array<int, string>|string $keys
      */
     private function deleteRedisKeys(array|string $keys): void {
-        $this->deleteKeysHelper($this->template, $keys, function (string $key): bool {
+        $this->deleteKeysHelper($keys, function (string $key): bool {
             $delete_key = $this->redis->del($key);
 
             return is_int($delete_key) && $delete_key > 0;

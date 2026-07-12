@@ -14,15 +14,8 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
-use RobiNN\Pca\Template;
 
 final class HelpersTest extends TestCase {
-    private Template $template;
-
-    protected function setUp(): void {
-        $this->template = new Template();
-    }
-
     public function testConvertTypesToString(): void {
         $input = [
             'string'       => 'value',
@@ -132,7 +125,7 @@ final class HelpersTest extends TestCase {
         $_GET['sortdir'] = $sortdir;
         $_GET['sortcol'] = $sortcol;
 
-        $this->assertSame($expected, Helpers::sortKeys($this->template, $keys));
+        $this->assertSame($expected, Helpers::sortKeys($keys));
     }
 
     /**

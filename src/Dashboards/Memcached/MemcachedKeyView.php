@@ -40,7 +40,7 @@ trait MemcachedKeyView {
 
         if (isset($_POST['delete'])) {
             if (!Csrf::validateToken(Http::post('csrf_token', ''))) {
-                Helpers::alert($this->template, 'Invalid CSRF token.', 'error');
+                Helpers::alert('Invalid CSRF token.', 'error');
             } else {
                 $this->memcached->delete($key);
                 Http::redirect();
@@ -103,7 +103,7 @@ trait MemcachedKeyView {
             if (Csrf::validateToken(Http::post('csrf_token', ''))) {
                 $this->saveKey();
             } else {
-                Helpers::alert($this->template, 'Invalid CSRF token.', 'error');
+                Helpers::alert('Invalid CSRF token.', 'error');
             }
         }
 

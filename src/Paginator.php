@@ -25,9 +25,8 @@ readonly class Paginator {
      * @param array<int, array<int|string, string>> $url
      */
     public function __construct(
-        private Template $template,
-        array            $items,
-        private array    $url = [['pp', 's', 'view'], ['p' => '']]
+        array         $items,
+        private array $url = [['pp', 's', 'view'], ['p' => '']]
     ) {
         $this->total = count($items);
         $this->page = max(1, Http::get('p', 1));
@@ -86,7 +85,7 @@ readonly class Paginator {
         $on_page = $this->paginated !== [] ? 1 : 0;
         $select = [50, 100, 200, 300, 400, 500, 1000];
 
-        return $this->template->render('components/paginator', [
+        return Template::get()->render('components/paginator', [
             'first_on_page' => Format::number((int) array_key_first($this->paginated) + $on_page),
             'last_on_page'  => Format::number((int) array_key_last($this->paginated) + $on_page),
             'total'         => Format::number($this->total),

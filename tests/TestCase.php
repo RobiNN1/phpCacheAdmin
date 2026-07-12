@@ -11,13 +11,12 @@ namespace Tests;
 use JsonException;
 use Random\RandomException;
 use RobiNN\Pca\Helpers;
-use RobiNN\Pca\Template;
 
 abstract class TestCase extends \PHPUnit\Framework\TestCase {
     /**
      * @param array<int, string>|string $keys
      */
-    public function deleteKeysHelper(Template $template, array|string $keys, callable $delete_key): void {
+    public function deleteKeysHelper(array|string $keys, callable $delete_key): void {
         $keys_b64 = is_array($keys) ? array_map(base64_encode(...), $keys) : base64_encode($keys);
 
         try {
@@ -27,8 +26,8 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase {
         }
 
         $this->assertSame(
-            Helpers::alert($template, is_array($keys) ? 'Keys have been deleted.' : 'Key "'.$keys.'" has been deleted.', 'success'),
-            Helpers::deleteKey($template, $delete_key)
+            Helpers::alert(is_array($keys) ? 'Keys have been deleted.' : 'Key "'.$keys.'" has been deleted.', 'success'),
+            Helpers::deleteKey($delete_key)
         );
     }
 

@@ -36,7 +36,9 @@ class Helpers {
         return $cache[$cache_key] = str_replace("\n", '', $svg);
     }
 
-    public static function alert(Template $template, string $message, ?string $color = null): string {
+    public static function alert(string $message, ?string $color = null): string {
+        $template = Template::get();
+
         $alert = $template->render('components/alert', [
             'message'     => $message,
             'alert_color' => $color, // success/error
@@ -101,7 +103,7 @@ class Helpers {
         return $cache[$extension] = ['ini_config' => $ini_config];
     }
 
-    public static function deleteKey(Template $template, callable $delete_key): string {
+    public static function deleteKey(callable $delete_key): string {
         try {
             $keys = json_decode(Http::post('delete', ''), false, 512, JSON_THROW_ON_ERROR);
         } catch (JsonException) {
@@ -109,7 +111,7 @@ class Helpers {
         }
 
         if (is_string($keys) && $delete_key(base64_decode($keys))) {
-            return self::alert($template, sprintf('Key "%s" has been deleted.', base64_decode($keys)), 'success');
+            return self::alert(sprintf('Key "%s" has been deleted.', base64_decode($keys)), 'success');
         }
 
         if (is_array($keys) && count($keys)) {
@@ -117,10 +119,10 @@ class Helpers {
                 $delete_key(base64_decode($key));
             }
 
-            return self::alert($template, 'Keys have been deleted.', 'success');
+            return self::alert('Keys have been deleted.', 'success');
         }
 
-        return self::alert($template, 'No keys are selected.');
+        return self::alert('No keys are selected.');
     }
 
     public static function import(callable $exists, callable $store): void {
@@ -215,7 +217,7 @@ class Helpers {
     /**
      * @param array<int|string, mixed> $panels
      */
-    public static function panels(Template $template, array $panels): string {
+    public static function panels(array $panels): string {
         if (isset($panels['error']) && is_string($panels['error'])) {
             return $panels['error'];
         }
@@ -224,7 +226,7 @@ class Helpers {
 
         foreach ($panels as $panel) {
             if (is_array($panel) && $panel !== []) {
-                $html .= $template->render('partials/panel', [
+                $html .= Template::get()->render('partials/panel', [
                     'panel_title' => $panel['title'] ?? null,
                     'array'       => $panel['data'] ?? [],
                 ]);
@@ -237,14 +239,14 @@ class Helpers {
     /**
      * @param array<int, array<string, int|string>> $servers
      */
-    public static function serverSelector(Template $template, array $servers, int $selected): string {
+    public static function serverSelector(array $servers, int $selected): string {
         if (count($servers) === 1) {
             return '';
         }
 
         $options = array_map(self::getServerTitle(...), $servers);
 
-        return $template->render('components/select', [
+        return Template::get()->render('components/select', [
             'id'            => 'server_select',
             'options'       => $options,
             'selected'      => $selected,
@@ -257,12 +259,12 @@ class Helpers {
      *
      * @return array<int, array<string, mixed>>
      */
-    public static function sortKeys(Template $template, array $keys): array {
+    public static function sortKeys(array $keys): array {
         $dir = Http::get('sortdir', 'none');
         $column = Http::get('sortcol', 'none');
 
-        $template->addGlobal('sortdir', $dir);
-        $template->addGlobal('sortcol', $column);
+        Template::get()->addGlobal('sortdir', $dir);
+        Template::get()->addGlobal('sortcol', $column);
 
         if (strtolower($dir) === 'none' || strtolower($column) === 'none') {
             return $keys;

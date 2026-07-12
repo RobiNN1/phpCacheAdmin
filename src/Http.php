@@ -22,19 +22,26 @@ class Http {
      * @param array<int|string, int|string> $additional Additional parameters with their new value.
      */
     public static function queryString(array $preserve = [], array $additional = []): string {
-        $keep = ['dashboard', 'server', 'db', 's', 'sortdir', 'sortcol'];
-        $preserve = array_fill_keys(array_merge($keep, $preserve), true);
-        $query = [];
+        static $cached_uri = null;
+        static $cached_query = [];
 
-        if (!empty($_SERVER['REQUEST_URI'])) {
-            $url_parts = parse_url($_SERVER['REQUEST_URI']);
+        $uri = (string) ($_SERVER['REQUEST_URI'] ?? '');
 
-            if (isset($url_parts['query']) && ($url_parts['query'] !== '')) {
-                parse_str($url_parts['query'], $query);
-                $query = array_intersect_key($query, $preserve);
+        if ($uri !== $cached_uri) {
+            $cached_uri = $uri;
+            $cached_query = [];
+
+            if ($uri !== '') {
+                $query_part = parse_url($uri, PHP_URL_QUERY);
+
+                if (is_string($query_part) && $query_part !== '') {
+                    parse_str($query_part, $cached_query);
+                }
             }
         }
 
+        $keep = ['dashboard', 'server', 'db', 's', 'sortdir', 'sortcol'];
+        $query = array_intersect_key($cached_query, array_fill_keys(array_merge($keep, $preserve), true));
         $query += $additional;
 
         return $query !== [] ? '?'.http_build_query($query) : '';

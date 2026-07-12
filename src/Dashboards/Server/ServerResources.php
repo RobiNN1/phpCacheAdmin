@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace RobiNN\Pca\Dashboards\Server;
 
 use JsonException;
+use RobiNN\Pca\Config;
 use RobiNN\Pca\Format;
 use Throwable;
 
@@ -52,7 +53,8 @@ trait ServerResources {
      * @return array<string, mixed>
      */
     private function cachedStats(): array {
-        $file = sys_get_temp_dir().'/pca_server_resources_'.md5(__DIR__).'.json';
+        $dir = Config::get('tmpdir', __DIR__.'/../../../tmp');
+        $file = $dir.'/pca_server_resources_'.md5(__DIR__).'.json';
 
         try {
 
@@ -72,7 +74,7 @@ trait ServerResources {
 
             $json = json_encode($stats, JSON_THROW_ON_ERROR);
 
-            if ($json !== false) {
+            if (is_dir($dir) || mkdir($dir, 0777, true) || is_dir($dir)) {
                 @file_put_contents($file, $json);
             }
 
@@ -106,7 +108,7 @@ trait ServerResources {
         }
 
         $command = match (PHP_OS_FAMILY) {
-            'Darwin' => 'top -l 1 | grep -E "^CPU" | tail -1 | awk \'{ print $3 + $5 }\'',
+            'Darwin' => 'ps -A -o %cpu | awk \'{s+=$1} END {print s}\'',
             'BSD' => 'top -b -d 2 | grep "CPU: " | tail -1 | awk \'{print $10}\' | grep -Eo \'[0-9]+\.[0-9]+\' | awk \'{ print 100 - $1 }\'',
             default => null,
         };
@@ -117,7 +119,18 @@ trait ServerResources {
 
         $output = $this->shell($command);
 
-        return $output === null ? null : min(100, max(0, (int) round((float) $output)));
+        if ($output === null) {
+            return null;
+        }
+
+        $usage = (float) $output;
+
+        if (PHP_OS_FAMILY === 'Darwin') {
+            // ps reports %cpu per core, normalize the sum to 0-100 across all cores.
+            $usage /= max(1, $this->intShell('sysctl -n hw.logicalcpu'));
+        }
+
+        return min(100, max(0, (int) round($usage)));
     }
 
     private function linuxCpuUsage(): ?int {
@@ -171,8 +184,9 @@ trait ServerResources {
 
         switch (PHP_OS_FAMILY) {
             case 'Darwin':
-                $total = $this->intShell('sysctl -n hw.memsize');
-                $pagesize = $this->intShell('pagesize');
+                $sizes = preg_split('/\s+/', trim((string) $this->shell('sysctl -n hw.memsize hw.pagesize'))) ?: [];
+                $total = (int) ($sizes[0] ?? 0);
+                $pagesize = (int) ($sizes[1] ?? 0) ?: $this->intShell('pagesize');
                 $vm_stat = (string) $this->shell('vm_stat');
 
                 // Match Activity Monitor's "Memory Used" = App + Wired + Compressed. Free/inactive/file-backed

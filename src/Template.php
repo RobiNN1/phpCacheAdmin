@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace RobiNN\Pca;
 
 use Exception;
+use LogicException;
 use RuntimeException;
 use Twig\Environment;
 use Twig\Error\LoaderError;
@@ -18,10 +19,24 @@ use Twig\TwigFilter;
 use Twig\TwigFunction;
 
 class Template {
+    private ?Environment $twig = null;
+
     /**
+     * All global names must be registered before the first render, Twig doesn't allow adding new globals to an initialized environment.
+     *
      * @var array<string, int|string>
      */
-    private array $globals = ['modals' => ''];
+    private array $globals = [
+        'modals'       => '',
+        'current'      => '',
+        'alerts'       => '',
+        'side'         => '',
+        'servers'      => '',
+        'search_value' => '',
+        'separator'    => '',
+        'sortdir'      => '',
+        'sortcol'      => '',
+    ];
 
     /**
      * @var array<string, string>
@@ -79,6 +94,7 @@ class Template {
      */
     public function addPath(string $namespace, string $path): void {
         $this->paths[$namespace] = $path;
+        $this->twig = null;
     }
 
     private function initTwig(): Environment {
@@ -144,7 +160,16 @@ class Template {
      * @param array<string, mixed> $data
      */
     public function render(string $tpl, array $data = [], bool $string = false): string {
-        $twig = $this->initTwig();
+        $twig = $this->twig ??= $this->initTwig();
+
+        try {
+            foreach ($this->globals as $name => $value) {
+                $twig->addGlobal($name, $value);
+            }
+        } catch (LogicException) {
+            // A global name not known at init time appeared, rebuild the environment with it registered.
+            $twig = $this->twig = $this->initTwig();
+        }
 
         try {
             if ($string) {

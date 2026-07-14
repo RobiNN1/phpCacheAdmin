@@ -34,7 +34,7 @@ trait MemcachedPanels {
                     'title' => $title,
                     'data'  => [
                         'Version' => $info['version'],
-                        'Uptime'  => Format::seconds($info['uptime'] ?? 0),
+                        'Uptime'  => Format::seconds($info['uptime'] ?? 0, false),
                     ],
                 ],
                 $this->memoryPanel($info),

@@ -88,7 +88,7 @@ trait RedisPanels {
         $data = [
             'Version' => $version.($mode !== null ? ', '.$mode.' mode' : ''),
             'Cluster' => ($cluster_info['cluster_enabled'] ?? 0) ? 'Enabled' : 'Disabled',
-            'Uptime'  => Format::seconds((int) ($server_info['uptime_in_seconds'] ?? 0)),
+            'Uptime'  => Format::seconds((int) ($server_info['uptime_in_seconds'] ?? 0), false),
             $role,
             'Keys'    => Format::number($this->getKeysCountFromInfo($info)).' (all databases)',
             ['Hits / Misses', Format::number($hits).' / '.Format::number($misses).' ('.$hit_rate.'%)', $hit_rate, 'higher'],

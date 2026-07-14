@@ -53,7 +53,7 @@ class Format {
         };
     }
 
-    public static function seconds(int $time): string {
+    public static function seconds(int $time, bool $show_seconds = true): string {
         if ($time === -1) {
             return (string) $time;
         }
@@ -80,6 +80,10 @@ class Format {
             'second' => (int) $seconds,
         ];
 
+        if (!$show_seconds) {
+            unset($sections['second']);
+        }
+
         $time_parts = [];
 
         foreach ($sections as $name => $value) {
@@ -88,7 +92,11 @@ class Format {
             }
         }
 
-        return $time_parts !== [] ? implode(' ', $time_parts) : '0 seconds';
+        if ($time_parts !== []) {
+            return implode(' ', $time_parts);
+        }
+
+        return $show_seconds ? '0 seconds' : 'less than a minute';
     }
 
     public static function time(int $time): string {

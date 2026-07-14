@@ -46,7 +46,7 @@ trait APCuTrait {
                 'title' => 'APCu extension v'.phpversion('apcu'),
                 'data'  => [
                     'Start time'       => Format::time($info['start_time']),
-                    'Uptime'           => Format::seconds(time() - $info['start_time']),
+                    'Uptime'           => Format::seconds(time() - $info['start_time'], false),
                     'Cache full count' => $info['expunges'],
                 ],
             ],

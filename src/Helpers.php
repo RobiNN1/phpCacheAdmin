@@ -417,4 +417,20 @@ class Helpers {
 
         return '';
     }
+
+    public static function utilizationStatus(float $percentage): string {
+        return match (true) {
+            $percentage > 80 => 'critical',
+            $percentage > 50 => 'warning',
+            default => 'healthy',
+        };
+    }
+
+    public static function hitRateStatus(float $percentage): string {
+        return match (true) {
+            $percentage >= 80 => 'healthy',
+            $percentage >= 50 => 'warning',
+            default => 'critical',
+        };
+    }
 }

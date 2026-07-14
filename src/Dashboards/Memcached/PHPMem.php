@@ -21,7 +21,7 @@ use function str_starts_with;
 use function substr_count;
 
 class PHPMem {
-    public const VERSION = '2.0.1';
+    public const VERSION = '2.1.0';
 
     /**
      * @var resource|null

@@ -58,7 +58,7 @@ trait OPCacheTrait {
 
         $tab_data = match ($tab) {
             'scripts' => $this->scriptsTab(),
-            'health' => $this->healthTab(),
+            'health' => ['data' => $this->healthTab(), 'tpl' => 'partials/health'],
             'treemap' => $this->treemapTab(),
             'moreinfo' => ['data' => $this->moreinfoTab(), 'tpl' => 'partials/info_table'],
             default => [],

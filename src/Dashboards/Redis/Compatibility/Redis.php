@@ -289,25 +289,6 @@ class Redis extends \Redis implements RedisCompatibilityInterface {
     }
 
     /**
-     * @param array<int, string> $args
-     *
-     * @throws RedisException
-     */
-    public function consoleCommand(array $args): mixed {
-        $this->setOption(self::OPT_REPLY_LITERAL, true);
-        $this->clearLastError();
-
-        $command = array_shift($args);
-        $reply = $this->rawcommand($command, ...$args);
-
-        if ($reply === false && ($error = $this->getLastError()) !== null) {
-            throw new RedisException($error);
-        }
-
-        return $reply;
-    }
-
-    /**
      * @return array<int, array{channel: string, message: string, time: int}>
      */
     public function captureMessages(string $pattern, int $seconds, int $limit): array {
@@ -334,5 +315,24 @@ class Redis extends \Redis implements RedisCompatibilityInterface {
         }
 
         return $messages;
+    }
+
+    /**
+     * @param array<int, string> $args
+     *
+     * @throws RedisException
+     */
+    public function consoleCommand(array $args): mixed {
+        $this->setOption(self::OPT_REPLY_LITERAL, true);
+        $this->clearLastError();
+
+        $command = array_shift($args);
+        $reply = $this->rawcommand($command, ...$args);
+
+        if ($reply === false && ($error = $this->getLastError()) !== null) {
+            throw new RedisException($error);
+        }
+
+        return $reply;
     }
 }

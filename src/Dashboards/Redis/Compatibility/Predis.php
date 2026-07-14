@@ -263,17 +263,6 @@ class Predis extends Client implements RedisCompatibilityInterface {
     }
 
     /**
-     * @param array<int, string> $args
-     *
-     * @throws Throwable
-     */
-    public function consoleCommand(array $args): mixed {
-        $reply = $this->executeCommand(RawCommand::create(...$args));
-
-        return $reply instanceof Status ? $reply->getPayload() : $reply;
-    }
-
-    /**
      * @return array<int, array{channel: string, message: string, time: int}>
      */
     public function captureMessages(string $pattern, int $seconds, int $limit): array {
@@ -302,5 +291,16 @@ class Predis extends Client implements RedisCompatibilityInterface {
         $client->disconnect();
 
         return $messages;
+    }
+
+    /**
+     * @param array<int, string> $args
+     *
+     * @throws Throwable
+     */
+    public function consoleCommand(array $args): mixed {
+        $reply = $this->executeCommand(RawCommand::create(...$args));
+
+        return $reply instanceof Status ? $reply->getPayload() : $reply;
     }
 }

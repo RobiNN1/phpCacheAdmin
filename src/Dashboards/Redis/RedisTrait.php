@@ -21,6 +21,7 @@ use RobiNN\Pca\Paginator;
 trait RedisTrait {
     use RedisTypes;
     use RedisPanels;
+    use RedisHealth;
     use RedisKeyView;
     use RedisKeysList;
     use RedisPubSub;
@@ -215,7 +216,13 @@ trait RedisTrait {
             return ['tab_error' => 'Metrics are disabled because the PDO SQLite driver is not available. Install the sqlite3 extension for PHP.'];
         }
 
-        return [];
+        try {
+            $health = $this->getHealthChecks($this->redis->getInfo());
+        } catch (Exception) {
+            $health = [];
+        }
+
+        return ['health' => $health];
     }
 
     /**

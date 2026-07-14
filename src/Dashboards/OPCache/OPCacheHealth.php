@@ -9,16 +9,9 @@ declare(strict_types=1);
 namespace RobiNN\Pca\Dashboards\OPCache;
 
 use RobiNN\Pca\Format;
+use RobiNN\Pca\Helpers;
 
 trait OPCacheHealth {
-    private function utilizationStatus(float $percentage): string {
-        return match (true) {
-            $percentage > 80 => 'critical',
-            $percentage > 50 => 'warning',
-            default => 'healthy',
-        };
-    }
-
     /**
      * @return array<int, array<string, mixed>>
      */
@@ -57,7 +50,7 @@ trait OPCacheHealth {
         $total = $directives['opcache.memory_consumption'];
         $used = $memory['used_memory'] + $memory['wasted_memory'];
         $utilization = $total > 0 ? ($used / $total) * 100 : 0;
-        $status = $stats['oom_restarts'] > 0 ? 'critical' : $this->utilizationStatus($utilization);
+        $status = $stats['oom_restarts'] > 0 ? 'critical' : Helpers::utilizationStatus($utilization);
         $suggestion = '';
 
         if ($status !== 'healthy') {
@@ -89,7 +82,7 @@ trait OPCacheHealth {
      */
     private function keysCheck(array $stats): array {
         $utilization = $stats['max_cached_keys'] > 0 ? ($stats['num_cached_keys'] / $stats['max_cached_keys']) * 100 : 0;
-        $status = $stats['hash_restarts'] > 0 ? 'critical' : $this->utilizationStatus($utilization);
+        $status = $stats['hash_restarts'] > 0 ? 'critical' : Helpers::utilizationStatus($utilization);
         $suggestion = '';
 
         if ($status !== 'healthy') {
@@ -123,7 +116,7 @@ trait OPCacheHealth {
         }
 
         $utilization = ($interned['used_memory'] / $interned['buffer_size']) * 100;
-        $status_color = $this->utilizationStatus($utilization);
+        $status_color = Helpers::utilizationStatus($utilization);
 
         return [
             'name'        => 'Interned strings',
@@ -160,7 +153,7 @@ trait OPCacheHealth {
 
         $used = $jit['buffer_size'] - $jit['buffer_free'];
         $utilization = ($used / $jit['buffer_size']) * 100;
-        $status_color = $this->utilizationStatus($utilization);
+        $status_color = Helpers::utilizationStatus($utilization);
 
         return [
             'name'        => 'JIT buffer',
@@ -221,14 +214,7 @@ trait OPCacheHealth {
      */
     private function hitRateCheck(array $stats): array {
         $hit_rate = $stats['opcache_hit_rate'];
-
-        if ($hit_rate >= 80) {
-            $status = 'healthy';
-        } elseif ($hit_rate >= 50) {
-            $status = 'warning';
-        } else {
-            $status = 'critical';
-        }
+        $status = Helpers::hitRateStatus($hit_rate);
 
         return [
             'name'        => 'Hit rate',

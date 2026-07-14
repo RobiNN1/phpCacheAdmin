@@ -17,6 +17,7 @@ use RobiNN\Pca\Paginator;
 
 trait MemcachedTrait {
     use MemcachedPanels;
+    use MemcachedHealth;
     use MemcachedKeyView;
     use MemcachedKeysList;
     use MemcachedConsole;
@@ -224,7 +225,13 @@ trait MemcachedTrait {
             return ['tab_error' => 'Metrics are disabled because the PDO SQLite driver is not available. Install the sqlite3 extension for PHP.'];
         }
 
-        return [];
+        try {
+            $health = $this->getHealthChecks($this->memcached->getServerStats());
+        } catch (MemcachedException) {
+            $health = [];
+        }
+
+        return ['health' => $health];
     }
 
     /**

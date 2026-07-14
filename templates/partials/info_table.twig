@@ -1,40 +1,70 @@
-<div class="mb-4 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
-    {% if panel_title|default %}
-        <div class="py-2 px-4 bg-gray-50 rounded-t-md border-b border-gray-200 dark:border-gray-700 dark:bg-white/5">
-            <h2 class="text-sm font-semibold text-gray-900 dark:text-white">{{ panel_title }}</h2>
-        </div>
-    {% endif %}
+{% set descriptions = descriptions|default({}) %}
 
-    <table class="w-full text-sm text-left table-auto">
-        <tbody class="divide-y divide-gray-900/5 dark:divide-white/5">
-        {% for name, value in array %}
-            {% if value is iterable and value|length > 0 %}
-                <tr>
-                    <td colspan="2" class="sticky top-0 z-10 py-1.5 px-4 text-xs uppercase border-b border-gray-200 text-primary-600 bg-gray-100 dark:text-primary-400 dark:border-gray-600 dark:bg-gray-700{{ loop.first and panel_title|default is empty ? ' rounded-t-md' : '' }}">
-                        {{ name|replace({_: ' '}) }}
-                    </td>
-                </tr>
-                {% for sub_name, sub_value in value %}
-                    <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
-                        <td class="py-1.5 px-4 text-gray-900 whitespace-nowrap dark:text-white">{{ sub_name }}</td>
-                        <td class="py-1.5 px-4 font-semibold text-gray-700 break-all dark:text-gray-300">
-                            {% if sub_value is not iterable %}
-                                {{ sub_value|raw }}
-                            {% else %}
-                                {% for node, node_value in sub_value %}
-                                    Node {{ node }}: {{ node_value|raw }}<br>
-                                {% endfor %}
-                            {% endif %}
-                        </td>
-                    </tr>
-                {% endfor %}
-            {% elseif not value is iterable %}
-                <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
-                    <td class="py-1.5 px-4 text-gray-900 whitespace-nowrap dark:text-white">{{ name }}</td>
-                    <td class="py-1.5 px-4 font-semibold text-gray-700 break-all dark:text-gray-300">{{ value|raw }}</td>
-                </tr>
+{% set sections = [] %}
+{% for name, value in array %}
+    {% if value is iterable and value|length > 0 %}
+        {% set sections = sections|merge([name]) %}
+    {% endif %}
+{% endfor %}
+
+{% macro section_id(name) %}section-{{ name|lower|replace({'.': '-', _: '-', ' ': '-'}) }}{% endmacro %}
+
+{% macro row(name, value, descriptions) %}
+    <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
+        <td colspan="2" class="py-2 px-4">
+            <div class="flex flex-wrap gap-x-4 gap-y-0.5 items-center">
+                <code class="text-xs font-semibold text-gray-900 break-all dark:text-white">{{ name }}</code>
+                <div class="ml-auto text-sm font-semibold text-right text-gray-700 break-all dark:text-gray-300">
+                    {% if value is not iterable %}{{ value|raw }}{% else %}{% for node, node_value in value %}Node {{ node }}: {{ node_value|raw }}<br>{% endfor %}{% endif %}
+                </div>
+            </div>
+            {% if descriptions[name] is defined %}
+                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ descriptions[name] }}</p>
             {% endif %}
-        {% endfor %}
-        </tbody>
-    </table>
+        </td>
+    </tr>
+{% endmacro %}
+
+<div class="flex gap-4 items-start">
+    <div class="flex-1 min-w-0">
+        <div class="mb-4 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+            <table class="w-full text-sm text-left table-auto">
+                <tbody class="divide-y divide-gray-900/5 dark:divide-white/5">
+                {% for name, value in array %}
+                    {% if value is iterable and value|length > 0 %}
+                        <tr id="{{ _self.section_id(name) }}" class="scroll-mt-4">
+                            <td colspan="2" class="sticky top-0 z-10 py-2 px-4 border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900/40{{ loop.first and panel_title|default is empty ? ' rounded-t-md' : '' }}">
+                                <span class="text-xs font-bold tracking-wider uppercase text-primary-600 dark:text-primary-400">{{ name|replace({_: ' '}) }}</span>
+                            </td>
+                        </tr>
+                        {% for sub_name, sub_value in value %}
+                            {{ _self.row(sub_name, sub_value, descriptions) }}
+                        {% endfor %}
+                    {% elseif not value is iterable %}
+                        {{ _self.row(name, value, descriptions) }}
+                    {% endif %}
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {% if sections is not empty %}
+        <aside class="hidden sticky top-4 shrink-0 self-start w-56 lg:block">
+            <nav class="bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+                <div class="py-2 px-4 bg-gray-50 rounded-t-md border-b border-gray-200 dark:border-gray-700 dark:bg-white/5">
+                    <h2 class="text-sm font-semibold text-gray-900 dark:text-white">Sections</h2>
+                </div>
+                <ul class="p-2 space-y-0.5">
+                    {% for section in sections %}
+                        <li>
+                            <a href="#{{ _self.section_id(section) }}" class="block py-1.5 px-2 text-xs font-bold tracking-wider text-gray-500 uppercase rounded hover:text-primary-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-primary-400 dark:hover:bg-white/5">
+                                {{ section|replace({_: ' '}) }}
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </nav>
+        </aside>
+    {% endif %}
 </div>

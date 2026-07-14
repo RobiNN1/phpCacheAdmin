@@ -15,6 +15,7 @@ trait OPCacheTrait {
     use OPCachePanels;
     use OPCacheHealth;
     use OPCacheScripts;
+    use OPCacheConfiguration;
 
     /**
      * @var array<string, string>
@@ -36,10 +37,19 @@ trait OPCacheTrait {
             return ['tab_error' => 'OPcache is not available, it is either disabled (opcache.enable) or restricted (opcache.restrict_api).'];
         }
 
-        $configuration = opcache_get_configuration();
-        $status['ini_config'] = $configuration['directives'];
+        $directives = opcache_get_configuration()['directives'];
+        $formatted = [];
 
-        return ['array' => Helpers::convertTypesToString($status)];
+        foreach ($directives as $key => $value) {
+            $formatted[$key] = $this->formatDirectiveValue($key, $value);
+        }
+
+        $status['ini_config'] = $formatted;
+
+        return [
+            'array'        => Helpers::convertTypesToString($status),
+            'descriptions' => $this->configDescriptions(),
+        ];
     }
 
     private function mainDashboard(): string {

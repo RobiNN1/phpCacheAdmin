@@ -1,25 +1,25 @@
-{% import 'components/macros.twig' as components %}
+{% import 'components/macros.twig' as macros %}
 <div class="view-key-name mb-2 text-lg font-semibold break-all dark:text-gray-300">{{ key }}</div>
 <div class="flex flex-wrap gap-x-3 gap-y-2 items-center mb-4 dark:text-gray-300">
     {% if type %}
-        <span class="inline-flex gap-1 items-center">Type {{ components.key_type(type) }}</span>
+        <span class="inline-flex gap-1 items-center">Type {{ macros.key_type(type) }}</span>
     {% endif %}
 
     {% if ttl %}
-        <span class="inline-flex gap-1 items-center">TTL {{ components.badge(ttl == -1 ? 'Doesn\'t expire' : ttl, 'indigo', 'uppercase') }}</span>
+        <span class="inline-flex gap-1 items-center">TTL {{ macros.badge(ttl == -1 ? 'Doesn\'t expire' : ttl, 'indigo', 'uppercase') }}</span>
     {% endif %}
 
     {% if size %}
-        <span class="inline-flex gap-1 items-center">Size {{ components.badge(size, 'sky') }}</span>
+        <span class="inline-flex gap-1 items-center">Size {{ macros.badge(size, 'sky') }}</span>
     {% endif %}
 
     {% if encode_fn %}
-        <span class="inline-flex gap-1 items-center">Encoded with {{ components.badge(encode_fn, 'blue', 'uppercase') }}</span>
+        <span class="inline-flex gap-1 items-center">Encoded with {{ macros.badge(encode_fn, 'blue', 'uppercase') }}</span>
         {% set encode_url = '&encoder=' ~ encode_fn %}
     {% endif %}
 
     {% if formatted == true %}
-        {{ components.badge('Formatted', 'blue', 'uppercase') }}
+        {{ macros.badge('Formatted', 'blue', 'uppercase') }}
     {% endif %}
 
     {% if export_url %}

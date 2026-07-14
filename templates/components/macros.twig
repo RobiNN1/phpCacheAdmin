@@ -1,3 +1,29 @@
+{% macro progress(percentage, type = 'lower', id = null, status = null) %}
+    {% if status %}
+        {% set color = {healthy: 'bg-green-600', warning: 'bg-orange-600', critical: 'bg-red-600', info: 'bg-blue-600'}[status] ?? 'bg-gray-400' %}
+    {% elseif type == 'higher' %}{# higher is better #}
+        {% if percentage >= 80 %}
+            {% set color = 'bg-green-600' %}
+        {% elseif percentage >= 50 %}
+            {% set color = 'bg-orange-600' %}
+        {% else %}
+            {% set color = 'bg-red-600' %}
+        {% endif %}
+    {% else %}{# lower is better #}
+        {% if percentage <= 50 %}
+            {% set color = 'bg-green-600' %}
+        {% elseif percentage <= 80 %}
+            {% set color = 'bg-orange-600' %}
+        {% else %}
+            {% set color = 'bg-red-600' %}
+        {% endif %}
+    {% endif %}
+
+    <div class="mb-0.5 w-full h-1.5 bg-gray-200 rounded-full dark:bg-gray-700">
+        <div class="{{ color }} h-1.5 rounded-full transition-[width,background-color] duration-500 ease-in-out" style="width: {{ percentage }}%;"{{ id ? ' data-progress="%s" data-type="%s"'|format(id, type)|raw : '' }}></div>
+    </div>
+{% endmacro %}
+
 {% macro checkbox(class, disabled, id) %}
     <input type="checkbox"{{ id ? ' id="%s" name="%s"'|format(id, id)|raw : '' }}
            class="checkbox text-primary-500 -mt-1.5 h-4 w-4 select-none appearance-none rounded border border-gray-300 bg-white align-middle
@@ -32,4 +58,16 @@
     } %}
 
     {{ _self.badge(type, type_colors[type] ?? 'blue', 'uppercase') }}
+{% endmacro %}
+
+{% macro health_status(status) %}
+    {% set statuses = {
+        healthy: {color: 'green', label: 'Healthy'},
+        warning: {color: 'orange', label: 'Warning'},
+        critical: {color: 'red', label: 'Critical'},
+        info: {color: 'blue', label: 'Info'},
+    } %}
+    {% set meta = statuses[status] ?? statuses.info %}
+
+    {{ _self.badge(meta.label, meta.color, 'shrink-0') }}
 {% endmacro %}

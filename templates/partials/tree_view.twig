@@ -1,12 +1,12 @@
-{% import 'components/macros.twig' as components %}
+{% import 'components/macros.twig' as macros %}
 {% set show_actions = hide_actions is not defined or hide_actions == false %}
 
-{% macro render_tree(items, level = 0, show_actions, view_key, components) %}
+{% macro render_tree(items, level = 0, show_actions, view_key, macros) %}
     {% for key, item in items %}
         {% if item.type == 'folder' %}
             <div class="tree-group border-t border-gray-200 dark:border-gray-700" style="--level: {{ level }}">
                 <div class="flex gap-1 items-center py-1 px-6 hover:bg-gray-50 dark:hover:bg-white/5" style="padding-left: calc({{ level }} * 20px + 1.5rem)">
-                    <div class="pe-1" title="Check all">{{ components.checkbox('check-all') }}</div>
+                    <div class="pe-1" title="Check all">{{ macros.checkbox('check-all') }}</div>
                     <button class="flex gap-1 items-center tree-toggle" data-path="{{ item.path }}">
                         {{ svg('down', 10, '-rotate-90') }}
                         <span class="tree">{{ item.name }}{{ separator }}*</span>
@@ -14,7 +14,7 @@
                     <span class="text-xs text-gray-500 dark:text-gray-400 items-count">({{ item.count }} items)</span>
                 </div>
                 <div class="hidden tree-children" data-path="{{ item.path }}">
-                    {{ _self.render_tree(item.children, level + 1, show_actions, view_key, components) }}
+                    {{ _self.render_tree(item.children, level + 1, show_actions, view_key, macros) }}
                 </div>
             </div>
         {% else %}
@@ -22,7 +22,7 @@
                 <div data-key="{{ item.key|base64 }}" class="flex justify-between py-1 px-6 text-sm hover:bg-gray-50 dark:hover:bg-white/5" style="padding-left: calc({{ level }} * 20px + 32px)">
                     <div class="flex gap-2 items-center">
                         {% if show_actions %}
-                            {{ components.checkbox('check-key mt-0') }}
+                            {{ macros.checkbox('check-key mt-0') }}
                         {% endif %}
 
                         <span class="font-semibold text-primary-500 dark:text-primary-400 dark:hover:text-primary-300 hover:text-primary-700">
@@ -39,7 +39,7 @@
                     <div class="flex gap-4">
                         {% for item_key, kitem in item.info %}
                             {% if item_key == 'type' %}
-                                <span class="w-24">{{ components.key_type(kitem) }}</span>
+                                <span class="w-24">{{ macros.key_type(kitem) }}</span>
                             {% elseif item_key starts with 'number_' %}
                                 {{- kitem|number -}}
                             {% elseif item_key starts with 'time_' %}
@@ -69,12 +69,12 @@
 
 <div class="border-t border-b border-gray-200 dark:border-gray-700 treeview">
     <div class="flex gap-2 py-2 px-6">
-        <div title="Check all">{{ components.checkbox('check-all', keys|length == 0) }}</div>
+        <div title="Check all">{{ macros.checkbox('check-all', keys|length == 0) }}</div>
         <button class="py-1 px-2 text-xs text-gray-900 bg-gray-100 rounded dark:text-gray-100 dark:bg-gray-900 hover:bg-gray-300 expand-toggle dark:hover:bg-gray-700">
             Expand all
         </button>
     </div>
     <div class="tree-content">
-        {{ _self.render_tree(keys, 0, show_actions, view_key, components) }}
+        {{ _self.render_tree(keys, 0, show_actions, view_key, macros) }}
     </div>
 </div>

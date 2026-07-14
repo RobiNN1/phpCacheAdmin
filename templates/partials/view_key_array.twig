@@ -1,4 +1,4 @@
-{% import 'components/macros.twig' as components %}
+{% import 'components/macros.twig' as macros %}
 <div class="flex flex-wrap gap-3 justify-between items-center mb-4">
     {% if total_items > 1 or subsearch_value is not empty %}
         <div class="flex" id="subsearch_form" data-url="{{ view_url }}">
@@ -28,16 +28,16 @@
         <div class="flex overflow-y-auto justify-between py-1.5 px-4 border-b border-gray-200 dark:border-gray-700">
             <span class="dark:text-gray-300">
                 {% if type not in types.extra.hide_title %}
-                    {{ types[type].title }} {{ components.badge(item.sub_key, 'indigo') }}
+                    {{ types[type].title }} {{ macros.badge(item.sub_key, 'indigo') }}
                 {% endif %}
 
                 {% if item.encode_fn %}
-                    <span>Encoded with {{ components.badge(item.encode_fn, 'blue', 'uppercase') }}</span>
+                    <span>Encoded with {{ macros.badge(item.encode_fn, 'blue', 'uppercase') }}</span>
                     {% set item_encode_url = '&encoder=' ~ item.encode_fn %}
                 {% endif %}
 
                 {% if item.formatted == true %}
-                    {{ components.badge('Formatted', 'blue', 'uppercase') }}
+                    {{ macros.badge('Formatted', 'blue', 'uppercase') }}
                 {% endif %}
             </span>
 

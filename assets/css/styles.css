@@ -1003,13 +1003,6 @@
       }
     }
   }
-  .hover\:text-primary-600 {
-    &:hover {
-      @media (hover: hover) {
-        color: var(--color-primary-600);
-      }
-    }
-  }
   .hover\:text-primary-700 {
     &:hover {
       @media (hover: hover) {
@@ -1583,15 +1576,6 @@
       }
     }
   }
-  .dark\:hover\:text-primary-400 {
-    &:where(.dark, .dark *) {
-      &:hover {
-        @media (hover: hover) {
-          color: var(--color-primary-400);
-        }
-      }
-    }
-  }
   .dark\:hover\:text-primary-500 {
     &:where(.dark, .dark *) {
       &:hover {
@@ -1690,6 +1674,54 @@
     &:where(.dark, .dark *) {
       &:disabled {
         background-color: oklch(70.4% 0.191 22.216);
+      }
+    }
+  }
+  .\[\&_a\.active\]\:bg-gray-100 {
+    & a.active {
+      background-color: oklch(96.7% 0.003 264.542);
+    }
+  }
+  .\[\&_a\.active\]\:text-primary-600 {
+    & a.active {
+      color: var(--color-primary-600);
+    }
+  }
+  .dark\:\[\&_a\.active\]\:bg-white\/5 {
+    &:where(.dark, .dark *) {
+      & a.active {
+        background-color: color-mix(in oklab, #fff 5%, transparent);
+      }
+    }
+  }
+  .dark\:\[\&_a\.active\]\:text-primary-400 {
+    &:where(.dark, .dark *) {
+      & a.active {
+        color: var(--color-primary-400);
+      }
+    }
+  }
+  .\[\&_a\:hover\]\:bg-gray-100 {
+    & a:hover {
+      background-color: oklch(96.7% 0.003 264.542);
+    }
+  }
+  .\[\&_a\:hover\]\:text-primary-600 {
+    & a:hover {
+      color: var(--color-primary-600);
+    }
+  }
+  .dark\:\[\&_a\:hover\]\:bg-white\/5 {
+    &:where(.dark, .dark *) {
+      & a:hover {
+        background-color: color-mix(in oklab, #fff 5%, transparent);
+      }
+    }
+  }
+  .dark\:\[\&_a\:hover\]\:text-primary-400 {
+    &:where(.dark, .dark *) {
+      & a:hover {
+        color: var(--color-primary-400);
       }
     }
   }

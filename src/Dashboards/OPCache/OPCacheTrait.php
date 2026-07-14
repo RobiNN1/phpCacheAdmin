@@ -8,110 +8,23 @@ declare(strict_types=1);
 
 namespace RobiNN\Pca\Dashboards\OPCache;
 
-use RobiNN\Pca\Format;
 use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
-use RobiNN\Pca\Paginator;
 
 trait OPCacheTrait {
+    use OPCachePanels;
+    use OPCacheHealth;
+    use OPCacheScripts;
+
     /**
      * @var array<string, string>
      */
     private array $tabs = [
         'scripts'  => 'Scripts',
+        'health'   => 'Health',
         'treemap'  => 'Memory map',
         'moreinfo' => 'More info',
     ];
-
-    /**
-     * @return array<int|string, mixed>
-     */
-    private function getPanelsData(): array {
-        $status = opcache_get_status(false);
-
-        if ($status === false) {
-            return ['error' => 'OPcache is not available, it is either disabled (opcache.enable) or restricted (opcache.restrict_api).'];
-        }
-
-        $configuration = opcache_get_configuration();
-
-        $stats = $status['opcache_statistics'];
-
-        $memory = $status['memory_usage'];
-        $total_memory = $configuration['directives']['opcache.memory_consumption'];
-        $memory_usage = round((($memory['used_memory'] + $memory['wasted_memory']) / $total_memory) * 100, 2);
-        $memory_wasted = round($memory['current_wasted_percentage'], 2);
-
-        $interned_strings = $status['interned_strings_usage'] ?? ['buffer_size' => 0, 'used_memory' => 0, 'free_memory' => 0, 'number_of_strings' => 0];
-        $interned_usage = $interned_strings['buffer_size'] > 0 ? round(($interned_strings['used_memory'] / $interned_strings['buffer_size']) * 100, 2) : 0;
-
-        $used_scripts = round(($stats['num_cached_scripts'] / (int) ini_get('opcache.max_accelerated_files')) * 100);
-        $used_keys = round(($stats['num_cached_keys'] / $stats['max_cached_keys']) * 100);
-        $hit_rate = round($stats['opcache_hit_rate'], 2);
-
-        $jit_enabled = isset($status['jit']['enabled']) && $status['jit']['buffer_size'] > 0;
-        $jit_info = [];
-
-        if ($jit_enabled) {
-            $jit = $status['jit'];
-            $jit_used = $jit['buffer_size'] - $jit['buffer_free'];
-            $jit_usage = round(($jit_used / $jit['buffer_size']) * 100, 2);
-
-            $jit_info = [
-                'title' => 'JIT',
-                'data'  => [
-                    'Buffer size'        => Format::bytes($jit['buffer_size']),
-                    ['Used', Format::bytes($jit_used).' ('.$jit_usage.'%)', $jit_usage],
-                    'Free'               => Format::bytes($jit['buffer_free']),
-                    'Optimization level' => $jit['opt_level'],
-                ],
-            ];
-        }
-
-        return [
-            [
-                'title' => 'OPCache extension v'.phpversion('Zend OPcache'),
-                'data'  => [
-                    'JIT'                 => $jit_enabled ? 'Enabled' : 'Disabled',
-                    'Start time'          => Format::time($stats['start_time']),
-                    'Uptime'              => Format::seconds(time() - $stats['start_time']),
-                    'Last restart'        => Format::time($stats['last_restart_time']),
-                    'Cache full'          => $status['cache_full'] ? 'Yes' : 'No',
-                    'Restart pending'     => $status['restart_pending'] ? 'Yes' : 'No',
-                    'Restart in progress' => $status['restart_in_progress'] ? 'Yes' : 'No',
-                ],
-            ],
-            [
-                'title' => 'Memory',
-                'data'  => [
-                    'Total' => Format::bytes($total_memory, 0),
-                    ['Used', Format::bytes($memory['used_memory']).' ('.$memory_usage.'%)', $memory_usage],
-                    'Free'  => Format::bytes($memory['free_memory']),
-                    ['Wasted', Format::bytes($memory['wasted_memory']).' ('.$memory_wasted.'%)', $memory_wasted],
-                ],
-            ],
-            [
-                'title' => 'Stats',
-                'data'  => [
-                    'Max accelerated_files' => Format::number($configuration['directives']['opcache.max_accelerated_files']),
-                    ['Cached scripts', Format::number($stats['num_cached_scripts']).' ('.$used_scripts.'%)', $used_scripts],
-                    ['Cached keys', Format::number($stats['num_cached_keys']).' ('.$used_keys.'%)', $used_keys],
-                    'Max cached keys'       => Format::number($stats['max_cached_keys']),
-                    ['Hits / Misses', Format::number($stats['hits']).' / '.Format::number($stats['misses']).' (Rate '.$hit_rate.'%)', $hit_rate, 'higher'],
-                ],
-            ],
-            $jit_info,
-            [
-                'title' => 'Interned strings usage',
-                'data'  => [
-                    'Buffer size' => Format::bytes($interned_strings['buffer_size']),
-                    ['Used', Format::bytes($interned_strings['used_memory']).' ('.$interned_usage.'%)', $interned_usage],
-                    'Free'        => Format::bytes($interned_strings['free_memory']),
-                    'Strings'     => Format::number($interned_strings['number_of_strings']),
-                ],
-            ],
-        ];
-    }
 
     /**
      * @return array<string, mixed>
@@ -129,79 +42,13 @@ trait OPCacheTrait {
         return ['array' => Helpers::convertTypesToString($status)];
     }
 
-    private function ignorePcaScripts(): bool {
-        return isset($_GET['ignore']) && $_GET['ignore'] === 'yes';
-    }
-
-    private function isPcaScript(string $full_path): bool {
-        $pca_root = ($_SERVER['DOCUMENT_ROOT'] ?? '').str_replace('/index.php', '', $_SERVER['SCRIPT_NAME'] ?? '');
-
-        return str_starts_with(strtr($full_path, ['phar://' => '']), $pca_root);
-    }
-
-    /**
-     * @return array<int, array<string, string|int>>
-     */
-    private function getCachedScripts(): array {
-        $cached_scripts = [];
-        $search = Http::get('s', '');
-
-        $this->template->addGlobal('search_value', $search);
-
-        $status = opcache_get_status();
-
-        if (isset($status['scripts'])) {
-            $ignore_pca = $this->ignorePcaScripts();
-
-            foreach ($status['scripts'] as $script) {
-                $full_path = str_replace('\\', '/', $script['full_path']);
-
-                if ($ignore_pca && $this->isPcaScript($full_path)) {
-                    continue;
-                }
-
-                if ($search === '' || stripos($script['full_path'], $search) !== false) {
-                    $cached_scripts[] = [
-                        'key'  => $script['full_path'],
-                        'info' => [
-                            'title'              => $full_path,
-                            'number_hits'        => $script['hits'],
-                            'bytes_memory'       => $script['memory_consumption'],
-                            'timediff_last_used' => $script['last_used_timestamp'],
-                            'time_created'       => $script['timestamp'] ?? 0,
-                        ],
-                    ];
-                }
-            }
-        }
-
-        unset($status);
-
-        return Helpers::sortKeys($cached_scripts);
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function scriptsTab(): array {
-        $cached_scripts = $this->getCachedScripts();
-        $paginator = new Paginator($cached_scripts, [['ignore', 'pp', 's'], ['p' => '']]);
-        $status = opcache_get_status(false);
-
-        return [
-            'cached_scripts' => $paginator->getPaginated(),
-            'all_keys'       => $status !== false ? $status['opcache_statistics']['num_cached_scripts'] : 0,
-            'paginator'      => $paginator->render(),
-            'is_ignored'     => $this->ignorePcaScripts(),
-        ];
-    }
-
     private function mainDashboard(): string {
         $tab = Http::get('tab', '');
         $tab = array_key_exists($tab, $this->tabs) ? $tab : array_key_first($this->tabs);
 
         $tab_data = match ($tab) {
             'scripts' => $this->scriptsTab(),
+            'health' => $this->healthTab(),
             'treemap' => $this->treemapTab(),
             'moreinfo' => ['data' => $this->moreinfoTab(), 'tpl' => 'partials/info_table'],
             default => [],
@@ -211,89 +58,5 @@ trait OPCacheTrait {
         $data = $tab_data['data'] ?? $tab_data;
 
         return $data['tab_error'] ?? $this->template->render($tpl, $data);
-    }
-
-    /**
-     * @return array<int, array<string, mixed>>
-     */
-    private function getScriptsMap(): array {
-        $status = opcache_get_status();
-        $ignore_pca = $this->ignorePcaScripts();
-        $tree = [];
-
-        foreach ($status['scripts'] ?? [] as $script) {
-            $full_path = str_replace(['\\', 'phar://'], ['/', ''], $script['full_path']);
-
-            if ($ignore_pca && $this->isPcaScript($full_path)) {
-                continue;
-            }
-
-            $parts = array_values(array_filter(explode('/', $full_path), static fn (string $part): bool => $part !== ''));
-
-            if ($parts === []) {
-                continue;
-            }
-
-            $node = &$tree;
-            $last = array_key_last($parts);
-
-            foreach ($parts as $i => $part) {
-                if ($i === $last) {
-                    $node[$part] = $script['memory_consumption'];
-                } else {
-                    if (!isset($node[$part]) || !is_array($node[$part])) {
-                        $node[$part] = [];
-                    }
-
-                    $node = &$node[$part];
-                }
-            }
-
-            unset($node);
-        }
-
-        return $this->buildTreemapNodes($tree);
-    }
-
-    /**
-     * @param array<string, mixed> $tree
-     *
-     * @return array<int, array<string, mixed>>
-     */
-    private function buildTreemapNodes(array $tree): array {
-        $nodes = [];
-
-        foreach ($tree as $name => $value) {
-            if (is_array($value)) {
-                $children = $this->buildTreemapNodes($value);
-
-                while (count($children) === 1 && isset($children[0]['children'])) {
-                    $name .= '/'.$children[0]['name'];
-                    $children = $children[0]['children'];
-                }
-
-                $nodes[] = ['name' => $name, 'children' => $children];
-            } else {
-                $nodes[] = ['name' => $name, 'value' => $value];
-            }
-        }
-
-        return $nodes;
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function treemapTab(): array {
-        $status = opcache_get_status(false);
-
-        if ($status === false) {
-            return ['tab_error' => 'OPcache is not available, it is either disabled (opcache.enable) or restricted (opcache.restrict_api).'];
-        }
-
-        return [
-            'treemap'    => $this->getScriptsMap(),
-            'is_ignored' => $this->ignorePcaScripts(),
-        ];
     }
 }

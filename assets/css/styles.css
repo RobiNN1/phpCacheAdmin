@@ -237,8 +237,14 @@
   .mt-0\.5 {
     margin-top: calc(0.25rem * 0.5);
   }
+  .mt-1 {
+    margin-top: 0.25rem;
+  }
   .mt-2 {
     margin-top: calc(0.25rem * 2);
+  }
+  .mt-3 {
+    margin-top: calc(0.25rem * 3);
   }
   .mr-2 {
     margin-right: calc(0.25rem * 2);
@@ -261,11 +267,17 @@
   .mb-6 {
     margin-bottom: calc(0.25rem * 6);
   }
+  .ml-auto {
+    margin-left: auto;
+  }
   .block {
     display: block;
   }
   .flex {
     display: flex;
+  }
+  .grid {
+    display: grid;
   }
   .hidden {
     display: none;
@@ -349,6 +361,9 @@
   .shrink-0 {
     flex-shrink: 0;
   }
+  .grow {
+    flex-grow: 1;
+  }
   .table-auto {
     table-layout: auto;
   }
@@ -370,6 +385,9 @@
   .appearance-none {
     appearance: none;
   }
+  .grid-cols-1 {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
   .flex-col {
     flex-direction: column;
   }
@@ -381,6 +399,9 @@
   }
   .items-end {
     align-items: flex-end;
+  }
+  .items-start {
+    align-items: flex-start;
   }
   .justify-between {
     justify-content: space-between;
@@ -406,12 +427,18 @@
   .gap-x-3 {
     column-gap: calc(0.25rem * 3);
   }
+  .gap-x-4 {
+    column-gap: calc(0.25rem * 4);
+  }
   .-space-x-px {
     :where(& > :not(:last-child)) {
       --tw-space-x-reverse: 0;
       margin-inline-start: calc(-1px * var(--tw-space-x-reverse));
       margin-inline-end: calc(-1px * calc(1 - var(--tw-space-x-reverse)));
     }
+  }
+  .gap-y-0\.5 {
+    row-gap: calc(0.25rem * 0.5);
   }
   .gap-y-2 {
     row-gap: calc(0.25rem * 2);
@@ -522,6 +549,9 @@
   .bg-blue-100 {
     background-color: oklch(93.2% 0.032 255.585);
   }
+  .bg-blue-600 {
+    background-color: oklch(54.6% 0.245 262.881);
+  }
   .bg-gray-50 {
     background-color: oklch(98.5% 0.002 247.839);
   }
@@ -530,6 +560,9 @@
   }
   .bg-gray-200 {
     background-color: oklch(92.8% 0.006 264.531);
+  }
+  .bg-gray-400 {
+    background-color: oklch(70.7% 0.022 261.325);
   }
   .bg-gray-500\/75 {
     background-color: color-mix(in oklab, oklch(55.1% 0.027 264.364) 75%, transparent);
@@ -672,6 +705,9 @@
   .font-semibold {
     --tw-font-weight: 600;
     font-weight: 600;
+  }
+  .wrap-break-word {
+    overflow-wrap: break-word;
   }
   .break-all {
     word-break: break-all;
@@ -1201,6 +1237,11 @@
   .lg\:gap-4 {
     @media (width >= 64rem) {
       gap: calc(0.25rem * 4);
+    }
+  }
+  .xl\:grid-cols-3 {
+    @media (width >= 80rem) {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
     }
   }
   .dark\:divide-white\/5 {

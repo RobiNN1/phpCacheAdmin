@@ -1,0 +1,33 @@
+{% import 'components/macros.twig' as macros %}
+
+{% if checks is empty %}
+    <div class="p-4 text-center text-gray-500 dark:text-gray-400">No health checks are available.</div>
+{% else %}
+    <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+        {% for check in checks %}
+            <div class="flex flex-col p-4 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+                <div class="flex gap-2 justify-between items-start mb-2">
+                    <h3 class="min-w-0 text-sm font-semibold text-gray-900 truncate dark:text-white">{{ check.name }}</h3>
+                    {{ macros.health_status(check.status) }}
+                </div>
+
+                {% if check.status != 'info' %}
+                    <div class="flex gap-3 items-center mb-2">
+                        <div class="grow">{{ macros.progress(check.utilization, 'lower', null, check.status) }}</div>
+                        <span class="shrink-0 text-xs font-semibold text-gray-500 whitespace-nowrap dark:text-gray-400">{{ check.utilization }}%</span>
+                    </div>
+                {% endif %}
+
+                <p class="text-xs text-gray-600 break-all dark:text-gray-300">{{ check.detail }}</p>
+
+                {% if check.directive %}
+                    <p class="mt-1 text-xs text-gray-400 dark:text-gray-500"><code>{{ check.directive }}</code></p>
+                {% endif %}
+
+                {% if check.suggestion %}
+                    <p class="p-2 mt-3 text-xs text-gray-700 bg-gray-50 rounded border border-gray-200 dark:text-gray-300 dark:bg-white/5 dark:border-gray-700">{{ check.suggestion }}</p>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}

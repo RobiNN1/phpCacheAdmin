@@ -22,6 +22,7 @@ trait RedisTrait {
     use RedisTypes;
     use RedisPanels;
     use RedisHealth;
+    use RedisAnalysis;
     use RedisKeyView;
     use RedisKeysList;
     use RedisPubSub;
@@ -32,6 +33,7 @@ trait RedisTrait {
      */
     private array $tabs = [
         'keys'     => 'Keys',
+        'analysis' => 'Analysis',
         'slowlog'  => 'Slow Log',
         'metrics'  => 'Metrics',
         'pubsub'   => 'Pub/Sub',
@@ -234,6 +236,7 @@ trait RedisTrait {
 
         $tab_data = match ($tab) {
             'keys' => $this->keysTab(),
+            'analysis' => $this->analysisTab(),
             'slowlog' => $this->slowlogTab(),
             'metrics' => $this->metricsTab(),
             'moreinfo' => ['data' => $this->moreinfoTab(), 'tpl' => 'partials/info_table'],

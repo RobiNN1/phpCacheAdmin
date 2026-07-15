@@ -29,6 +29,8 @@
 - Works with both **phpredis** and **Predis** clients.
 - View, add, edit, and delete keys. Supports all Redis data types.
 - Search within a key's sub-items (hash fields, set/list/sorted set members).
+- **Analysis** of the keyspace - memory by namespace, biggest keys, keys with the most items, data type distribution
+  and a TTL summary, sampled with SCAN.
 - **Console** for running Redis commands interactively.
 - **PUB/SUB** support to browse channels, subscribe, and publish messages.
 - **Cluster support**.

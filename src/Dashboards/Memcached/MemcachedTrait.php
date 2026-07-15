@@ -18,6 +18,7 @@ use RobiNN\Pca\Paginator;
 trait MemcachedTrait {
     use MemcachedPanels;
     use MemcachedHealth;
+    use MemcachedSlabs;
     use MemcachedKeyView;
     use MemcachedKeysList;
     use MemcachedConsole;
@@ -132,42 +133,6 @@ trait MemcachedTrait {
         }
 
         return ['commands' => $commands];
-    }
-
-    /**
-     * @return array<string, mixed>
-     *
-     * @throws MemcachedException
-     */
-    private function slabsTab(): array {
-        $slabs_stats = $this->memcached->getSlabsStats();
-
-        $slabs = array_map(static function (array $slab): array {
-            $fields = [
-                'chunk_size'      => ['Chunk Size', 'bytes'],
-                'chunks_per_page' => ['Chunks per Page', 'number'],
-                'total_pages'     => ['Total Pages', 'number'],
-                'total_chunks'    => ['Total Chunks', 'number'],
-                'used_chunks'     => ['Used Chunks', 'number'],
-                'free_chunks'     => ['Free Chunks', 'number'],
-                'free_chunks_end' => ['Free Chunks (End)', 'number'],
-                'get_hits'        => ['GET Hits', 'number'],
-                'cmd_set'         => ['SET Commands', 'number'],
-                'delete_hits'     => ['DELETE Hits', 'number'],
-                'incr_hits'       => ['INCREMENT Hits', 'number'],
-                'decr_hits'       => ['DECREMENT Hits', 'number'],
-                'cas_hits'        => ['CAS Hits', 'number'],
-                'cas_badval'      => ['CAS Bad Value', 'number'],
-                'touch_hits'      => ['TOUCH Hits', 'number'],
-            ];
-
-            return Helpers::formatFields($fields, $slab);
-        }, $slabs_stats['slabs']);
-
-        return [
-            'slabs' => $slabs,
-            'meta'  => $slabs_stats['meta'],
-        ];
     }
 
     /**

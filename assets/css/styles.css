@@ -791,6 +791,9 @@
   .text-indigo-800 {
     color: oklch(39.8% 0.195 277.366);
   }
+  .text-orange-600 {
+    color: oklch(64.6% 0.222 41.116);
+  }
   .text-orange-800 {
     color: oklch(47% 0.157 37.304);
   }
@@ -1480,6 +1483,11 @@
   .dark\:text-orange-200 {
     &:where(.dark, .dark *) {
       color: oklch(90.1% 0.076 70.697);
+    }
+  }
+  .dark\:text-orange-400 {
+    &:where(.dark, .dark *) {
+      color: oklch(75% 0.183 55.934);
     }
   }
   .dark\:text-primary-400 {

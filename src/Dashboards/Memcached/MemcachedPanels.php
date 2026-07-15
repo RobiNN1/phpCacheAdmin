@@ -57,6 +57,7 @@ trait MemcachedPanels {
                         'Rejected' => Format::number($info['rejected_connections'] ?? 0),
                     ],
                 ],
+                $this->networkPanel($info),
             ];
 
             if ($command_stats) {
@@ -67,6 +68,28 @@ trait MemcachedPanels {
         } catch (MemcachedException $e) {
             return ['error' => $e->getMessage()];
         }
+    }
+
+    /**
+     * @param array<string, mixed> $info
+     *
+     * @return array{title: string, data: array<int|string, mixed>}
+     */
+    private function networkPanel(array $info): array {
+        $uptime = (int) ($info['uptime'] ?? 0);
+        $read = (int) ($info['bytes_read'] ?? 0);
+        $written = (int) ($info['bytes_written'] ?? 0);
+
+        $rate = static fn (int $bytes): string => $uptime > 0 ? ' ('.Format::bytes(intdiv($bytes, $uptime)).'/s)' : '';
+
+        return [
+            'title' => 'Network',
+            'data'  => [
+                'Read'    => Format::bytes($read).$rate($read),
+                'Written' => Format::bytes($written).$rate($written),
+                'Total'   => Format::bytes($read + $written),
+            ],
+        ];
     }
 
     /**

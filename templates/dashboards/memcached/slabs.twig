@@ -1,6 +1,26 @@
-<div class="flex gap-4 items-center mb-4">
-    <div class="font-semibold text-gray-600 dark:text-gray-300">Total memory allocated to slab pages</div>
-    <div class="text-sm font-semibold text-gray-900 dark:text-white">{{ meta.total_malloced|bytes }}</div>
+{% set wasted_percentage = meta.total_malloced > 0 ? (total_wasted / meta.total_malloced * 100)|round(2) : 0 %}
+
+<div class="mb-4 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+    <div class="grid grid-cols-2 gap-4 p-4 sm:grid-cols-4">
+        {% set tiles = [
+            {label: 'Allocated to slab pages', value: meta.total_malloced|bytes, color: 'text-gray-900 dark:text-white'},
+            {label: 'Memory wasted', value: total_wasted|bytes ~ ' (' ~ wasted_percentage ~ '%)', color: wasted_percentage > 50 ? 'text-red-600 dark:text-red-400' : (wasted_percentage > 25 ? 'text-orange-600 dark:text-orange-400' : 'text-gray-900 dark:text-white')},
+            {label: 'Used slabs', value: used_slabs ~ ' / ' ~ slabs|length, color: 'text-gray-900 dark:text-white'},
+            {label: 'Active slabs', value: meta.active_slabs|default(0), color: 'text-gray-900 dark:text-white'},
+        ] %}
+
+        {% for tile in tiles %}
+            <div>
+                <div class="text-xl font-semibold {{ tile.color }}">{{ tile.value }}</div>
+                <div class="text-xs text-gray-500 dark:text-gray-400">{{ tile.label }}</div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <p class="py-2 px-4 text-xs text-gray-500 border-t border-gray-200 dark:text-gray-400 dark:border-gray-700">
+        Wasted memory is the space allocated to slab pages that does not hold item data: free chunks plus the unused
+        space inside each used chunk. A high share means the chunk sizes do not fit your values well.
+    </p>
 </div>
 
 <div class="sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:gap-4">

@@ -209,9 +209,10 @@ Here is an example of how to implement a custom dashboard
 
 ## Contributing
 
-**Pull Requests are disabled to prevent AI-generated garbage.**
+If you have a feature request, suggestion, or have found a bug, 
+please open an Issue describing what you would like to see.
+AI tools are fine, but unchecked AI-generated code with irrelevant changes is not.
+Discussing your ideas first saves everyone's time and prevents rejected contributions.
 
-If you have a feature request, suggestion, or have found a bug,
-please **open an Issue** describing what you would like to see.
 
 <!-- Font used in logo Arial Rounded MT Bold -->

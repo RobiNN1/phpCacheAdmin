@@ -403,6 +403,9 @@
   .scroll-mt-4 {
     scroll-margin-top: calc(0.25rem * 4);
   }
+  .list-none {
+    list-style-type: none;
+  }
   .appearance-none {
     appearance: none;
   }
@@ -478,6 +481,9 @@
   .gap-y-0\.5 {
     row-gap: calc(0.25rem * 0.5);
   }
+  .gap-y-1 {
+    row-gap: 0.25rem;
+  }
   .gap-y-2 {
     row-gap: calc(0.25rem * 2);
   }
@@ -488,6 +494,11 @@
       border-top-style: var(--tw-border-style);
       border-top-width: calc(1px * var(--tw-divide-y-reverse));
       border-bottom-width: calc(1px * calc(1 - var(--tw-divide-y-reverse)));
+    }
+  }
+  .divide-gray-200 {
+    :where(& > :not(:last-child)) {
+      border-color: oklch(92.8% 0.006 264.531);
     }
   }
   .divide-gray-900\/5 {
@@ -704,11 +715,17 @@
   .py-\[0\.4rem\] {
     padding-block: 0.4rem;
   }
+  .ps-9 {
+    padding-inline-start: calc(0.25rem * 9);
+  }
   .pe-1 {
     padding-inline-end: 0.25rem;
   }
   .pe-5 {
     padding-inline-end: calc(0.25rem * 5);
+  }
+  .pb-3 {
+    padding-bottom: calc(0.25rem * 3);
   }
   .pl-6 {
     padding-left: calc(0.25rem * 6);
@@ -874,6 +891,11 @@
     transition-timing-function: var(--tw-ease, cubic-bezier(0.4, 0, 0.2, 1));
     transition-duration: var(--tw-duration, 150ms);
   }
+  .transition-transform {
+    transition-property: transform, translate, scale, rotate;
+    transition-timing-function: var(--tw-ease, cubic-bezier(0.4, 0, 0.2, 1));
+    transition-duration: var(--tw-duration, 150ms);
+  }
   .duration-300 {
     --tw-duration: 300ms;
     transition-duration: 300ms;
@@ -889,6 +911,11 @@
   .select-none {
     -webkit-user-select: none;
     user-select: none;
+  }
+  .group-open\:rotate-0 {
+    &:is(:where(.group):is([open], :popover-open, :open) *) {
+      rotate: 0deg;
+    }
   }
   .file\:mr-3 {
     &::file-selector-button {
@@ -1333,6 +1360,11 @@
       gap: calc(0.25rem * 4);
     }
   }
+  .xl\:order-last {
+    @media (width >= 80rem) {
+      order: 9999;
+    }
+  }
   .xl\:mb-0 {
     @media (width >= 80rem) {
       margin-bottom: 0;
@@ -1356,6 +1388,13 @@
   .xl\:grid-cols-4 {
     @media (width >= 80rem) {
       grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+  .dark\:divide-gray-700 {
+    &:where(.dark, .dark *) {
+      :where(& > :not(:last-child)) {
+        border-color: oklch(37.3% 0.034 259.733);
+      }
     }
   }
   .dark\:divide-white\/5 {
@@ -1826,6 +1865,11 @@
   .\[\&\.active\]\:text-primary-500 {
     &.active {
       color: var(--color-primary-500);
+    }
+  }
+  .\[\&\:\:-webkit-details-marker\]\:hidden {
+    &::-webkit-details-marker {
+      display: none;
     }
   }
   .\[\&\>\.active\]\:bg-gray-200 {

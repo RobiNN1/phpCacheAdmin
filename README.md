@@ -30,7 +30,7 @@
 - View, add, edit, and delete keys. Supports all Redis data types.
 - Search within a key's sub-items (hash fields, set/list/sorted set members).
 - **Analysis** of the keyspace - memory by namespace, biggest keys, keys with the most items, data type distribution
-  and a TTL summary, sampled with SCAN.
+and a TTL summary, sampled with SCAN. Includes **recommendations** weighed against the server's own `maxmemory`, eviction policy and encoding limits.
 - **Console** for running Redis commands interactively.
 - **PUB/SUB** support to browse channels, subscribe, and publish messages.
 - **Cluster support**.

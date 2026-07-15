@@ -666,7 +666,101 @@ abstract class RedisTestCase extends TestCase {
         $this->assertSame(1, $this->findRow($analysis['expiry'], '< 1 hour')['count']);
         $this->assertSame(203, $analysis['summary']['no_expiry']['count']);
 
-        $this->assertTrue($analysis['memory_reported']);
+        $this->assertTrue($analysis['memory']);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testAnalysisRecommendations(): void {
+        $this->redis->set('pu-rec:blob:big', str_repeat('x', 1_200_000));
+        $this->redis->set('pu-rec:small:1', 'value');
+
+        foreach (range(1, 5200) as $i) {
+            $this->dashboard->store('list', 'pu-rec:list:long', 'item'.$i);
+        }
+
+        foreach (range(1, 200) as $i) {
+            $this->dashboard->store('hash', 'pu-rec:hash:wide', 'v'.$i, '', ['hash_key' => 'f'.$i]);
+        }
+
+        $keys = $this->redis->scanKeys('pu-rec*', 1000);
+        $pipeline = $this->redis->pipelineKeys($keys);
+
+        $context = ['maxmemory' => 0, 'maxmemory_policy' => 'noeviction', 'hash_directive' => 'hash-max-listpack-entries', 'hash_limit' => 128];
+        $found = $this->dashboard->analyzeKeys($keys, $pipeline, 2, count($keys), $context)['recommendations'];
+
+        $big = $this->findRow($found, 'Big keys');
+        $this->assertSame('warning', $big['status']); // over 1 MB but under the 10 MB mark
+        $this->assertCount(1, $big['keys']);
+        $this->assertSame('pu-rec:blob:big', $big['keys'][0]['key']);
+
+        $long = $this->findRow($found, 'Long collections');
+        $this->assertSame('pu-rec:list:long', $long['keys'][0]['key']);
+
+        $hashes = $this->findRow($found, 'Hashes past the listpack limit');
+        $this->assertSame('info', $hashes['status']);
+        $this->assertSame('pu-rec:hash:wide', $hashes['keys'][0]['key']);
+        $this->assertStringContainsString('128', (string) $hashes['directive']);
+
+        $this->assertSame('warning', $this->findRow($found, 'Keys without a TTL')['status']);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testAnalysisWithoutMemoryUsage(): void {
+        $this->redis->set('pu-nomem:a:1', str_repeat('x', 1_200_000));
+        $this->redis->set('pu-nomem:b:1', 'value');
+
+        $keys = $this->redis->scanKeys('pu-nomem*', 100);
+        $pipeline = $this->redis->pipelineKeys($keys);
+
+        $analysis = $this->dashboard->analyzeKeys($keys, $pipeline, 2, 2, ['memory' => false]);
+
+        $this->assertFalse($analysis['memory']);
+        $this->assertSame([], $analysis['top_memory']);
+        $this->assertCount(3, $analysis['tiles']); // the memory tile is gone
+        $this->assertSame('Keys scanned', $analysis['tiles'][0]['label']);
+        $this->assertSame('Namespaces', $analysis['tiles'][1]['label']);
+
+        $this->assertSame([50.0, 50.0], array_column($analysis['namespaces'], 'percent'));
+
+        $this->assertSame([], array_filter($analysis['recommendations'], static fn (array $r): bool => $r['name'] === 'Big keys'));
+
+        foreach ($pipeline as $key => $info) {
+            $pipeline[$key]['size'] = 0;
+        }
+
+        $this->assertFalse($this->dashboard->analyzeKeys($keys, $pipeline, 2, 2, ['memory' => true])['memory']);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testAnalysisNoExpiryRecommendationDependsOnThePolicy(): void {
+        $this->redis->set('pu-policy:key', 'value');
+
+        $keys = $this->redis->scanKeys('pu-policy*', 100);
+        $pipeline = $this->redis->pipelineKeys($keys);
+
+        $status = function (array $context) use ($keys, $pipeline): ?string {
+            $found = $this->dashboard->analyzeKeys($keys, $pipeline, 1, 1, $context)['recommendations'];
+
+            foreach ($found as $recommendation) {
+                if ($recommendation['name'] === 'Keys without a TTL') {
+                    return $recommendation['status'];
+                }
+            }
+
+            return null;
+        };
+
+        $this->assertSame('critical', $status(['maxmemory' => 1_000_000, 'maxmemory_policy' => 'volatile-lru']));
+        $this->assertSame('warning', $status(['maxmemory' => 1_000_000, 'maxmemory_policy' => 'noeviction']));
+        $this->assertSame('warning', $status(['maxmemory' => 0, 'maxmemory_policy' => 'noeviction']));
+        $this->assertNull($status(['maxmemory' => 1_000_000, 'maxmemory_policy' => 'allkeys-lru']));
+        $this->assertNull($status([]));
     }
 
     /**

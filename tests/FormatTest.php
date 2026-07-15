@@ -20,6 +20,15 @@ final class FormatTest extends TestCase {
         $this->assertSame('1,50TB', Format::bytes(1_649_267_441_664));
     }
 
+    public function testBytesAtExactUnitBoundaries(): void {
+        $this->assertSame('0,00B', Format::bytes(0));
+        $this->assertSame('1 023,00B', Format::bytes(1023));
+        $this->assertSame('1,00KB', Format::bytes(1024));
+        $this->assertSame('1,00MB', Format::bytes(1_048_576));
+        $this->assertSame('1,00GB', Format::bytes(1_073_741_824));
+        $this->assertSame('1,00TB', Format::bytes(1_099_511_627_776));
+    }
+
     public function testIniSizeToBytes(): void {
         $this->assertSame(10_240, Format::iniSizeToBytes('10K'));
         $this->assertSame(10_485_760, Format::iniSizeToBytes('10M'));

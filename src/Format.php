@@ -14,19 +14,19 @@ use Exception;
 
 class Format {
     public static function bytes(int $bytes, int $decimals = 2): string {
-        if ($bytes > 1_099_511_627_776) {
+        if ($bytes >= 1_099_511_627_776) {
             return sprintf('%sTB', self::number($bytes / 1_099_511_627_776, $decimals));
         }
 
-        if ($bytes > 1_073_741_824) {
+        if ($bytes >= 1_073_741_824) {
             return sprintf('%sGB', self::number($bytes / 1_073_741_824, $decimals));
         }
 
-        if ($bytes > 1_048_576) {
+        if ($bytes >= 1_048_576) {
             return sprintf('%sMB', self::number($bytes / 1_048_576, $decimals));
         }
 
-        if ($bytes > 1024) {
+        if ($bytes >= 1024) {
             return sprintf('%sKB', self::number($bytes / 1024, $decimals));
         }
 

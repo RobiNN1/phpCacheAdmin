@@ -397,6 +397,9 @@
   .grid-cols-1 {
     grid-template-columns: repeat(1, minmax(0, 1fr));
   }
+  .grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
   .flex-col {
     flex-direction: column;
   }
@@ -438,6 +441,13 @@
       --tw-space-y-reverse: 0;
       margin-block-start: calc(calc(0.25rem * 0.5) * var(--tw-space-y-reverse));
       margin-block-end: calc(calc(0.25rem * 0.5) * calc(1 - var(--tw-space-y-reverse)));
+    }
+  }
+  .space-y-1 {
+    :where(& > :not(:last-child)) {
+      --tw-space-y-reverse: 0;
+      margin-block-start: calc(0.25rem * var(--tw-space-y-reverse));
+      margin-block-end: calc(0.25rem * calc(1 - var(--tw-space-y-reverse)));
     }
   }
   .gap-x-3 {
@@ -712,6 +722,10 @@
     font-size: 0.875rem;
     line-height: var(--tw-leading, calc(1.25 / 0.875));
   }
+  .text-xl {
+    font-size: 1.25rem;
+    line-height: var(--tw-leading, calc(1.75 / 1.25));
+  }
   .text-xs {
     font-size: 0.75rem;
     line-height: var(--tw-leading, calc(1 / 0.75));
@@ -768,6 +782,9 @@
   .text-gray-900 {
     color: oklch(21% 0.034 264.665);
   }
+  .text-green-600 {
+    color: oklch(62.7% 0.194 149.214);
+  }
   .text-green-800 {
     color: oklch(44.8% 0.119 151.328);
   }
@@ -791,6 +808,9 @@
   }
   .text-red-500 {
     color: oklch(63.7% 0.237 25.331);
+  }
+  .text-red-600 {
+    color: oklch(57.7% 0.245 27.325);
   }
   .text-red-800 {
     color: oklch(44.4% 0.177 26.899);
@@ -1115,6 +1135,11 @@
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
+  .sm\:grid-cols-4 {
+    @media (width >= 40rem) {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
   .sm\:gap-4 {
     @media (width >= 40rem) {
       gap: calc(0.25rem * 4);
@@ -1133,6 +1158,11 @@
   .md\:order-5 {
     @media (width >= 48rem) {
       order: 5;
+    }
+  }
+  .md\:col-span-2 {
+    @media (width >= 48rem) {
+      grid-column: span 2 / span 2;
     }
   }
   .md\:flex {
@@ -1188,6 +1218,11 @@
   .md\:grid-cols-2 {
     @media (width >= 48rem) {
       grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  .md\:grid-cols-3 {
+    @media (width >= 48rem) {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
     }
   }
   .md\:flex-row {
@@ -1430,6 +1465,11 @@
   .dark\:text-green-200 {
     &:where(.dark, .dark *) {
       color: oklch(92.5% 0.084 155.995);
+    }
+  }
+  .dark\:text-green-400 {
+    &:where(.dark, .dark *) {
+      color: oklch(79.2% 0.209 151.711);
     }
   }
   .dark\:text-indigo-200 {

@@ -1,0 +1,79 @@
+<div class="mb-4 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+    <form method="post" class="p-4">
+        <input type="hidden" name="csrf_token" value="{{ csrf }}">
+
+        <p class="mb-4 text-xs text-gray-500 dark:text-gray-400">
+            Compiles PHP files into OPcache without executing them, so the first request after a deployment or a cache reset
+            does not pay compile cost. Files that are already cached are skipped.
+        </p>
+
+        <div class="gap-4 md:grid md:grid-cols-3">
+            <div class="md:col-span-2">
+                {{ include('components/input.twig', {
+                    id: 'warmup_path',
+                    label: 'Directory or file',
+                    value: path,
+                    required: true,
+                    attr: 'placeholder="/var/www/html"',
+                    help: 'Absolute path. Directories are scanned recursively.',
+                }) }}
+            </div>
+            <div>
+                {{ include('components/input.twig', {
+                    id: 'warmup_ext',
+                    label: 'Extensions',
+                    value: ext,
+                    help: 'Comma separated, e.g. php,inc',
+                }) }}
+            </div>
+        </div>
+
+        {{ include('components/button.twig', {
+            id: 'warmup',
+            text: 'Warm up',
+            submit: true,
+        }) }}
+    </form>
+</div>
+
+{% if result is not empty %}
+    <div class="mb-4 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+        <div class="py-2 px-4 bg-gray-50 rounded-t-md border-b border-gray-200 dark:border-gray-700 dark:bg-white/5">
+            <h2 class="text-sm font-semibold text-gray-900 dark:text-white">Result</h2>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 p-4 sm:grid-cols-4">
+            {% set tiles = [
+                {label: 'Files found', value: result.total, color: 'text-gray-900 dark:text-white'},
+                {label: 'Compiled', value: result.compiled, color: 'text-green-600 dark:text-green-400'},
+                {label: 'Already cached', value: result.cached, color: 'text-gray-900 dark:text-white'},
+                {label: 'Failed', value: result.failed, color: result.failed > 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-white'},
+            ] %}
+
+            {% for tile in tiles %}
+                <div>
+                    <div class="text-xl font-semibold {{ tile.color }}">{{ tile.value|number_format }}</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">{{ tile.label }}</div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="py-2 px-4 text-xs text-gray-500 border-t border-gray-200 dark:text-gray-400 dark:border-gray-700">
+            <code class="break-all">{{ result.path }}</code>
+        </div>
+
+        {% if result.errors is not empty %}
+            <div class="p-4 border-t border-gray-200 dark:border-gray-700">
+                <p class="mb-2 text-xs font-semibold text-gray-900 dark:text-white">Could not be compiled:</p>
+                <ul class="space-y-1">
+                    {% for error in result.errors %}
+                        <li class="text-xs text-gray-500 break-all dark:text-gray-400"><code>{{ error }}</code></li>
+                    {% endfor %}
+                </ul>
+                {% if result.failed > result.errors|length %}
+                    <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">and {{ result.failed - result.errors|length }} more.</p>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+{% endif %}

@@ -607,6 +607,85 @@ abstract class RedisTestCase extends TestCase {
     }
 
     /**
+     * @param array<int, array<string, mixed>> $rows
+     *
+     * @return array<string, mixed>
+     */
+    private function findRow(array $rows, string $name): array {
+        foreach ($rows as $row) {
+            if ($row['name'] === $name) {
+                return $row;
+            }
+        }
+
+        self::fail(sprintf('No "%s" row in %s.', $name, implode(', ', array_column($rows, 'name'))));
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testAnalysis(): void {
+        for ($i = 0; $i < 200; $i++) {
+            $this->redis->set('pu-analysis:cache:page:'.$i, str_repeat('x', 50));
+        }
+
+        $this->redis->set('pu-analysis:zz-blob:huge', str_repeat('x', 50000));
+        $this->redis->set('pu-analysis:ttl:soon', 'value');
+        $this->redis->expire('pu-analysis:ttl:soon', 300);
+        $this->redis->set('pu-analysis-no-namespace', 'value');
+
+        foreach (range(1, 30) as $i) {
+            $this->dashboard->store('list', 'pu-analysis:list:big', 'item'.$i);
+        }
+
+        $keys = $this->redis->scanKeys('pu-analysis*', 10000);
+
+        sort($keys);
+
+        $analysis = $this->dashboard->analyzeKeys($keys, $this->redis->pipelineKeys($keys), 2, count($keys));
+
+        $this->assertSame(204, $analysis['summary']['scanned']);
+        $this->assertSame(5, $analysis['summary']['namespaces']);
+        $this->assertCount(4, $analysis['tiles']);
+
+        $this->assertSame('pu-analysis:zz-blob:huge', $analysis['top_memory'][0]['key']);
+        $this->assertGreaterThan(50000, $analysis['top_memory'][0]['size']);
+
+        $this->assertSame('pu-analysis:list:big', $analysis['top_length'][0]['key']);
+        $this->assertSame(30, $analysis['top_length'][0]['items']);
+
+        $cache = $this->findRow($analysis['namespaces'], 'pu-analysis:cache');
+        $this->assertSame(200, $cache['count']);
+        $this->assertGreaterThan(0, $cache['memory']);
+        $this->assertSame(1, $this->findRow($analysis['namespaces'], '(no namespace)')['count']);
+
+        $this->assertSame(203, $this->findRow($analysis['types'], 'string')['count']);
+        $this->assertSame(1, $this->findRow($analysis['types'], 'list')['count']);
+
+        $this->assertSame(203, $this->findRow($analysis['expiry'], 'No expiry')['count']);
+        $this->assertSame(1, $this->findRow($analysis['expiry'], '< 1 hour')['count']);
+        $this->assertSame(203, $analysis['summary']['no_expiry']['count']);
+
+        $this->assertTrue($analysis['memory_reported']);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testAnalysisNamespaceDepth(): void {
+        $this->redis->set('pu-depth:a:b:c', 'value');
+
+        $keys = $this->redis->scanKeys('pu-depth*', 100);
+        $pipeline = $this->redis->pipelineKeys($keys);
+
+        $names = static fn (array $analysis): array => array_column($analysis['namespaces'], 'name');
+
+        $this->assertSame(['pu-depth'], $names($this->dashboard->analyzeKeys($keys, $pipeline, 1, 1)));
+        $this->assertSame(['pu-depth:a'], $names($this->dashboard->analyzeKeys($keys, $pipeline, 2, 1)));
+        $this->assertSame(['pu-depth:a:b'], $names($this->dashboard->analyzeKeys($keys, $pipeline, 5, 1)));
+    }
+
+    /**
      * @throws Exception
      */
     public function testSlowlog(): void {
@@ -627,7 +706,7 @@ abstract class RedisTestCase extends TestCase {
     }
 
     /**
-     * @return array{0: string, 1: int} Host and port for raw Pub/Sub socket connections.
+     * @return array{0: string, 1: int}
      */
     private function pubSubAddress(): array {
         $server = Config::get('redis')[0];

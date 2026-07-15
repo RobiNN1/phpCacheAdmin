@@ -9,10 +9,13 @@ declare(strict_types=1);
 namespace RobiNN\Pca\Dashboards\Redis;
 
 use Exception;
+use RobiNN\Pca\Dashboards\AnalysisTrait;
 use RobiNN\Pca\Format;
 use RobiNN\Pca\Http;
 
 trait RedisAnalysis {
+    use AnalysisTrait;
+
     /**
      * TTL buckets, in seconds. The last one catches everything above.
      *
@@ -25,8 +28,6 @@ trait RedisAnalysis {
         '< 1 week'   => 604800,
         '1 week +'   => PHP_INT_MAX,
     ];
-
-    private int $top_items = 15;
 
     private int $default_sample = 10_000;
 
@@ -99,39 +100,12 @@ trait RedisAnalysis {
     }
 
     /**
-     * Group a key under its namespace, e.g. 'app:cache:user:1' with a depth of 2 becomes 'app:cache'.
-     */
-    private function keyNamespace(string $key, string $separator, int $depth): string {
-        if ($separator === '') {
-            return $key;
-        }
-
-        $parts = explode($separator, $key);
-
-        if (count($parts) === 1) {
-            return '(no namespace)';
-        }
-
-        return implode($separator, array_slice($parts, 0, min($depth, count($parts) - 1)));
-    }
-
-    private function ttlBucket(int $ttl): string {
-        foreach ($this->ttl_buckets as $label => $max) {
-            if ($ttl < $max) {
-                return $label;
-            }
-        }
-
-        return array_key_last($this->ttl_buckets);
-    }
-
-    /**
      * @param array<int, string>       $keys
      * @param array<int|string, mixed> $pipeline
      *
      * @return array<string, mixed>
      */
-    private function analyzeKeys(array $keys, array $pipeline, int $depth, int $total_keys): array {
+    public function analyzeKeys(array $keys, array $pipeline, int $depth, int $total_keys): array {
         $separator = $this->servers[$this->current_server]['separator'] ?? ':';
 
         $scanned = 0;
@@ -163,7 +137,7 @@ trait RedisAnalysis {
             $types[$type]['count'] = ($types[$type]['count'] ?? 0) + 1;
             $types[$type]['memory'] = ($types[$type]['memory'] ?? 0) + $size;
 
-            $namespace = $this->keyNamespace($key, $separator, $depth);
+            $namespace = $this->namespaceOf($key, $separator, $depth);
             $namespaces[$namespace]['count'] = ($namespaces[$namespace]['count'] ?? 0) + 1;
             $namespaces[$namespace]['memory'] = ($namespaces[$namespace]['memory'] ?? 0) + $size;
 
@@ -171,13 +145,13 @@ trait RedisAnalysis {
                 $no_expiry['count']++;
                 $no_expiry['memory'] += $size;
             } else {
-                $expiry[$this->ttlBucket($ttl)]++;
+                $expiry[$this->bucket($ttl, $this->ttl_buckets)]++;
             }
 
-            $by_memory[] = ['key' => $key, 'type' => $type, 'size' => $size, 'ttl' => $ttl, 'items' => $items];
+            $this->collectTop($by_memory, ['key' => $key, 'type' => $type, 'size' => $size], 'size');
 
             if ($items !== null) {
-                $by_length[] = ['key' => $key, 'type' => $type, 'size' => $size, 'ttl' => $ttl, 'items' => (int) $items];
+                $this->collectTop($by_length, ['key' => $key, 'type' => $type, 'size' => $size, 'items' => (int) $items], 'items');
             }
         }
 
@@ -197,69 +171,11 @@ trait RedisAnalysis {
             'summary'         => $summary,
             'tiles'           => $this->summaryTiles($summary, $total_keys, $depth),
             'memory_reported' => $memory_reported,
-            'namespaces'      => $this->topBy($namespaces, 'memory', $total_memory),
-            'types'           => $this->topBy($types, 'memory', $total_memory, false),
-            'expiry'          => $this->expirySummary($expiry, $no_expiry['count'], $scanned),
-            'top_memory'      => $this->topKeys($by_memory, 'size'),
-            'top_length'      => $this->topKeys($by_length, 'items'),
+            'namespaces'      => $this->topGroups($namespaces, 'memory', $total_memory, $this->top_items),
+            'types'           => $this->topGroups($types, 'memory', $total_memory),
+            'expiry'          => $this->distribution(['No expiry' => $no_expiry['count']] + $expiry, $scanned),
+            'top_memory'      => $this->topRows($by_memory, 'size', $this->top_items),
+            'top_length'      => $this->topRows($by_length, 'items', $this->top_items),
         ];
-    }
-
-    /**
-     * Sort grouped rows (namespaces, types) by a column and add each group's share of the sampled memory.
-     *
-     * @param array<string, array<string, int>> $groups
-     *
-     * @return array<int, array<string, mixed>>
-     */
-    private function topBy(array $groups, string $column, int $total, bool $limit = true): array {
-        uasort($groups, static fn (array $a, array $b): int => $b[$column] <=> $a[$column]);
-
-        if ($limit) {
-            $groups = array_slice($groups, 0, $this->top_items, true);
-        }
-
-        $rows = [];
-
-        foreach ($groups as $name => $group) {
-            $rows[] = [
-                'name'    => $name,
-                'count'   => $group['count'],
-                'memory'  => $group['memory'],
-                'percent' => $total > 0 ? round(($group['memory'] / $total) * 100, 2) : 0.0,
-            ];
-        }
-
-        return $rows;
-    }
-
-    /**
-     * @param array<int, array<string, mixed>> $keys
-     *
-     * @return array<int, array<string, mixed>>
-     */
-    private function topKeys(array $keys, string $column): array {
-        usort($keys, static fn (array $a, array $b): int => $b[$column] <=> $a[$column]);
-
-        return array_slice($keys, 0, $this->top_items);
-    }
-
-    /**
-     * @param array<string, int> $buckets
-     *
-     * @return array<int, array<string, mixed>>
-     */
-    private function expirySummary(array $buckets, int $no_expiry, int $scanned): array {
-        $rows = [['name' => 'No expiry', 'count' => $no_expiry]];
-
-        foreach ($buckets as $label => $count) {
-            $rows[] = ['name' => $label, 'count' => $count];
-        }
-
-        foreach ($rows as &$row) {
-            $row['percent'] = $scanned > 0 ? round(($row['count'] / $scanned) * 100, 2) : 0.0;
-        }
-
-        return $rows;
     }
 }

@@ -328,6 +328,60 @@ final class MemcachedTest extends TestCase {
     }
 
     /**
+     * @param array<int, array<string, mixed>> $rows
+     *
+     * @return array<string, mixed>
+     */
+    private function findRow(array $rows, string $name): array {
+        foreach ($rows as $row) {
+            if ($row['name'] === $name) {
+                return $row;
+            }
+        }
+
+        self::fail(sprintf('No "%s" row in %s.', $name, implode(', ', array_column($rows, 'name'))));
+    }
+
+    /**
+     * @throws MemcachedException
+     */
+    public function testAnalysis(): void {
+        $this->memcached->flush();
+
+        for ($i = 0; $i < 200; $i++) {
+            $this->memcached->set('pu-analysis:cache:page:'.$i, str_repeat('x', 50));
+        }
+
+        $this->memcached->set('pu-analysis:zz-blob:huge', str_repeat('x', 50000));
+        $this->memcached->set('pu-analysis:ttl:soon', 'value', 300);
+        $this->memcached->set('pu-analysis-no-namespace', 'value');
+
+        $lines = $this->memcached->getKeys();
+
+        sort($lines);
+
+        $analysis = $this->dashboard->analyzeKeys($lines);
+
+        $this->assertSame(203, $analysis['summary']['analyzed']);
+        $this->assertSame(2, $analysis['summary']['namespaces']);
+        $this->assertCount(4, $analysis['tiles']);
+
+        $this->assertSame('pu-analysis:zz-blob:huge', $analysis['top_memory'][0]['key']);
+        $this->assertGreaterThan(50000, $analysis['top_memory'][0]['size']);
+
+        $this->assertSame(202, $this->findRow($analysis['namespaces'], 'pu-analysis')['count']);
+        $this->assertSame(1, $this->findRow($analysis['namespaces'], '(no namespace)')['count']);
+
+        $this->assertSame(202, $this->findRow($analysis['expiry'], 'No expiry')['count']);
+        $this->assertSame(1, $this->findRow($analysis['expiry'], '< 1 hour')['count']);
+        $this->assertSame(202, $analysis['summary']['no_expiry']['count']);
+
+        $this->assertSame(203, $this->findRow($analysis['idle'], '< 1 minute')['count']);
+
+        $this->memcached->flush();
+    }
+
+    /**
      * @throws MemcachedException
      */
     public function testGetAllKeysTableView(): void {

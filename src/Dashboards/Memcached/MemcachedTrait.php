@@ -18,6 +18,7 @@ use RobiNN\Pca\Paginator;
 trait MemcachedTrait {
     use MemcachedPanels;
     use MemcachedHealth;
+    use MemcachedAnalysis;
     use MemcachedSlabs;
     use MemcachedKeyView;
     use MemcachedKeysList;
@@ -28,6 +29,7 @@ trait MemcachedTrait {
      */
     private array $tabs = [
         'keys'           => 'Keys',
+        'analysis'       => 'Analysis',
         'commands_stats' => 'Commands Stats',
         'slabs'          => 'Slabs',
         'items'          => 'Items',
@@ -208,6 +210,7 @@ trait MemcachedTrait {
 
         $tab_data = match ($tab) {
             'keys' => $this->keysTab(),
+            'analysis' => $this->analysisTab(),
             'commands_stats' => $this->commandsStatsTab(),
             'slabs' => $this->slabsTab(),
             'items' => $this->itemsTab(),

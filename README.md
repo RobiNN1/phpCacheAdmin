@@ -43,6 +43,7 @@
 
 - Uses a custom client, so **no memcache(d) extension** is required.
 - View, add, edit, and delete keys.
+- **Analysis** of the keyspace - memory by namespace, biggest keys, and an expiration and last-used summary.
 - **Console** for running Memcached commands interactively.
 - Server Stats including uptime, memory usage, connections, and more.
 - Slabs & Items info.

@@ -1,6 +1,6 @@
 {% if health is not empty %}
     <div class="mb-4">
-        {% include 'partials/health.twig' with {checks: health, grid: 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-4'} only %}
+        {{ include('partials/health.twig', {checks: health, grid: 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-4'}) }}
     </div>
 {% endif %}
 

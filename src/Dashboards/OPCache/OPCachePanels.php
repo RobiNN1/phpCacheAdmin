@@ -30,7 +30,43 @@ trait OPCachePanels {
             $this->memoryPanel($memory, $directives['opcache.memory_consumption']),
             $this->statsPanel($stats, $directives),
             $this->jitPanel($status),
+            $this->preloadPanel($status, $directives),
             $this->internedStringsPanel($status),
+        ];
+    }
+
+    /**
+     * @param array<string, mixed> $status
+     * @param array<string, mixed> $directives
+     *
+     * @return array<int|string, mixed>
+     */
+    private function preloadPanel(array $status, array $directives): array {
+        $preload = (string) ($directives['opcache.preload'] ?? '');
+
+        if ($preload === '') {
+            return [];
+        }
+
+        $preload_stats = $status['preload_statistics'] ?? [];
+        $preload_stats = is_array($preload_stats) ? $preload_stats : [];
+
+        $count = static function (mixed $value): string {
+            return Format::number(is_array($value) ? count($value) : 0);
+        };
+
+        $user = (string) ($directives['opcache.preload_user'] ?? '');
+
+        return [
+            'title' => 'Preload',
+            'data'  => [
+                'Script'    => $preload,
+                'User'      => $user !== '' ? $user : 'Not set',
+                'Memory'    => Format::bytes((int) ($preload_stats['memory_consumption'] ?? 0)),
+                'Functions' => $count($preload_stats['functions'] ?? null),
+                'Classes'   => $count($preload_stats['classes'] ?? null),
+                'Scripts'   => $count($preload_stats['scripts'] ?? null),
+            ],
         ];
     }
 

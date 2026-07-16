@@ -10,6 +10,7 @@ namespace Tests\Dashboards\Redis;
 
 use Exception;
 use JsonException;
+use PDO;
 use PHPUnit\Framework\Attributes\DataProvider;
 use RobiNN\Pca\Config;
 use RobiNN\Pca\Dashboards\DashboardException;
@@ -133,8 +134,16 @@ abstract class RedisTestCase extends TestCase {
         $data = json_decode($metrics->collectAndRespond(), true, 512, JSON_THROW_ON_ERROR);
         $this->assertCount(1, $data);
 
-        $dir = Config::get('metricsdir', dirname(__DIR__, 3).'/tmp/metrics');
-        @unlink($dir.'/redis_metrics_'.md5($server_name.Config::get('hash', 'pca')).'.db');
+        $db = Config::get('metricsdir', dirname(__DIR__, 3).'/tmp/metrics').'/redis_metrics_'.md5($server_name.Config::get('hash', 'pca')).'.db';
+
+        // Databases from before the commands_stats column existed hold NULL in the rows collected back then.
+        (new PDO('sqlite:'.$db))->exec('INSERT INTO metrics (timestamp) VALUES ('.(time() - 100).')');
+
+        $data = json_decode($metrics->collectAndRespond(), true, 512, JSON_THROW_ON_ERROR);
+        $this->assertCount(2, $data);
+        $this->assertSame([], $data[0]['commands_stats']);
+
+        @unlink($db);
     }
 
     /**
@@ -878,6 +887,83 @@ abstract class RedisTestCase extends TestCase {
         fclose($victim);
     }
 
+    public function testFormatClient(): void {
+        $client = $this->dashboard->formatClient([
+            'id'      => '77',
+            'addr'    => '127.0.0.1:50001',
+            'name'    => 'worker',
+            'user'    => 'default',
+            'db'      => '2',
+            'age'     => '120',
+            'idle'    => '5',
+            'tot-mem' => '20512',
+            'flags'   => 'Sx',
+            'cmd'     => 'get',
+            'node'    => '127.0.0.1:7000',
+            'self'    => true,
+        ]);
+
+        $this->assertSame('77', $client['id']);
+        $this->assertSame('127.0.0.1:50001', $client['addr']);
+        $this->assertSame(120, $client['age']);
+        $this->assertSame(5, $client['idle']);
+        $this->assertSame(20512, $client['memory']);
+        $this->assertSame(['Replica', 'In MULTI'], $client['flags']);
+        $this->assertSame('get', $client['command']);
+        $this->assertSame('127.0.0.1:7000', $client['node']);
+        $this->assertTrue($client['self']);
+
+        $client = $this->dashboard->formatClient(['id' => '1', 'flags' => 'N']);
+
+        $this->assertSame('', $client['addr']);
+        $this->assertSame(0, $client['age']);
+        $this->assertSame(0, $client['memory']);
+        $this->assertSame([], $client['flags']);
+        $this->assertFalse($client['self']);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testClientsTab(): void {
+        $_GET['tab'] = 'clients';
+
+        $html = $this->dashboard->dashboard();
+
+        $this->assertStringContainsString('Connected clients', $html);
+        $this->assertStringContainsString('This dashboard', $html); // the dashboard's own connection is marked
+
+        unset($_GET['tab']);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testClientsTabKillWithInvalidCsrf(): void {
+        $_GET['tab'] = 'clients';
+        $_POST['kill_client'] = '1';
+        $this->setCsrfToken(false);
+
+        $this->expectOutputRegex('/Invalid CSRF token/');
+        $this->dashboard->dashboard();
+
+        unset($_GET['tab'], $_POST['kill_client'], $_POST['csrf_token']);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testClientsTabKillUnknownClient(): void {
+        $_GET['tab'] = 'clients';
+        $_POST['kill_client'] = '999999999';
+        $this->setCsrfToken();
+
+        $this->expectOutputRegex('/no longer connected/');
+        $this->dashboard->dashboard();
+
+        unset($_GET['tab'], $_POST['kill_client'], $_POST['csrf_token']);
+    }
+
     /**
      * @return array{0: string, 1: int}
      */
@@ -1100,6 +1186,71 @@ abstract class RedisTestCase extends TestCase {
 
         @unlink($file);
         unset($_GET['db'], $_GET['console'], $_GET['history'], $_POST['csrf_token']);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testConsoleParsingAndFormatting(): void {
+        $_GET['db'] = 10;
+        $_GET['console'] = '';
+        $this->setCsrfToken();
+
+        $run = function (string $command): mixed {
+            $_POST['command'] = $command;
+
+            return json_decode($this->dashboard->ajax(), true, 512, JSON_THROW_ON_ERROR);
+        };
+
+        $this->assertSame('OK', $run('SET pu-console-quote "hello world"')['output']);
+        $this->assertSame('hello world', $run('GET pu-console-quote')['output']);
+
+        $this->assertSame('OK', $run('SET pu-console-esc "a\nb"')['output']);
+        $this->assertSame("a\nb", $run('GET pu-console-esc')['output']);
+
+        $run('SET pu-console-dq "a\"b"');
+        $this->assertSame('a"b', $run('GET pu-console-dq')['output']);
+
+        $run("SET pu-console-sq 'a\\nb'");
+        $this->assertSame('a\nb', $run('GET pu-console-sq')['output']);
+
+        $run('DEL pu-console-counter');
+        $this->assertSame('(integer) 1', $run('INCR pu-console-counter')['output']);
+
+        $run('DEL pu-console-missing');
+        $this->assertSame('(nil)', $run('GET pu-console-missing')['output']);
+
+        $run('DEL pu-console-list');
+        $run('RPUSH pu-console-list a b');
+        $this->assertSame("1) \"a\"\n2) \"b\"", $run('LRANGE pu-console-list 0 -1')['output']);
+
+        if (!self::$is_cluster) {
+            $this->assertSame('OK', $run('SET "" pu-empty-name')['output']);
+            $this->assertSame('pu-empty-name', $run('GET ""')['output']);
+            $this->redis->del('');
+        }
+
+        foreach (['pu-console-quote', 'pu-console-esc', 'pu-console-dq', 'pu-console-sq', 'pu-console-counter', 'pu-console-list'] as $key) {
+            $this->redis->del($key);
+        }
+
+        @unlink(Config::get('tmpdir', __DIR__.'/../../../tmp').'/console/redis_history_'.md5(Helpers::getServerTitle(Config::get('redis')[0]).Config::get('hash', 'pca')).'.json');
+        unset($_GET['db'], $_GET['console'], $_POST['command'], $_POST['csrf_token']);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testConsoleBlocklistIsCaseInsensitive(): void {
+        $_GET['db'] = 10;
+        $_GET['console'] = '';
+        $this->setCsrfToken();
+
+        $_POST['command'] = 'subscribe ch';
+        $this->assertStringContainsString('not allowed', (string) json_decode($this->dashboard->ajax(), true, 512, JSON_THROW_ON_ERROR)['error']);
+
+        @unlink(Config::get('tmpdir', __DIR__.'/../../../tmp').'/console/redis_history_'.md5(Helpers::getServerTitle(Config::get('redis')[0]).Config::get('hash', 'pca')).'.json');
+        unset($_GET['db'], $_GET['console'], $_POST['command'], $_POST['csrf_token']);
     }
 
     /**

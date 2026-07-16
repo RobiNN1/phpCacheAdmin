@@ -13,16 +13,19 @@ use RobiNN\Pca\Helpers;
 
 trait OPCacheHealth {
     /**
+     * @param array<string, mixed>|null $status
+     * @param array<string, mixed>|null $directives
+     *
      * @return array<int, array<string, mixed>>
      */
-    private function getHealthChecks(): array {
-        $status = opcache_get_status(false);
+    public function getHealthChecks(?array $status = null, ?array $directives = null): array {
+        $status ??= opcache_get_status(false) ?: null;
 
-        if ($status === false) {
+        if ($status === null) {
             return [];
         }
 
-        $directives = opcache_get_configuration()['directives'];
+        $directives ??= opcache_get_configuration()['directives'];
         $memory = $status['memory_usage'];
         $stats = $status['opcache_statistics'];
 

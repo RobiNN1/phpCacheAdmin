@@ -345,6 +345,7 @@ trait RedisAnalysis {
             'hash_limit' => $context['hash_limit'] ?? null,
         ];
 
+        $this->resetTopThresholds();
         $stats = $this->emptyStats();
 
         foreach ($keys as $key) {

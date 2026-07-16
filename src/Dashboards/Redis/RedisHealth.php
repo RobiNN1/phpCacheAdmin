@@ -17,7 +17,7 @@ trait RedisHealth {
      *
      * @return array<int, array<string, mixed>>
      */
-    private function getHealthChecks(array $info): array {
+    public function getHealthChecks(array $info): array {
         $memory = $info['memory'] ?? [];
         $stats = $info['stats'] ?? [];
         $clients = $info['clients'] ?? [];

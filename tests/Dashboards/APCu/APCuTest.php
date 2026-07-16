@@ -6,7 +6,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Dashboards;
+namespace Dashboards\APCu;
 
 use JsonException;
 use PHPUnit\Framework\Attributes\DataProvider;

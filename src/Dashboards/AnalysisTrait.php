@@ -19,10 +19,14 @@ trait AnalysisTrait {
     private array $top_thresholds = [];
 
     /**
+     * Cutoffs left over from a previous run would silently drop rows from the next one, so every analysis has to start with this.
+     */
+    private function resetTopThresholds(): void {
+        $this->top_thresholds = [];
+    }
+
+    /**
      * Collect a row only if it can still make the top list.
-     *
-     * A keyspace can hold hundreds of thousands of keys, so buffering every one of them just to sort
-     * out the largest handful is what would actually run the process out of memory.
      *
      * @param array<int, array<string, mixed>> $buffer
      * @param array<string, mixed>             $row

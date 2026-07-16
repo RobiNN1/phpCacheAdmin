@@ -81,7 +81,7 @@ trait RedisClients {
      *
      * @return array<string, mixed>
      */
-    private function formatClient(array $client): array {
+    public function formatClient(array $client): array {
         $age = (int) ($client['age'] ?? 0);
         $idle = (int) ($client['idle'] ?? 0);
         $memory = (int) ($client['tot-mem'] ?? 0);

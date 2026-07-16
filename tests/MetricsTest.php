@@ -8,16 +8,14 @@ declare(strict_types=1);
 
 namespace Tests;
 
+use Iterator;
 use JsonException;
 use PDO;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use RobiNN\Pca\Dashboards\Metrics;
 
 readonly class DummyMetrics extends Metrics {
-    protected function dbPrefix(): string {
-        return 'test';
-    }
-
     protected function schema(): string {
         return 'CREATE TABLE IF NOT EXISTS metrics (id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp INTEGER NOT NULL, value INTEGER)';
     }
@@ -32,6 +30,13 @@ readonly class DummyMetrics extends Metrics {
 
     public function db(): PDO {
         return $this->pdo;
+    }
+
+    /**
+     * @param array<string, string> $columns
+     */
+    public function migrate(array $columns): void {
+        $this->updateSchema($columns);
     }
 }
 
@@ -113,5 +118,46 @@ final class MetricsTest extends TestCase {
         $sorted = $timestamps;
         sort($sorted);
         $this->assertSame($sorted, $timestamps);
+    }
+
+    /**
+     * @return Iterator<string, array{string, int}>
+     */
+    public static function filterProvider(): Iterator {
+        yield '1h' => ['1h', 3600];
+        yield '1d' => ['1d', 86400];
+        yield '1w' => ['1w', 604800];
+        yield '1m' => ['1m', 2592000];
+        yield 'unknown falls back to 1d' => ['nonsense', 86400];
+    }
+
+    /**
+     * @throws JsonException
+     */
+    #[DataProvider('filterProvider')]
+    public function testFilterSelectsItsTimeWindow(string $filter, int $window): void {
+        $stmt = $this->metrics->db()->prepare('INSERT INTO metrics (timestamp, value) VALUES (?, 42)');
+        $inside = time() - ($window - 100);
+        $outside = time() - ($window + 100);
+        $stmt->execute([$inside]);
+        $stmt->execute([$outside]);
+
+        $_POST['filter'] = $filter;
+        $timestamps = array_column($this->collect(), 'unix_timestamp');
+
+        $this->assertContains($inside, $timestamps);
+        $this->assertNotContains($outside, $timestamps);
+    }
+
+    public function testUpdateSchemaAddsMissingColumns(): void {
+        $columns = fn (): array => $this->metrics->db()->query('PRAGMA table_info(metrics)')->fetchAll(PDO::FETCH_COLUMN, 1);
+
+        $this->assertNotContains('extra_col', $columns());
+
+        $this->metrics->migrate(['extra_col' => 'INTEGER']);
+        $this->assertContains('extra_col', $columns());
+
+        $this->metrics->migrate(['extra_col' => 'INTEGER']);
+        $this->assertCount(1, array_filter($columns(), static fn (string $c): bool => $c === 'extra_col'));
     }
 }

@@ -94,6 +94,8 @@ trait MemcachedAnalysis {
         $separator = $this->servers[$this->current_server]['separator'] ?? ':';
         $time = time();
 
+        $this->resetTopThresholds();
+
         $analyzed = 0;
         $total_memory = 0;
         $no_expiry = ['count' => 0, 'memory' => 0];

@@ -31,10 +31,6 @@ readonly class RedisMetrics extends Metrics {
         ]);
     }
 
-    protected function dbPrefix(): string {
-        return 'redis';
-    }
-
     protected function schema(): string {
         return <<<SQL
         CREATE TABLE IF NOT EXISTS metrics (
@@ -99,6 +95,8 @@ readonly class RedisMetrics extends Metrics {
      * @throws JsonException
      */
     protected function formatRow(array $row): array {
+        $commands_stats = (string) ($row['commands_stats'] ?? '');
+
         return [
             'timestamp'           => date('Y-m-d H:i:s', (int) $row['timestamp']),
             'unix_timestamp'      => (int) $row['timestamp'],
@@ -110,7 +108,7 @@ readonly class RedisMetrics extends Metrics {
                 'fragmentation' => $row['fragmentation_ratio'],
             ],
             'connections'         => $row['connections'],
-            'commands_stats'      => json_decode((string) $row['commands_stats'], true, 512, JSON_THROW_ON_ERROR) ?? [],
+            'commands_stats'      => $commands_stats !== '' ? json_decode($commands_stats, true, 512, JSON_THROW_ON_ERROR) : [],
         ];
     }
 }

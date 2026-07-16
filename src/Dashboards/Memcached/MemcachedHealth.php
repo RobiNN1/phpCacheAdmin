@@ -17,7 +17,7 @@ trait MemcachedHealth {
      *
      * @return array<int, array<string, mixed>>
      */
-    private function getHealthChecks(array $info): array {
+    public function getHealthChecks(array $info): array {
         return [
             $this->memoryCheck($info),
             $this->hitRateCheck($info),

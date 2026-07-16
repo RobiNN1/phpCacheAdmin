@@ -56,7 +56,7 @@ trait MemcachedKeysList {
 
         foreach ($raw_lines as $line) {
             $key_data = $this->memcached->parseLine($line);
-            $ttl = $key_data['exp'] ?? null;
+            $ttl = $key_data['exp'] ?? -1;
             $ttl_display = $ttl === -1 ? 'Doesn\'t expire' : $ttl - $time;
 
             $formatted_keys[] = [
@@ -99,7 +99,7 @@ trait MemcachedKeysList {
                 continue;
             }
 
-            $ttl = $key_data['exp'] ?? null;
+            $ttl = $key_data['exp'] ?? -1;
 
             $keys[] = [
                 'key'  => $key_data['key'],

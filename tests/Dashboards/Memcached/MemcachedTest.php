@@ -6,7 +6,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Dashboards;
+namespace Dashboards\Memcached;
 
 use Iterator;
 use JsonException;

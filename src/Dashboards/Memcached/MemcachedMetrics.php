@@ -27,10 +27,6 @@ readonly class MemcachedMetrics extends Metrics {
         parent::__construct($servers, $selected);
     }
 
-    protected function dbPrefix(): string {
-        return 'memcached';
-    }
-
     protected function schema(): string {
         return <<<SQL
         CREATE TABLE IF NOT EXISTS metrics (

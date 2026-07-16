@@ -26,7 +26,9 @@ abstract readonly class Metrics {
         $server_name = Helpers::getServerTitle($servers[$selected]);
         $hash = md5($server_name.Config::get('hash', 'pca'));
         $dir = Config::get('metricsdir', __DIR__.'/../../tmp/metrics');
-        $db = $dir.'/'.$this->dbPrefix().'_metrics_'.$hash.'.db';
+
+        $prefix = strtolower(str_replace('Metrics', '', substr((string) strrchr(static::class, '\\'), 1)));
+        $db = $dir.'/'.$prefix.'_metrics_'.$hash.'.db';
 
         if (!is_dir($dir) && !mkdir($dir, 0777, true) && !is_dir($dir)) {
             throw new RuntimeException(sprintf('Directory "%s" was not created', $dir));
@@ -38,11 +40,6 @@ abstract readonly class Metrics {
         $this->pdo->exec($this->schema());
         $this->pdo->exec('CREATE INDEX IF NOT EXISTS metrics_timestamp ON metrics (timestamp)');
     }
-
-    /**
-     * Prefix for the database file name, e.g. "redis".
-     */
-    abstract protected function dbPrefix(): string;
 
     /**
      * "CREATE TABLE" statement for the metrics table.

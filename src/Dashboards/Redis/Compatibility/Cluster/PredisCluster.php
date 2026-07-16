@@ -320,6 +320,38 @@ class PredisCluster extends PredisClient implements RedisCompatibilityInterface 
         return is_array($info[0] ?? null);
     }
 
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    public function getClients(): array {
+        $clients = [];
+
+        foreach ($this->nodes as $i => $node) {
+            $self_id = $node->executeRaw(['CLIENT', 'ID']);
+            $node_clients = $this->parseClientList(
+                (string) $node->executeRaw(['CLIENT', 'LIST']),
+                is_numeric($self_id) ? (string) $self_id : null,
+                (string) $this->server['nodes'][$i] // the clients are built from this list, in this order
+            );
+
+            if ($node_clients !== []) {
+                array_push($clients, ...$node_clients);
+            }
+        }
+
+        return $clients;
+    }
+
+    public function killClient(string $id): bool {
+        $killed = false;
+
+        foreach ($this->nodes as $node) {
+            $killed = (int) $node->executeRaw(['CLIENT', 'KILL', 'ID', $id]) > 0 || $killed;
+        }
+
+        return $killed;
+    }
+
     public function restoreKeys(string $key, int $ttl, string $value): bool {
         return (string) $this->restore($key, $ttl, $value) === 'OK';
     }

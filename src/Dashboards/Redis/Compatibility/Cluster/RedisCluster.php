@@ -306,6 +306,46 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
     }
 
     /**
+     * @return array<int, array<string, mixed>>
+     */
+    public function getClients(): array {
+        $clients = [];
+
+        foreach ($this->nodes as $node) {
+            try {
+                $self_id = $this->rawcommand($node, 'CLIENT', 'ID');
+                $node_clients = $this->parseClientList(
+                    (string) $this->rawcommand($node, 'CLIENT', 'LIST'),
+                    is_numeric($self_id) ? (string) $self_id : null,
+                    implode(':', (array) $node)
+                );
+            } catch (RedisClusterException) {
+                continue;
+            }
+
+            if ($node_clients !== []) {
+                array_push($clients, ...$node_clients);
+            }
+        }
+
+        return $clients;
+    }
+
+    public function killClient(string $id): bool {
+        $killed = false;
+
+        foreach ($this->nodes as $node) {
+            try {
+                $killed = (int) $this->rawcommand($node, 'CLIENT', 'KILL', 'ID', $id) > 0 || $killed;
+            } catch (RedisClusterException) {
+                continue;
+            }
+        }
+
+        return $killed;
+    }
+
+    /**
      * @throws RedisClusterException
      */
     public function restoreKeys(string $key, int $ttl, string $value): bool {

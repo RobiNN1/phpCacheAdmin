@@ -1325,6 +1325,11 @@
       display: grid;
     }
   }
+  .lg\:table-cell {
+    @media (width >= 64rem) {
+      display: table-cell;
+    }
+  }
   .lg\:w-72 {
     @media (width >= 64rem) {
       width: calc(0.25rem * 72);
@@ -1373,6 +1378,11 @@
   .xl\:grid {
     @media (width >= 80rem) {
       display: grid;
+    }
+  }
+  .xl\:table-cell {
+    @media (width >= 80rem) {
+      display: table-cell;
     }
   }
   .xl\:grid-cols-2 {

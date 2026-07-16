@@ -211,6 +211,22 @@ class Predis extends Client implements RedisCompatibilityInterface {
         return is_array($info[0] ?? null);
     }
 
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    public function getClients(): array {
+        $self_id = $this->rawcommand('CLIENT', 'ID');
+
+        return $this->parseClientList(
+            (string) $this->rawcommand('CLIENT', 'LIST'),
+            is_numeric($self_id) ? (string) $self_id : null
+        );
+    }
+
+    public function killClient(string $id): bool {
+        return (int) $this->rawcommand('CLIENT', 'KILL', 'ID', $id) > 0;
+    }
+
     public function restoreKeys(string $key, int $ttl, string $value): bool {
         return (string) $this->restore($key, $ttl, $value) === 'OK';
     }

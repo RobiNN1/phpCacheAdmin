@@ -243,6 +243,27 @@ class Redis extends \Redis implements RedisCompatibilityInterface {
         return is_array($info[0] ?? null);
     }
 
+    /**
+     * @return array<int, array<string, mixed>>
+     *
+     * @throws RedisException
+     */
+    public function getClients(): array {
+        $self_id = $this->rawcommand('CLIENT', 'ID');
+
+        return $this->parseClientList(
+            (string) $this->rawcommand('CLIENT', 'LIST'),
+            is_numeric($self_id) ? (string) $self_id : null
+        );
+    }
+
+    /**
+     * @throws RedisException
+     */
+    public function killClient(string $id): bool {
+        return (int) $this->rawcommand('CLIENT', 'KILL', 'ID', $id) > 0;
+    }
+
     public function restoreKeys(string $key, int $ttl, string $value): bool {
         return $this->restore($key, $ttl, $value);
     }

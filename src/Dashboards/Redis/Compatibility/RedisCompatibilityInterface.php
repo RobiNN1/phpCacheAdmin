@@ -98,6 +98,18 @@ interface RedisCompatibilityInterface {
     public function commandExists(string $command): bool;
 
     /**
+     * Get the connected clients with the dashboard's own connection marked.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function getClients(): array;
+
+    /**
+     * Close a client connection by its ID. Returns false when no client had that ID.
+     */
+    public function killClient(string $id): bool;
+
+    /**
      * Alias to a restore().
      */
     public function restoreKeys(string $key, int $ttl, string $value): bool;

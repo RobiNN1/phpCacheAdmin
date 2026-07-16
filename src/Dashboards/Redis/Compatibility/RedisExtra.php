@@ -12,6 +12,40 @@ use Exception;
 
 trait RedisExtra {
     /**
+     * @return array<int, array<string, mixed>>
+     */
+    public function parseClientList(string $raw, ?string $self_id = null, ?string $node = null): array {
+        $clients = [];
+
+        foreach (preg_split('/\r?\n/', trim($raw)) as $line) {
+            $client = [];
+
+            foreach (explode(' ', trim($line)) as $pair) {
+                if (!str_contains($pair, '=')) {
+                    continue;
+                }
+
+                [$field, $value] = explode('=', $pair, 2);
+                $client[$field] = $value;
+            }
+
+            if (($client['id'] ?? '') === '') {
+                continue;
+            }
+
+            $client['self'] = $self_id !== null && $client['id'] === $self_id;
+
+            if ($node !== null) {
+                $client['node'] = $node;
+            }
+
+            $clients[] = $client;
+        }
+
+        return $clients;
+    }
+
+    /**
      * Parse the raw INFO output into sections.
      * A single 'INFO all' call is a lot faster than requesting every section individually.
      *

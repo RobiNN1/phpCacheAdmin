@@ -728,7 +728,7 @@ abstract class RedisTestCase extends TestCase {
 
         $this->assertSame([], array_filter($analysis['recommendations'], static fn (array $r): bool => $r['name'] === 'Big keys'));
 
-        foreach ($pipeline as $key => $info) {
+        foreach (array_keys($pipeline) as $key) {
             $pipeline[$key]['size'] = 0;
         }
 
@@ -797,6 +797,85 @@ abstract class RedisTestCase extends TestCase {
         $this->assertIsArray($slowlog_entries[1][3]);
         $this->redis->execConfig('SET', $config_key, $original_config_value);
         $this->assertTrue($this->redis->resetSlowlog());
+    }
+
+    public function testParseClientList(): void {
+        $raw = "id=3 addr=127.0.0.1:50001 laddr=127.0.0.1:6379 name=worker age=10 idle=5 flags=N db=0 cmd=get user=default tot-mem=20512\r\n"
+            ."id=4 addr=127.0.0.1:50002 name= age=1 idle=0 flags=O db=1 cmd=monitor user=alice tot-mem=100\n"
+            ."id=5 addr=127.0.0.1:50003 name=app=worker age=1 idle=0 flags=N db=0 cmd=ping user=default tot-mem=100\n";
+
+        $clients = $this->redis->parseClientList($raw, '4', '127.0.0.1:7000');
+
+        $this->assertCount(3, $clients);
+
+        // CLIENT SETNAME allows an "=" in the name, only the first one separates the field.
+        $this->assertSame('app=worker', $clients[2]['name']);
+
+        $this->assertSame('3', $clients[0]['id']);
+        $this->assertSame('127.0.0.1:50001', $clients[0]['addr']);
+        $this->assertSame('worker', $clients[0]['name']);
+        $this->assertSame('20512', $clients[0]['tot-mem']);
+        $this->assertFalse($clients[0]['self']);
+
+        // An empty value still has to be a key, and the node is stamped on every row.
+        $this->assertSame('', $clients[1]['name']);
+        $this->assertSame('alice', $clients[1]['user']);
+        $this->assertTrue($clients[1]['self']);
+        $this->assertSame('127.0.0.1:7000', $clients[1]['node']);
+
+        $this->assertSame([], $this->redis->parseClientList(''));
+        $this->assertSame([], $this->redis->parseClientList('garbage without an id')); // nothing to address it by
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testGetClients(): void {
+        $clients = $this->redis->getClients();
+
+        $this->assertNotEmpty($clients);
+
+        $self = array_values(array_filter($clients, static fn (array $client): bool => $client['self'] === true));
+
+        // The connection this test runs on has to be in there. A cluster holds one per node,
+        // and each of those marks its own.
+        $this->assertNotEmpty($self);
+
+        if (!self::$is_cluster) {
+            $this->assertCount(1, $self);
+        }
+
+        $this->assertNotSame('', $self[0]['addr']);
+        $this->assertArrayHasKey('age', $self[0]);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testKillClient(): void {
+        [$host, $port] = $this->pubSubAddress();
+        $victim = stream_socket_client('tcp://'.$host.':'.$port, $errno, $errstr, 3);
+        $this->assertNotFalse($victim, 'Could not open a second connection: '.$errstr);
+
+        fwrite($victim, $this->respCommand('CLIENT', 'SETNAME', 'pu-kill-me'));
+        fgets($victim);
+
+        $target = null;
+
+        foreach ($this->redis->getClients() as $client) {
+            if (($client['name'] ?? '') === 'pu-kill-me') {
+                $target = (string) $client['id'];
+            }
+        }
+
+        $this->assertNotNull($target, 'The second connection is missing from CLIENT LIST.');
+        $this->assertTrue($this->redis->killClient($target));
+        $this->assertNotContains('pu-kill-me', array_column($this->redis->getClients(), 'name'));
+
+        // Killing it again reports that there was nothing to kill, rather than claiming success.
+        $this->assertFalse($this->redis->killClient($target));
+
+        fclose($victim);
     }
 
     /**

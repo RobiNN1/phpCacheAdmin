@@ -32,6 +32,7 @@
 - **Analysis** of the keyspace - memory by namespace, biggest keys, keys with the most items, data type distribution
 and a TTL summary, sampled with SCAN. Includes **recommendations** weighed against the server's own `maxmemory`, eviction policy and encoding limits.
 - **Clients** list of the connected clients with their idle time, memory and last command, and the option to disconnect any of them.
+- **Profiler** to watch commands as they run, live, via MONITOR. Watches every node at once in a cluster.
 - **Console** for running Redis commands interactively.
 - **PUB/SUB** support to browse channels, subscribe, and publish messages.
 - **Cluster support**.

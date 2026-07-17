@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace Tests\Dashboards\Redis;
 
 use Exception;
+use Iterator;
 use JsonException;
 use PDO;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -786,6 +787,120 @@ abstract class RedisTestCase extends TestCase {
         $this->assertSame(['pu-depth'], $names($this->dashboard->analyzeKeys($keys, $pipeline, 1, 1)));
         $this->assertSame(['pu-depth:a'], $names($this->dashboard->analyzeKeys($keys, $pipeline, 2, 1)));
         $this->assertSame(['pu-depth:a:b'], $names($this->dashboard->analyzeKeys($keys, $pipeline, 5, 1)));
+    }
+
+    /**
+     * @param array<string, mixed>|null $expected
+     */
+    #[DataProvider('monitorLineProvider')]
+    public function testProfilerParsesMonitorLines(string $line, ?array $expected): void {
+        $parsed = $this->dashboard->parseMonitorLine($line);
+
+        if ($expected === null) {
+            $this->assertNull($parsed);
+
+            return;
+        }
+
+        $this->assertNotNull($parsed);
+
+        foreach ($expected as $field => $value) {
+            $this->assertSame($value, $parsed[$field], $field.' does not match');
+        }
+    }
+
+    /**
+     * @return Iterator<string, array{0: string, 1: array<string, mixed>|null}>
+     */
+    public static function monitorLineProvider(): Iterator {
+        yield 'plain command' => [
+            '+1700000000.123456 [0 127.0.0.1:6379] "GET" "mykey"',
+            ['db' => 0, 'addr' => '127.0.0.1:6379', 'command' => 'GET', 'args' => ['mykey']],
+        ];
+        // A quoted argument keeps its spaces, splitting on whitespace would tear the value apart.
+        yield 'value with spaces' => [
+            '+1700000000.123456 [3 127.0.0.1:6379] "set" "k" "value with spaces"',
+            ['db' => 3, 'command' => 'SET', 'args' => ['k', 'value with spaces']],
+        ];
+        yield 'escaped quotes' => [
+            '+1700000000.123456 [0 127.0.0.1:6379] "set" "k" "say \"hi\""',
+            ['command' => 'SET', 'args' => ['k', 'say "hi"']],
+        ];
+        yield 'escaped binary' => [
+            '+1700000000.123456 [0 127.0.0.1:6379] "set" "k" "\x01\x02"',
+            ['command' => 'SET', 'args' => ['k', "\x01\x02"]],
+        ];
+        // Redis reports commands a script issued with "lua" where the address would be.
+        yield 'issued from a script' => [
+            '+1700000000.123456 [15 lua] "set" "k" "from-lua"',
+            ['db' => 15, 'addr' => 'lua', 'command' => 'SET'],
+        ];
+        yield 'unix socket client' => [
+            '+1700000000.123456 [0 /tmp/redis.sock:0] "PING"',
+            ['addr' => '/tmp/redis.sock:0', 'command' => 'PING', 'args' => []],
+        ];
+        yield 'no plus prefix' => [
+            '1700000000.123456 [0 127.0.0.1:6379] "PING"',
+            ['command' => 'PING'],
+        ];
+        // MONITOR sends values whole, a multi-megabyte SET would blow up the response without this.
+        yield 'oversized value cut for display' => [
+            '+1700000000.123456 [0 127.0.0.1:6379] "set" "k" "'.str_repeat('v', 600).'"',
+            ['command' => 'SET', 'args' => ['k', str_repeat('v', 512).'…']],
+        ];
+        yield 'not a monitor line' => ['+OK', null];
+        yield 'empty' => ['', null];
+        yield 'no arguments' => ['+1700000000.123456 [0 127.0.0.1:6379] ', null];
+    }
+
+    /**
+     * Predis on purpose, it's always in require-dev, phpredis in the CLI is not a given.
+     */
+    private function backgroundNoise(string $php): void {
+        $server = Config::get('redis')[0];
+
+        $client = self::$is_cluster
+            ? sprintf('$r = new Predis\Client(%s, ["cluster" => "redis"]);', var_export(array_values((array) $server['nodes']), true))
+            // A cluster only has db 0, everywhere else the traffic belongs in the test database.
+            : sprintf('$r = new Predis\Client(["host" => %s, "port" => %d]); $r->select(10);', var_export((string) $server['host'], true), (int) ($server['port'] ?? 6379));
+
+        $bootstrap = sprintf('require %s; usleep(300000);', var_export(dirname(__DIR__, 3).'/vendor/autoload.php', true));
+
+        exec(sprintf('%s -r %s > /dev/null 2>&1 &', escapeshellarg(PHP_BINARY), escapeshellarg($bootstrap.' '.$client.' '.$php)));
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testProfilerCapture(): void {
+        $this->backgroundNoise('$r->set("pu-profiler-key", "a value with spaces"); $r->get("pu-profiler-key");');
+
+        $commands = $this->dashboard->captureCommands(3, 100);
+
+        $this->assertNotEmpty($commands);
+
+        $set = array_values(array_filter($commands, static fn (array $c): bool => $c['command'] === 'SET' && ($c['args'][0] ?? '') === 'pu-profiler-key'));
+
+        $this->assertCount(1, $set);
+        $this->assertSame(['pu-profiler-key', 'a value with spaces'], $set[0]['args']);
+        $this->assertEqualsWithDelta(time(), $set[0]['time'], 10);
+
+        // Sorted by the time the server ran them, so a GET that followed a SET cannot come first.
+        $times = array_column($commands, 'time');
+        $sorted = $times;
+        sort($sorted);
+        $this->assertSame($sorted, $times);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testProfilerCaptureHonorsTheLimit(): void {
+        $this->backgroundNoise(self::$is_cluster
+            ? 'for ($i = 0; $i < 500; $i++) { $r->set("pu-profiler-flood-".$i, "v"); }'
+            : '$p = $r->pipeline(); for ($i = 0; $i < 500; $i++) { $p->set("pu-profiler-flood-".$i, "v"); } $p->execute();');
+
+        $this->assertCount(5, $this->dashboard->captureCommands(3, 5));
     }
 
     /**

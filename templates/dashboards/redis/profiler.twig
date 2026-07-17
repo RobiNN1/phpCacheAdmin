@@ -1,0 +1,166 @@
+{% import 'components/macros.twig' as macros %}
+
+{% set card = 'p-4 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700' %}
+
+{{ include('components/alert.twig', {
+    alert_color: 'error',
+    inline: true,
+    message: 'MONITOR streams every command the server runs, <strong>including the values being written</strong>.
+              Anything captured here is visible to anyone looking at this screen, and it costs the server
+              throughput while it is on. Redis redacts AUTH, nothing else.',
+}) }}
+
+<div class="{{ card }} mb-4">
+    <div class="flex flex-wrap gap-3 items-end">
+        <div class="w-full sm:w-64">
+            {{ include('components/input.twig', {
+                id: 'profiler_filter',
+                label: 'Filter',
+                attr: 'placeholder="Hide lines without this text"',
+                wrapper_class: 'flex flex-col',
+            }) }}
+        </div>
+
+        {{ include('components/button.twig', {
+            id: 'profiler_toggle',
+            text: 'Start',
+            color: 'green',
+        }) }}
+
+        {{ include('components/button.twig', {
+            id: 'profiler_clear',
+            text: 'Clear',
+            color: 'red',
+        }) }}
+
+        <div class="ms-auto text-xs text-gray-500 dark:text-gray-400">
+            <span id="profiler_count" class="font-semibold">0</span> commands captured
+        </div>
+    </div>
+</div>
+
+<div class="{{ card }}">
+    <div class="flex justify-between items-center mb-3">
+        <h2 class="text-sm font-bold uppercase text-primary-900 dark:text-primary-400">Commands</h2>
+        <span id="profiler_status" class="text-xs text-gray-500 dark:text-gray-400">Not running.</span>
+    </div>
+
+    <div id="profiler_log" class="overflow-y-auto p-2 h-128 font-mono text-xs rounded border border-gray-200 dark:border-gray-700">
+        <div id="profiler_empty" class="text-gray-500 dark:text-gray-400">Start the profiler to watch commands as they run.</div>
+    </div>
+
+    <template id="profiler_row">
+        <div class="flex gap-2 py-0.5 border-b border-gray-100 dark:border-gray-700/50">
+            <span class="text-gray-500 shrink-0 dark:text-gray-400"></span>
+            <span class="text-gray-400 shrink-0 dark:text-gray-500"></span>
+            <span class="font-semibold shrink-0 text-primary-500 dark:text-primary-400"></span>
+            <span class="break-all"></span>
+        </div>
+    </template>
+
+    <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+        Captured over AJAX in {{ window }}s windows, so commands run in the gap between two requests are missed.
+        The dashboard's own commands show up here too. In a cluster every node is watched at once,
+        nodes that cannot be reached are skipped. Arguments longer than 512 characters are cut for display.
+    </p>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const toggle_btn = document.getElementById('profiler_toggle');
+        const filter_input = document.getElementById('profiler_filter');
+        const log_box = document.getElementById('profiler_log');
+        const status = document.getElementById('profiler_status');
+        const counter = document.getElementById('profiler_count');
+
+        const capture_window = parseInt("{{ window }}", 10);
+        const max_rendered = 1000;
+
+        let running = false;
+        let captured = 0;
+
+        const append_command = (command) => {
+            const empty = document.getElementById('profiler_empty');
+            if (empty) {
+                empty.remove();
+            }
+
+            const row = document.getElementById('profiler_row').content.cloneNode(true);
+            const [time, origin, name, args] = row.querySelectorAll('span');
+            const at = new Date(command.time * 1000);
+
+            time.textContent = at.toLocaleTimeString() + '.' + String(at.getMilliseconds()).padStart(3, '0');
+            origin.textContent = (command.node ? command.node + ' ' : '') + '[' + command.db + ' ' + command.addr + ']';
+            name.textContent = command.command;
+            args.textContent = command.args.map(a => JSON.stringify(a)).join(' ');
+
+            const line = log_box.appendChild(row.firstElementChild);
+            line.dataset.text = (command.command + ' ' + command.args.join(' ') + ' ' + command.addr).toLowerCase();
+            apply_filter(line);
+
+            while (log_box.children.length > max_rendered) {
+                log_box.removeChild(log_box.firstChild);
+            }
+
+            log_box.scrollTop = log_box.scrollHeight;
+        };
+
+        const apply_filter = (line) => {
+            const needle = filter_input.value.trim().toLowerCase();
+            line.hidden = needle !== '' && !line.dataset.text.includes(needle);
+        };
+
+        filter_input.addEventListener('input', () => {
+            log_box.querySelectorAll('[data-text]').forEach(apply_filter);
+        });
+
+        const poll = () => {
+            if (!running) {
+                return;
+            }
+
+            status.textContent = 'Capturing…';
+            const started = Date.now();
+
+            ajax(`profiler&window=${capture_window}`, (request) => {
+                if (!running) {
+                    return;
+                }
+
+                const data = ajax_ok(request) ? parse_json(request) : null;
+
+                if (data === null || data.error) {
+                    status.textContent = data?.error ?? 'The capture failed.';
+                    setTimeout(poll, 2000);
+                    return;
+                }
+
+                (data.commands ?? []).forEach(command => {
+                    captured++;
+                    append_command(command);
+                });
+
+                counter.textContent = captured.toLocaleString();
+                // A busy server fills the command limit in milliseconds, polling again right away would just hammer both servers with requests.
+                setTimeout(poll, Math.max(0, 1000 - (Date.now() - started)));
+            });
+        };
+
+        toggle_btn.addEventListener('click', () => {
+            running = !running;
+            toggle_btn.textContent = running ? 'Stop' : 'Start';
+
+            if (running) {
+                poll();
+            } else {
+                status.textContent = 'Stopped.';
+            }
+        });
+
+        document.getElementById('profiler_clear').addEventListener('click', () => {
+            log_box.innerHTML = '';
+            captured = 0;
+            counter.textContent = '0';
+        });
+    });
+</script>

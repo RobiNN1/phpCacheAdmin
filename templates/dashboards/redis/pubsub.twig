@@ -122,14 +122,6 @@
         const capture_window = parseInt("{{ pubsub_window }}", 10);
         const stats_refresh_ms = parseInt("{{ config('pubsubrefresh', 5) }}", 10) * 1000;
 
-        const parse_json = (request) => {
-            try {
-                return JSON.parse(request.response);
-            } catch {
-                return null;
-            }
-        };
-
         // Redis glob pattern (*, ?, [...]) to RegExp, to check if the monitor would receive a channel.
         const channel_matches = (pattern, channel) => {
             try {

@@ -79,16 +79,7 @@ class RedisDashboard implements DashboardInterface {
      */
     public function connect(array $server): Compatibility\Redis|Compatibility\Predis|Compatibility\Cluster\RedisCluster|Compatibility\Cluster\PredisCluster {
         $server['database'] = Http::get('db', $server['database'] ?? 0);
-
-        if (!empty($server['authfile'])) {
-            $password = is_readable($server['authfile']) ? file_get_contents($server['authfile']) : false;
-
-            if ($password === false) {
-                throw new DashboardException(sprintf('Unable to read the password file "%s".', $server['authfile']));
-            }
-
-            $server['password'] = trim($password);
-        }
+        $server = $this->resolvePassword($server);
 
         $this->is_cluster = !empty($server['nodes']) && is_array($server['nodes']);
 
@@ -101,6 +92,29 @@ class RedisDashboard implements DashboardInterface {
         }
 
         return $redis;
+    }
+
+    /**
+     * @param array<string, mixed> $server
+     *
+     * @return array<string, mixed>
+     *
+     * @throws DashboardException
+     */
+    private function resolvePassword(array $server): array {
+        if (empty($server['authfile'])) {
+            return $server;
+        }
+
+        $password = is_readable($server['authfile']) ? file_get_contents($server['authfile']) : false;
+
+        if ($password === false) {
+            throw new DashboardException(sprintf('Unable to read the password file "%s".', $server['authfile']));
+        }
+
+        $server['password'] = trim($password);
+
+        return $server;
     }
 
     public function ajax(): string {
@@ -117,6 +131,10 @@ class RedisDashboard implements DashboardInterface {
 
             if (isset($_GET['pubsub'])) {
                 return $this->pubSubAjax();
+            }
+
+            if (isset($_GET['profiler'])) {
+                return $this->profilerAjax();
             }
 
             if (isset($_GET['console'])) {

@@ -11,3 +11,4 @@ package-lock.json
 !/.env.example
 .phpunit.result.cache
 .ide_helper.php
+rector.php

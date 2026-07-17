@@ -26,6 +26,7 @@ trait RedisTrait {
     use RedisClients;
     use RedisKeyView;
     use RedisKeysList;
+    use RedisProfiler;
     use RedisPubSub;
     use RedisConsole;
 
@@ -39,6 +40,7 @@ trait RedisTrait {
         'metrics'  => 'Metrics',
         'clients'  => 'Clients',
         'pubsub'   => 'Pub/Sub',
+        'profiler' => 'Profiler',
         'console'  => 'Console',
         'moreinfo' => 'More info',
     ];
@@ -242,6 +244,7 @@ trait RedisTrait {
             'slowlog' => $this->slowlogTab(),
             'metrics' => $this->metricsTab(),
             'clients' => $this->clientsTab(),
+            'profiler' => $this->profilerTab(),
             'moreinfo' => ['data' => $this->moreinfoTab(), 'tpl' => 'partials/info_table'],
             default => [],
         };

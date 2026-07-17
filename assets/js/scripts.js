@@ -25,6 +25,14 @@ const ajax = (endpoint, callback, data = null, send_json = true) => {
 
 const ajax_ok = (request) => request.status >= 200 && request.status < 400;
 
+const parse_json = (request) => {
+    try {
+        return JSON.parse(request.response);
+    } catch {
+        return null;
+    }
+};
+
 const set_alerts = (html) => {
     document.getElementById('alerts').innerHTML = html;
 };
@@ -421,12 +429,12 @@ class Panels {
 
     refresh() {
         ajax('panels', (request) => {
-            if (!ajax_ok(request)) {
+            const data = ajax_ok(request) ? parse_json(request) : null;
+
+            if (data === null) {
                 console.error('Error fetching panel data.');
                 return;
             }
-
-            const data = JSON.parse(request.response);
 
             for (const section_key in data) {
                 const panel_element = document.getElementById(section_key + '_panel');
@@ -763,13 +771,14 @@ class Metrics {
         ajax('metrics', (request) => {
             if (ajax_ok(request)) {
                 const content_type = request.getResponseHeader('content-type');
-                const response_text = request.responseText;
+                const data = content_type && content_type.includes('application/json') ? parse_json(request) : null;
 
-                if (content_type && content_type.includes('application/json')) {
-                    callback(JSON.parse(response_text));
+                if (data !== null) {
+                    callback(data);
                     set_alerts('');
                 } else {
-                    set_alerts(response_text);
+                    // Anything that is not JSON is the server sending a rendered alert.
+                    set_alerts(request.responseText);
                 }
             } else {
                 set_alerts(`Server responded with status ${request.status}`);
@@ -941,14 +950,6 @@ class Console {
         this.#scroll_bottom();
     }
 
-    #parse_json(request) {
-        try {
-            return JSON.parse(request.response);
-        } catch {
-            return null;
-        }
-    }
-
     #run(command) {
         this.input.value = '';
         this.#update_hint();
@@ -956,7 +957,7 @@ class Console {
 
         ajax('console', (request) => {
             this.input.disabled = false;
-            const data = ajax_ok(request) ? this.#parse_json(request) : null;
+            const data = ajax_ok(request) ? parse_json(request) : null;
 
             if (data === null) {
                 this.#append_line(command, 'An error occurred while running the command.', true);
@@ -1019,7 +1020,7 @@ class Console {
 
     #load_history() {
         ajax('console&history', (request) => {
-            const data = ajax_ok(request) ? this.#parse_json(request) : null;
+            const data = ajax_ok(request) ? parse_json(request) : null;
 
             if (data && Array.isArray(data.history)) {
                 this.history.push(...data.history);

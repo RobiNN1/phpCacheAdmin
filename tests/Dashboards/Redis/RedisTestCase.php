@@ -1232,6 +1232,10 @@ abstract class RedisTestCase extends TestCase {
         $this->redis->consoleCommand(['RPUSH', 'pu-console-list', 'a', 'b']);
         $list = $this->redis->consoleCommand(['LRANGE', 'pu-console-list', '0', '-1']);
         $this->assertSame(['a', 'b'], $list);
+
+        $this->assertSame('PONG', Helpers::mixedToString($this->redis->consoleCommand(['PING'])));
+        $this->assertIsArray($this->redis->consoleCommand(['SLOWLOG', 'GET', '1']));
+        $this->assertStringContainsString('redis_version', Helpers::mixedToString($this->redis->consoleCommand(['INFO', 'server'])));
     }
 
     /**

@@ -14,6 +14,7 @@ use Predis\Client as PredisClient;
 use Predis\Cluster\RedisStrategy;
 use Predis\Collection\Iterator\Keyspace;
 use Predis\Command\RawCommand;
+use Predis\NotSupportedException;
 use Predis\Response\Status;
 use RobiNN\Pca\Dashboards\DashboardException;
 use RobiNN\Pca\Dashboards\Redis\Compatibility\Predis;
@@ -450,7 +451,13 @@ class PredisCluster extends PredisClient implements RedisCompatibilityInterface 
      * @throws Throwable
      */
     public function consoleCommand(array $args): mixed {
-        $reply = $this->executeCommand(RawCommand::create(...$args));
+        $command = RawCommand::create(...$args);
+
+        try {
+            $reply = $this->executeCommand($command);
+        } catch (NotSupportedException) {
+            $reply = $this->nodes[0]->executeCommand($command);
+        }
 
         return $reply instanceof Status ? $reply->getPayload() : $reply;
     }

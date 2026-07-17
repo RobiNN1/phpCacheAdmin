@@ -1268,6 +1268,29 @@ abstract class RedisTestCase extends TestCase {
         $_POST['command'] = 'MONITOR';
         $response = json_decode($this->dashboard->ajax(), true, 512, JSON_THROW_ON_ERROR);
         $this->assertStringContainsString('not allowed', (string) $response['error']);
+        $this->assertStringContainsString('tab=profiler', $response['tab']['url']);
+        $this->assertStringContainsString('Profiler', $response['tab']['label']);
+
+        $_POST['command'] = 'psubscribe news.*';
+        $response = json_decode($this->dashboard->ajax(), true, 512, JSON_THROW_ON_ERROR);
+        $this->assertStringContainsString('tab=pubsub', $response['tab']['url']);
+
+        $_POST['command'] = 'SHUTDOWN';
+        $response = json_decode($this->dashboard->ajax(), true, 512, JSON_THROW_ON_ERROR);
+        $this->assertStringContainsString('not allowed', (string) $response['error']);
+        $this->assertArrayNotHasKey('tab', $response);
+
+        $_POST['command'] = 'SLOWLOG GET';
+        $response = json_decode($this->dashboard->ajax(), true, 512, JSON_THROW_ON_ERROR);
+        $this->assertArrayHasKey('output', $response);
+        $this->assertArrayNotHasKey('error', $response);
+        $this->assertStringContainsString('tab=slowlog', $response['tab']['url']);
+        $this->assertStringContainsString('Slow Log', $response['tab']['label']);
+
+        $_POST['command'] = 'PING';
+        $response = json_decode($this->dashboard->ajax(), true, 512, JSON_THROW_ON_ERROR);
+        $this->assertSame('PONG', $response['output']);
+        $this->assertArrayNotHasKey('tab', $response);
 
         $_POST['command'] = '   ';
         $response = json_decode($this->dashboard->ajax(), true, 512, JSON_THROW_ON_ERROR);

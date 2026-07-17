@@ -950,6 +950,20 @@ class Console {
         this.#scroll_bottom();
     }
 
+    #append_tab_link(tab) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'console-entry mt-0.5';
+
+        const link = document.createElement('a');
+        link.href = tab.url;
+        link.textContent = tab.label + ' →';
+        link.className = 'font-semibold text-primary-500 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-500';
+
+        wrapper.appendChild(link);
+        this.output.insertBefore(wrapper, this.input_row);
+        this.#scroll_bottom();
+    }
+
     #run(command) {
         this.input.value = '';
         this.#update_hint();
@@ -965,6 +979,10 @@ class Console {
                 this.#append_line(command, '(error) ' + data.error, true);
             } else {
                 this.#append_line(command, data.output ?? '', false);
+            }
+
+            if (data && data.tab) {
+                this.#append_tab_link(data.tab);
             }
 
             this.input.focus();

@@ -28,6 +28,28 @@ trait RedisConsole {
         'XREAD', 'XREADGROUP',
     ];
 
+    /**
+     * Blocked commands the dashboard covers with a tab, so the error can point there instead of being a dead end.
+     *
+     * @var array<string, string>
+     */
+    private array $console_command_tabs = [
+        'MONITOR'    => 'profiler',
+        'SUBSCRIBE'  => 'pubsub',
+        'PSUBSCRIBE' => 'pubsub',
+        'SSUBSCRIBE' => 'pubsub',
+    ];
+
+    /**
+     * Allowed commands whose raw reply the dashboard also renders as a formatted tab, offered after the output.
+     *
+     * @var array<string, string>
+     */
+    private array $console_command_views = [
+        'SLOWLOG' => 'slowlog',
+        'INFO'    => 'moreinfo',
+    ];
+
     private function consoleAjax(): string {
         header('Content-Type: application/json');
 
@@ -49,14 +71,38 @@ trait RedisConsole {
 
             $this->storeConsoleCommand(trim($line));
 
-            if (in_array(strtoupper($args[0]), $this->console_blocked, true)) {
-                return $this->consoleJson(['error' => 'Command "'.$args[0].'" is not allowed in the console.']);
+            $command = strtoupper($args[0]);
+
+            if (in_array($command, $this->console_blocked, true)) {
+                return $this->consoleJson(
+                    ['error' => 'Command "'.$args[0].'" is not allowed in the console.']
+                    + $this->consoleTabHint($this->console_command_tabs[$command] ?? null, 'Open the %s tab')
+                );
             }
 
-            return $this->consoleJson(['output' => $this->formatReply($this->redis->consoleCommand($args))]);
+            $output = $this->formatReply($this->redis->consoleCommand($args));
+
+            return $this->consoleJson(
+                ['output' => $output]
+                + $this->consoleTabHint($this->console_command_views[$command] ?? null, 'See it formatted on the %s tab')
+            );
         } catch (Throwable $e) {
             return $this->consoleJson(['error' => $e->getMessage()]);
         }
+    }
+
+    /**
+     * @return array<string, array<string, string>>
+     */
+    private function consoleTabHint(?string $tab, string $label): array {
+        if ($tab === null) {
+            return [];
+        }
+
+        return ['tab' => [
+            'url'   => Http::queryString([], ['tab' => $tab]),
+            'label' => sprintf($label, $this->tabs[$tab] ?? $tab),
+        ]];
     }
 
     /**

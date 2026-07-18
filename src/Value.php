@@ -12,11 +12,44 @@ use JsonException;
 
 class Value {
     /**
+     * Decoded and formatted, the default view.
+     */
+    public const MODE_FORMATTED = 'formatted';
+
+    /**
+     * Exactly what is stored, with no decoding or formatting applied.
+     */
+    public const MODE_RAW = 'raw';
+
+    /**
+     * A hex dump of the stored bytes, the only readable view of binary data.
+     */
+    public const MODE_HEX = 'hex';
+
+    /**
+     * Bytes of a value the hex dump covers. It takes about four screen characters to show one byte
+     */
+    public const HEX_LIMIT = 65_536;
+
+    public static function isMode(string $mode): bool {
+        return in_array($mode, [self::MODE_FORMATTED, self::MODE_RAW, self::MODE_HEX], true);
+    }
+
+    /**
      * Format and decode value.
      *
      * @return array<int, mixed>
      */
-    public static function format(string $value): array {
+    public static function format(string $value, string $mode = self::MODE_FORMATTED): array {
+        // Raw and hex show the value as stored, so nothing is decoded and there is no encoder to name.
+        if ($mode === self::MODE_HEX) {
+            return ['<pre class="json-code">'.htmlspecialchars(self::hexDump($value)).'</pre>', null, false];
+        }
+
+        if ($mode === self::MODE_RAW) {
+            return ['<pre class="json-code">'.htmlspecialchars($value).'</pre>', null, false];
+        }
+
         // It's only used to display the name in the UI
         $encoder = null;
         $is_formatted = false;
@@ -31,6 +64,45 @@ class Value {
         $value = self::prettyPrintJson($value);
 
         return [$value, $encoder, $is_formatted];
+    }
+
+    /**
+     * The usual offset / bytes / printable layout, e.g.
+     * `00000000  7b 22 61 22 3a 31 7d 00  ff                       |{"a":1}...|`
+     */
+    public static function hexDump(string $value, int $per_line = 16): string {
+        $length = strlen($value);
+        $shown = min($length, self::HEX_LIMIT);
+        $output = '';
+
+        for ($offset = 0; $offset < $shown; $offset += $per_line) {
+            $chunk = substr($value, $offset, min($per_line, $shown - $offset));
+            $hex = '';
+            $printable = '';
+
+            for ($i = 0; $i < $per_line; $i++) {
+                if ($i < strlen($chunk)) {
+                    $byte = ord($chunk[$i]);
+                    $hex .= sprintf('%02x ', $byte);
+                    $printable .= $byte >= 0x20 && $byte <= 0x7E ? $chunk[$i] : '.';
+                } else {
+                    $hex .= '   '; // keep the printable column aligned on the last, shorter line
+                }
+
+                if ($i === ($per_line / 2) - 1) {
+                    $hex .= ' ';
+                }
+            }
+
+            // $hex already ends in a space, the byte column is padded to a fixed width above.
+            $output .= sprintf("%08x  %s|%s|\n", $offset, $hex, $printable);
+        }
+
+        if ($length > $shown) {
+            $output .= sprintf("\n%s of %s bytes shown.\n", Format::bytes($shown), Format::bytes($length));
+        }
+
+        return $output === '' ? "(empty)\n" : $output;
     }
 
     public static function decoded(string $value, ?string &$encoder = null): string {

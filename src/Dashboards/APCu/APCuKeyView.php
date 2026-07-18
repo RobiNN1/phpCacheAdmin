@@ -51,7 +51,10 @@ trait APCuKeyView {
             }
         }
 
-        [$formatted_value, $encode_fn, $is_formatted] = Value::format($value);
+        $mode = Http::get('value_mode', Value::MODE_FORMATTED);
+        $mode = Value::isMode($mode) ? $mode : Value::MODE_FORMATTED;
+
+        [$formatted_value, $encode_fn, $is_formatted] = Value::format($value, $mode);
 
         return $this->template->render('partials/view_key', [
             'key'        => $key,
@@ -60,6 +63,7 @@ trait APCuKeyView {
             'size'       => Format::bytes($this->getKeySize($key)),
             'encode_fn'  => $encode_fn,
             'formatted'  => $is_formatted,
+            'value_mode' => $mode,
             'edit_url'   => Http::queryString(['ttl'], ['form' => 'edit', 'key' => $key]),
             'view_url'   => Http::queryString(['ttl'], ['view' => 'key', 'key' => $key]),
             'export_url' => Http::queryString(['ttl', 'view', 'p', 'key'], ['export' => 'key']),

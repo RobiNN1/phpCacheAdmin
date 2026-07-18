@@ -49,7 +49,10 @@ trait MemcachedKeyView {
 
         $value = $this->memcached->get($key);
 
-        [$formatted_value, $encode_fn, $is_formatted] = Value::format($value);
+        $mode = Http::get('value_mode', Value::MODE_FORMATTED);
+        $mode = Value::isMode($mode) ? $mode : Value::MODE_FORMATTED;
+
+        [$formatted_value, $encode_fn, $is_formatted] = Value::format($value, $mode);
 
         return $this->template->render('partials/view_key', [
             'key'        => $key,
@@ -58,6 +61,7 @@ trait MemcachedKeyView {
             'size'       => isset($info['size']) ? Format::bytes($info['size']) : null,
             'encode_fn'  => $encode_fn,
             'formatted'  => $is_formatted,
+            'value_mode' => $mode,
             'edit_url'   => Http::queryString(['ttl'], ['form' => 'edit', 'key' => $key]),
             'view_url'   => Http::queryString(['ttl'], ['view' => 'key', 'key' => $key]),
             'export_url' => Http::queryString(['ttl', 'view', 'p', 'key'], ['export' => 'key']),

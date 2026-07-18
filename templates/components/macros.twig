@@ -60,6 +60,18 @@
     {{ _self.badge(type, type_colors[type] ?? 'blue', 'uppercase') }}
 {% endmacro %}
 
+{% macro value_modes(current) %}
+    {% set modes = {formatted: 'Formatted', raw: 'Raw', hex: 'Hex'} %}
+    {% set active = current|default('formatted') %}
+
+    <div class="flex overflow-hidden rounded-sm border border-gray-300 dark:border-gray-600 [&>.active]:text-gray-600 dark:[&>.active]:text-gray-300 [&>.active]:bg-gray-200 dark:[&>.active]:bg-gray-950">
+        {% for mode, label in modes %}
+            <a href="{{ link(['key', 'view', 'p', 'pp', 'subsearch', 'ttl'], {value_mode: mode}) }}" title="{{ label }}"
+               class="flex justify-center items-center py-2 px-3 text-xs font-semibold text-gray-400 cursor-pointer dark:text-gray-500{{ not loop.first ? ' border-l border-gray-300 dark:border-gray-600' : '' }}{{ active == mode ? ' active' : '' }}">{{ label }}</a>
+        {% endfor %}
+    </div>
+{% endmacro %}
+
 {% macro health_status(status) %}
     {% set statuses = {
         healthy: {color: 'green', label: 'Healthy'},

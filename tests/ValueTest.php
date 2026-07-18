@@ -39,6 +39,55 @@ final class ValueTest extends TestCase {
         $this->assertEqualsCanonicalizing([$output, $encoder, $is_serialized], Value::format($value));
     }
 
+    public function testRawModeDoesNotDecode(): void {
+        $compressed = gzcompress('{"0":"test","test":"data"}');
+
+        [$value, $encoder, $is_formatted] = Value::format($compressed, Value::MODE_RAW);
+
+        $this->assertSame('<pre class="json-code">'.htmlspecialchars($compressed).'</pre>', $value);
+        $this->assertNull($encoder);
+        $this->assertFalse($is_formatted);
+    }
+
+    public function testHexModeDoesNotDecode(): void {
+        [$value, $encoder, $is_formatted] = Value::format(gzcompress('test'), Value::MODE_HEX);
+
+        $this->assertStringContainsString('00000000  78', (string) $value);
+        $this->assertNull($encoder);
+        $this->assertFalse($is_formatted);
+    }
+
+    public function testUnknownModeFallsBackToFormatted(): void {
+        $this->assertSame(Value::format('test'), Value::format('test'));
+        $this->assertTrue(Value::isMode('hex'));
+        $this->assertFalse(Value::isMode('nonsense'));
+    }
+
+    public function testHexDump(): void {
+        $this->assertSame(
+            "00000000  7b 22 61 22 3a 31 7d 00  ff                      |{\"a\":1}..|\n",
+            Value::hexDump("{\"a\":1}\x00\xff")
+        );
+
+        $this->assertSame(
+            "00000000  41 41 41 41 41 41 41 41  41 41 41 41 41 41 41 41 |AAAAAAAAAAAAAAAA|\n".
+            "00000010  42 42                                            |BB|\n",
+            Value::hexDump(str_repeat('A', 16).'BB')
+        );
+
+        $this->assertSame("(empty)\n", Value::hexDump(''));
+    }
+
+    public function testHexDumpIsCapped(): void {
+        $dump = Value::hexDump(str_repeat('x', Value::HEX_LIMIT + 4_096));
+
+        $this->assertStringContainsString('of ', $dump);
+        $this->assertStringContainsString('bytes shown', $dump);
+
+        $this->assertStringContainsString(sprintf('%08x', Value::HEX_LIMIT - 16), $dump);
+        $this->assertStringNotContainsString(sprintf('%08x', Value::HEX_LIMIT), $dump);
+    }
+
     /**
      * @return Iterator<string, array{0: string, 1: string}>
      */

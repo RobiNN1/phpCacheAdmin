@@ -75,6 +75,9 @@ trait RedisKeyView {
 
         $value = $this->getAllKeyValues($type, $key);
 
+        $mode = Http::get('value_mode', Value::MODE_FORMATTED);
+        $mode = Value::isMode($mode) ? $mode : Value::MODE_FORMATTED;
+
         $paginator = '';
         $encode_fn = null;
         $is_formatted = null;
@@ -95,10 +98,10 @@ trait RedisKeyView {
             }
 
             $paginator = new Paginator($pairs, [['view', 'key', 'pp', 'subsearch'], ['p' => '']]);
-            $value = $this->formatViewItems($key, $paginator->getPaginated(), $type);
+            $value = $this->formatViewItems($key, $paginator->getPaginated(), $type, $mode);
             $paginator = $paginator->render();
         } else {
-            [$value, $encode_fn, $is_formatted] = Value::format($value);
+            [$value, $encode_fn, $is_formatted] = Value::format($value, $mode);
         }
 
         return $this->template->render('partials/view_key', [
@@ -109,6 +112,7 @@ trait RedisKeyView {
             'size'            => Format::bytes($this->redis->size($key)),
             'encode_fn'       => $encode_fn,
             'formatted'       => $is_formatted,
+            'value_mode'      => $mode,
             'add_subkey_url'  => Http::queryString([], ['form' => 'new', 'key' => $key]),
             'edit_url'        => Http::queryString([], ['form' => 'edit', 'key' => $key]),
             'view_url'        => Http::queryString([], ['view' => 'key', 'key' => $key]),
@@ -129,7 +133,7 @@ trait RedisKeyView {
      *
      * @throws Exception
      */
-    private function formatViewItems(string $key, array $value_items, string $type): array {
+    private function formatViewItems(string $key, array $value_items, string $type, string $mode = Value::MODE_FORMATTED): array {
         $items = [];
 
         foreach ($value_items as [$item_key, $item_value]) {
@@ -141,7 +145,7 @@ trait RedisKeyView {
                 }
             }
 
-            [$formatted_value, $encode_fn, $is_formatted] = Value::format($item_value);
+            [$formatted_value, $encode_fn, $is_formatted] = Value::format($item_value, $mode);
 
             $items[] = [
                 'key'       => $item_key,

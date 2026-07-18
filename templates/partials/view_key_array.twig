@@ -13,14 +13,20 @@
                 class: 'rounded-l-none',
             }) }}
         </div>
+    {% else %}
+        <span></span>
     {% endif %}
 
-    {{ include('components/button.twig', {
-        text: 'Add another value',
-        icon: 'plus',
-        link: add_subkey_url,
-        color: 'green',
-    }) }}
+    <div class="flex flex-wrap gap-3 items-center">
+        {{ include('components/button.twig', {
+            text: 'Add another value',
+            icon: 'plus',
+            link: add_subkey_url,
+            color: 'green',
+        }) }}
+
+        {{ macros.value_modes(value_mode) }}
+    </div>
 </div>
 
 {% for item in value %}

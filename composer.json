@@ -67,6 +67,7 @@
     "phpstan": "phpstan --ansi",
     "test": "phpunit --colors=always --display-skipped",
     "test-cluster": "PCA_REDIS_0_NODES='[\"127.0.0.1:6380\",\"127.0.0.1:6381\",\"127.0.0.1:6382\"]' phpunit --colors=always --display-skipped tests/Dashboards/Redis",
+    "test-sentinel": "PCA_REDIS_0_SENTINELS='[\"127.0.0.1:26379\",\"127.0.0.1:26380\",\"127.0.0.1:26381\"]' phpunit --colors=always --display-skipped tests/Dashboards/Redis",
     "redis-commands": "php bin/generate-redis-commands.php"
   }
 }

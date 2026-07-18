@@ -12,6 +12,16 @@ use Exception;
 
 trait RedisExtra {
     /**
+     * @var array<int|string, mixed>|null
+     */
+    private ?array $info_cache = null;
+
+    /**
+     * @var array<int, array<string, int|string>>|null
+     */
+    private ?array $modules_cache = null;
+
+    /**
      * @return array<int, array<string, mixed>>
      */
     public function parseClientList(string $raw, ?string $self_id = null, ?string $node = null): array {
@@ -108,23 +118,21 @@ trait RedisExtra {
      * @throws Exception
      */
     public function getModules(): array {
-        static $modules = null;
-
-        if ($modules !== null) {
-            return $modules;
+        if ($this->modules_cache !== null) {
+            return $this->modules_cache;
         }
-
-        $modules = [];
 
         try {
             $list = $this->moduleList(); // require Redis >= 4.0
         } catch (Exception) {
-            return [];
+            return $this->modules_cache = [];
         }
 
         if (!is_array($list) || $list === []) {
-            return [];
+            return $this->modules_cache = [];
         }
+
+        $modules = [];
 
         foreach ($list as $module) {
             $modules[] = [
@@ -133,7 +141,7 @@ trait RedisExtra {
             ];
         }
 
-        return $modules;
+        return $this->modules_cache = $modules;
     }
 
     /**

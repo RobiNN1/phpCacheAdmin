@@ -115,3 +115,88 @@ jobs:
         env:
           PCA_REDIS_0_NODES: '["127.0.0.1:7000","127.0.0.1:7001","127.0.0.1:7002"]'
         run: vendor/bin/phpunit tests/Dashboards/Redis
+
+  tests-sentinel:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: true
+      matrix:
+        php: [ '8.2', '8.3', '8.4', '8.5' ]
+        stability: [ prefer-stable ]
+
+    name: PHP ${{ matrix.php }} (Redis Sentinel)
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Install Redis for Sentinel
+        run: |
+          curl -fsSL https://packages.redis.io/gpg | sudo gpg --dearmor -o /usr/share/keyrings/redis-archive-keyring.gpg
+          echo "deb [signed-by=/usr/share/keyrings/redis-archive-keyring.gpg] https://packages.redis.io/deb $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/redis.list
+          sudo apt-get update
+          sudo apt-get install -y redis
+
+      - name: Start Redis with Sentinel
+        run: |
+          REJSON=$(dpkg -S rejson.so 2>/dev/null | awk -F': ' '/rejson\.so$/ {print $2; exit}')
+          [ -n "$REJSON" ] || REJSON=$(find /usr/lib /opt -name rejson.so 2>/dev/null | head -1)
+          sudo sysctl -w vm.overcommit_memory=1 >/dev/null
+          MASTER_PORT=7010
+          REPLICA_COUNT=2
+          for i in $(seq 0 $REPLICA_COUNT); do
+              port=$((MASTER_PORT + i))
+              mkdir -p ./redis-sentinel/node-$port
+              cat > ./redis-sentinel/node-$port/redis.conf <<EOF
+          port $port
+          appendonly no
+          daemonize yes
+          bind 127.0.0.1
+          $([ $i -gt 0 ] && echo "replicaof 127.0.0.1 $MASTER_PORT")
+          dir "$(pwd)/redis-sentinel/node-$port"
+          ${REJSON:+loadmodule $REJSON}
+          EOF
+              redis-server ./redis-sentinel/node-$port/redis.conf
+          done
+          sleep 2
+          for i in 0 1 2; do
+              port=$((26379 + i))
+              mkdir -p ./redis-sentinel/sentinel-$port
+              cat > ./redis-sentinel/sentinel-$port/sentinel.conf <<EOF
+          port $port
+          daemonize yes
+          bind 127.0.0.1
+          sentinel monitor mymaster 127.0.0.1 $MASTER_PORT 2
+          sentinel down-after-milliseconds mymaster 5000
+          sentinel failover-timeout mymaster 10000
+          dir "$(pwd)/redis-sentinel/sentinel-$port"
+          EOF
+              redis-server ./redis-sentinel/sentinel-$port/sentinel.conf --sentinel
+          done
+          for i in $(seq 1 30); do
+              master=$(redis-cli -p 26379 sentinel get-master-addr-by-name mymaster 2>/dev/null | paste -sd: -)
+              if [ -n "$master" ]; then
+                  echo "Redis Sentinel is up, master is $master."
+                  exit 0
+              fi
+              sleep 1
+          done
+          echo "Sentinels did not report a master." >&2
+          exit 1
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: redis
+          coverage: none
+        env:
+          REDIS_CONFIGURE_OPTS: --enable-redis --enable-redis-igbinary --enable-redis-msgpack --enable-redis-lzf --with-liblzf --enable-redis-zstd --with-libzstd --enable-redis-lz4 --with-liblz4
+          REDIS_LIBS: liblz4-dev, liblzf-dev, libzstd-dev
+
+      - name: Install dependencies
+        run: composer update --prefer-dist --no-interaction --no-progress
+      - name: Execute tests
+        env:
+          PCA_REDIS_0_SENTINELS: '["127.0.0.1:26379","127.0.0.1:26380","127.0.0.1:26381"]'
+        run: vendor/bin/phpunit tests/Dashboards/Redis

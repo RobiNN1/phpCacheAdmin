@@ -34,6 +34,10 @@ class RedisDashboard implements DashboardInterface {
 
     public bool $is_cluster = false;
 
+    public bool $is_sentinel = false;
+
+    public string $sentinel_master = '';
+
     public function __construct(private readonly Template $template, ?string $client = null) {
         $this->client = $client ?? (extension_loaded('redis') ? 'redis' : 'predis');
         $this->servers = Config::get('redis', []);
@@ -80,6 +84,14 @@ class RedisDashboard implements DashboardInterface {
     public function connect(array $server): Compatibility\Redis|Compatibility\Predis|Compatibility\Cluster\RedisCluster|Compatibility\Cluster\PredisCluster {
         $server['database'] = Http::get('db', $server['database'] ?? 0);
         $server = $this->resolvePassword($server);
+
+        if (Compatibility\Sentinel::isConfigured($server)) {
+            $master = (new Compatibility\Sentinel($server, $this->client))->masterAddress();
+            $server = array_merge($server, $master);
+
+            $this->is_sentinel = true;
+            $this->sentinel_master = $master['host'].':'.$master['port'];
+        }
 
         $this->is_cluster = !empty($server['nodes']) && is_array($server['nodes']);
 

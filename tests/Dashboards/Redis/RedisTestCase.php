@@ -41,10 +41,13 @@ abstract class RedisTestCase extends TestCase {
 
     protected static bool $is_cluster = false;
 
+    protected static bool $is_sentinel = false;
+
     public static function setUpBeforeClass(): void {
         parent::setUpBeforeClass();
 
         self::$is_cluster = !empty(Config::get('redis')[0]['nodes']);
+        self::$is_sentinel = !empty(Config::get('redis')[0]['sentinels']);
     }
 
     /**
@@ -55,6 +58,13 @@ abstract class RedisTestCase extends TestCase {
 
         if (self::$is_cluster) {
             $config = ['nodes' => Config::get('redis')[0]['nodes']];
+        } elseif (self::$is_sentinel) {
+            // The whole suite against whichever node the sentinels currently call the master.
+            $config = [
+                'sentinels'      => Config::get('redis')[0]['sentinels'],
+                'sentinelmaster' => Config::get('redis')[0]['sentinelmaster'] ?? 'mymaster',
+                'database'       => 10,
+            ];
         } else {
             $config = [
                 'host'     => Config::get('redis')[0]['host'],
@@ -1250,6 +1260,12 @@ abstract class RedisTestCase extends TestCase {
 
         if (self::$is_cluster) {
             [$host, $port] = explode(':', (string) $server['nodes'][0]) + [1 => '6379'];
+
+            return [$host, (int) $port];
+        }
+
+        if (self::$is_sentinel) {
+            [$host, $port] = explode(':', $this->dashboard->sentinel_master);
 
             return [$host, (int) $port];
         }

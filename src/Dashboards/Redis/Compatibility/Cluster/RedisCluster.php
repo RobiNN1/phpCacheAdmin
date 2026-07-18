@@ -83,10 +83,8 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
      * @return array<string, array<string, mixed>>
      */
     public function getInfo(?string $option = null, ?array $combine = null): array {
-        static $aggregated = null;
-
-        if ($aggregated !== null) {
-            $info = $this->aggregatedData($aggregated, $combine);
+        if ($this->info_cache !== null) {
+            $info = $this->aggregatedData($this->info_cache, $combine);
 
             return $option !== null ? ($info[strtolower($option)] ?? []) : $info;
         }
@@ -107,6 +105,7 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
             }
         }
 
+        $this->info_cache = $aggregated;
         $info = $this->aggregatedData($aggregated, $combine);
 
         return $option !== null ? ($info[strtolower($option)] ?? []) : $info;

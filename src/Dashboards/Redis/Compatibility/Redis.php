@@ -101,21 +101,19 @@ class Redis extends \Redis implements RedisCompatibilityInterface {
      * @throws RedisException
      */
     public function getInfo(?string $option = null): array {
-        static $info = null;
-
-        if ($info === null) {
+        if ($this->info_cache === null) {
             try {
-                $info = $this->parseInfoOutput((string) $this->rawcommand('INFO', 'all'));
+                $this->info_cache = $this->parseInfoOutput((string) $this->rawcommand('INFO', 'all'));
             } catch (RedisException) {
-                $info = [];
+                $this->info_cache = [];
             }
         }
 
         if ($option !== null) {
-            return $info[strtolower($option)] ?? [];
+            return $this->info_cache[strtolower($option)] ?? [];
         }
 
-        return $info;
+        return $this->info_cache;
     }
 
     /**

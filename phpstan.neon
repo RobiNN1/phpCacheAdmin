@@ -9,3 +9,6 @@ parameters:
             message: '#Call to an undefined method COM::ExecQuery\(\)\.#'
             path: src/Dashboards/Server/ServerResources.php
             identifier: method.notFound
+        -
+            message: '#RedisSentinel constructor#'
+            path: src/Dashboards/Redis/Compatibility/Sentinel.php

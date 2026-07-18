@@ -36,6 +36,7 @@ and a TTL summary, sampled with SCAN. Includes **recommendations** weighed again
 - **Console** for running Redis commands interactively.
 - **PUB/SUB** support to browse channels, subscribe, and publish messages.
 - **Cluster support**.
+- **Sentinel support**.
 - Supports ACL.
 - Detailed server statistics including command calls, memory usage, uptime, connected clients, and general info.
 - View the Redis slowlog to debug performance issues.
@@ -108,6 +109,9 @@ Redis:
 - `PCA_REDIS_0_NAME` The server name (optional).
 - `PCA_REDIS_0_HOST` Optional when a path or nodes is specified.
 - `PCA_REDIS_0_NODES` List of cluster nodes. You can set value as JSON `["127.0.0.1:7000","127.0.0.1:7001","127.0.0.1:7002"]`.
+- `PCA_REDIS_0_SENTINELS` List of Sentinels, replaces the host/port when set. You can set value as JSON `["127.0.0.1:26379","127.0.0.1:26380","127.0.0.1:26381"]`.
+- `PCA_REDIS_0_SENTINELMASTER` Name of the monitored master (optional). Default `mymaster`.
+- `PCA_REDIS_0_SENTINELPASSWORD` Password of the Sentinels themselves, not of the master (optional).
 - `PCA_REDIS_0_PORT` Optional when the default port is used.
 - `PCA_REDIS_0_SCHEME` Connection scheme (optional). If you need a TLS connection, set it to `tls`.
 - `PCA_REDIS_0_SSL` [SSL options](https://www.php.net/manual/en/context.ssl.php) for TLS. Requires Redis >= 6.0 (optional). You can set value as JSON `{"cafile":"private.pem","verify_peer":true}`.

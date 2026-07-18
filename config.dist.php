@@ -36,6 +36,14 @@ return [
                 '127.0.0.1:7002',
             ],*/
             'port' => 6379, // Optional when the default port is used.
+            /*'sentinels' => [
+                // List of Sentinels. The current master is looked up on every request, so a failover is picked up on the next page load.
+                '127.0.0.1:26379',
+                '127.0.0.1:26380',
+                '127.0.0.1:26381',
+            ],*/
+            //'sentinelmaster'   => 'mymaster', // Name of the monitored master (optional). Default mymaster.
+            //'sentinelpassword' => '', // Password of the Sentinels themselves, not of the master (optional).
             //'scheme'    => 'tls', // Connection scheme (optional).
             /*'ssl'       => [
                 // SSL options for TLS https://www.php.net/manual/en/context.ssl.php - requires Redis >= 6.0 (optional).

@@ -80,21 +80,19 @@ class Predis extends Client implements RedisCompatibilityInterface {
      * @return array<int|string, mixed>
      */
     public function getInfo(?string $option = null): array {
-        static $info = null;
-
-        if ($info === null) {
+        if ($this->info_cache === null) {
             try {
-                $info = $this->parseInfoOutput((string) $this->executeRaw(['INFO', 'all']));
+                $this->info_cache = $this->parseInfoOutput((string) $this->executeRaw(['INFO', 'all']));
             } catch (Exception) {
-                $info = [];
+                $this->info_cache = [];
             }
         }
 
         if ($option !== null) {
-            return $info[strtolower($option)] ?? [];
+            return $this->info_cache[strtolower($option)] ?? [];
         }
 
-        return $info;
+        return $this->info_cache;
     }
 
     /**

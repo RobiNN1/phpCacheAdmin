@@ -186,10 +186,15 @@ class Helpers {
     }
 
     /**
-     * @param array<string, int|string> $server
+     * @param array<string, mixed> $server
      */
     public static function getServerTitle(array $server): string {
         $name = $server['name'] ?? 'Server';
+
+        if (!empty($server['sentinels']) && is_array($server['sentinels'])) {
+            return $name.' - '.($server['sentinelmaster'] ?? 'mymaster');
+        }
+
         $host = isset($server['host']) ? ' - '.$server['host'] : '';
         $port = isset($server['port']) ? ':'.$server['port'] : '';
 
@@ -237,7 +242,7 @@ class Helpers {
     }
 
     /**
-     * @param array<int, array<string, int|string>> $servers
+     * @param array<int, array<string, mixed>> $servers
      */
     public static function serverSelector(array $servers, int $selected): string {
         if (count($servers) === 1) {

@@ -85,8 +85,16 @@ trait RedisPanels {
             $mode = $server_info['redis_mode'] ?? null;
         }
 
+        $sentinel = null;
+
+        if ($this->is_sentinel) {
+            $master_name = $this->servers[$this->current_server]['sentinelmaster'] ?? 'mymaster';
+            $sentinel = ['Sentinel', $master_name.' at '.$this->sentinel_master];
+        }
+
         $data = [
             'Version' => $version.($mode !== null ? ', '.$mode.' mode' : ''),
+            $sentinel,
             'Cluster' => ($cluster_info['cluster_enabled'] ?? 0) ? 'Enabled' : 'Disabled',
             'Uptime'  => Format::seconds((int) ($server_info['uptime_in_seconds'] ?? 0), false),
             $role,

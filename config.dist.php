@@ -25,6 +25,7 @@ return [
         RobiNN\Pca\Dashboards\APCu\APCuDashboard::class,
         RobiNN\Pca\Dashboards\Realpath\RealpathDashboard::class,
     ],
+    //'redisclient'    => 'predis', // redis or predis. Auto-detected when not set.
     'redis'          => [
         [
             'name' => 'Localhost', // The server name (optional).

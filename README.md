@@ -106,6 +106,7 @@ Or you can even use JSON (e.g., Redis SSL option).
 
 Redis:
 
+- `PCA_REDISCLIENT` `redis` or `predis`. Auto-detected when not set, set it to `predis` if the installed phpredis is too old.
 - `PCA_REDIS_0_NAME` The server name (optional).
 - `PCA_REDIS_0_HOST` Optional when a path or nodes is specified.
 - `PCA_REDIS_0_NODES` List of cluster nodes. You can set value as JSON `["127.0.0.1:7000","127.0.0.1:7001","127.0.0.1:7002"]`.

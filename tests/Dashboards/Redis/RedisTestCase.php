@@ -28,6 +28,11 @@ use Tests\TestCase;
 use Throwable;
 
 abstract class RedisTestCase extends TestCase {
+    private const CLIENT_LIST =
+        "id=3 addr=127.0.0.1:50001 laddr=127.0.0.1:6379 name=worker age=10 idle=5 flags=N db=0 cmd=get user=default tot-mem=20512\r\n"
+        ."id=4 addr=127.0.0.1:50002 name= age=1 idle=0 flags=O db=1 cmd=monitor user=alice tot-mem=100\n"
+        ."id=5 addr=127.0.0.1:50003 name=app=worker age=1 idle=0 flags=N db=0 cmd=ping user=default tot-mem=100\n";
+
     private RedisDashboard $dashboard;
 
     private Redis|Predis|RedisCluster|PredisCluster $redis;
@@ -66,55 +71,90 @@ abstract class RedisTestCase extends TestCase {
      * @throws Exception
      */
     protected function tearDown(): void {
-        // A failed test would skip its own cleanup and leak these into the following tests.
-        unset($_GET['pubsub'], $_GET['db'], $_POST['publish'], $_POST['channel'], $_POST['message'], $_POST['csrf_token']);
+        $_GET = [];
+        $_POST = [];
+        $_FILES = [];
+
+        @unlink($this->consoleHistoryFile());
 
         $this->redis->flushDatabase();
+    }
+
+    private function consoleHistoryFile(): string {
+        $name = 'redis_history_'.md5(Helpers::getServerTitle(Config::get('redis')[0]).Config::get('hash', 'pca')).'.json';
+
+        return Config::get('tmpdir', dirname(__DIR__, 3).'/tmp').'/console/'.$name;
     }
 
     /**
      * @throws Exception
      */
-    public function testAjax(): void {
+    public function testAjaxPanels(): void {
         $_GET['db'] = 10;
-
         $_GET['panels'] = '';
+
         $panels = $this->dashboard->ajax();
+
         $this->assertJson($panels);
         $this->assertStringNotContainsString('"error"', $panels);
-        unset($_GET['panels']);
+    }
 
-        $view_key = 'pu-test-ajax-view';
-        $this->redis->set($view_key, 'view-data');
+    /**
+     * @throws Exception
+     */
+    public function testAjaxViewKey(): void {
+        $key = 'pu-test-ajax-view';
+        $this->redis->set($key, 'view-data');
+
+        $_GET['db'] = 10;
         $_GET['view'] = 'key';
-        $_GET['key'] = $view_key;
-        $rendered = $this->dashboard->ajax();
-        $this->assertStringContainsString($view_key, $rendered);
-        $this->assertStringContainsString('view-data', $rendered);
-        unset($_GET['view'], $_GET['key']);
-        $this->redis->del($view_key);
+        $_GET['key'] = $key;
 
+        $rendered = $this->dashboard->ajax();
+
+        $this->assertStringContainsString($key, $rendered);
+        $this->assertStringContainsString('view-data', $rendered);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testAjaxDeleteKeyWithInvalidCsrf(): void {
         $key = 'pu-test-ajax';
         $this->redis->set($key, 'data');
 
+        $_GET['db'] = 10;
         $_GET['delete'] = '';
         $_POST['delete'] = json_encode(base64_encode($key), JSON_THROW_ON_ERROR);
-
         $this->setCsrfToken(false);
-        $this->assertSame(
-            Helpers::alert('Invalid CSRF token.', 'error'),
-            $this->dashboard->ajax()
-        );
-        $this->assertSame(1, $this->redis->exists($key));
 
+        $this->assertSame(Helpers::alert('Invalid CSRF token.', 'error'), $this->dashboard->ajax());
+        $this->assertSame(1, $this->redis->exists($key));
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testAjaxDeleteKey(): void {
+        $key = 'pu-test-ajax';
+        $this->redis->set($key, 'data');
+
+        $_GET['db'] = 10;
+        $_GET['delete'] = '';
+        $_POST['delete'] = json_encode(base64_encode($key), JSON_THROW_ON_ERROR);
         $this->setCsrfToken();
+
         $this->assertSame(
             Helpers::alert(sprintf('Key "%s" has been deleted.', $key), 'success'),
             $this->dashboard->ajax()
         );
         $this->assertSame(0, $this->redis->exists($key));
+    }
 
-        unset($_GET['delete'], $_GET['db'], $_POST['delete'], $_POST['csrf_token']);
+    private function metricsDb(string $server_name): string {
+        $dir = Config::get('metricsdir', dirname(__DIR__, 3).'/tmp/metrics');
+
+        return $dir.'/redis_metrics_'.md5($server_name.Config::get('hash', 'pca')).'.db';
     }
 
     /**
@@ -135,12 +175,24 @@ abstract class RedisTestCase extends TestCase {
         $data = json_decode($metrics->collectAndRespond(), true, 512, JSON_THROW_ON_ERROR);
         $this->assertCount(1, $data);
 
-        $db = Config::get('metricsdir', dirname(__DIR__, 3).'/tmp/metrics').'/redis_metrics_'.md5($server_name.Config::get('hash', 'pca')).'.db';
+        @unlink($this->metricsDb($server_name));
+    }
+
+    /**
+     * @throws JsonException
+     */
+    public function testMetricsLegacyRowsWithoutCommandsStats(): void {
+        $server_name = 'pu-metrics-'.uniqid('', true);
+        $metrics = new RedisMetrics($this->redis, [['name' => $server_name]], 0);
+        $metrics->collectAndRespond();
+
+        $db = $this->metricsDb($server_name);
 
         // Databases from before the commands_stats column existed hold NULL in the rows collected back then.
         (new PDO('sqlite:'.$db))->exec('INSERT INTO metrics (timestamp) VALUES ('.(time() - 100).')');
 
         $data = json_decode($metrics->collectAndRespond(), true, 512, JSON_THROW_ON_ERROR);
+
         $this->assertCount(2, $data);
         $this->assertSame([], $data[0]['commands_stats']);
 
@@ -235,13 +287,18 @@ abstract class RedisTestCase extends TestCase {
     /**
      * @throws Exception
      */
-    public function testClusterValueAggregation(): void {
+    public function testCombineValues(): void {
         $this->assertSame('8.0.0', $this->redis->combineValues('redis_version', ['8.0.0', '8.0.0'], null)); // identical values collapse
         $this->assertSame(30, $this->redis->combineValues('used_memory', [10, 20], ['used_memory'])); // listed keys are summed
         $this->assertEqualsWithDelta(1.5, $this->redis->combineValues('mem_fragmentation_ratio', [1.0, 2.0], null), PHP_FLOAT_EPSILON); // averaged
         $this->assertSame(20, $this->redis->combineValues('used_memory_peak', [10, 20], null)); // highest value
         $this->assertSame([10, 20], $this->redis->combineValues('unknown_key', [10, 20], null)); // kept per node
+    }
 
+    /**
+     * @throws Exception
+     */
+    public function testAggregatedData(): void {
         $result = $this->redis->aggregatedData([
             'stats'    => ['keyspace_hits' => [1, 2]],
             'keyspace' => ['db0' => ['keys=1', 'keys=2']],
@@ -270,75 +327,124 @@ abstract class RedisTestCase extends TestCase {
     /**
      * @throws Exception
      */
-    public function testDeleteSubKey(): void {
+    public function testDeleteSubKeyFromHash(): void {
         $this->saveData(['rtype' => 'hash', 'key' => 'pu-del-hash', 'value' => 'v1', 'hash_key' => 'f1']);
         $this->saveData(['rtype' => 'hash', 'key' => 'pu-del-hash', 'value' => 'v2', 'hash_key' => 'f2']);
-        $this->dashboard->deleteSubKey('hash', 'pu-del-hash', 'f1');
-        $this->assertSame(['f2' => 'v2'], $this->dashboard->getAllKeyValues('hash', 'pu-del-hash'));
 
+        $this->dashboard->deleteSubKey('hash', 'pu-del-hash', 'f1');
+
+        $this->assertSame(['f2' => 'v2'], $this->dashboard->getAllKeyValues('hash', 'pu-del-hash'));
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testDeleteSubKeyFromList(): void {
         foreach (['a', 'b', 'c'] as $value) {
             $this->saveData(['rtype' => 'list', 'key' => 'pu-del-list', 'value' => $value, 'index' => '']);
         }
 
         $this->dashboard->deleteSubKey('list', 'pu-del-list', 1);
-        $this->assertSame(['a', 'c'], $this->dashboard->getAllKeyValues('list', 'pu-del-list'));
 
+        $this->assertSame(['a', 'c'], $this->dashboard->getAllKeyValues('list', 'pu-del-list'));
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testDeleteSubKeyFromSet(): void {
         $this->saveData(['rtype' => 'set', 'key' => 'pu-del-set', 'value' => 'm1']);
         $this->saveData(['rtype' => 'set', 'key' => 'pu-del-set', 'value' => 'm2']);
-        $this->dashboard->deleteSubKey('set', 'pu-del-set', 0); // members are addressed by their position
-        $this->assertCount(1, $this->dashboard->getAllKeyValues('set', 'pu-del-set'));
 
+        $this->dashboard->deleteSubKey('set', 'pu-del-set', 0);
+
+        $this->assertCount(1, $this->dashboard->getAllKeyValues('set', 'pu-del-set'));
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testDeleteSubKeyFromZSet(): void {
         $this->saveData(['rtype' => 'zset', 'key' => 'pu-del-zset', 'value' => 'm1', 'score' => 1]);
         $this->saveData(['rtype' => 'zset', 'key' => 'pu-del-zset', 'value' => 'm2', 'score' => 2]);
-        $this->dashboard->deleteSubKey('zset', 'pu-del-zset', 0); // ranges are sorted by score
-        $this->assertSame(['m2'], $this->dashboard->getAllKeyValues('zset', 'pu-del-zset'));
 
+        $this->dashboard->deleteSubKey('zset', 'pu-del-zset', 0);
+
+        $this->assertSame(['m2'], $this->dashboard->getAllKeyValues('zset', 'pu-del-zset'));
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testDeleteSubKeyFromStream(): void {
         $this->saveData(['rtype' => 'stream', 'key' => 'pu-del-stream', 'value' => '{"f":"1"}', 'stream_id' => '*']);
         $this->saveData(['rtype' => 'stream', 'key' => 'pu-del-stream', 'value' => '{"f":"2"}', 'stream_id' => '*']);
+
         $ids = array_keys($this->dashboard->getAllKeyValues('stream', 'pu-del-stream'));
         $this->dashboard->deleteSubKey('stream', 'pu-del-stream', $ids[0]);
+
         $this->assertCount(1, $this->dashboard->getAllKeyValues('stream', 'pu-del-stream'));
     }
 
     /**
      * @throws Exception
      */
-    public function testViewKeySubSearch(): void {
-        $key = 'pu-test-subsearch-hash';
-
-        $this->saveData(['rtype' => 'hash', 'key' => $key, 'hash_key' => 'apple', 'value' => 'redfruit']);
-        $this->saveData(['rtype' => 'hash', 'key' => $key, 'hash_key' => 'banana', 'value' => 'yellowfruit']);
-        $this->saveData(['rtype' => 'hash', 'key' => $key, 'hash_key' => 'carrot', 'value' => 'orangeveg']);
+    private function seedSubSearchHash(): void {
+        $this->saveData(['rtype' => 'hash', 'key' => 'pu-test-subsearch-hash', 'hash_key' => 'apple', 'value' => 'redfruit']);
+        $this->saveData(['rtype' => 'hash', 'key' => 'pu-test-subsearch-hash', 'hash_key' => 'banana', 'value' => 'yellowfruit']);
+        $this->saveData(['rtype' => 'hash', 'key' => 'pu-test-subsearch-hash', 'hash_key' => 'carrot', 'value' => 'orangeveg']);
 
         $_GET['db'] = 10;
         $_GET['view'] = 'key';
-        $_GET['key'] = $key;
+        $_GET['key'] = 'pu-test-subsearch-hash';
+    }
 
-        // The search box is shown for collections with more than one item.
-        $rendered = $this->dashboard->ajax();
-        $this->assertStringContainsString('id="subsearch_key"', $rendered);
+    /**
+     * @throws Exception
+     */
+    public function testViewKeySubSearchShowsSearchBox(): void {
+        $this->seedSubSearchHash();
 
-        // Match by the subkey (hash field name).
+        $this->assertStringContainsString('id="subsearch_key"', $this->dashboard->ajax());
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testViewKeySubSearchMatchesSubKey(): void {
+        $this->seedSubSearchHash();
+
         $_GET['subsearch'] = 'banana';
         $rendered = $this->dashboard->ajax();
+
         $this->assertStringContainsString('yellowfruit', $rendered);
         $this->assertStringNotContainsString('redfruit', $rendered);
         $this->assertStringNotContainsString('orangeveg', $rendered);
+    }
 
-        // Match by the value.
+    /**
+     * @throws Exception
+     */
+    public function testViewKeySubSearchMatchesValue(): void {
+        $this->seedSubSearchHash();
+
         $_GET['subsearch'] = 'orangeveg';
         $rendered = $this->dashboard->ajax();
+
         $this->assertStringContainsString('orangeveg', $rendered);
         $this->assertStringNotContainsString('redfruit', $rendered);
         $this->assertStringNotContainsString('yellowfruit', $rendered);
+    }
 
-        // No matches.
+    /**
+     * @throws Exception
+     */
+    public function testViewKeySubSearchWithoutMatches(): void {
+        $this->seedSubSearchHash();
+
         $_GET['subsearch'] = 'zzzznomatch';
-        $rendered = $this->dashboard->ajax();
-        $this->assertStringContainsString('No items match your search.', $rendered);
 
-        unset($_GET['db'], $_GET['view'], $_GET['key'], $_GET['subsearch']);
-        $this->redis->del($key);
+        $this->assertStringContainsString('No items match your search.', $this->dashboard->ajax());
     }
 
     /**
@@ -433,18 +539,24 @@ abstract class RedisTestCase extends TestCase {
         $all_values = array_values($this->dashboard->getAllKeyValues('stream', $key));
         $this->assertEquals(['field1' => 'v1', 'field2' => 'v2'], $all_values[0]);
         $this->assertEquals(['field3' => 'v3'], $all_values[1]);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testStreamTypeEditEntry(): void {
+        $key = 'pu-test-type-stream';
+
+        $this->saveData(['rtype' => 'stream', 'key' => $key, 'value' => json_encode(['field1' => 'v1'], JSON_THROW_ON_ERROR)]);
+        $this->saveData(['rtype' => 'stream', 'key' => $key, 'value' => json_encode(['field3' => 'v3'], JSON_THROW_ON_ERROR)]);
 
         $_GET['stream_id'] = array_key_last($this->redis->xRange($key, '-', '+'));
-        $this->saveData([
-            'rtype' => 'stream',
-            'key'   => $key,
-            'value' => json_encode(['field3' => 'edited'], JSON_THROW_ON_ERROR),
-        ]);
+        $this->saveData(['rtype' => 'stream', 'key' => $key, 'value' => json_encode(['field3' => 'edited'], JSON_THROW_ON_ERROR)]);
 
         $all_values = array_values($this->dashboard->getAllKeyValues('stream', $key));
-        $this->assertEquals(['field3' => 'edited'], $all_values[1]);
 
-        unset($_GET['stream_id']);
+        $this->assertEquals(['field1' => 'v1'], $all_values[0]); // other entries stay untouched
+        $this->assertEquals(['field3' => 'edited'], $all_values[1]);
     }
 
     /**
@@ -535,31 +647,13 @@ abstract class RedisTestCase extends TestCase {
                 'name'     => 'pu-test-tree1',
                 'path'     => 'pu-test-tree1',
                 'children' => [
-                    [
-                        'type'  => 'key',
-                        'name'  => 'sub1',
-                        'key'   => 'pu-test-tree1:sub1',
-                        'items' => null,
-                        'info'  => $info,
-                    ],
-                    [
-                        'type'  => 'key',
-                        'name'  => 'sub2',
-                        'key'   => 'pu-test-tree1:sub2',
-                        'items' => null,
-                        'info'  => $info,
-                    ],
+                    ['type' => 'key', 'name' => 'sub1', 'key' => 'pu-test-tree1:sub1', 'items' => null, 'info' => $info,],
+                    ['type' => 'key', 'name' => 'sub2', 'key' => 'pu-test-tree1:sub2', 'items' => null, 'info' => $info,],
                 ],
                 'expanded' => false,
                 'count'    => 2,
             ],
-            [
-                'type'  => 'key',
-                'name'  => 'pu-test-tree2',
-                'key'   => 'pu-test-tree2',
-                'items' => null,
-                'info'  => $info,
-            ],
+            ['type' => 'key', 'name' => 'pu-test-tree2', 'key' => 'pu-test-tree2', 'items' => null, 'info' => $info,],
         ];
 
         $result = $this->dashboard->keysTreeView($result);
@@ -632,9 +726,11 @@ abstract class RedisTestCase extends TestCase {
     }
 
     /**
+     * @return array<string, mixed>
+     *
      * @throws Exception
      */
-    public function testAnalysis(): void {
+    private function runAnalysis(): array {
         for ($i = 0; $i < 200; $i++) {
             $this->redis->set('pu-analysis:cache:page:'.$i, str_repeat('x', 50));
         }
@@ -652,68 +748,115 @@ abstract class RedisTestCase extends TestCase {
 
         sort($keys);
 
-        $analysis = $this->dashboard->analyzeKeys($keys, $this->redis->pipelineKeys($keys), 2, count($keys));
+        return $this->dashboard->analyzeKeys($keys, $this->redis->pipelineKeys($keys), 2, count($keys));
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testAnalysisSummary(): void {
+        $analysis = $this->runAnalysis();
 
         $this->assertSame(204, $analysis['summary']['scanned']);
         $this->assertSame(5, $analysis['summary']['namespaces']);
-        $this->assertCount(4, $analysis['tiles']);
-
-        $this->assertSame('pu-analysis:zz-blob:huge', $analysis['top_memory'][0]['key']);
-        $this->assertGreaterThan(50000, $analysis['top_memory'][0]['size']);
-
-        $this->assertSame('pu-analysis:list:big', $analysis['top_length'][0]['key']);
-        $this->assertSame(30, $analysis['top_length'][0]['items']);
-
-        $cache = $this->findRow($analysis['namespaces'], 'pu-analysis:cache');
-        $this->assertSame(200, $cache['count']);
-        $this->assertGreaterThan(0, $cache['memory']);
-        $this->assertSame(1, $this->findRow($analysis['namespaces'], '(no namespace)')['count']);
-
-        $this->assertSame(203, $this->findRow($analysis['types'], 'string')['count']);
-        $this->assertSame(1, $this->findRow($analysis['types'], 'list')['count']);
-
-        $this->assertSame(203, $this->findRow($analysis['expiry'], 'No expiry')['count']);
-        $this->assertSame(1, $this->findRow($analysis['expiry'], '< 1 hour')['count']);
         $this->assertSame(203, $analysis['summary']['no_expiry']['count']);
-
+        $this->assertCount(4, $analysis['tiles']);
         $this->assertTrue($analysis['memory']);
     }
 
     /**
      * @throws Exception
      */
-    public function testAnalysisRecommendations(): void {
-        $this->redis->set('pu-rec:blob:big', str_repeat('x', 1_200_000));
-        $this->redis->set('pu-rec:small:1', 'value');
+    public function testAnalysisTopKeys(): void {
+        $analysis = $this->runAnalysis();
 
-        foreach (range(1, 5200) as $i) {
-            $this->dashboard->store('list', 'pu-rec:list:long', 'item'.$i);
-        }
+        $this->assertSame('pu-analysis:zz-blob:huge', $analysis['top_memory'][0]['key']);
+        $this->assertGreaterThan(50000, $analysis['top_memory'][0]['size']);
 
-        foreach (range(1, 200) as $i) {
-            $this->dashboard->store('hash', 'pu-rec:hash:wide', 'v'.$i, '', ['hash_key' => 'f'.$i]);
-        }
+        $this->assertSame('pu-analysis:list:big', $analysis['top_length'][0]['key']);
+        $this->assertSame(30, $analysis['top_length'][0]['items']);
+    }
 
+    /**
+     * @throws Exception
+     */
+    public function testAnalysisNamespaces(): void {
+        $analysis = $this->runAnalysis();
+
+        $cache = $this->findRow($analysis['namespaces'], 'pu-analysis:cache');
+        $this->assertSame(200, $cache['count']);
+        $this->assertGreaterThan(0, $cache['memory']);
+
+        $this->assertSame(1, $this->findRow($analysis['namespaces'], '(no namespace)')['count']);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testAnalysisTypeAndExpiryBreakdown(): void {
+        $analysis = $this->runAnalysis();
+
+        $this->assertSame(203, $this->findRow($analysis['types'], 'string')['count']);
+        $this->assertSame(1, $this->findRow($analysis['types'], 'list')['count']);
+
+        $this->assertSame(203, $this->findRow($analysis['expiry'], 'No expiry')['count']);
+        $this->assertSame(1, $this->findRow($analysis['expiry'], '< 1 hour')['count']);
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     *
+     * @throws Exception
+     */
+    private function recommendationsFor(): array {
         $keys = $this->redis->scanKeys('pu-rec*', 1000);
         $pipeline = $this->redis->pipelineKeys($keys);
 
         $context = ['maxmemory' => 0, 'maxmemory_policy' => 'noeviction', 'hash_directive' => 'hash-max-listpack-entries', 'hash_limit' => 128];
-        $found = $this->dashboard->analyzeKeys($keys, $pipeline, 2, count($keys), $context)['recommendations'];
 
-        $big = $this->findRow($found, 'Big keys');
+        return $this->dashboard->analyzeKeys($keys, $pipeline, 2, count($keys), $context)['recommendations'];
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testAnalysisRecommendsBigKeys(): void {
+        $this->redis->set('pu-rec:blob:big', str_repeat('x', 1_200_000));
+        $this->redis->set('pu-rec:small:1', 'value');
+
+        $big = $this->findRow($this->recommendationsFor(), 'Big keys');
+
         $this->assertSame('warning', $big['status']); // over 1 MB but under the 10 MB mark
         $this->assertCount(1, $big['keys']);
         $this->assertSame('pu-rec:blob:big', $big['keys'][0]['key']);
+    }
 
-        $long = $this->findRow($found, 'Long collections');
+    /**
+     * @throws Exception|Throwable
+     */
+    public function testAnalysisRecommendsLongCollections(): void {
+        // Seeded with one command, 5200 individual round trips only add wall time.
+        $items = array_map(static fn (int $i): string => 'item'.$i, range(1, 5200));
+        $this->redis->consoleCommand(['RPUSH', 'pu-rec:list:long', ...$items]);
+
+        $long = $this->findRow($this->recommendationsFor(), 'Long collections');
+
         $this->assertSame('pu-rec:list:long', $long['keys'][0]['key']);
+    }
 
-        $hashes = $this->findRow($found, 'Hashes past the listpack limit');
+    /**
+     * @throws Exception
+     */
+    public function testAnalysisRecommendsHashesPastListpackLimit(): void {
+        foreach (range(1, 200) as $i) {
+            $this->dashboard->store('hash', 'pu-rec:hash:wide', 'v'.$i, '', ['hash_key' => 'f'.$i]);
+        }
+
+        $hashes = $this->findRow($this->recommendationsFor(), 'Hashes past the listpack limit');
+
         $this->assertSame('info', $hashes['status']);
         $this->assertSame('pu-rec:hash:wide', $hashes['keys'][0]['key']);
         $this->assertStringContainsString('128', (string) $hashes['directive']);
-
-        $this->assertSame('warning', $this->findRow($found, 'Keys without a TTL')['status']);
     }
 
     /**
@@ -737,7 +880,19 @@ abstract class RedisTestCase extends TestCase {
         $this->assertSame([50.0, 50.0], array_column($analysis['namespaces'], 'percent'));
 
         $this->assertSame([], array_filter($analysis['recommendations'], static fn (array $r): bool => $r['name'] === 'Big keys'));
+    }
 
+    /**
+     * @throws Exception
+     */
+    public function testAnalysisMemoryIsOffWhenSizesAreMissing(): void {
+        $this->redis->set('pu-nomem:a:1', 'value');
+        $this->redis->set('pu-nomem:b:1', 'value');
+
+        $keys = $this->redis->scanKeys('pu-nomem*', 100);
+        $pipeline = $this->redis->pipelineKeys($keys);
+
+        // A server without MEMORY USAGE reports every size as 0, the memory column would be all zeros.
         foreach (array_keys($pipeline) as $key) {
             $pipeline[$key]['size'] = 0;
         }
@@ -746,31 +901,37 @@ abstract class RedisTestCase extends TestCase {
     }
 
     /**
+     * @param array<string, mixed> $context
+     *
      * @throws Exception
      */
-    public function testAnalysisNoExpiryRecommendationDependsOnThePolicy(): void {
+    #[DataProvider('noExpiryPolicyProvider')]
+    public function testAnalysisNoExpiryRecommendationDependsOnThePolicy(array $context, ?string $expected): void {
         $this->redis->set('pu-policy:key', 'value');
 
         $keys = $this->redis->scanKeys('pu-policy*', 100);
-        $pipeline = $this->redis->pipelineKeys($keys);
+        $found = $this->dashboard->analyzeKeys($keys, $this->redis->pipelineKeys($keys), 1, 1, $context)['recommendations'];
 
-        $status = function (array $context) use ($keys, $pipeline): ?string {
-            $found = $this->dashboard->analyzeKeys($keys, $pipeline, 1, 1, $context)['recommendations'];
+        $status = null;
 
-            foreach ($found as $recommendation) {
-                if ($recommendation['name'] === 'Keys without a TTL') {
-                    return $recommendation['status'];
-                }
+        foreach ($found as $recommendation) {
+            if ($recommendation['name'] === 'Keys without a TTL') {
+                $status = $recommendation['status'];
             }
+        }
 
-            return null;
-        };
+        $this->assertSame($expected, $status);
+    }
 
-        $this->assertSame('critical', $status(['maxmemory' => 1_000_000, 'maxmemory_policy' => 'volatile-lru']));
-        $this->assertSame('warning', $status(['maxmemory' => 1_000_000, 'maxmemory_policy' => 'noeviction']));
-        $this->assertSame('warning', $status(['maxmemory' => 0, 'maxmemory_policy' => 'noeviction']));
-        $this->assertNull($status(['maxmemory' => 1_000_000, 'maxmemory_policy' => 'allkeys-lru']));
-        $this->assertNull($status([]));
+    /**
+     * @return Iterator<string, array{0: array<string, mixed>, 1: string|null}>
+     */
+    public static function noExpiryPolicyProvider(): Iterator {
+        yield 'volatile policy with a memory limit' => [['maxmemory' => 1_000_000, 'maxmemory_policy' => 'volatile-lru'], 'critical'];
+        yield 'noeviction with a memory limit' => [['maxmemory' => 1_000_000, 'maxmemory_policy' => 'noeviction'], 'warning'];
+        yield 'noeviction without a memory limit' => [['maxmemory' => 0, 'maxmemory_policy' => 'noeviction'], 'warning'];
+        yield 'allkeys eviction policy' => [['maxmemory' => 1_000_000, 'maxmemory_policy' => 'allkeys-lru'], null];
+        yield 'no server context' => [[], null];
     }
 
     /**
@@ -875,7 +1036,8 @@ abstract class RedisTestCase extends TestCase {
     public function testProfilerCapture(): void {
         $this->backgroundNoise('$r->set("pu-profiler-key", "a value with spaces"); $r->get("pu-profiler-key");');
 
-        $commands = $this->dashboard->captureCommands(3, 100);
+        // The noise lands ~0.4s in, the rest of the window only adds wall time to the suite.
+        $commands = $this->dashboard->captureCommands(2, 100);
 
         $this->assertNotEmpty($commands);
 
@@ -923,32 +1085,39 @@ abstract class RedisTestCase extends TestCase {
         $this->assertTrue($this->redis->resetSlowlog());
     }
 
-    public function testParseClientList(): void {
-        $raw = "id=3 addr=127.0.0.1:50001 laddr=127.0.0.1:6379 name=worker age=10 idle=5 flags=N db=0 cmd=get user=default tot-mem=20512\r\n"
-            ."id=4 addr=127.0.0.1:50002 name= age=1 idle=0 flags=O db=1 cmd=monitor user=alice tot-mem=100\n"
-            ."id=5 addr=127.0.0.1:50003 name=app=worker age=1 idle=0 flags=N db=0 cmd=ping user=default tot-mem=100\n";
-
-        $clients = $this->redis->parseClientList($raw, '4', '127.0.0.1:7000');
+    public function testParseClientListFields(): void {
+        $clients = $this->redis->parseClientList(self::CLIENT_LIST, '4', '127.0.0.1:7000');
 
         $this->assertCount(3, $clients);
-
-        // CLIENT SETNAME allows an "=" in the name, only the first one separates the field.
-        $this->assertSame('app=worker', $clients[2]['name']);
 
         $this->assertSame('3', $clients[0]['id']);
         $this->assertSame('127.0.0.1:50001', $clients[0]['addr']);
         $this->assertSame('worker', $clients[0]['name']);
         $this->assertSame('20512', $clients[0]['tot-mem']);
-        $this->assertFalse($clients[0]['self']);
 
-        // An empty value still has to be a key, and the node is stamped on every row.
+        // An empty value still has to be a key.
         $this->assertSame('', $clients[1]['name']);
         $this->assertSame('alice', $clients[1]['user']);
-        $this->assertTrue($clients[1]['self']);
-        $this->assertSame('127.0.0.1:7000', $clients[1]['node']);
+    }
 
+    public function testParseClientListNameWithEquals(): void {
+        $this->assertSame('app=worker', $this->redis->parseClientList(self::CLIENT_LIST)[2]['name']);
+    }
+
+    public function testParseClientListMarksSelfAndStampsNode(): void {
+        $clients = $this->redis->parseClientList(self::CLIENT_LIST, '4', '127.0.0.1:7000');
+
+        $this->assertFalse($clients[0]['self']);
+        $this->assertTrue($clients[1]['self']);
+
+        // The node is stamped on every row.
+        $this->assertSame('127.0.0.1:7000', $clients[0]['node']);
+        $this->assertSame('127.0.0.1:7000', $clients[1]['node']);
+    }
+
+    public function testParseClientListWithInvalidInput(): void {
         $this->assertSame([], $this->redis->parseClientList(''));
-        $this->assertSame([], $this->redis->parseClientList('garbage without an id')); // nothing to address it by
+        $this->assertSame([], $this->redis->parseClientList('garbage without an id'));
     }
 
     /**
@@ -961,8 +1130,6 @@ abstract class RedisTestCase extends TestCase {
 
         $self = array_values(array_filter($clients, static fn (array $client): bool => $client['self'] === true));
 
-        // The connection this test runs on has to be in there. A cluster holds one per node,
-        // and each of those marks its own.
         $this->assertNotEmpty($self);
 
         if (!self::$is_cluster) {
@@ -1027,7 +1194,9 @@ abstract class RedisTestCase extends TestCase {
         $this->assertSame('get', $client['command']);
         $this->assertSame('127.0.0.1:7000', $client['node']);
         $this->assertTrue($client['self']);
+    }
 
+    public function testFormatClientDefaults(): void {
         $client = $this->dashboard->formatClient(['id' => '1', 'flags' => 'N']);
 
         $this->assertSame('', $client['addr']);
@@ -1047,8 +1216,6 @@ abstract class RedisTestCase extends TestCase {
 
         $this->assertStringContainsString('Connected clients', $html);
         $this->assertStringContainsString('This dashboard', $html); // the dashboard's own connection is marked
-
-        unset($_GET['tab']);
     }
 
     /**
@@ -1061,8 +1228,6 @@ abstract class RedisTestCase extends TestCase {
 
         $this->expectOutputRegex('/Invalid CSRF token/');
         $this->dashboard->dashboard();
-
-        unset($_GET['tab'], $_POST['kill_client'], $_POST['csrf_token']);
     }
 
     /**
@@ -1075,8 +1240,6 @@ abstract class RedisTestCase extends TestCase {
 
         $this->expectOutputRegex('/no longer connected/');
         $this->dashboard->dashboard();
-
-        unset($_GET['tab'], $_POST['kill_client'], $_POST['csrf_token']);
     }
 
     /**
@@ -1104,21 +1267,10 @@ abstract class RedisTestCase extends TestCase {
         return $command;
     }
 
-    public function testParseNumSubReply(): void {
-        $this->assertSame(['a' => 2, 'b' => 0], $this->redis->parseNumSubReply(['a', 2, 'b', 0]));
-        $this->assertSame(['a' => 2], $this->redis->parseNumSubReply(['a' => '2'])); // phpredis can return an associative reply
-        $this->assertSame([], $this->redis->parseNumSubReply([]));
-    }
-
     /**
-     * @throws Exception
+     * @return resource
      */
-    public function testPubSubStatsAndPublish(): void {
-        $channel = 'pu-pubsub-stats';
-
-        $baseline = $this->redis->publishMessage($channel, 'baseline');
-        $this->assertGreaterThanOrEqual(0, $baseline);
-
+    private function openSubscriber(string $channel) {
         [$host, $port] = $this->pubSubAddress();
         $subscriber = stream_socket_client('tcp://'.$host.':'.$port, $errno, $errstr, 3);
         $this->assertNotFalse($subscriber, 'Could not open a raw subscriber socket: '.$errstr);
@@ -1130,9 +1282,40 @@ abstract class RedisTestCase extends TestCase {
             fgets($subscriber);
         }
 
+        return $subscriber;
+    }
+
+    public function testParseNumSubReply(): void {
+        $this->assertSame(['a' => 2, 'b' => 0], $this->redis->parseNumSubReply(['a', 2, 'b', 0]));
+        $this->assertSame(['a' => 2], $this->redis->parseNumSubReply(['a' => '2'])); // phpredis can return an associative reply
+        $this->assertSame([], $this->redis->parseNumSubReply([]));
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testPubSubStats(): void {
+        $channel = 'pu-pubsub-stats';
+        $subscriber = $this->openSubscriber($channel);
+
         $stats = $this->redis->pubSubStats('pu-pubsub-*');
+
         $this->assertSame(1, $stats['channels'][$channel] ?? null);
         $this->assertIsInt($stats['patterns']);
+
+        fclose($subscriber);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testPublishReachesSubscriber(): void {
+        $channel = 'pu-pubsub-publish';
+
+        $baseline = $this->redis->publishMessage($channel, 'baseline');
+        $this->assertGreaterThanOrEqual(0, $baseline);
+
+        $subscriber = $this->openSubscriber($channel);
 
         $receivers = $this->redis->publishMessage($channel, 'hello-subscriber');
 
@@ -1143,7 +1326,6 @@ abstract class RedisTestCase extends TestCase {
             $this->assertGreaterThanOrEqual(0, $receivers);
         }
 
-        // The message must reach the subscriber (in a cluster it is broadcast to all nodes).
         $received = '';
 
         while (($line = fgets($subscriber)) !== false) {
@@ -1190,33 +1372,67 @@ abstract class RedisTestCase extends TestCase {
     }
 
     /**
+     * @return array<string, mixed>
+     *
      * @throws Exception
      */
-    public function testPubSubAjax(): void {
+    private function ajaxJson(): array {
+        return json_decode($this->dashboard->ajax(), true, 512, JSON_THROW_ON_ERROR);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testPubSubAjaxStats(): void {
         $_GET['db'] = 10;
         $_GET['pubsub'] = '';
 
-        $stats = json_decode($this->dashboard->ajax(), true, 512, JSON_THROW_ON_ERROR);
+        $stats = $this->ajaxJson();
+
         $this->assertArrayHasKey('channels', $stats);
         $this->assertArrayHasKey('patterns', $stats);
+    }
 
+    /**
+     * @throws Exception
+     */
+    public function testPubSubAjaxPublishWithInvalidCsrf(): void {
+        $_GET['db'] = 10;
+        $_GET['pubsub'] = '';
         $_POST['publish'] = '1';
         $_POST['channel'] = 'pu-pubsub-ajax';
         $_POST['message'] = 'hi';
-
         $this->setCsrfToken(false);
-        $response = json_decode($this->dashboard->ajax(), true, 512, JSON_THROW_ON_ERROR);
-        $this->assertSame('Invalid CSRF token.', $response['error']);
 
+        $this->assertSame('Invalid CSRF token.', $this->ajaxJson()['error']);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testPubSubAjaxPublish(): void {
+        $_GET['db'] = 10;
+        $_GET['pubsub'] = '';
+        $_POST['publish'] = '1';
+        $_POST['channel'] = 'pu-pubsub-ajax';
+        $_POST['message'] = 'hi';
         $this->setCsrfToken();
-        $response = json_decode($this->dashboard->ajax(), true, 512, JSON_THROW_ON_ERROR);
-        $this->assertIsInt($response['receivers'] ?? null); // external pattern subscribers may also receive it
 
+        $this->assertIsInt($this->ajaxJson()['receivers'] ?? null);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testPubSubAjaxPublishRequiresChannel(): void {
+        $_GET['db'] = 10;
+        $_GET['pubsub'] = '';
+        $_POST['publish'] = '1';
         $_POST['channel'] = '';
-        $response = json_decode($this->dashboard->ajax(), true, 512, JSON_THROW_ON_ERROR);
-        $this->assertSame('Channel name is required.', $response['error']);
+        $_POST['message'] = 'hi';
+        $this->setCsrfToken();
 
-        unset($_GET['db'], $_GET['pubsub'], $_POST['publish'], $_POST['channel'], $_POST['message'], $_POST['csrf_token']);
+        $this->assertSame('Channel name is required.', $this->ajaxJson()['error']);
     }
 
     /**
@@ -1249,150 +1465,157 @@ abstract class RedisTestCase extends TestCase {
     }
 
     /**
+     * @return array<string, mixed>
+     *
      * @throws Exception
      */
-    public function testConsoleAjax(): void {
+    private function consoleAjax(string $command): array {
         $_GET['db'] = 10;
         $_GET['console'] = '';
+        $_POST['command'] = $command;
 
+        return $this->ajaxJson();
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testConsoleAjaxWithInvalidCsrf(): void {
         $this->setCsrfToken(false);
-        $_POST['command'] = 'PING';
-        $response = json_decode($this->dashboard->ajax(), true, 512, JSON_THROW_ON_ERROR);
-        $this->assertSame('Invalid CSRF token.', $response['error']);
 
+        $this->assertSame('Invalid CSRF token.', $this->consoleAjax('PING')['error']);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testConsoleAjaxExecutesCommands(): void {
         $this->setCsrfToken();
-        $_POST['command'] = 'SET pu-console-ajax "hi there"';
-        $response = json_decode($this->dashboard->ajax(), true, 512, JSON_THROW_ON_ERROR);
-        $this->assertSame('OK', $response['output']);
 
-        $_POST['command'] = 'GET pu-console-ajax';
-        $response = json_decode($this->dashboard->ajax(), true, 512, JSON_THROW_ON_ERROR);
-        $this->assertSame('hi there', $response['output']);
+        $this->assertSame('OK', $this->consoleAjax('SET pu-console-ajax "hi there"')['output']);
+        $this->assertSame('hi there', $this->consoleAjax('GET pu-console-ajax')['output']);
 
-        $_POST['command'] = 'MONITOR';
-        $response = json_decode($this->dashboard->ajax(), true, 512, JSON_THROW_ON_ERROR);
-        $this->assertStringContainsString('not allowed', (string) $response['error']);
-        $this->assertStringContainsString('tab=profiler', $response['tab']['url']);
-        $this->assertStringContainsString('Profiler', $response['tab']['label']);
-
-        $_POST['command'] = 'psubscribe news.*';
-        $response = json_decode($this->dashboard->ajax(), true, 512, JSON_THROW_ON_ERROR);
-        $this->assertStringContainsString('tab=pubsub', $response['tab']['url']);
-
-        $_POST['command'] = 'SHUTDOWN';
-        $response = json_decode($this->dashboard->ajax(), true, 512, JSON_THROW_ON_ERROR);
-        $this->assertStringContainsString('not allowed', (string) $response['error']);
-        $this->assertArrayNotHasKey('tab', $response);
-
-        $_POST['command'] = 'SLOWLOG GET';
-        $response = json_decode($this->dashboard->ajax(), true, 512, JSON_THROW_ON_ERROR);
-        $this->assertArrayHasKey('output', $response);
-        $this->assertArrayNotHasKey('error', $response);
-        $this->assertStringContainsString('tab=slowlog', $response['tab']['url']);
-        $this->assertStringContainsString('Slow Log', $response['tab']['label']);
-
-        $_POST['command'] = 'PING';
-        $response = json_decode($this->dashboard->ajax(), true, 512, JSON_THROW_ON_ERROR);
+        $response = $this->consoleAjax('PING');
         $this->assertSame('PONG', $response['output']);
         $this->assertArrayNotHasKey('tab', $response);
+    }
 
-        $_POST['command'] = '   ';
-        $response = json_decode($this->dashboard->ajax(), true, 512, JSON_THROW_ON_ERROR);
-        $this->assertSame('Empty command.', $response['error']);
+    /**
+     * @throws Exception
+     */
+    public function testConsoleAjaxRejectsEmptyCommand(): void {
+        $this->setCsrfToken();
 
-        unset($_GET['db'], $_GET['console'], $_POST['command'], $_POST['csrf_token']);
+        $this->assertSame('Empty command.', $this->consoleAjax('   ')['error']);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testConsoleAjaxBlockedCommandSuggestsTab(): void {
+        $this->setCsrfToken();
+
+        $response = $this->consoleAjax('MONITOR');
+        $this->assertStringContainsString('not allowed', (string) $response['error']);
+        $this->assertStringContainsString('tab=profiler', (string) $response['tab']['url']);
+        $this->assertStringContainsString('Profiler', (string) $response['tab']['label']);
+
+        $this->assertStringContainsString('tab=pubsub', (string) $this->consoleAjax('psubscribe news.*')['tab']['url']);
+
+        $response = $this->consoleAjax('SHUTDOWN');
+        $this->assertStringContainsString('not allowed', (string) $response['error']);
+        $this->assertArrayNotHasKey('tab', $response); // there is no tab to send the user to
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testConsoleAjaxAllowedCommandSuggestsTab(): void {
+        $this->setCsrfToken();
+
+        $response = $this->consoleAjax('SLOWLOG GET');
+
+        $this->assertArrayHasKey('output', $response);
+        $this->assertArrayNotHasKey('error', $response);
+        $this->assertStringContainsString('tab=slowlog', (string) $response['tab']['url']);
+        $this->assertStringContainsString('Slow Log', (string) $response['tab']['label']);
     }
 
     /**
      * @throws Exception
      */
     public function testConsoleHistory(): void {
-        $dir = Config::get('tmpdir', __DIR__.'/../../../tmp').'/console';
-        $file = $dir.'/redis_history_'.md5(Helpers::getServerTitle(Config::get('redis')[0]).Config::get('hash', 'pca')).'.json';
-        @unlink($file);
+        @unlink($this->consoleHistoryFile());
 
-        $_GET['db'] = 10;
-        $_GET['console'] = '';
         $this->setCsrfToken();
 
-        foreach (['PING', 'DBSIZE', 'DBSIZE'] as $command) { // the repeated command must be stored only once
-            $_POST['command'] = $command;
-            $this->dashboard->ajax();
+        foreach (['PING', 'DBSIZE', 'DBSIZE'] as $command) {
+            $this->consoleAjax($command);
         }
 
         unset($_POST['command']);
         $_GET['history'] = '';
-        $response = json_decode($this->dashboard->ajax(), true, 512, JSON_THROW_ON_ERROR);
 
-        $this->assertSame(['PING', 'DBSIZE'], $response['history']);
-
-        @unlink($file);
-        unset($_GET['db'], $_GET['console'], $_GET['history'], $_POST['csrf_token']);
+        $this->assertSame(['PING', 'DBSIZE'], $this->ajaxJson()['history']);
     }
 
     /**
      * @throws Exception
      */
-    public function testConsoleParsingAndFormatting(): void {
-        $_GET['db'] = 10;
-        $_GET['console'] = '';
+    public function testConsoleParsesQuotesAndEscapes(): void {
         $this->setCsrfToken();
 
-        $run = function (string $command): mixed {
-            $_POST['command'] = $command;
+        $this->assertSame('OK', $this->consoleAjax('SET pu-console-quote "hello world"')['output']);
+        $this->assertSame('hello world', $this->consoleAjax('GET pu-console-quote')['output']);
 
-            return json_decode($this->dashboard->ajax(), true, 512, JSON_THROW_ON_ERROR);
-        };
+        $this->assertSame('OK', $this->consoleAjax('SET pu-console-esc "a\nb"')['output']);
+        $this->assertSame("a\nb", $this->consoleAjax('GET pu-console-esc')['output']);
 
-        $this->assertSame('OK', $run('SET pu-console-quote "hello world"')['output']);
-        $this->assertSame('hello world', $run('GET pu-console-quote')['output']);
+        $this->consoleAjax('SET pu-console-dq "a\"b"');
+        $this->assertSame('a"b', $this->consoleAjax('GET pu-console-dq')['output']);
 
-        $this->assertSame('OK', $run('SET pu-console-esc "a\nb"')['output']);
-        $this->assertSame("a\nb", $run('GET pu-console-esc')['output']);
+        $this->consoleAjax("SET pu-console-sq 'a\\nb'");
+        $this->assertSame('a\nb', $this->consoleAjax('GET pu-console-sq')['output']);
+    }
 
-        $run('SET pu-console-dq "a\"b"');
-        $this->assertSame('a"b', $run('GET pu-console-dq')['output']);
+    /**
+     * @throws Exception
+     */
+    public function testConsoleFormatsOutput(): void {
+        $this->setCsrfToken();
 
-        $run("SET pu-console-sq 'a\\nb'");
-        $this->assertSame('a\nb', $run('GET pu-console-sq')['output']);
+        $this->consoleAjax('DEL pu-console-counter');
+        $this->assertSame('(integer) 1', $this->consoleAjax('INCR pu-console-counter')['output']);
 
-        $run('DEL pu-console-counter');
-        $this->assertSame('(integer) 1', $run('INCR pu-console-counter')['output']);
+        $this->consoleAjax('DEL pu-console-missing');
+        $this->assertSame('(nil)', $this->consoleAjax('GET pu-console-missing')['output']);
 
-        $run('DEL pu-console-missing');
-        $this->assertSame('(nil)', $run('GET pu-console-missing')['output']);
+        $this->consoleAjax('DEL pu-console-list');
+        $this->consoleAjax('RPUSH pu-console-list a b');
+        $this->assertSame("1) \"a\"\n2) \"b\"", $this->consoleAjax('LRANGE pu-console-list 0 -1')['output']);
+    }
 
-        $run('DEL pu-console-list');
-        $run('RPUSH pu-console-list a b');
-        $this->assertSame("1) \"a\"\n2) \"b\"", $run('LRANGE pu-console-list 0 -1')['output']);
-
-        if (!self::$is_cluster) {
-            $this->assertSame('OK', $run('SET "" pu-empty-name')['output']);
-            $this->assertSame('pu-empty-name', $run('GET ""')['output']);
-            $this->redis->del('');
+    /**
+     * @throws Exception
+     */
+    public function testConsoleEmptyKeyName(): void {
+        if (self::$is_cluster) {
+            $this->markTestSkipped('A cluster cannot route an empty key name.');
         }
 
-        foreach (['pu-console-quote', 'pu-console-esc', 'pu-console-dq', 'pu-console-sq', 'pu-console-counter', 'pu-console-list'] as $key) {
-            $this->redis->del($key);
-        }
+        $this->setCsrfToken();
 
-        @unlink(Config::get('tmpdir', __DIR__.'/../../../tmp').'/console/redis_history_'.md5(Helpers::getServerTitle(Config::get('redis')[0]).Config::get('hash', 'pca')).'.json');
-        unset($_GET['db'], $_GET['console'], $_POST['command'], $_POST['csrf_token']);
+        $this->assertSame('OK', $this->consoleAjax('SET "" pu-empty-name')['output']);
+        $this->assertSame('pu-empty-name', $this->consoleAjax('GET ""')['output']);
     }
 
     /**
      * @throws Exception
      */
     public function testConsoleBlocklistIsCaseInsensitive(): void {
-        $_GET['db'] = 10;
-        $_GET['console'] = '';
         $this->setCsrfToken();
 
-        $_POST['command'] = 'subscribe ch';
-        $this->assertStringContainsString('not allowed', (string) json_decode($this->dashboard->ajax(), true, 512, JSON_THROW_ON_ERROR)['error']);
-
-        @unlink(Config::get('tmpdir', __DIR__.'/../../../tmp').'/console/redis_history_'.md5(Helpers::getServerTitle(Config::get('redis')[0]).Config::get('hash', 'pca')).'.json');
-        unset($_GET['db'], $_GET['console'], $_POST['command'], $_POST['csrf_token']);
+        $this->assertStringContainsString('not allowed', (string) $this->consoleAjax('subscribe ch')['error']);
     }
 
     /**
@@ -1466,11 +1689,8 @@ abstract class RedisTestCase extends TestCase {
                 $this->assertGreaterThan(0, $restored_ttl);
                 $this->assertLessThanOrEqual($data['ttl'], $restored_ttl);
             }
-
-            $this->redis->del($key);
         }
 
         unlink($tmp_file_path);
-        unset($_FILES['import']);
     }
 }

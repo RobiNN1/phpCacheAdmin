@@ -322,7 +322,7 @@ class Redis extends \Redis implements RedisCompatibilityInterface {
                 $messages[] = ['channel' => $channel, 'message' => $message, 'time' => time()];
 
                 if (count($messages) >= $limit || (microtime(true) - $start) >= $seconds) {
-                    throw new RedisException('Capture window finished.');
+                    $redis->punsubscribe([$p]);
                 }
             });
         } catch (RedisException) {
@@ -335,7 +335,7 @@ class Redis extends \Redis implements RedisCompatibilityInterface {
             }
         }
 
-        return $messages;
+        return array_slice($messages, 0, $limit);
     }
 
     /**

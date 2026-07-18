@@ -40,77 +40,111 @@ final class RedisHealthTest extends TestCase {
         $this->assertSame(['Memory usage', 'Hit rate', 'Evicted keys', 'Clients'], $names);
     }
 
-    public function testMemoryCheck(): void {
+    public function testMemoryCheckWithoutLimit(): void {
         $memory = $this->checks(['memory' => ['used_memory' => 100]])['Memory usage'];
+
         $this->assertSame('info', $memory['status']);
         $this->assertStringContainsString('no memory limit set', (string) $memory['detail']);
+    }
 
+    public function testMemoryCheckHealthy(): void {
         $memory = $this->checks(['memory' => ['used_memory' => 10, 'maxmemory' => 100, 'maxmemory_policy' => 'allkeys-lru']])['Memory usage'];
+
         $this->assertSame('healthy', $memory['status']);
         $this->assertEqualsWithDelta(10.0, $memory['utilization'], PHP_FLOAT_EPSILON);
         $this->assertSame('', $memory['suggestion']);
         $this->assertStringContainsString('(policy: allkeys-lru)', (string) $memory['detail']);
+    }
 
+    public function testMemoryCheckWarning(): void {
         $memory = $this->checks(['memory' => ['used_memory' => 60, 'maxmemory' => 100]])['Memory usage'];
+
         $this->assertSame('warning', $memory['status']);
         $this->assertStringContainsString('may evict keys', (string) $memory['suggestion']);
+    }
 
+    public function testMemoryCheckCritical(): void {
         $memory = $this->checks(['memory' => ['used_memory' => 90, 'maxmemory' => 100, 'maxmemory_policy' => 'noeviction']])['Memory usage'];
+
         $this->assertSame('critical', $memory['status']);
         $this->assertEqualsWithDelta(90.0, $memory['utilization'], PHP_FLOAT_EPSILON);
         $this->assertStringContainsString('writes will start to fail', (string) $memory['suggestion']);
     }
 
-    public function testHitRateCheck(): void {
+    public function testHitRateCheckWithoutStats(): void {
         $hit_rate = $this->checks([])['Hit rate'];
+
         $this->assertSame('critical', $hit_rate['status']);
         $this->assertEqualsWithDelta(0.0, $hit_rate['utilization'], PHP_FLOAT_EPSILON);
+    }
 
+    public function testHitRateCheckWarning(): void {
         $hit_rate = $this->checks(['stats' => ['keyspace_hits' => 60, 'keyspace_misses' => 40]])['Hit rate'];
+
         $this->assertSame('warning', $hit_rate['status']);
         $this->assertEqualsWithDelta(60.0, $hit_rate['utilization'], PHP_FLOAT_EPSILON);
         $this->assertStringContainsString('hit rate can be normal', (string) $hit_rate['suggestion']);
+    }
 
+    public function testHitRateCheckHealthy(): void {
         $hit_rate = $this->checks(['stats' => ['keyspace_hits' => 90, 'keyspace_misses' => 10]])['Hit rate'];
+
         $this->assertSame('healthy', $hit_rate['status']);
         $this->assertEqualsWithDelta(90.0, $hit_rate['utilization'], PHP_FLOAT_EPSILON);
         $this->assertSame('', $hit_rate['suggestion']);
     }
 
-    public function testEvictedKeysCheck(): void {
+    public function testEvictedKeysCheckHealthy(): void {
         $evicted = $this->checks([])['Evicted keys'];
+
         $this->assertSame('healthy', $evicted['status']);
         $this->assertSame(0, $evicted['utilization']);
         $this->assertSame('', $evicted['suggestion']);
+    }
 
+    public function testEvictedKeysCheckWarning(): void {
         $evicted = $this->checks(['stats' => ['evicted_keys' => 5]])['Evicted keys'];
+
         $this->assertSame('warning', $evicted['status']);
         $this->assertSame(100, $evicted['utilization']);
         $this->assertStringContainsString('memory limit', (string) $evicted['suggestion']);
     }
 
-    public function testClientsCheck(): void {
+    public function testClientsCheckHealthy(): void {
         $clients = $this->checks(['clients' => ['connected_clients' => 5, 'maxclients' => 100]])['Clients'];
+
         $this->assertSame('healthy', $clients['status']);
         $this->assertEqualsWithDelta(5.0, $clients['utilization'], PHP_FLOAT_EPSILON);
         $this->assertStringContainsString('5 of 100 clients', (string) $clients['detail']);
+    }
 
+    public function testClientsCheckShowsBlockedClients(): void {
         $clients = $this->checks(['clients' => ['connected_clients' => 5, 'maxclients' => 100, 'blocked_clients' => 2]])['Clients'];
-        $this->assertStringContainsString('2 blocked', (string) $clients['detail']);
 
+        $this->assertStringContainsString('2 blocked', (string) $clients['detail']);
+    }
+
+    public function testClientsCheckWithoutLimit(): void {
         $clients = $this->checks(['clients' => ['connected_clients' => 7]])['Clients'];
+
         $this->assertSame('healthy', $clients['status']);
         $this->assertEqualsWithDelta(0.0, $clients['utilization'], PHP_FLOAT_EPSILON);
         $this->assertStringContainsString('7 clients', (string) $clients['detail']);
+    }
 
+    public function testClientsCheckNearTheLimit(): void {
         $clients = $this->checks(['clients' => ['connected_clients' => 90, 'maxclients' => 100]])['Clients'];
+
         $this->assertSame('critical', $clients['status']);
         $this->assertStringContainsString('raising maxclients', (string) $clients['suggestion']);
+    }
 
+    public function testClientsCheckWithRejectedConnections(): void {
         $clients = $this->checks([
             'clients' => ['connected_clients' => 1, 'maxclients' => 100],
             'stats'   => ['rejected_connections' => 3],
         ])['Clients'];
+
         $this->assertSame('critical', $clients['status']);
         $this->assertEqualsWithDelta(100.0, $clients['utilization'], PHP_FLOAT_EPSILON);
         $this->assertStringContainsString('rejected', (string) $clients['suggestion']);

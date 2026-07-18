@@ -6,7 +6,7 @@
 
 declare(strict_types=1);
 
-namespace Dashboards\Memcached;
+namespace Tests\Dashboards\Memcached;
 
 use Iterator;
 use JsonException;
@@ -39,6 +39,20 @@ final class MemcachedTest extends TestCase {
         $this->dashboard->memcached = $this->memcached;
     }
 
+    protected function tearDown(): void {
+        $_GET = [];
+        $_POST = [];
+        $_FILES = [];
+
+        @unlink($this->consoleHistoryFile());
+    }
+
+    private function consoleHistoryFile(): string {
+        $name = 'memcached_history_'.md5(Helpers::getServerTitle(Config::get('memcached')[0]).Config::get('hash', 'pca')).'.json';
+
+        return Config::get('tmpdir', dirname(__DIR__, 3).'/tmp').'/console/'.$name;
+    }
+
     /**
      * @param array<int, string>|string $keys
      */
@@ -53,45 +67,73 @@ final class MemcachedTest extends TestCase {
     /**
      * @throws MemcachedException|JsonException
      */
-    public function testAjax(): void {
+    public function testAjaxPanels(): void {
         $_GET['panels'] = '';
+
         $panels = $this->dashboard->ajax();
+
         $this->assertJson($panels);
         $this->assertStringNotContainsString('"error"', $panels);
-        unset($_GET['panels']);
+    }
 
-        $view_key = 'pu:test:ajax:view';
-        $this->memcached->set($view_key, 'view-data');
+    /**
+     * @throws MemcachedException|JsonException
+     */
+    public function testAjaxViewKey(): void {
+        $key = 'pu:test:ajax:view';
+        $this->memcached->set($key, 'view-data');
+
         $_GET['view'] = 'key';
-        $_GET['key'] = $view_key;
-        $rendered = $this->dashboard->ajax();
-        $this->assertStringContainsString($view_key, $rendered);
-        $this->assertStringContainsString('view-data', $rendered);
-        unset($_GET['view'], $_GET['key']);
-        $this->memcached->delete($view_key);
+        $_GET['key'] = $key;
 
+        $rendered = $this->dashboard->ajax();
+
+        $this->assertStringContainsString($key, $rendered);
+        $this->assertStringContainsString('view-data', $rendered);
+
+        $this->memcached->delete($key);
+    }
+
+    /**
+     * @throws MemcachedException|JsonException
+     */
+    public function testAjaxDeleteKeyWithInvalidCsrf(): void {
+        $key = 'pu:test:ajax';
+        $this->memcached->set($key, 'data');
+
+        $_GET['delete'] = '';
+        $_POST['delete'] = json_encode(base64_encode(urlencode($key)), JSON_THROW_ON_ERROR);
+        $this->setCsrfToken(false);
+
+        $this->assertSame(Helpers::alert('Invalid CSRF token.', 'error'), $this->dashboard->ajax());
+        $this->assertTrue($this->memcached->exists($key));
+
+        $this->memcached->delete($key);
+    }
+
+    /**
+     * @throws MemcachedException|JsonException
+     */
+    public function testAjaxDeleteKey(): void {
         $key = 'pu:test:ajax';
         $this->memcached->set($key, 'data');
 
         $encoded_key = urlencode($key);
         $_GET['delete'] = '';
         $_POST['delete'] = json_encode(base64_encode($encoded_key), JSON_THROW_ON_ERROR);
-
-        $this->setCsrfToken(false);
-        $this->assertSame(
-            Helpers::alert('Invalid CSRF token.', 'error'),
-            $this->dashboard->ajax()
-        );
-        $this->assertTrue($this->memcached->exists($key));
-
         $this->setCsrfToken();
+
         $this->assertSame(
             Helpers::alert(sprintf('Key "%s" has been deleted.', $encoded_key), 'success'),
             $this->dashboard->ajax()
         );
         $this->assertFalse($this->memcached->exists($key));
+    }
 
-        unset($_GET['delete'], $_POST['delete'], $_POST['csrf_token']);
+    private function metricsDb(string $server_name): string {
+        $dir = Config::get('metricsdir', dirname(__DIR__, 3).'/tmp/metrics');
+
+        return $dir.'/memcached_metrics_'.md5($server_name.Config::get('hash', 'pca')).'.db';
     }
 
     /**
@@ -112,8 +154,7 @@ final class MemcachedTest extends TestCase {
         $data = json_decode($metrics->collectAndRespond(), true, 512, JSON_THROW_ON_ERROR);
         $this->assertCount(1, $data);
 
-        $dir = Config::get('metricsdir', dirname(__DIR__, 2).'/tmp/metrics');
-        @unlink($dir.'/memcached_metrics_'.md5($server_name.Config::get('hash', 'pca')).'.db');
+        @unlink($this->metricsDb($server_name));
     }
 
     /**
@@ -190,7 +231,6 @@ final class MemcachedTest extends TestCase {
 
         $_GET['s'] = 'pu:colon';
         $lines = $this->dashboard->getAllKeys();
-        unset($_GET['s']);
 
         $this->assertCount(1, $lines);
         $this->assertStringContainsString('key='.urlencode($key), $lines[0]);
@@ -211,7 +251,16 @@ final class MemcachedTest extends TestCase {
         $this->assertGreaterThan(0, $meta['exp']);
         $this->assertLessThanOrEqual(120, $meta['exp']);
 
+        $this->memcached->delete($key);
+    }
+
+    /**
+     * @throws MemcachedException
+     */
+    public function testGetKeyMetaWithoutExpiration(): void {
+        $key = 'pu-test-meta';
         $this->memcached->set($key, 'some-value');
+
         $this->assertSame(-1, $this->memcached->getKeyMeta($key)['exp']);
 
         $this->memcached->delete($key);
@@ -261,70 +310,92 @@ final class MemcachedTest extends TestCase {
     }
 
     /**
+     * @return array<string, mixed>
+     *
+     * @throws JsonException
+     */
+    private function ajaxJson(): array {
+        return json_decode($this->dashboard->ajax(), true, 512, JSON_THROW_ON_ERROR);
+    }
+
+    /**
+     * @return array<string, mixed>
+     *
+     * @throws JsonException
+     */
+    private function consoleAjax(string $command): array {
+        $_GET['console'] = '';
+        $_POST['command'] = $command;
+
+        return $this->ajaxJson();
+    }
+
+    /**
+     * @throws JsonException
+     */
+    public function testConsoleAjaxWithInvalidCsrf(): void {
+        $this->setCsrfToken(false);
+
+        $this->assertSame('Invalid CSRF token.', $this->consoleAjax('version')['error']);
+    }
+
+    /**
      * @throws JsonException|MemcachedException
      */
-    public function testConsoleAjax(): void {
-        $_GET['console'] = '';
-
-        $this->setCsrfToken(false);
-        $_POST['command'] = 'version';
-        $response = json_decode($this->dashboard->ajax(), true, 512, JSON_THROW_ON_ERROR);
-        $this->assertSame('Invalid CSRF token.', $response['error']);
-
+    public function testConsoleAjaxExecutesCommands(): void {
         $this->setCsrfToken();
-        $_POST['command'] = 'version';
-        $response = json_decode($this->dashboard->ajax(), true, 512, JSON_THROW_ON_ERROR);
-        $this->assertStringStartsWith('VERSION', $response['output']);
 
-        // A storage command with its value provided as a "\n" escape.
-        $_POST['command'] = 'set pu-console 0 0 3\nabc';
-        $response = json_decode($this->dashboard->ajax(), true, 512, JSON_THROW_ON_ERROR);
-        $this->assertSame('STORED', $response['output']);
+        $this->assertStringStartsWith('VERSION', $this->consoleAjax('version')['output']);
 
-        $_POST['command'] = 'get pu-console';
-        $response = json_decode($this->dashboard->ajax(), true, 512, JSON_THROW_ON_ERROR);
-        $this->assertStringContainsString('abc', (string) $response['output']);
+        $this->assertSame('STORED', $this->consoleAjax('set pu-console 0 0 3\nabc')['output']);
+        $this->assertStringContainsString('abc', (string) $this->consoleAjax('get pu-console')['output']);
+
         $this->memcached->delete('pu-console');
+    }
 
-        $_POST['command'] = 'notacommand';
-        $response = json_decode($this->dashboard->ajax(), true, 512, JSON_THROW_ON_ERROR);
-        $this->assertArrayHasKey('error', $response);
+    /**
+     * @throws JsonException
+     */
+    public function testConsoleAjaxUnknownCommand(): void {
+        $this->setCsrfToken();
 
-        $_POST['command'] = 'shutdown';
-        $response = json_decode($this->dashboard->ajax(), true, 512, JSON_THROW_ON_ERROR);
-        $this->assertStringContainsString('not allowed', (string) $response['error']);
+        $this->assertArrayHasKey('error', $this->consoleAjax('notacommand'));
+    }
 
-        $_POST['command'] = '   ';
-        $response = json_decode($this->dashboard->ajax(), true, 512, JSON_THROW_ON_ERROR);
-        $this->assertSame('Empty command.', $response['error']);
+    /**
+     * @throws JsonException
+     */
+    public function testConsoleAjaxBlockedCommand(): void {
+        $this->setCsrfToken();
 
-        unset($_GET['console'], $_POST['command'], $_POST['csrf_token']);
+        $this->assertStringContainsString('not allowed', (string) $this->consoleAjax('shutdown')['error']);
+    }
+
+    /**
+     * @throws JsonException
+     */
+    public function testConsoleAjaxRejectsEmptyCommand(): void {
+        $this->setCsrfToken();
+
+        $this->assertSame('Empty command.', $this->consoleAjax('   ')['error']);
     }
 
     /**
      * @throws JsonException
      */
     public function testConsoleHistory(): void {
-        $dir = Config::get('tmpdir', dirname(__DIR__, 2).'/tmp').'/console';
-        $file = $dir.'/memcached_history_'.md5(Helpers::getServerTitle(Config::get('memcached')[0]).Config::get('hash', 'pca')).'.json';
-        @unlink($file);
+        @unlink($this->consoleHistoryFile());
 
-        $_GET['console'] = '';
         $this->setCsrfToken();
 
-        foreach (['version', 'stats', 'stats'] as $command) { // the repeated command must be stored only once
-            $_POST['command'] = $command;
-            $this->dashboard->ajax();
+        foreach (['version', 'stats', 'stats'] as $command) {
+            $this->consoleAjax($command);
         }
 
         unset($_POST['command']);
         $_GET['history'] = '';
-        $response = json_decode($this->dashboard->ajax(), true, 512, JSON_THROW_ON_ERROR);
 
-        $this->assertSame(['version', 'stats'], $response['history']);
-
-        @unlink($file);
-        unset($_GET['console'], $_GET['history'], $_POST['csrf_token']);
+        $this->assertSame(['version', 'stats'], $this->ajaxJson()['history']);
     }
 
     /**
@@ -343,9 +414,11 @@ final class MemcachedTest extends TestCase {
     }
 
     /**
+     * @return array<string, mixed>
+     *
      * @throws MemcachedException
      */
-    public function testAnalysis(): void {
+    private function runAnalysis(): array {
         $this->memcached->flush();
 
         for ($i = 0; $i < 200; $i++) {
@@ -360,21 +433,55 @@ final class MemcachedTest extends TestCase {
 
         sort($lines);
 
-        $analysis = $this->dashboard->analyzeKeys($lines);
+        return $this->dashboard->analyzeKeys($lines);
+    }
+
+    /**
+     * @throws MemcachedException
+     */
+    public function testAnalysisSummary(): void {
+        $analysis = $this->runAnalysis();
 
         $this->assertSame(203, $analysis['summary']['analyzed']);
         $this->assertSame(2, $analysis['summary']['namespaces']);
+        $this->assertSame(202, $analysis['summary']['no_expiry']['count']);
         $this->assertCount(4, $analysis['tiles']);
+
+        $this->memcached->flush();
+    }
+
+    /**
+     * @throws MemcachedException
+     */
+    public function testAnalysisTopKeys(): void {
+        $analysis = $this->runAnalysis();
 
         $this->assertSame('pu-analysis:zz-blob:huge', $analysis['top_memory'][0]['key']);
         $this->assertGreaterThan(50000, $analysis['top_memory'][0]['size']);
 
+        $this->memcached->flush();
+    }
+
+    /**
+     * @throws MemcachedException
+     */
+    public function testAnalysisNamespaces(): void {
+        $analysis = $this->runAnalysis();
+
         $this->assertSame(202, $this->findRow($analysis['namespaces'], 'pu-analysis')['count']);
         $this->assertSame(1, $this->findRow($analysis['namespaces'], '(no namespace)')['count']);
 
+        $this->memcached->flush();
+    }
+
+    /**
+     * @throws MemcachedException
+     */
+    public function testAnalysisExpiryAndIdle(): void {
+        $analysis = $this->runAnalysis();
+
         $this->assertSame(202, $this->findRow($analysis['expiry'], 'No expiry')['count']);
         $this->assertSame(1, $this->findRow($analysis['expiry'], '< 1 hour')['count']);
-        $this->assertSame(202, $analysis['summary']['no_expiry']['count']);
 
         $this->assertSame(203, $this->findRow($analysis['idle'], '< 1 minute')['count']);
 
@@ -439,28 +546,13 @@ final class MemcachedTest extends TestCase {
                 'name'     => 'pu-test-tree1',
                 'path'     => 'pu-test-tree1',
                 'children' => [
-                    [
-                        'type' => 'key',
-                        'name' => 'sub1',
-                        'key'  => 'pu-test-tree1%3Asub1',
-                        'info' => $info,
-                    ],
-                    [
-                        'type' => 'key',
-                        'name' => 'sub2',
-                        'key'  => 'pu-test-tree1%3Asub2',
-                        'info' => $info,
-                    ],
+                    ['type' => 'key', 'name' => 'sub1', 'key' => 'pu-test-tree1%3Asub1', 'info' => $info,],
+                    ['type' => 'key', 'name' => 'sub2', 'key' => 'pu-test-tree1%3Asub2', 'info' => $info,],
                 ],
                 'expanded' => false,
                 'count'    => 2,
             ],
-            [
-                'type' => 'key',
-                'name' => 'pu-test-tree2',
-                'key'  => 'pu-test-tree2',
-                'info' => $info,
-            ],
+            ['type' => 'key', 'name' => 'pu-test-tree2', 'key' => 'pu-test-tree2', 'info' => $info,],
         ];
 
         $result = $this->dashboard->keysTreeView($result);
@@ -530,6 +622,5 @@ final class MemcachedTest extends TestCase {
         }
 
         unlink($tmp_file_path);
-        unset($_FILES['import']);
     }
 }

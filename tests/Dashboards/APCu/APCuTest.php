@@ -6,7 +6,7 @@
 
 declare(strict_types=1);
 
-namespace Dashboards\APCu;
+namespace Tests\Dashboards\APCu;
 
 use JsonException;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -27,6 +27,14 @@ final class APCuTest extends TestCase {
 
     protected function setUp(): void {
         $this->dashboard = new APCuDashboard(new Template());
+    }
+
+    protected function tearDown(): void {
+        $_GET = [];
+        $_POST = [];
+        $_FILES = [];
+
+        apcu_clear_cache();
     }
 
     /**
@@ -78,8 +86,6 @@ final class APCuTest extends TestCase {
         $this->dashboard->saveKey();
 
         $this->assertSame('test-value', Helpers::mixedToString(apcu_fetch($key)));
-
-        apcu_delete($key);
     }
 
     public function testGetAllKeysTableView(): void {
@@ -136,28 +142,13 @@ final class APCuTest extends TestCase {
                 'name'     => 'pu-test-tree1',
                 'path'     => 'pu-test-tree1',
                 'children' => [
-                    [
-                        'type' => 'key',
-                        'name' => 'sub1',
-                        'key'  => 'pu-test-tree1:sub1',
-                        'info' => $info,
-                    ],
-                    [
-                        'type' => 'key',
-                        'name' => 'sub2',
-                        'key'  => 'pu-test-tree1:sub2',
-                        'info' => $info,
-                    ],
+                    ['type' => 'key', 'name' => 'sub1', 'key' => 'pu-test-tree1:sub1', 'info' => $info,],
+                    ['type' => 'key', 'name' => 'sub2', 'key' => 'pu-test-tree1:sub2', 'info' => $info,],
                 ],
                 'expanded' => false,
                 'count'    => 2,
             ],
-            [
-                'type' => 'key',
-                'name' => 'pu-test-tree2',
-                'key'  => 'pu-test-tree2',
-                'info' => $info,
-            ],
+            ['type' => 'key', 'name' => 'pu-test-tree2', 'key' => 'pu-test-tree2', 'info' => $info,],
         ];
 
         $result = $this->dashboard->keysTreeView($result);
@@ -169,44 +160,62 @@ final class APCuTest extends TestCase {
     /**
      * @throws JsonException
      */
-    public function testAjax(): void {
+    public function testAjaxPanels(): void {
         $_GET['panels'] = '';
+
         $panels = $this->dashboard->ajax();
+
         $this->assertJson($panels);
         $this->assertStringNotContainsString('"error"', $panels);
-        unset($_GET['panels']);
+    }
 
-        $view_key = 'pu-test-ajax-view';
-        apcu_store($view_key, 'view-data');
+    /**
+     * @throws JsonException
+     */
+    public function testAjaxViewKey(): void {
+        $key = 'pu-test-ajax-view';
+        apcu_store($key, 'view-data');
+
         $_GET['view'] = 'key';
-        $_GET['key'] = $view_key;
-        $rendered = $this->dashboard->ajax();
-        $this->assertStringContainsString($view_key, $rendered);
-        $this->assertStringContainsString('view-data', $rendered);
-        unset($_GET['view'], $_GET['key']);
-        apcu_delete($view_key);
+        $_GET['key'] = $key;
 
+        $rendered = $this->dashboard->ajax();
+
+        $this->assertStringContainsString($key, $rendered);
+        $this->assertStringContainsString('view-data', $rendered);
+    }
+
+    /**
+     * @throws JsonException
+     */
+    public function testAjaxDeleteKeyWithInvalidCsrf(): void {
         $key = 'pu-test-ajax';
         apcu_store($key, 'data');
 
         $_GET['delete'] = '';
         $_POST['delete'] = json_encode(base64_encode($key), JSON_THROW_ON_ERROR);
-
         $this->setCsrfToken(false);
-        $this->assertSame(
-            Helpers::alert('Invalid CSRF token.', 'error'),
-            $this->dashboard->ajax()
-        );
-        $this->assertTrue(apcu_exists($key));
 
+        $this->assertSame(Helpers::alert('Invalid CSRF token.', 'error'), $this->dashboard->ajax());
+        $this->assertTrue(apcu_exists($key));
+    }
+
+    /**
+     * @throws JsonException
+     */
+    public function testAjaxDeleteKey(): void {
+        $key = 'pu-test-ajax';
+        apcu_store($key, 'data');
+
+        $_GET['delete'] = '';
+        $_POST['delete'] = json_encode(base64_encode($key), JSON_THROW_ON_ERROR);
         $this->setCsrfToken();
+
         $this->assertSame(
             Helpers::alert(sprintf('Key "%s" has been deleted.', $key), 'success'),
             $this->dashboard->ajax()
         );
         $this->assertFalse(apcu_exists($key));
-
-        unset($_GET['delete'], $_POST['delete'], $_POST['csrf_token']);
     }
 
     public function testExportAndImport(): void {
@@ -259,10 +268,8 @@ final class APCuTest extends TestCase {
         foreach ($keys_to_test as $key => $data) {
             $this->assertTrue(apcu_exists($key));
             $this->assertSame($data['value'], apcu_fetch($key));
-            apcu_delete($key);
         }
 
         unlink($tmp_file_path);
-        unset($_FILES['import']);
     }
 }

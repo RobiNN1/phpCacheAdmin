@@ -12,14 +12,21 @@ use PHPUnit\Framework\TestCase;
 use RobiNN\Pca\Http;
 
 final class HttpTest extends TestCase {
-    public function testQueryString(): void {
+    public function testQueryStringAppendsParams(): void {
         $_SERVER['REQUEST_URI'] = '/?dashboard=server';
+
         $this->assertSame('?dashboard=server&param1=yes&param2=0', Http::queryString([], ['param1' => 'yes', 'param2' => 0]));
+    }
 
+    public function testQueryStringKeepsOnlyGivenParams(): void {
         $_SERVER['REQUEST_URI'] = '/?dashboard=redis&server=6&p=3';
-        $this->assertSame('?dashboard=redis&server=6', Http::queryString(['server']));
 
+        $this->assertSame('?dashboard=redis&server=6', Http::queryString(['server']));
+    }
+
+    public function testQueryStringWithKeptAndAppendedParams(): void {
         $_SERVER['REQUEST_URI'] = '/?dashboard=redis&server=6&p=3&random=query&&view=key';
+
         $this->assertSame('?dashboard=redis&server=6&view=key&key=test', Http::queryString(['server', 'view'], ['key' => 'test']));
     }
 

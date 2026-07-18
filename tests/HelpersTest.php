@@ -48,18 +48,26 @@ final class HelpersTest extends TestCase {
         $this->assertSame($expected, Helpers::convertTypesToString($input));
     }
 
-    public function testMixedToStringWithDifferentTypes(): void {
-        $this->assertSame('Hello, world!', Helpers::mixedToString('Hello, world!'));
-        $this->assertSame('123', Helpers::mixedToString(123));
-        $this->assertSame('1', Helpers::mixedToString(true));
-        $this->assertSame('', Helpers::mixedToString(false));
-        $this->assertSame('', Helpers::mixedToString(null));
+    /**
+     * @return Iterator<string, array{0: string, 1: mixed}>
+     */
+    public static function mixedToStringProvider(): Iterator {
+        yield 'string' => ['Hello, world!', 'Hello, world!'];
+        yield 'int' => ['123', 123];
+        yield 'true' => ['1', true];
+        yield 'false' => ['', false];
+        yield 'null' => ['', null];
 
         $array = ['a' => 1, 'b' => 2];
-        $this->assertSame(serialize($array), Helpers::mixedToString($array));
+        yield 'array' => [serialize($array), $array];
 
         $object = (object) ['name' => 'John', 'age' => 30];
-        $this->assertSame(serialize($object), Helpers::mixedToString($object));
+        yield 'object' => [serialize($object), $object];
+    }
+
+    #[DataProvider('mixedToStringProvider')]
+    public function testMixedToString(string $expected, mixed $value): void {
+        $this->assertSame($expected, Helpers::mixedToString($value));
     }
 
     /**
@@ -173,10 +181,7 @@ final class HelpersTest extends TestCase {
                     ['type' => 'file'],
                     [
                         'type'     => 'folder',
-                        'children' => [
-                            ['type' => 'file'],
-                            ['type' => 'file'],
-                        ],
+                        'children' => [['type' => 'file'], ['type' => 'file'],],
                     ],
                 ],
             ],
@@ -191,12 +196,8 @@ final class HelpersTest extends TestCase {
                     ['type' => 'file'],
                     ['type' => 'file'],
                     [
-                        'type' => 'folder',
-
-                        'children' => [
-                            ['type' => 'file'],
-                            ['type' => 'file'],
-                        ],
+                        'type'     => 'folder',
+                        'children' => [['type' => 'file'], ['type' => 'file'],],
                         'count'    => 2,
                     ],
                 ],

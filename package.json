@@ -2,10 +2,18 @@
   "name": "phpcacheadmin.com",
   "version": "1.0.0",
   "scripts": {
-    "build": "npx @tailwindcss/cli -i ./assets/css/src.css -o ./assets/css/styles.css",
-    "watch": "npx @tailwindcss/cli -i ./assets/css/src.css -o ./assets/css/styles.css --watch"
+    "build": "npx postcss ./assets/css/src.css -o ./assets/css/styles.css",
+    "watch": "npx postcss ./assets/css/src.css -o ./assets/css/styles.css --watch"
   },
+  "browserslist": [
+    "cover 95%",
+    "not dead"
+  ],
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
+    "autoprefixer": "^10.5.4",
+    "postcss": "^8.5.20",
+    "postcss-cli": "^11.0.1",
     "tailwindcss": "^4.3"
   }
 }

@@ -15,3 +15,15 @@
 .dark {
     color-scheme: dark;
 }
+
+@utility blur-2xl {
+    filter: blur(40px);
+}
+
+@utility blur-3xl {
+    filter: blur(64px);
+}
+
+@utility backdrop-blur-xl {
+    backdrop-filter: blur(24px);
+}

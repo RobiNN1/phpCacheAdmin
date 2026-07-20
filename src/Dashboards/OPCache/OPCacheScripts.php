@@ -32,7 +32,7 @@ trait OPCacheScripts {
 
         $this->template->addGlobal('search_value', $search);
 
-        $status = opcache_get_status();
+        $status = @opcache_get_status();
 
         if (isset($status['scripts'])) {
             $ignore_pca = $this->ignorePcaScripts();
@@ -68,13 +68,18 @@ trait OPCacheScripts {
      * @return array<string, mixed>
      */
     private function scriptsTab(): array {
+        $status = @opcache_get_status(false);
+
+        if ($status === false) {
+            return ['tab_error' => self::NOT_AVAILABLE];
+        }
+
         $cached_scripts = $this->getCachedScripts();
         $paginator = new Paginator($cached_scripts, [['ignore', 'pp', 's'], ['p' => '']]);
-        $status = opcache_get_status(false);
 
         return [
             'cached_scripts' => $paginator->getPaginated(),
-            'all_keys'       => $status !== false ? $status['opcache_statistics']['num_cached_scripts'] : 0,
+            'all_keys'       => $status['opcache_statistics']['num_cached_scripts'] ?? 0,
             'paginator'      => $paginator->render(),
             'is_ignored'     => $this->ignorePcaScripts(),
         ];
@@ -84,7 +89,7 @@ trait OPCacheScripts {
      * @return array<int, array<string, mixed>>
      */
     private function getScriptsMap(): array {
-        $status = opcache_get_status();
+        $status = @opcache_get_status();
         $ignore_pca = $this->ignorePcaScripts();
         $tree = [];
 
@@ -152,10 +157,10 @@ trait OPCacheScripts {
      * @return array<string, mixed>
      */
     private function treemapTab(): array {
-        $status = opcache_get_status(false);
+        $status = @opcache_get_status(false);
 
         if ($status === false) {
-            return ['tab_error' => 'OPcache is not available, it is either disabled (opcache.enable) or restricted (opcache.restrict_api).'];
+            return ['tab_error' => self::NOT_AVAILABLE];
         }
 
         return [

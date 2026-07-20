@@ -18,6 +18,9 @@ trait OPCacheTrait {
     use OPCacheWarmup;
     use OPCacheConfiguration;
 
+    private const NOT_AVAILABLE = 'OPcache is not available, it is either disabled (opcache.enable) or restricted (opcache.restrict_api).';
+    private const NO_SHARED_MEMORY = 'Statistics cannot be displayed with opcache.file_cache_only enabled.';
+
     /**
      * @var array<string, string>
      */
@@ -33,10 +36,10 @@ trait OPCacheTrait {
      * @return array<string, mixed>
      */
     private function moreinfoTab(): array {
-        $status = opcache_get_status(false);
+        $status = @opcache_get_status(false);
 
         if ($status === false) {
-            return ['tab_error' => 'OPcache is not available, it is either disabled (opcache.enable) or restricted (opcache.restrict_api).'];
+            return ['tab_error' => self::NOT_AVAILABLE];
         }
 
         $directives = opcache_get_configuration()['directives'];

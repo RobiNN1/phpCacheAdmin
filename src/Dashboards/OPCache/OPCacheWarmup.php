@@ -21,10 +21,10 @@ trait OPCacheWarmup {
      * @return array<string, mixed>
      */
     private function warmupTab(): array {
-        $status = opcache_get_status(false);
+        $status = @opcache_get_status(false);
 
         if ($status === false) {
-            return ['tab_error' => 'OPcache is not available, it is either disabled (opcache.enable) or restricted (opcache.restrict_api).'];
+            return ['tab_error' => self::NOT_AVAILABLE];
         }
 
         $path = Http::post('warmup_path', '');

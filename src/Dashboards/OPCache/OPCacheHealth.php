@@ -19,9 +19,9 @@ trait OPCacheHealth {
      * @return array<int, array<string, mixed>>
      */
     public function getHealthChecks(?array $status = null, ?array $directives = null): array {
-        $status ??= opcache_get_status(false) ?: null;
+        $status ??= @opcache_get_status(false) ?: null;
 
-        if ($status === null) {
+        if ($status === null || !isset($status['memory_usage'], $status['opcache_statistics'])) {
             return [];
         }
 
@@ -259,10 +259,14 @@ trait OPCacheHealth {
      * @return array<string, mixed>
      */
     private function healthTab(): array {
-        $status = opcache_get_status(false);
+        $status = @opcache_get_status(false);
 
         if ($status === false) {
-            return ['tab_error' => 'OPcache is not available, it is either disabled (opcache.enable) or restricted (opcache.restrict_api).'];
+            return ['tab_error' => self::NOT_AVAILABLE];
+        }
+
+        if (!isset($status['memory_usage'], $status['opcache_statistics'])) {
+            return ['tab_error' => self::NO_SHARED_MEMORY];
         }
 
         return ['checks' => $this->getHealthChecks()];

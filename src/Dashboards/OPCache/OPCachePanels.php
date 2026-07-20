@@ -15,10 +15,14 @@ trait OPCachePanels {
      * @return array<int|string, mixed>
      */
     private function getPanelsData(): array {
-        $status = opcache_get_status(false);
+        $status = @opcache_get_status(false);
 
         if ($status === false) {
-            return ['error' => 'OPcache is not available, it is either disabled (opcache.enable) or restricted (opcache.restrict_api).'];
+            return ['error' => self::NOT_AVAILABLE];
+        }
+
+        if (!isset($status['memory_usage'], $status['opcache_statistics'])) {
+            return ['error' => self::NO_SHARED_MEMORY];
         }
 
         $directives = opcache_get_configuration()['directives'];
@@ -117,7 +121,7 @@ trait OPCachePanels {
      * @return array{title: string, data: array<int|string, mixed>}
      */
     private function memoryPanel(array $memory, int $total_memory): array {
-        $usage = round((($memory['used_memory'] + $memory['wasted_memory']) / $total_memory) * 100, 2);
+        $usage = $total_memory > 0 ? round((($memory['used_memory'] + $memory['wasted_memory']) / $total_memory) * 100, 2) : 0;
         $wasted = round($memory['current_wasted_percentage'], 2);
 
         return [
@@ -138,8 +142,11 @@ trait OPCachePanels {
      * @return array{title: string, data: array<int|string, mixed>}
      */
     private function statsPanel(array $stats, array $directives): array {
-        $used_scripts = round(($stats['num_cached_scripts'] / (int) ini_get('opcache.max_accelerated_files')) * 100);
-        $used_keys = round(($stats['num_cached_keys'] / $stats['max_cached_keys']) * 100);
+        $max_scripts = (int) ini_get('opcache.max_accelerated_files');
+        $max_keys = (int) $stats['max_cached_keys'];
+
+        $used_scripts = $max_scripts > 0 ? round(($stats['num_cached_scripts'] / $max_scripts) * 100) : 0;
+        $used_keys = $max_keys > 0 ? round(($stats['num_cached_keys'] / $max_keys) * 100) : 0;
         $hit_rate = round($stats['opcache_hit_rate'], 2);
 
         return [

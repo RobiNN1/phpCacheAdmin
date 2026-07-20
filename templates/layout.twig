@@ -53,6 +53,11 @@
     </div>
 
     <div class="flex flex-wrap gap-3 justify-end items-center sm:ms-auto lg:gap-4 lg:ms-0">
+        {% if config('readonly') %}
+            <span class="py-0.5 px-2 text-xs font-semibold text-amber-800 bg-amber-100 rounded dark:text-amber-200 dark:bg-amber-900"
+                  title="Nothing can be changed or deleted. OPcache and the realpath cache can still be cleared, they only build themselves again.">Read-only</span>
+        {% endif %}
+
         {% if servers|default %}
             <div class="w-full sm:w-60">{{ servers|raw }}</div>
         {% endif %}

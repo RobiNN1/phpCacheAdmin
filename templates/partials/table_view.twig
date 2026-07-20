@@ -1,5 +1,5 @@
 {% import 'components/macros.twig' as macros %}
-{% set show_actions = hide_actions is not defined or hide_actions == false %}
+{% set show_actions = (hide_actions is not defined or hide_actions == false) and not readonly %}
 <div class="overflow-hidden overflow-x-auto">
     <table class="w-full text-left table-auto dark:text-gray-300">
         <thead>

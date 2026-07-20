@@ -210,9 +210,8 @@ trait RedisProfiler {
                 $lines = explode("\r\n", $buffers[$node]);
                 $buffers[$node] = (string) array_pop($lines);
 
-                // A fragment this big is one giant value, showing it is not worth risking the memory
-                // limit. The rest of the line will fail to parse and the capture recovers on the next
-                // complete one.
+                // A fragment this big is one giant value, showing it is not worth risking the memory limit.
+                // The rest of the line will fail to parse and the capture recovers on the next complete one.
                 if (strlen($buffers[$node]) > 4_194_304) {
                     $buffers[$node] = '';
                 }

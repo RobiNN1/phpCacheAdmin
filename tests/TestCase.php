@@ -13,6 +13,16 @@ use Random\RandomException;
 use RobiNN\Pca\Helpers;
 
 abstract class TestCase extends \PHPUnit\Framework\TestCase {
+    public static function skipWithoutServer(string $address, string $name): void {
+        $socket = @stream_socket_client('tcp://'.$address, $errno, $errstr, 1);
+
+        if ($socket === false) {
+            self::markTestSkipped('No '.$name.' on '.$address.'. Skipping tests.');
+        }
+
+        fclose($socket);
+    }
+
     /**
      * @param array<int, string>|string $keys
      */

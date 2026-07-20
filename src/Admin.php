@@ -55,6 +55,13 @@ class Admin {
 
         $this->template->addGlobal('current', $current);
 
+        $applies = (bool) ($info['readonly'] ?? true);
+        $this->template->addGlobal('readonly', ReadonlyMode::blocks($applies));
+
+        if (($blocked = ReadonlyMode::guard($applies)) !== null) {
+            return $blocked;
+        }
+
         if (isset($_GET['ajax'])) {
             return $dashboard->ajax();
         }

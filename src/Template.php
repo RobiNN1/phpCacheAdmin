@@ -26,11 +26,12 @@ class Template {
     /**
      * All global names must be registered before the first render, Twig doesn't allow adding new globals to an initialized environment.
      *
-     * @var array<string, int|string>
+     * @var array<string, bool|int|string>
      */
     private array $globals = [
         'modals'       => '',
         'current'      => '',
+        'readonly'     => false,
         'alerts'       => '',
         'side'         => '',
         'servers'      => '',

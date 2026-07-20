@@ -25,13 +25,14 @@ class OPCacheDashboard implements DashboardInterface {
     }
 
     /**
-     * @return array<string, array<int, string>|string>
+     * @return array<string, array<int, string>|bool|string>
      */
     public function dashboardInfo(): array {
         return [
-            'key'    => 'opcache',
-            'title'  => 'OPCache',
-            'colors' => [
+            'key'      => 'opcache',
+            'title'    => 'OPCache',
+            'readonly' => false,
+            'colors'   => [
                 50  => '#f0f9ff',
                 100 => '#e0f2fe',
                 200 => '#bae6fd',

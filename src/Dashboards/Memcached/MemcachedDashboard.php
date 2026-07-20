@@ -14,6 +14,7 @@ use RobiNN\Pca\Dashboards\DashboardException;
 use RobiNN\Pca\Dashboards\DashboardInterface;
 use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
+use RobiNN\Pca\ReadonlyMode;
 use RobiNN\Pca\Template;
 
 class MemcachedDashboard implements DashboardInterface {
@@ -33,6 +34,10 @@ class MemcachedDashboard implements DashboardInterface {
 
         $server = Http::get('server', 0);
         $this->current_server = array_key_exists($server, $this->servers) ? $server : 0;
+
+        if (ReadonlyMode::enabled()) {
+            unset($this->tabs['console']);
+        }
     }
 
     public static function check(): bool {

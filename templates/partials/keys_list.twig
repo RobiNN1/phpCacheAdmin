@@ -37,7 +37,7 @@
                 {{ button|raw }}
             {% endfor %}
 
-            {% if buttons.import_btn %}
+            {% if buttons.import_btn and not readonly %}
                 {{ include('partials/import_form.twig') }}
             {% endif %}
 
@@ -50,7 +50,7 @@
                 }) }}
             {% endif %}
 
-            {% if buttons.add_new_btn %}
+            {% if buttons.add_new_btn and not readonly %}
                 {{ include('components/button.twig', {
                     text: 'Add new',
                     icon: 'plus',
@@ -59,7 +59,7 @@
                 }) }}
             {% endif %}
 
-            {% if all_keys != 0 %}
+            {% if all_keys != 0 and not readonly %}
                 {{ include('components/button.twig', {
                     text: 'Delete all',
                     icon: 'trash',

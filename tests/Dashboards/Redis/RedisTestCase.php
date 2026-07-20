@@ -28,6 +28,8 @@ use Tests\TestCase;
 use Throwable;
 
 abstract class RedisTestCase extends TestCase {
+    use SentinelTrait;
+
     private const CLIENT_LIST =
         "id=3 addr=127.0.0.1:50001 laddr=127.0.0.1:6379 name=worker age=10 idle=5 flags=N db=0 cmd=get user=default tot-mem=20512\r\n"
         ."id=4 addr=127.0.0.1:50002 name= age=1 idle=0 flags=O db=1 cmd=monitor user=alice tot-mem=100\n"
@@ -48,6 +50,12 @@ abstract class RedisTestCase extends TestCase {
 
         self::$is_cluster = !empty(Config::get('redis')[0]['nodes']);
         self::$is_sentinel = !empty(Config::get('redis')[0]['sentinels']);
+
+        if (self::$is_sentinel) {
+            self::skipWithoutServer((string) Config::get('redis')[0]['sentinels'][0], 'Sentinel');
+        } elseif (self::$is_cluster) {
+            self::skipWithoutServer((string) Config::get('redis')[0]['nodes'][0], 'Cluster node');
+        }
     }
 
     /**
@@ -59,7 +67,6 @@ abstract class RedisTestCase extends TestCase {
         if (self::$is_cluster) {
             $config = ['nodes' => Config::get('redis')[0]['nodes']];
         } elseif (self::$is_sentinel) {
-            // The whole suite against whichever node the sentinels currently call the master.
             $config = [
                 'sentinels'      => Config::get('redis')[0]['sentinels'],
                 'sentinelmaster' => Config::get('redis')[0]['sentinelmaster'] ?? 'mymaster',

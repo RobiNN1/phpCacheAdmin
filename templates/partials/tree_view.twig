@@ -1,12 +1,14 @@
 {% import 'components/macros.twig' as macros %}
-{% set show_actions = hide_actions is not defined or hide_actions == false %}
+{% set show_actions = (hide_actions is not defined or hide_actions == false) and not readonly %}
 
 {% macro render_tree(items, level = 0, show_actions, view_key, macros) %}
     {% for key, item in items %}
         {% if item.type == 'folder' %}
             <div class="tree-group border-t border-gray-200 dark:border-gray-700" style="--level: {{ level }}">
                 <div class="flex gap-1 items-center py-1 px-6 hover:bg-gray-50 dark:hover:bg-white/5" style="padding-left: calc({{ level }} * 20px + 1.5rem)">
-                    <div class="pe-1" title="Check all">{{ macros.checkbox('check-all') }}</div>
+                    {% if show_actions %}
+                        <div class="pe-1" title="Check all">{{ macros.checkbox('check-all') }}</div>
+                    {% endif %}
                     <button class="flex gap-1 items-center tree-toggle" data-path="{{ item.path }}">
                         {{ svg('down', 10, '-rotate-90') }}
                         <span class="tree">{{ item.name }}{{ separator }}*</span>
@@ -69,7 +71,9 @@
 
 <div class="border-t border-b border-gray-200 dark:border-gray-700 treeview">
     <div class="flex gap-2 py-2 px-6">
-        <div title="Check all">{{ macros.checkbox('check-all', keys|length == 0) }}</div>
+        {% if show_actions %}
+            <div title="Check all">{{ macros.checkbox('check-all', keys|length == 0) }}</div>
+        {% endif %}
         <button class="py-1 px-2 text-xs text-gray-900 bg-gray-100 rounded dark:text-gray-100 dark:bg-gray-900 hover:bg-gray-300 expand-toggle dark:hover:bg-gray-700">
             Expand all
         </button>

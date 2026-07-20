@@ -16,6 +16,7 @@ use RobiNN\Pca\Dashboards\DashboardException;
 use RobiNN\Pca\Dashboards\DashboardInterface;
 use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
+use RobiNN\Pca\ReadonlyMode;
 use RobiNN\Pca\Template;
 
 class RedisDashboard implements DashboardInterface {
@@ -41,6 +42,10 @@ class RedisDashboard implements DashboardInterface {
     public function __construct(private readonly Template $template, ?string $client = null) {
         $this->client = $client ?? Config::get('redisclient', extension_loaded('redis') ? 'redis' : 'predis');
         $this->servers = Config::get('redis', []);
+
+        if (ReadonlyMode::enabled()) {
+            unset($this->tabs['console']);
+        }
 
         $server = Http::get('server', 0);
 

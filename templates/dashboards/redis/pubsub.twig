@@ -1,6 +1,7 @@
 {% set pubsub_window = min(max(config('pubsubwindow', 5), 1), 10) %}
 
 <div class="gap-4 lg:grid lg:grid-cols-2">
+    {% if not readonly %}
     <div class="col-span-2 p-4 mb-2 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
         <h2 class="mb-4 text-sm font-bold uppercase text-primary-900 dark:text-primary-400">Publish a message</h2>
         <div class="gap-2 items-end md:flex">
@@ -26,6 +27,7 @@
         </div>
         <div id="pubsub_publish_result" class="text-xs"></div>
     </div>
+    {% endif %}
 
     <div class="p-4 mb-2 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
         <div class="flex justify-between items-center mb-4">
@@ -137,6 +139,10 @@
          * Publish
          */
         const publish = () => {
+            if (publish_btn === null) {
+                return;
+            }
+
             const channel = document.getElementById('pubsub_channel').value.trim();
             const message = document.getElementById('pubsub_message').value;
 
@@ -166,14 +172,16 @@
             }, {publish: 1, channel: channel, message: message}, false);
         };
 
-        publish_btn.addEventListener('click', publish);
-        ['pubsub_channel', 'pubsub_message'].forEach(id => {
-            document.getElementById(id).addEventListener('keypress', e => {
-                if (e.key === 'Enter') {
-                    publish();
-                }
+        if (publish_btn !== null) {
+            publish_btn.addEventListener('click', publish);
+            ['pubsub_channel', 'pubsub_message'].forEach(id => {
+                document.getElementById(id).addEventListener('keypress', e => {
+                    if (e.key === 'Enter') {
+                        publish();
+                    }
+                });
             });
-        });
+        }
 
         /**
          * Active channels

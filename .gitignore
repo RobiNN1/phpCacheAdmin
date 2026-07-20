@@ -12,3 +12,4 @@ package-lock.json
 .phpunit.result.cache
 .ide_helper.php
 rector.php
+.twig-cs-fixer.cache

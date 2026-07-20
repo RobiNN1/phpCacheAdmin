@@ -28,13 +28,15 @@
         </a>
     {% endif %}
 
-    <form method="post" action="{{ view_url|default('') }}" class="inline-flex">
-        <input type="hidden" name="csrf_token" value="{{ csrf }}">
-        <button type="submit" name="delete" class="inline-flex gap-1 items-center font-semibold text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
-                onclick="return confirm('Are you sure you want to remove this item?');">
-            {{ svg('trash', 16) }} Delete
-        </button>
-    </form>
+    {% if not readonly %}
+        <form method="post" action="{{ view_url|default('') }}" class="inline-flex">
+            <input type="hidden" name="csrf_token" value="{{ csrf }}">
+            <button type="submit" name="delete" class="inline-flex gap-1 items-center font-semibold text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
+                    onclick="return confirm('Are you sure you want to remove this item?');">
+                {{ svg('trash', 16) }} Delete
+            </button>
+        </form>
+    {% endif %}
 </div>
 
 {% if value is iterable %}
@@ -42,7 +44,7 @@
 {% else %}
     <div class="flex flex-wrap gap-3 justify-between items-center mb-4">
         <span>
-            {% if edit_url %}
+            {% if edit_url and not readonly %}
                 <a href="{{ edit_url ~ encode_url }}" class="inline-flex gap-1 items-center font-semibold text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
                     {{ svg('edit', 16) }} Edit
                 </a>

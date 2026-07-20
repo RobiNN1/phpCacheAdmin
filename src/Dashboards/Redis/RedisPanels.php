@@ -74,16 +74,7 @@ trait RedisPanels {
             $role = ['Role', $replication_info['role'].', connected slaves '.$slaves];
         }
 
-        if (isset($server_info['valkey_version'])) {
-            $version = 'Valkey '.$server_info['valkey_version'].' (Redis '.($server_info['redis_version'] ?? 'N/A').')';
-            $mode = $server_info['server_mode'] ?? null;
-        } elseif (str_contains((strtolower($server_info['executable'] ?? '')), 'keydb')) {
-            $version = 'KeyDB '.($server_info['redis_version'] ?? 'N/A');
-            $mode = $server_info['redis_mode'] ?? null;
-        } else {
-            $version = $server_info['redis_version'] ?? 'N/A';
-            $mode = $server_info['redis_mode'] ?? null;
-        }
+        [$version, $mode] = $this->getVersionAndMode($server_info);
 
         $sentinel = null;
 
@@ -106,6 +97,26 @@ trait RedisPanels {
             'title' => $title,
             'data'  => array_filter($data),
         ];
+    }
+
+    /**
+     * @param array<string, mixed> $server_info The "server" section of INFO.
+     *
+     * @return array<int, mixed>
+     */
+    private function getVersionAndMode(array $server_info): array {
+        if (isset($server_info['valkey_version'])) {
+            $version = 'Valkey '.$server_info['valkey_version'].' (Redis '.($server_info['redis_version'] ?? 'N/A').')';
+            $mode = $server_info['server_mode'] ?? null;
+        } elseif (str_contains((strtolower($server_info['executable'] ?? '')), 'keydb')) {
+            $version = 'KeyDB '.($server_info['redis_version'] ?? 'N/A');
+            $mode = $server_info['redis_mode'] ?? null;
+        } else {
+            $version = $server_info['redis_version'] ?? 'N/A';
+            $mode = $server_info['redis_mode'] ?? null;
+        }
+
+        return [$version, $mode];
     }
 
     /**

@@ -55,7 +55,7 @@
                     <td class="{{ td }} hidden md:table-cell whitespace-nowrap">
                         <code class="text-xs">{{ client.command }}</code></td>
                     <td class="{{ td }}">
-                        {% if client.self %}
+                        {% if client.self or readonly %}
                             <span class="text-xs text-gray-400 dark:text-gray-500">&mdash;</span>
                         {% else %}
                             <form method="post" class="inline-flex">

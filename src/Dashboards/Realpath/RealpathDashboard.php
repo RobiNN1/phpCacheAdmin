@@ -32,13 +32,14 @@ class RealpathDashboard implements DashboardInterface {
     }
 
     /**
-     * @return array<string, array<int, string>|string>
+     * @return array<string, array<int, string>|bool|string>
      */
     public function dashboardInfo(): array {
         return [
-            'key'    => 'realpath',
-            'title'  => 'Realpath',
-            'colors' => [
+            'key'      => 'realpath',
+            'title'    => 'Realpath',
+            'readonly' => false,
+            'colors'   => [
                 50  => '#f4f6fa',
                 100 => '#e6ebf3',
                 200 => '#d2dbeb',

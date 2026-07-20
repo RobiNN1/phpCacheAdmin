@@ -17,9 +17,12 @@
 
 - Clean, responsive interface with a **Dark Mode**.
 - Switch between multiple configured servers for Redis, Memcached.
+- **Table or tree view** of the key list, grouped by a configurable separator.
 - Back up and restore your data.
 - Quickly find keys across your cache.
 - View any key's details in a **modal** without leaving the list.
+- View a value as **formatted, raw, or a hex dump**.
+- **Converters** (gzip, zlib, ...) and **formatters** (unserialize) applied automatically when a value is displayed.
 - Optional **login page** with basic authentication (enabled by defining users in `authusers`).
 - **Read-only mode** that hides and blocks everything destructive.
 - **No composer required to run**.
@@ -32,12 +35,12 @@
 - View, add, edit, and delete keys. Supports all Redis data types.
 - Search within a key's sub-items (hash fields, set/list/sorted set members).
 - **Stream consumer groups** with their consumers, pending entries, lag and the oldest entry still waiting for an acknowledgement.
-- **Analysis** of the keyspace - memory by namespace, biggest keys, keys with the most items, data type distribution
-and a TTL summary, sampled with SCAN. Includes **recommendations** weighed against the server's own `maxmemory`, eviction policy and encoding limits.
+- **Analysis** of the keyspace.
 - **Clients** list of the connected clients with their idle time, memory and last command, and the option to disconnect any of them.
 - **Profiler** to watch commands as they run, live, via MONITOR. Watches every node at once in a cluster.
-- **Console** for running Redis commands interactively.
+- **Console** for running Redis commands interactively, with a persistent per-server command history.
 - **PUB/SUB** support to browse channels, subscribe, and publish messages.
+- **Metrics** with **health checks**.
 - **Cluster support**.
 - **Sentinel support**.
 - Supports ACL.
@@ -49,8 +52,9 @@ and a TTL summary, sampled with SCAN. Includes **recommendations** weighed again
 
 - Uses a custom client, so **no memcache(d) extension** is required.
 - View, add, edit, and delete keys.
-- **Analysis** of the keyspace - memory by namespace, biggest keys, and an expiration and last-used summary.
-- **Console** for running Memcached commands interactively.
+- **Analysis** of the keyspace.
+- **Console** for running Memcached commands interactively, with a persistent per-server command history.
+- **Metrics** with **health checks**.
 - Server Stats including uptime, memory usage, connections, and more.
 - Slabs & Items info.
 - Commands Stats.
@@ -60,15 +64,19 @@ and a TTL summary, sampled with SCAN. Includes **recommendations** weighed again
 - **APCu**:
     - View, edit, and delete user-cached entries.
     - View cache information and memory usage statistics.
-    - **Analysis** of the cache - memory by namespace, biggest keys, most requested keys, and an expiration and last-used summary.
-    - **Health** checks - memory usage, hit rate, how often the cache filled up, and **fragmentation** of the free
-    memory, which can make storing a large entry fail even when there is enough of it left.
+    - **Analysis** of the cache.
+    - **Health** checks.
 - **OPcache**:
     - View and invalidate cached scripts.
     - Get statistics on memory usage, hit rates, and cached keys.
     - **Treemap** visualization of cached scripts by memory usage.
+    - **Warmup** that compiles a whole directory into the cache. Useful right after a deployment.
+    - **Health** checks.
 - **Realpath Cache**:
-    - View and clear PHP's realpath cache entries.
+    - View and clear PHP's realpath cache entries, with their TTL and memory usage.
+
+There is also a **Server** dashboard for a quick look at the machine phpCacheAdmin runs on - PHP version and
+configuration, loaded extensions, `phpinfo()`, and CPU, RAM and disk usage.
 
 ## Installation
 
@@ -76,6 +84,9 @@ Unzip the archive and launch index.php in a web browser. No installation is requ
 
 If you use the defaults (e.g., Redis, Memcached servers), everything should work out of the box.
 To customize the configuration, do not edit `config.dist.php` directly, but copy it into `config.php`.
+
+It can also be embedded in your own website when installed via Composer,
+see [example_embedded_version.php](example_embedded_version.php).
 
 ## Updating
 
@@ -223,7 +234,7 @@ Here is an example of how to implement a custom dashboard
 
 ## Contributing
 
-If you have a feature request, suggestion, or have found a bug, 
+If you have a feature request, suggestion, or have found a bug,
 please open an Issue describing what you would like to see.
 AI tools are fine, but unchecked AI-generated code with irrelevant changes is not.
 Discussing your ideas first saves everyone's time and prevents rejected contributions.

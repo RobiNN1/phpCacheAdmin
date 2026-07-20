@@ -19,6 +19,7 @@ trait OPCacheTrait {
     use OPCacheConfiguration;
 
     private const NOT_AVAILABLE = 'OPcache is not available, it is either disabled (opcache.enable) or restricted (opcache.restrict_api).';
+
     private const NO_SHARED_MEMORY = 'Statistics cannot be displayed with opcache.file_cache_only enabled.';
 
     /**

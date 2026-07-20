@@ -50,6 +50,39 @@ interface RedisCompatibilityInterface {
     public function streamAdd(string $key, string $id, array $messages): string;
 
     /**
+     * Alias to a xInfo('GROUPS').
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function streamGroups(string $key): array;
+
+    /**
+     * Alias to a xInfo('CONSUMERS').
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function streamConsumers(string $key, string $group): array;
+
+    /**
+     * Alias to a xPending(), the summary form.
+     *
+     * @return array<int, mixed>
+     */
+    public function streamPending(string $key, string $group): array;
+
+    /**
+     * Alias to a xReadGroup(), reads the entries that have not been delivered to the group yet.
+     *
+     * @return array<string, mixed>
+     */
+    public function streamReadGroup(string $key, string $group, string $consumer, int $count): array;
+
+    /**
+     * Alias to a xGroup('CREATE').
+     */
+    public function streamCreateGroup(string $key, string $group, string $id = '0'): bool;
+
+    /**
      * Pipeline keys for better performance.
      *
      * @param array<int, string> $keys

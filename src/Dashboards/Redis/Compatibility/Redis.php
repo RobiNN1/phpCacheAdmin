@@ -156,6 +156,49 @@ class Redis extends \Redis implements RedisCompatibilityInterface {
     }
 
     /**
+     * @return array<int, array<string, mixed>>
+     *
+     * @throws RedisException
+     */
+    public function streamGroups(string $key): array {
+        return $this->xinfo('GROUPS', $key) ?: [];
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     *
+     * @throws RedisException
+     */
+    public function streamConsumers(string $key, string $group): array {
+        return $this->xinfo('CONSUMERS', $key, $group) ?: [];
+    }
+
+    /**
+     * @return array<int, mixed>
+     *
+     * @throws RedisException
+     */
+    public function streamPending(string $key, string $group): array {
+        return $this->xpending($key, $group) ?: [];
+    }
+
+    /**
+     * @return array<string, mixed>
+     *
+     * @throws RedisException
+     */
+    public function streamReadGroup(string $key, string $group, string $consumer, int $count): array {
+        return $this->xreadgroup($group, $consumer, [$key => '>'], $count) ?: [];
+    }
+
+    /**
+     * @throws RedisException
+     */
+    public function streamCreateGroup(string $key, string $group, string $id = '0'): bool {
+        return (bool) $this->xgroup('CREATE', $key, $group, $id);
+    }
+
+    /**
      * @param array<int, string> $keys
      *
      * @return array<string, mixed>

@@ -577,6 +577,86 @@ abstract class RedisTestCase extends TestCase {
     }
 
     /**
+     * @return array<string, mixed>
+     *
+     * @throws Throwable
+     */
+    private function streamWithGroups(string $key): array {
+        foreach (range(1, 5) as $i) {
+            $this->redis->streamAdd($key, '*', ['order' => (string) $i]);
+        }
+
+        $this->redis->streamCreateGroup($key, 'pu-workers');
+        $this->redis->streamCreateGroup($key, 'pu-audit');
+
+        $this->redis->streamReadGroup($key, 'pu-workers', 'pu-worker-1', 2);
+        $this->redis->streamReadGroup($key, 'pu-workers', 'pu-worker-2', 1);
+
+        return $this->dashboard->streamGroupsInfo($key);
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function testStreamGroups(): void {
+        $groups = array_column($this->streamWithGroups('pu-test-stream-groups')['groups'], null, 'name');
+
+        $this->assertCount(2, $groups);
+        $this->assertSame(2, $groups['pu-workers']['consumers']);
+        $this->assertSame(3, $groups['pu-workers']['pending']);
+        $this->assertSame(0, $groups['pu-audit']['consumers']);
+        $this->assertSame(0, $groups['pu-audit']['pending']);
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function testStreamGroupsTotalPending(): void {
+        $this->assertSame(3, $this->streamWithGroups('pu-test-stream-pending')['total_pending']);
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function testStreamGroupsOldestPendingEntry(): void {
+        $key = 'pu-test-stream-oldest';
+        $groups = array_column($this->streamWithGroups($key)['groups'], null, 'name');
+
+        $this->assertSame(array_key_first($this->redis->xRange($key, '-', '+')), $groups['pu-workers']['oldest_pending']);
+        $this->assertNull($groups['pu-audit']['oldest_pending']); // nothing was delivered, so nothing is pending
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function testStreamGroupConsumers(): void {
+        $groups = array_column($this->streamWithGroups('pu-test-stream-consumers')['groups'], null, 'name');
+        $consumers = array_column($groups['pu-workers']['consumer_list'], null, 'name');
+
+        $this->assertSame(2, $consumers['pu-worker-1']['pending']);
+        $this->assertSame(1, $consumers['pu-worker-2']['pending']);
+        $this->assertSame([], $groups['pu-audit']['consumer_list']);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testStreamWithoutGroups(): void {
+        $key = 'pu-test-stream-nogroups';
+
+        $this->redis->streamAdd($key, '*', ['field' => 'value']);
+
+        $this->assertSame([], $this->dashboard->streamGroupsInfo($key));
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testStreamGroupsOfAMissingKey(): void {
+        $this->assertSame([], $this->dashboard->streamGroupsInfo('pu-test-stream-missing'));
+    }
+
+    /**
      * @throws Exception
      */
     public function testJSONType(): void {

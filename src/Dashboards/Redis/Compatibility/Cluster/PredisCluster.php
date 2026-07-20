@@ -14,7 +14,10 @@ use Predis\Client as PredisClient;
 use Predis\Cluster\RedisStrategy;
 use Predis\Collection\Iterator\Keyspace;
 use Predis\Command\RawCommand;
+use Predis\Connection\Cluster\RedisCluster as RedisClusterConnection;
 use Predis\NotSupportedException;
+use Predis\Response\ErrorInterface;
+use Predis\Response\ServerException;
 use Predis\Response\Status;
 use RobiNN\Pca\Dashboards\DashboardException;
 use RobiNN\Pca\Dashboards\Redis\Compatibility\Predis;
@@ -167,6 +170,68 @@ class PredisCluster extends PredisClient implements RedisCompatibilityInterface 
      */
     public function streamAdd(string $key, string $id, array $messages): string {
         return $this->xadd($key, $messages, $id);
+    }
+
+    /**
+     * @param array<int, mixed> $arguments
+     *
+     * @throws Throwable
+     */
+    private function commandOnKeyNode(string $key, string $command_id, array $arguments): mixed {
+        $connection = $this->getConnection();
+        $command = $this->createCommand($command_id, $arguments);
+
+        if (!$connection instanceof RedisClusterConnection) {
+            return $this->executeCommand($command);
+        }
+
+        $node = $connection->getConnectionBySlot($connection->getClusterStrategy()->getSlotByKey($key));
+        $response = $node->executeCommand($command);
+
+        if ($response instanceof ErrorInterface) {
+            throw new ServerException($response->getMessage());
+        }
+
+        return $command->parseResponse($response);
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     * @throws Throwable
+     */
+    public function streamGroups(string $key): array {
+        return $this->commandOnKeyNode($key, 'XINFO', ['GROUPS', $key]) ?: [];
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     * @throws Throwable
+     */
+    public function streamConsumers(string $key, string $group): array {
+        return $this->commandOnKeyNode($key, 'XINFO', ['CONSUMERS', $key, $group]) ?: [];
+    }
+
+    /**
+     * @return array<int, mixed>
+     * @throws Throwable
+     */
+    public function streamPending(string $key, string $group): array {
+        return $this->commandOnKeyNode($key, 'XPENDING', [$key, $group]) ?: [];
+    }
+
+    /**
+     * @return array<string, mixed>
+     * @throws Throwable
+     */
+    public function streamReadGroup(string $key, string $group, string $consumer, int $count): array {
+        return $this->commandOnKeyNode($key, 'XREADGROUP', [$group, $consumer, $count, null, false, $key, '>']) ?: [];
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function streamCreateGroup(string $key, string $group, string $id = '0'): bool {
+        return (bool) $this->commandOnKeyNode($key, 'XGROUP', ['CREATE', $key, $group, $id]);
     }
 
     public function rawcommand(string $command, mixed ...$arguments): mixed {

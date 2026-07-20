@@ -121,6 +121,7 @@ trait RedisKeyView {
             'types'           => $this->typesTplOptions(),
             'subsearch_value' => $subsearch,
             'total_items'     => $total_items,
+            'stream_groups'   => $type === 'stream' ? $this->streamGroupsInfo($key) : [],
         ]);
     }
 

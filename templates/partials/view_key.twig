@@ -39,6 +39,10 @@
     {% endif %}
 </div>
 
+{% if stream_groups is defined and stream_groups.groups is defined %}
+    {{ include('partials/stream_groups.twig') }}
+{% endif %}
+
 {% if value is iterable %}
     {{ include('partials/view_key_array.twig') }}
 {% else %}

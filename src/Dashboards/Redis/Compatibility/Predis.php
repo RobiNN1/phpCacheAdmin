@@ -123,6 +123,40 @@ class Predis extends Client implements RedisCompatibilityInterface {
         return $this->xadd($key, $messages, $id);
     }
 
+    /**
+     * @return array<int, array<string, mixed>>
+     *
+     * @throws Throwable
+     */
+    public function streamGroups(string $key): array {
+        return $this->xinfo->groups($key) ?: [];
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    public function streamConsumers(string $key, string $group): array {
+        return $this->xinfo->consumers($key, $group) ?: [];
+    }
+
+    /**
+     * @return array<int, mixed>
+     */
+    public function streamPending(string $key, string $group): array {
+        return $this->xpending($key, $group) ?: [];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function streamReadGroup(string $key, string $group, string $consumer, int $count): array {
+        return $this->xreadgroup($group, $consumer, $count, null, false, $key, '>') ?: [];
+    }
+
+    public function streamCreateGroup(string $key, string $group, string $id = '0'): bool {
+        return (string) $this->xgroup->create($key, $group, $id) === 'OK';
+    }
+
     public function rawcommand(string $command, mixed ...$arguments): mixed {
         return $this->executeRaw(func_get_args());
     }

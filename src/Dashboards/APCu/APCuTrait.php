@@ -16,6 +16,8 @@ use RobiNN\Pca\Paginator;
 
 trait APCuTrait {
     use APCuPanels;
+    use APCuAnalysis;
+    use APCuHealth;
     use APCuConfiguration;
     use APCuKeyView;
     use APCuKeysList;
@@ -25,6 +27,8 @@ trait APCuTrait {
      */
     private array $tabs = [
         'keys'     => 'Keys',
+        'analysis' => 'Analysis',
+        'health'   => 'Health',
         'moreinfo' => 'More info',
     ];
 
@@ -103,6 +107,8 @@ trait APCuTrait {
 
         $tab_data = match ($tab) {
             'keys' => $this->keysTab(),
+            'analysis' => $this->analysisTab(),
+            'health' => ['data' => $this->healthTab(), 'tpl' => 'partials/health'],
             'moreinfo' => ['data' => $this->moreinfoTab(), 'tpl' => 'partials/info_table'],
             default => [],
         };

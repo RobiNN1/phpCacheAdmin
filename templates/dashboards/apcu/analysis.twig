@@ -1,0 +1,172 @@
+{% import 'components/macros.twig' as macros %}
+
+{% set card = 'p-4 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700' %}
+{% set scroll_card = card ~ ' flex flex-col h-128' %}
+{% set th = 'py-2 px-4 text-xs font-bold uppercase whitespace-nowrap' %}
+{% set td = 'py-2 px-4 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700' %}
+{% set thead_sticky = 'sticky top-0 z-10 bg-white dark:bg-gray-800' %}
+{% set key_link = 'font-semibold text-primary-500 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-500' %}
+
+{% if tab_message %}
+    <div class="{{ card }} text-center text-gray-500 dark:text-gray-400">{{ tab_message }}</div>
+{% elseif analysis is empty %}
+    <div class="{{ card }} text-center text-gray-500 dark:text-gray-400">There are no keys to analyze.</div>
+{% else %}
+    {% set summary = analysis.summary %}
+
+    <div class="grid grid-cols-2 gap-4 mb-4 xl:grid-cols-4">
+        {% for tile in analysis.tiles %}
+            <div class="{{ card }}">
+                <h3 class="text-xs font-bold uppercase text-primary-900 dark:text-primary-400">{{ tile.label }}</h3>
+                <p class="mt-1 text-xl font-semibold text-gray-900 dark:text-white">{{ tile.value }}</p>
+                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ tile.note }}</p>
+            </div>
+        {% endfor %}
+    </div>
+
+    <div class="gap-4 xl:grid xl:grid-cols-2">
+        <div class="{{ scroll_card }} mb-4 xl:mb-0">
+            <h2 class="mb-1 text-sm font-bold uppercase text-primary-900 dark:text-primary-400">Memory by namespace</h2>
+            <p class="mb-3 text-xs text-gray-500 dark:text-gray-400">Top {{ analysis.namespaces|length }} of {{ summary.namespaces|number }} namespaces, by memory used.</p>
+            <div class="overflow-auto grow">
+                <table class="w-full text-left table-auto dark:text-gray-300">
+                    <thead class="{{ thead_sticky }}">
+                    <tr class="border-b border-gray-200 dark:border-gray-700 text-primary-900 dark:text-primary-400">
+                        <th class="{{ th }}">Namespace</th>
+                        <th class="{{ th }} w-20">Keys</th>
+                        <th class="{{ th }} w-24">Memory</th>
+                        <th class="{{ th }} w-40">Share</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for row in analysis.namespaces %}
+                        <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
+                            <td class="{{ td }} break-all">{{ row.name }}</td>
+                            <td class="{{ td }} whitespace-nowrap">{{ row.count|number }}</td>
+                            <td class="{{ td }} whitespace-nowrap">{{ row.memory|bytes }}</td>
+                            <td class="{{ td }}">
+                                <div class="flex gap-2 items-center">
+                                    <div class="grow">{{ macros.progress(row.percent, 'lower', null, 'info') }}</div>
+                                    <span class="shrink-0 text-xs text-gray-500 dark:text-gray-400">{{ row.percent }}%</span>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="{{ scroll_card }} mb-4 xl:mb-0">
+            <h2 class="mb-1 text-sm font-bold uppercase text-primary-900 dark:text-primary-400">Biggest keys</h2>
+            <p class="mb-3 text-xs text-gray-500 dark:text-gray-400">The entries that use the most memory.</p>
+            <div class="overflow-auto grow">
+                <table class="w-full text-left table-auto dark:text-gray-300">
+                    <thead class="{{ thead_sticky }}">
+                    <tr class="border-b border-gray-200 dark:border-gray-700 text-primary-900 dark:text-primary-400">
+                        <th class="{{ th }}">Key</th>
+                        <th class="{{ th }} w-24">Memory</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for row in analysis.top_memory %}
+                        <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
+                            <td class="{{ td }} break-all">
+                                <a href="{{ link([], {view: 'key', key: row.key}) }}" class="{{ key_link }}">{{ row.key }}</a>
+                            </td>
+                            <td class="{{ td }} whitespace-nowrap">{{ row.size|bytes }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="{{ scroll_card }} mb-4 xl:mb-0">
+            <h2 class="mb-1 text-sm font-bold uppercase text-primary-900 dark:text-primary-400">Most requested keys</h2>
+            <p class="mb-3 text-xs text-gray-500 dark:text-gray-400">Hits counted since the entry was stored. Entries with almost no hits are the first candidates to stop caching.</p>
+            <div class="overflow-auto grow">
+                <table class="w-full text-left table-auto dark:text-gray-300">
+                    <thead class="{{ thead_sticky }}">
+                    <tr class="border-b border-gray-200 dark:border-gray-700 text-primary-900 dark:text-primary-400">
+                        <th class="{{ th }}">Key</th>
+                        <th class="{{ th }} w-20">Hits</th>
+                        <th class="{{ th }} w-24">Memory</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for row in analysis.top_hits %}
+                        <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
+                            <td class="{{ td }} break-all">
+                                <a href="{{ link([], {view: 'key', key: row.key}) }}" class="{{ key_link }}">{{ row.key }}</a>
+                            </td>
+                            <td class="{{ td }} whitespace-nowrap">{{ row.hits|number }}</td>
+                            <td class="{{ td }} whitespace-nowrap">{{ row.size|bytes }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="{{ card }} mb-4 xl:mb-0">
+            <h2 class="mb-1 text-sm font-bold uppercase text-primary-900 dark:text-primary-400">Expiration</h2>
+            <p class="mb-3 text-xs text-gray-500 dark:text-gray-400">When the entries are due to expire.</p>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left table-auto dark:text-gray-300">
+                    <thead>
+                    <tr class="border-b border-gray-200 dark:border-gray-700 text-primary-900 dark:text-primary-400">
+                        <th class="{{ th }}">Expires in</th>
+                        <th class="{{ th }} w-20">Keys</th>
+                        <th class="{{ th }} w-40">Share</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for row in analysis.expiry %}
+                        <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
+                            <td class="{{ td }} whitespace-nowrap">{{ row.name }}</td>
+                            <td class="{{ td }} whitespace-nowrap">{{ row.count|number }}</td>
+                            <td class="{{ td }}">
+                                <div class="flex gap-2 items-center">
+                                    <div class="grow">{{ macros.progress(row.percent, 'lower', null, 'info') }}</div>
+                                    <span class="shrink-0 text-xs text-gray-500 dark:text-gray-400">{{ row.percent }}%</span>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="{{ card }} mb-4 xl:mb-0">
+            <h2 class="mb-1 text-sm font-bold uppercase text-primary-900 dark:text-primary-400">Last used</h2>
+            <p class="mb-3 text-xs text-gray-500 dark:text-gray-400">How long ago the entries were last read. APCu has no LRU eviction, when the cache fills up it is thrown away as a whole.</p>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left table-auto dark:text-gray-300">
+                    <thead>
+                    <tr class="border-b border-gray-200 dark:border-gray-700 text-primary-900 dark:text-primary-400">
+                        <th class="{{ th }}">Last read</th>
+                        <th class="{{ th }} w-20">Keys</th>
+                        <th class="{{ th }} w-40">Share</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for row in analysis.idle %}
+                        <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
+                            <td class="{{ td }} whitespace-nowrap">{{ row.name }} ago</td>
+                            <td class="{{ td }} whitespace-nowrap">{{ row.count|number }}</td>
+                            <td class="{{ td }}">
+                                <div class="flex gap-2 items-center">
+                                    <div class="grow">{{ macros.progress(row.percent, 'lower', null, 'info') }}</div>
+                                    <span class="shrink-0 text-xs text-gray-500 dark:text-gray-400">{{ row.percent }}%</span>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endif %}

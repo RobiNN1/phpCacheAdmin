@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace Tests\Dashboards\APCu;
 
+use APCUIterator;
 use JsonException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use RobiNN\Pca\Dashboards\APCu\APCuDashboard;
@@ -271,5 +272,81 @@ final class APCuTest extends TestCase {
         }
 
         unlink($tmp_file_path);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function runAnalysis(): array {
+        apcu_clear_cache();
+
+        apcu_store('pu:cache:big', str_repeat('x', 50_000), 30);
+        apcu_store('pu:cache:small', 'value', 7200);
+        apcu_store('pu:session:abc', 'value');
+        apcu_store('pu-no-namespace', 'value');
+
+        foreach (range(1, 5) as $ignored) {
+            apcu_fetch('pu:cache:small');
+        }
+
+        $fields = APC_ITER_KEY | APC_ITER_TTL | APC_ITER_MEM_SIZE | APC_ITER_NUM_HITS | APC_ITER_ATIME | APC_ITER_CTIME;
+
+        $entries = [];
+
+        foreach (new APCUIterator(null, $fields, 0, APC_LIST_ACTIVE) as $item) {
+            $entries[] = $item;
+        }
+
+        return $this->dashboard->analyzeKeys($entries);
+    }
+
+    public function testAnalysisSummary(): void {
+        $summary = $this->runAnalysis()['summary'];
+
+        $this->assertSame(4, $summary['analyzed']);
+        $this->assertSame(2, $summary['namespaces']); // "pu" and the bucket for the key without a separator
+        $this->assertSame(2, $summary['no_expiry']['count']);
+    }
+
+    public function testAnalysisTiles(): void {
+        $tiles = $this->runAnalysis()['tiles'];
+
+        $this->assertCount(4, $tiles);
+        $this->assertSame('Keys analyzed', $tiles[0]['label']);
+    }
+
+    public function testAnalysisBiggestKey(): void {
+        $top_memory = $this->runAnalysis()['top_memory'];
+
+        $this->assertSame('pu:cache:big', $top_memory[0]['key']);
+        $this->assertGreaterThan(50_000, $top_memory[0]['size']);
+    }
+
+    public function testAnalysisMostRequestedKey(): void {
+        $top_hits = $this->runAnalysis()['top_hits'];
+
+        $this->assertSame('pu:cache:small', $top_hits[0]['key']);
+        $this->assertSame(5, $top_hits[0]['hits']);
+    }
+
+    public function testAnalysisGroupsKeysByNamespace(): void {
+        $namespaces = array_column($this->runAnalysis()['namespaces'], 'count', 'name');
+
+        $this->assertSame(3, $namespaces['pu']);
+        $this->assertSame(1, $namespaces['(no namespace)']);
+    }
+
+    public function testAnalysisExpiryBuckets(): void {
+        $expiry = array_column($this->runAnalysis()['expiry'], 'count', 'name');
+
+        $this->assertSame(2, $expiry['No expiry']);
+        $this->assertSame(1, $expiry['< 1 minute']);
+        $this->assertSame(1, $expiry['< 1 day']);
+    }
+
+    public function testAnalysisWithoutKeys(): void {
+        apcu_clear_cache();
+
+        $this->assertSame([], $this->dashboard->analyzeKeys([]));
     }
 }

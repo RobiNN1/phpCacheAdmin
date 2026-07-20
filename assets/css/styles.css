@@ -598,6 +598,9 @@
   .border-transparent {
     border-color: transparent;
   }
+  .bg-amber-100 {
+    background-color: oklch(96.2% 0.059 95.617);
+  }
   .bg-blue-100 {
     background-color: oklch(93.2% 0.032 255.585);
   }
@@ -786,6 +789,9 @@
   }
   .whitespace-pre-wrap {
     white-space: pre-wrap;
+  }
+  .text-amber-800 {
+    color: oklch(47.3% 0.137 46.201);
   }
   .text-blue-800 {
     color: oklch(42.4% 0.199 265.638);
@@ -1211,6 +1217,9 @@
   .dark\:border-primary-700:where(.dark, .dark *) {
     border-color: var(--color-primary-700);
   }
+  .dark\:bg-amber-900:where(.dark, .dark *) {
+    background-color: oklch(41.4% 0.112 45.904);
+  }
   .dark\:bg-blue-900:where(.dark, .dark *) {
     background-color: oklch(37.9% 0.146 265.522);
   }
@@ -1264,6 +1273,9 @@
   }
   .dark\:bg-white\/5:where(.dark, .dark *) {
     background-color: color-mix(in oklab, #fff 5%, transparent);
+  }
+  .dark\:text-amber-200:where(.dark, .dark *) {
+    color: oklch(92.4% 0.12 95.746);
   }
   .dark\:text-blue-200:where(.dark, .dark *) {
     color: oklch(88.2% 0.059 254.128);

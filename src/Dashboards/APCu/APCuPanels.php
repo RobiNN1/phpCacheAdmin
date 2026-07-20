@@ -16,11 +16,12 @@ trait APCuPanels {
      */
     private function getPanelsData(): array {
         $info = apcu_cache_info(true);
-        $memory_info = apcu_sma_info(true);
+        $memory_info = apcu_sma_info();
 
         $total_memory = $memory_info['num_seg'] * $memory_info['seg_size'];
         $memory_used = $total_memory - $memory_info['avail_mem'];
-        $memory_usage = round(($memory_used / $total_memory) * 100, 2);
+        $memory_usage = $total_memory > 0 ? round(($memory_used / $total_memory) * 100, 2) : 0;
+        $fragmentation = $this->fragmentation($memory_info);
 
         $num_hits = (int) $info['num_hits'];
         $num_misses = (int) $info['num_misses'];
@@ -42,6 +43,7 @@ trait APCuPanels {
                     'Total' => Format::bytes((int) $total_memory, 0),
                     ['Used', Format::bytes((int) $memory_used).' ('.$memory_usage.'%)', $memory_usage],
                     'Free'  => Format::bytes((int) $memory_info['avail_mem']),
+                    ['Fragmentation', $fragmentation['percentage'].'% in '.Format::number($fragmentation['blocks']).' block(s)', $fragmentation['percentage']],
                 ],
             ],
             [

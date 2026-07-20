@@ -1,5 +1,5 @@
 <p align="center"><img src=".github/img/logo.svg" width="400" alt="Logo"></p>
-<p align="center">Web GUI for managing Redis, Memcached, APCu, OPCache, and Realpath with data management.</p>
+<p align="center">Web GUI for managing Redis, Valkey, KeyDB, Memcached, APCu, OPCache, and Realpath with data management.</p>
 <p align="center"><strong><a href="https://phpcacheadmin.com/">phpcacheadmin.com</a></strong></p>
 <p align="center">
   <picture>
@@ -26,6 +26,7 @@
 
 ### Redis
 
+- Works with **Valkey** and **KeyDB** as well.
 - Works with both **phpredis** and **Predis** clients.
 - View, add, edit, and delete keys. Supports all Redis data types.
 - Search within a key's sub-items (hash fields, set/list/sorted set members).
@@ -202,7 +203,7 @@ services:
 ## Requirements
 
 - PHP >= 8.2 (Use [v1 branch](https://github.com/RobiNN1/phpCacheAdmin/tree/v1.x) if you need support for >=7.4)
-- Redis server >= 4.0
+- Redis server >= 4.0, or Valkey / KeyDB
 - Memcached server >= 1.4.31. SASL is not supported because there is no way to get the keys
 - sqlite3 extension for metrics
 

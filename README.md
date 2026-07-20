@@ -21,6 +21,7 @@
 - Quickly find keys across your cache.
 - View any key's details in a **modal** without leaving the list.
 - Optional **login page** with basic authentication (enabled by defining users in `authusers`).
+- **Read-only mode** that hides and blocks everything destructive.
 - **No composer required to run**.
 - **Docker ready**.
 
@@ -30,6 +31,7 @@
 - Works with both **phpredis** and **Predis** clients.
 - View, add, edit, and delete keys. Supports all Redis data types.
 - Search within a key's sub-items (hash fields, set/list/sorted set members).
+- **Stream consumer groups** with their consumers, pending entries, lag and the oldest entry still waiting for an acknowledgement.
 - **Analysis** of the keyspace - memory by namespace, biggest keys, keys with the most items, data type distribution
 and a TTL summary, sampled with SCAN. Includes **recommendations** weighed against the server's own `maxmemory`, eviction policy and encoding limits.
 - **Clients** list of the connected clients with their idle time, memory and last command, and the option to disconnect any of them.
@@ -58,6 +60,9 @@ and a TTL summary, sampled with SCAN. Includes **recommendations** weighed again
 - **APCu**:
     - View, edit, and delete user-cached entries.
     - View cache information and memory usage statistics.
+    - **Analysis** of the cache - memory by namespace, biggest keys, most requested keys, and an expiration and last-used summary.
+    - **Health** checks - memory usage, hit rate, how often the cache filled up, and **fragmentation** of the free
+    memory, which can make storing a large entry fail even when there is enough of it left.
 - **OPcache**:
     - View and invalidate cached scripts.
     - Get statistics on memory usage, hit rates, and cached keys.
@@ -135,6 +140,7 @@ Memcached:
 
 Other:
 
+- `PCA_READONLY` Set it to `true` to block every destructive action (optional).
 - `PCA_PHP_MEMORY_LIMIT` In case you need to increase the PHP memory limit in Docker.
 - `PCA_NGINX_PORT` In case you need to change NGINX port in Docker.
 

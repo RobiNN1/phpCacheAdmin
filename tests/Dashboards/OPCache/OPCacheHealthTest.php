@@ -106,6 +106,15 @@ final class OPCacheHealthTest extends TestCase {
         $this->assertStringContainsString('Increase opcache.memory_consumption.', (string) $memory['suggestion']);
     }
 
+    public function testMemoryCheckWithoutTheDirective(): void {
+        $status = ['memory_usage' => ['used_memory' => 16_000_000, 'free_memory' => 48_000_000, 'wasted_memory' => 0]];
+        $memory = $this->checks($status, ['opcache.memory_consumption' => 0])['Memory usage'];
+
+        $this->assertSame('healthy', $memory['status']);
+        $this->assertEqualsWithDelta(25.0, $memory['utilization'], PHP_FLOAT_EPSILON);
+        $this->assertStringContainsString('61,04MB', (string) $memory['detail']);
+    }
+
     public function testMemoryCheckOomRestarts(): void {
         $memory = $this->checks([
             'memory_usage'       => ['wasted_memory' => 2_000_000],

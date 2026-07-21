@@ -50,7 +50,7 @@ trait OPCacheHealth {
      * @return array<string, mixed>
      */
     private function memoryCheck(array $memory, array $stats, array $directives): array {
-        $total = $directives['opcache.memory_consumption'];
+        $total = $this->totalMemory($memory, $directives);
         $used = $memory['used_memory'] + $memory['wasted_memory'];
         $utilization = $total > 0 ? ($used / $total) * 100 : 0;
         $status = $stats['oom_restarts'] > 0 ? 'critical' : Helpers::utilizationStatus($utilization);

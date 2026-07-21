@@ -31,12 +31,28 @@ trait OPCachePanels {
 
         return [
             $this->extensionPanel($status, $stats),
-            $this->memoryPanel($memory, $directives['opcache.memory_consumption']),
+            $this->memoryPanel($memory, $this->totalMemory($memory, $directives)),
             $this->statsPanel($stats, $directives),
             $this->jitPanel($status),
             $this->preloadPanel($status, $directives),
             $this->internedStringsPanel($status),
         ];
+    }
+
+    /**
+     * @param array<string, mixed> $memory
+     * @param array<string, mixed> $directives
+     */
+    private function totalMemory(array $memory, array $directives): int {
+        // Some builds report the directive as 0 even though it is configured (FrankenPHP with PHP 8.5,
+        // https://github.com/php/frankenphp/issues/2354), so it falls back to the status.
+        $total = (int) ($directives['opcache.memory_consumption'] ?? 0);
+
+        if ($total > 0) {
+            return $total;
+        }
+
+        return (int) ($memory['used_memory'] ?? 0) + (int) ($memory['free_memory'] ?? 0) + (int) ($memory['wasted_memory'] ?? 0);
     }
 
     /**

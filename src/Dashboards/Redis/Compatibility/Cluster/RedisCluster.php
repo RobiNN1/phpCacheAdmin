@@ -145,6 +145,8 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
 
     /**
      * @param array<string, string> $messages
+     *
+     * @throws RedisClusterException
      */
     public function streamAdd(string $key, string $id, array $messages): string {
         return $this->xadd($key, $id, $messages);
@@ -152,6 +154,8 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
 
     /**
      * @return array<int, array<string, mixed>>
+     *
+     * @throws RedisClusterException
      */
     public function streamGroups(string $key): array {
         return $this->xinfo('GROUPS', $key) ?: [];
@@ -159,6 +163,8 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
 
     /**
      * @return array<int, array<string, mixed>>
+     *
+     * @throws RedisClusterException
      */
     public function streamConsumers(string $key, string $group): array {
         return $this->xinfo('CONSUMERS', $key, $group) ?: [];
@@ -166,6 +172,8 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
 
     /**
      * @return array<int, mixed>
+     *
+     * @throws RedisClusterException
      */
     public function streamPending(string $key, string $group): array {
         return $this->xpending($key, $group) ?: [];
@@ -173,11 +181,16 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
 
     /**
      * @return array<string, mixed>
+     *
+     * @throws RedisClusterException
      */
     public function streamReadGroup(string $key, string $group, string $consumer, int $count): array {
         return $this->xreadgroup($group, $consumer, [$key => '>'], $count) ?: [];
     }
 
+    /**
+     * @throws RedisClusterException
+     */
     public function streamCreateGroup(string $key, string $group, string $id = '0'): bool {
         return (bool) $this->xgroup('CREATE', $key, $group, $id);
     }

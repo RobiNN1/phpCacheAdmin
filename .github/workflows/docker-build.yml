@@ -30,6 +30,8 @@ jobs:
           context: .
           push: true
           platforms: linux/amd64,linux/arm64
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
           tags: |
             robinn/phpcacheadmin:${{ github.ref_name }}
             robinn/phpcacheadmin:latest

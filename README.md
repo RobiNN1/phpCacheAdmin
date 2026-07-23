@@ -208,13 +208,13 @@ services:
       - PCA_REDIS_0_PORT=6379
       - PCA_MEMCACHED_0_HOST=memcached
       - PCA_MEMCACHED_0_PORT=11211
-    links:
+    depends_on:
       - redis
       - memcached
   redis:
-    image: redis
+    image: redis:8-alpine
   memcached:
-    image: memcached
+    image: memcached:alpine
 ```
 
 ## Requirements

@@ -1,37 +1,31 @@
-# Build stage
-FROM php:8.5-cli-alpine AS builder
+FROM alpine:3.23
 
-RUN apk add --no-cache --virtual .build-deps autoconf build-base git \
-    && pecl install -o -f redis \
-    && docker-php-ext-enable redis \
-    && rm -rf /tmp/pear
+RUN apk add --no-cache nginx php85-fpm php85-session php85-phar php85-mbstring php85-ctype php85-iconv php85-openssl php85-pdo php85-pdo_sqlite \
+    && adduser -u 82 -D -S -H -s /sbin/nologin -G www-data www-data \
+    && mkdir -p /var/www/html/tmp \
+    && chown www-data:www-data /var/www/html/tmp
 
-WORKDIR /app
-RUN git clone --depth=1 https://github.com/RobiNN1/phpCacheAdmin.git . \
-    && rm -rf .git tests composer.json package.json phpstan.neon phpunit.xml README.md docker-compose.yml Dockerfile \
-    && apk del .build-deps
+RUN printf '[www]\n\
+user = www-data\n\
+group = www-data\n\
+listen = 127.0.0.1:9000\n\
+clear_env = no\n\
+ping.path = /ping\n' > /etc/php85/php-fpm.d/zzz-pca.conf
 
-# Final stage
-FROM php:8.5-fpm-alpine
-
-COPY --from=builder /usr/local/lib/php/extensions /usr/local/lib/php/extensions
-COPY --from=builder /usr/local/etc/php/conf.d /usr/local/etc/php/conf.d
-COPY --from=builder /app /var/www/html
-
-RUN apk add --no-cache nginx gettext \
-    && mkdir -p /var/www/html/tmp /run/nginx /var/cache/nginx /var/log/nginx \
-    && chmod -R 777 /var/www/html /run/nginx /var/cache/nginx /var/log/nginx \
-    && sed -i 's|^listen = .*|listen = 127.0.0.1:9000|' /usr/local/etc/php-fpm.d/www.conf
-
-ENV PCA_NGINX_PORT=80
-
-# NGINX config template
 RUN printf 'server {\n\
     listen ${PCA_NGINX_PORT};\n\
     root /var/www/html;\n\
     index index.php;\n\
     location / {\n\
         try_files $uri $uri/ /index.php$is_args$args;\n\
+    }\n\
+    location = /ping {\n\
+        allow 127.0.0.1;\n\
+        deny all;\n\
+        access_log off;\n\
+        include fastcgi_params;\n\
+        fastcgi_param SCRIPT_FILENAME $fastcgi_script_name;\n\
+        fastcgi_pass 127.0.0.1:9000;\n\
     }\n\
     location ~ \\.php$ {\n\
         fastcgi_pass 127.0.0.1:9000;\n\
@@ -41,6 +35,18 @@ RUN printf 'server {\n\
     }\n\
 }\n' > /etc/nginx/http.d/default.conf.template
 
-CMD envsubst '${PCA_NGINX_PORT}' < /etc/nginx/http.d/default.conf.template > /etc/nginx/http.d/default.conf \
-    && php-fpm -D \
-    && nginx -g 'daemon off;'
+COPY --chmod=755 index.php config.dist.php predis.phar twig.phar /var/www/html/
+COPY --chmod=755 src /var/www/html/src
+COPY --chmod=755 templates /var/www/html/templates
+COPY --chmod=755 assets /var/www/html/assets
+
+ENV PCA_NGINX_PORT=80
+
+EXPOSE 80
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s \
+    CMD wget -q -O /dev/null "http://127.0.0.1:${PCA_NGINX_PORT}/ping" || exit 1
+
+STOPSIGNAL SIGQUIT
+
+CMD ["/bin/sh", "-c", "sed \"s|\\${PCA_NGINX_PORT}|${PCA_NGINX_PORT}|g\" /etc/nginx/http.d/default.conf.template > /etc/nginx/http.d/default.conf && php-fpm85 -D && exec nginx -g 'daemon off;'"]

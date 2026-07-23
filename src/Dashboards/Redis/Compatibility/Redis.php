@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace RobiNN\Pca\Dashboards\Redis\Compatibility;
 
 use Exception;
+use JsonException;
 use RedisException;
 use RobiNN\Pca\Dashboards\DashboardException;
 
@@ -26,6 +27,7 @@ class Redis extends \Redis implements RedisCompatibilityInterface {
         self::REDIS_ZSET      => 'zset',
         self::REDIS_HASH      => 'hash',
         self::REDIS_STREAM    => 'stream',
+        self::REDIS_VECTORSET => 'vectorset',
         'ReJSON-RL'           => 'json',
     ];
 
@@ -196,6 +198,68 @@ class Redis extends \Redis implements RedisCompatibilityInterface {
      */
     public function streamCreateGroup(string $key, string $group, string $id = '0'): bool {
         return (bool) $this->xgroup('CREATE', $key, $group, $id);
+    }
+
+    /**
+     * @return array<string, mixed>
+     *
+     * @throws RedisException
+     */
+    public function vectorInfo(string $key): array {
+        $info = $this->vinfo($key);
+
+        return is_array($info) ? $info : [];
+    }
+
+    /**
+     * @return array<int, string>
+     *
+     * @throws RedisException
+     */
+    public function vectorMembers(string $key, int $count): array {
+        $members = $this->vrandmember($key, $count);
+
+        return is_array($members) ? array_map(strval(...), $members) : [];
+    }
+
+    /**
+     * @return array<int, float>
+     *
+     * @throws RedisException
+     */
+    public function vectorEmbedding(string $key, string $element): array {
+        return $this->parseVectorEmbedding($this->vemb($key, $element));
+    }
+
+    /**
+     * @throws RedisException
+     *
+     * @throws JsonException
+     */
+    public function vectorAttributes(string $key, string $element): string {
+        $attributes = $this->vgetattr($key, $element);
+
+        if (is_array($attributes)) {
+            $attributes = json_encode($attributes, JSON_THROW_ON_ERROR);
+        }
+
+        return is_string($attributes) ? $attributes : '';
+    }
+
+    /**
+     * @param array<int, float|string> $vector
+     *
+     * @throws RedisException
+     */
+    public function vectorAdd(string $key, string $element, array $vector, string $attributes = ''): bool {
+        return (bool) $this->vadd($key, $vector, $element, $attributes !== '' ? ['SETATTR' => $attributes] : null);
+    }
+
+    /**
+     * @throws RedisException
+     */
+    public function vectorRem(string $key, string $element): bool {
+        return (bool) $this->vrem($key, $element);
     }
 
     /**

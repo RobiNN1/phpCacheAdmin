@@ -85,7 +85,7 @@ trait RedisProfiler {
             return [(string) $server['path'] => 'unix://'.$server['path']];
         }
 
-        $address = $server['host'].':'.($server['port'] ?? 6379);
+        $address = $this->is_sentinel && $this->sentinel_master !== '' ? $this->sentinel_master : $server['host'].':'.($server['port'] ?? 6379);
 
         return [$address => $scheme.'://'.$address];
     }

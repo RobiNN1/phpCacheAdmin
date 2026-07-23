@@ -34,6 +34,7 @@ class Predis extends Client implements RedisCompatibilityInterface {
         'zset'      => 'zset',
         'hash'      => 'hash',
         'stream'    => 'stream',
+        'vectorset' => 'vectorset',
         'ReJSON-RL' => 'json',
     ];
 
@@ -155,6 +156,48 @@ class Predis extends Client implements RedisCompatibilityInterface {
 
     public function streamCreateGroup(string $key, string $group, string $id = '0'): bool {
         return (string) $this->xgroup->create($key, $group, $id) === 'OK';
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function vectorInfo(string $key): array {
+        $info = $this->vinfo($key);
+
+        return is_array($info) ? $info : [];
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public function vectorMembers(string $key, int $count): array {
+        $members = $this->vrandmember($key, $count);
+
+        return is_array($members) ? array_map(strval(...), $members) : [];
+    }
+
+    /**
+     * @return array<int, float>
+     */
+    public function vectorEmbedding(string $key, string $element): array {
+        return $this->parseVectorEmbedding($this->vemb($key, $element));
+    }
+
+    public function vectorAttributes(string $key, string $element): string {
+        $attributes = $this->vgetattr($key, $element, true);
+
+        return is_string($attributes) ? $attributes : '';
+    }
+
+    /**
+     * @param array<int, float|string> $vector
+     */
+    public function vectorAdd(string $key, string $element, array $vector, string $attributes = ''): bool {
+        return $this->vadd($key, $vector, $element, attributes: $attributes !== '' ? $attributes : null);
+    }
+
+    public function vectorRem(string $key, string $element): bool {
+        return $this->vrem($key, $element);
     }
 
     public function rawcommand(string $command, mixed ...$arguments): mixed {

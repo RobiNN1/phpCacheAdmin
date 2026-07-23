@@ -659,6 +659,122 @@ abstract class RedisTestCase extends TestCase {
     /**
      * @throws Exception
      */
+    private function vectorSet(string $key): void {
+        if (!$this->redis->checkModule('vectorset')) {
+            $this->markTestSkipped('The vectorset module is not loaded.');
+        }
+
+        $this->redis->del($key);
+
+        $this->redis->vectorAdd($key, 'cat', [1.0, 0.2, 0.1]);
+        $this->redis->vectorAdd($key, 'dog', [0.9, 0.3, 0.1]);
+        $this->redis->vectorAdd($key, 'car', [0.1, 0.1, 1.0]);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testVectorSetType(): void {
+        $key = 'pu-test-type-vectorset';
+        $this->vectorSet($key);
+
+        $this->assertSame('vectorset', $this->redis->getKeyType($key));
+        $this->assertEqualsCanonicalizing(['cat', 'dog', 'car'], array_keys($this->dashboard->getAllKeyValues('vectorset', $key)));
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testVectorSetEmbedding(): void {
+        $key = 'pu-test-vectorset-embedding';
+        $this->vectorSet($key);
+
+        $vector = $this->redis->vectorEmbedding($key, 'car');
+
+        // int8 quantization is lossy, so the values only come back close to what was stored.
+        $this->assertCount(3, $vector);
+        $this->assertEqualsWithDelta([0.1, 0.1, 1.0], $vector, 0.02);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testVectorSetInfo(): void {
+        $key = 'pu-test-vectorset-info';
+        $this->vectorSet($key);
+
+        $info = $this->dashboard->vectorSetInfo($key);
+
+        $this->assertSame(3, $info['dimension']);
+        $this->assertSame(3, $info['size']);
+        $this->assertSame(0, $info['truncated']);
+        $this->assertCount(4, $this->dashboard->vectorSetTiles($info));
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testVectorSetSaveAddsAnElement(): void {
+        $key = 'pu-test-vectorset-save';
+        $this->vectorSet($key);
+
+        $this->saveData(['rtype' => 'vectorset', 'key' => $key, 'value' => '[0.5, 0.5, 0.5]', 'element' => 'bike']);
+
+        $this->assertEqualsCanonicalizing(['cat', 'dog', 'car', 'bike'], $this->redis->vectorMembers($key, 100));
+        $this->assertEqualsWithDelta([0.5, 0.5, 0.5], $this->redis->vectorEmbedding($key, 'bike'), 0.02);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testVectorSetSaveAcceptsPlainNumbers(): void {
+        $key = 'pu-test-vectorset-plain';
+        $this->vectorSet($key);
+
+        $this->saveData(['rtype' => 'vectorset', 'key' => $key, 'value' => '0.5 0.5 0.5', 'element' => 'bike']);
+
+        $this->assertContains('bike', $this->redis->vectorMembers($key, 100));
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testVectorSetDeleteSubKey(): void {
+        $key = 'pu-test-vectorset-delete';
+        $this->vectorSet($key);
+
+        $this->dashboard->deleteSubKey('vectorset', $key, 'dog');
+
+        $this->assertEqualsCanonicalizing(['cat', 'car'], $this->redis->vectorMembers($key, 100));
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testVectorSetItemCountInTheKeyList(): void {
+        $key = 'pu-test-vectorset-count';
+        $this->vectorSet($key);
+
+        $info = $this->redis->pipelineKeys([$key]);
+
+        $this->assertSame('vectorset', $info[$key]['type']);
+        $this->assertSame(3, $info[$key]['count']);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testVectorSetInfoOfAMissingKey(): void {
+        if (!$this->redis->checkModule('vectorset')) {
+            $this->markTestSkipped('The vectorset module is not loaded.');
+        }
+
+        $this->assertSame([], $this->dashboard->vectorSetInfo('pu-test-vectorset-missing'));
+    }
+
+    /**
+     * @throws Exception
+     */
     public function testJSONType(): void {
         if (!$this->redis->checkModule('ReJSON')) {
             $this->markTestSkipped('The ReJSON module is not loaded.');
@@ -1111,16 +1227,16 @@ abstract class RedisTestCase extends TestCase {
         yield 'no arguments' => ['+1700000000.123456 [0 127.0.0.1:6379] ', null];
     }
 
-    /**
-     * Predis on purpose, it's always in require-dev, phpredis in the CLI is not a given.
-     */
     private function backgroundNoise(string $php): void {
         $server = Config::get('redis')[0];
 
-        $client = self::$is_cluster
-            ? sprintf('$r = new Predis\Client(%s, ["cluster" => "redis"]);', var_export(array_values((array) $server['nodes']), true))
-            // A cluster only has db 0, everywhere else the traffic belongs in the test database.
-            : sprintf('$r = new Predis\Client(["host" => %s, "port" => %d]); $r->select(10);', var_export((string) $server['host'], true), (int) ($server['port'] ?? 6379));
+        if (self::$is_cluster) {
+            $client = sprintf('$r = new Predis\Client(%s, ["cluster" => "redis"]);', var_export(array_values((array) $server['nodes']), true));
+        } else {
+            [$host, $port] = self::$is_sentinel ? explode(':', $this->dashboard->sentinel_master) : [(string) $server['host'], (int) ($server['port'] ?? 6379)];
+
+            $client = sprintf('$r = new Predis\Client(["host" => %s, "port" => %d]); $r->select(10);', var_export($host, true), (int) $port);
+        }
 
         $bootstrap = sprintf('require %s; usleep(300000);', var_export(dirname(__DIR__, 3).'/vendor/autoload.php', true));
 

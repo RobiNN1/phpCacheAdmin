@@ -9,10 +9,13 @@ declare(strict_types=1);
 namespace RobiNN\Pca\Dashboards\Redis;
 
 use Exception;
+use JsonException;
 use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
 
 trait RedisTypes {
+    private int $max_vector_members = 1000;
+
     /**
      * Get all data types.
      *
@@ -28,6 +31,10 @@ trait RedisTypes {
 
         if (!$this->redis->checkModule('ReJSON')) {
             $exclude[] = 'json';
+        }
+
+        if (!$this->redis->checkModule('vectorset')) {
+            $exclude[] = 'vectorset';
         }
 
         foreach ($this->redis->data_types as $type) {
@@ -48,14 +55,15 @@ trait RedisTypes {
      */
     public function typesTplOptions(): array {
         return [
-            'extra'  => [
+            'extra'     => [
                 'hide_title' => ['set'],
             ],
-            'set'    => ['param' => 'member', 'title' => ''],
-            'list'   => ['param' => 'index', 'title' => 'Index'],
-            'zset'   => ['param' => 'range', 'title' => 'Score'],
-            'hash'   => ['param' => 'hash_key', 'title' => 'Field'],
-            'stream' => ['param' => 'stream_id', 'title' => 'Entry ID'],
+            'set'       => ['param' => 'member', 'title' => ''],
+            'list'      => ['param' => 'index', 'title' => 'Index'],
+            'zset'      => ['param' => 'range', 'title' => 'Score'],
+            'hash'      => ['param' => 'hash_key', 'title' => 'Field'],
+            'stream'    => ['param' => 'stream_id', 'title' => 'Entry ID'],
+            'vectorset' => ['param' => 'element', 'title' => 'Element'],
         ];
     }
 
@@ -107,6 +115,10 @@ trait RedisTypes {
             case 'json':
                 $value = $this->redis->jsonGet($key);
                 break;
+            case 'vectorset':
+                $element = (string) Http::get('element', '');
+                $value = implode(', ', $this->redis->vectorEmbedding($key, $element));
+                break;
             default:
                 $value = '';
         }
@@ -132,6 +144,7 @@ trait RedisTypes {
             'hash' => $this->redis->hGetAll($key),
             'stream' => $this->redis->xRange($key, '-', '+'),
             'json' => $this->redis->jsonGet($key),
+            'vectorset' => array_combine($members = $this->redis->vectorMembers($key, $this->max_vector_members), $members),
             default => '',
         };
     }
@@ -205,6 +218,22 @@ trait RedisTypes {
             case 'json':
                 $this->redis->jsonSet($key, $value);
                 break;
+            case 'vectorset':
+                $element = (string) ($options['element'] ?? '');
+                $vector = $this->parseVector($value);
+
+                if ($element === '' || $vector === []) {
+                    Http::stopRedirect();
+                    Helpers::alert('An element name and a vector of numbers are required.', 'error');
+                    break;
+                }
+
+                if (Http::get('element', '') !== $element) {
+                    $this->redis->vectorRem($key, (string) Http::get('element', ''));
+                }
+
+                $this->redis->vectorAdd($key, $element, $vector);
+                break;
             default:
         }
 
@@ -242,7 +271,40 @@ trait RedisTypes {
             case 'stream':
                 $this->redis->xDel($key, [$subkey]);
                 break;
+            case 'vectorset':
+                $this->redis->vectorRem($key, (string) $subkey);
+                break;
             default:
         }
+    }
+
+    /**
+     * A vector typed into the form, either as a JSON array or as plain separated numbers.
+     *
+     * @return array<int, float>
+     *
+     * @throws JsonException
+     */
+    private function parseVector(string $value): array {
+        $value = trim($value);
+
+        if ($value === '') {
+            return [];
+        }
+
+        if (json_validate($value)) {
+            $decoded = json_decode($value, true, 512, JSON_THROW_ON_ERROR);
+
+            if (is_array($decoded)) {
+                $numbers = array_filter($decoded, is_numeric(...));
+
+                return count($numbers) === count($decoded) ? array_map(floatval(...), array_values($decoded)) : [];
+            }
+        }
+
+        $parts = preg_split('/[\s,]+/', trim($value, "[] \t\n\r"), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+        $numbers = array_filter($parts, is_numeric(...));
+
+        return count($numbers) === count($parts) ? array_map(floatval(...), $parts) : [];
     }
 }

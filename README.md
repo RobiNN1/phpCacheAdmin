@@ -32,7 +32,7 @@
 
 - Works with **Valkey** and **KeyDB** as well.
 - Works with both **phpredis** and **Predis** clients.
-- View, add, edit, and delete keys. Supports all Redis data types.
+- View, add, edit, and delete keys. Supports all Redis data types, including **vector sets**.
 - Search within a key's sub-items (hash fields, set/list/sorted set members).
 - **Stream consumer groups** with their consumers, pending entries, lag and the oldest entry still waiting for an acknowledgement.
 - **Analysis** of the keyspace.

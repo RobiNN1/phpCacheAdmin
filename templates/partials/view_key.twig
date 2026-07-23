@@ -43,6 +43,10 @@
     {{ include('partials/stream_groups.twig') }}
 {% endif %}
 
+{% if vector_set is defined and vector_set.tiles is defined %}
+    {{ include('partials/vector_set.twig') }}
+{% endif %}
+
 {% if value is iterable %}
     {{ include('partials/view_key_array.twig') }}
 {% else %}

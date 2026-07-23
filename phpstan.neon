@@ -12,3 +12,13 @@ parameters:
         -
             message: '#RedisSentinel constructor#'
             path: src/Dashboards/Redis/Compatibility/Sentinel.php
+        -
+            message: '#Access to undefined constant .*Redis::REDIS_VECTORSET\.#'
+            identifier: classConstant.notFound
+            paths:
+                - src/Dashboards/Redis/Compatibility/Redis.php
+                - src/Dashboards/Redis/Compatibility/Cluster/RedisCluster.php
+        -
+            message: '#Call to an undefined method .*RedisCluster::(vadd|vemb|vgetattr|vinfo|vrandmember|vrem)\(\)\.#'
+            path: src/Dashboards/Redis/Compatibility/Cluster/RedisCluster.php
+            identifier: method.notFound

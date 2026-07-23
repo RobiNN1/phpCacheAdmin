@@ -19,6 +19,8 @@ elseif key_type == "hash" then
     count = redis.call("HLEN", key)
 elseif key_type == "stream" then
     count = redis.call("XLEN", key)
+elseif key_type == "vectorset" then
+    count = redis.call("VCARD", key)
 end
 
 return { ttl, key_type, memory_usage, count }

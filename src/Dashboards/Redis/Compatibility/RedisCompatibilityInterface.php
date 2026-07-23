@@ -64,14 +64,14 @@ interface RedisCompatibilityInterface {
     public function streamConsumers(string $key, string $group): array;
 
     /**
-     * Alias to a xPending(), the summary form.
+     * Alias to a xPending().
      *
      * @return array<int, mixed>
      */
     public function streamPending(string $key, string $group): array;
 
     /**
-     * Alias to a xReadGroup(), reads the entries that have not been delivered to the group yet.
+     * Alias to a xReadGroup().
      *
      * @return array<string, mixed>
      */
@@ -81,6 +81,44 @@ interface RedisCompatibilityInterface {
      * Alias to a xGroup('CREATE').
      */
     public function streamCreateGroup(string $key, string $group, string $id = '0'): bool;
+
+    /**
+     * Alias to a vInfo().
+     *
+     * @return array<string, mixed>
+     */
+    public function vectorInfo(string $key): array;
+
+    /**
+     * Alias to a vRandMember().
+     *
+     * @return array<int, string>
+     */
+    public function vectorMembers(string $key, int $count): array;
+
+    /**
+     * Alias to a vEmb().
+     *
+     * @return array<int, float>
+     */
+    public function vectorEmbedding(string $key, string $element): array;
+
+    /**
+     * Alias to a vGetAttr().
+     */
+    public function vectorAttributes(string $key, string $element): string;
+
+    /**
+     * Alias to a vAdd().
+     *
+     * @param array<int, float|string> $vector
+     */
+    public function vectorAdd(string $key, string $element, array $vector, string $attributes = ''): bool;
+
+    /**
+     * Alias to a vRem().
+     */
+    public function vectorRem(string $key, string $element): bool;
 
     /**
      * Pipeline keys for better performance.

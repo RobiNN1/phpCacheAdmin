@@ -61,6 +61,14 @@
         value: stream_id,
     }) }}
 
+    {{ include('components/input.twig', {
+        id: 'element',
+        label: 'Element',
+        extra_attr: 'style="display: ' ~ (type == 'vectorset' ? 'block' : 'none') ~ ';" id="redis_element"',
+        help: 'Name of the element the vector belongs to.',
+        value: element,
+    }) }}
+
     {% if encoders %}
         {{ include('components/select.twig', {
             id: 'encoder',
@@ -94,5 +102,7 @@
         document.getElementById('redis_hash_key').style.display = e.target.value === 'hash' ? 'block' : 'none';
         document.getElementById('hash_key').required = e.target.value === 'hash';
         document.getElementById('redis_stream_id').style.display = e.target.value === 'stream' ? 'block' : 'none';
+        document.getElementById('redis_element').style.display = e.target.value === 'vectorset' ? 'block' : 'none';
+        document.getElementById('element').required = e.target.value === 'vectorset';
     });
 </script>

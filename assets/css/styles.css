@@ -379,6 +379,9 @@
   .min-w-0 {
     min-width: 0px;
   }
+  .min-w-32 {
+    min-width: calc(0.25rem * 32);
+  }
   .flex-1 {
     flex: 1;
   }
@@ -690,6 +693,9 @@
   }
   .px-6 {
     padding-inline: calc(0.25rem * 6);
+  }
+  .py-0 {
+    padding-block: 0px;
   }
   .py-0\.5 {
     padding-block: calc(0.25rem * 0.5);

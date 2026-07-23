@@ -1,0 +1,24 @@
+<div class="mb-4 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+    <div class="flex flex-wrap gap-3 justify-between items-center py-3 px-4 border-b border-gray-200 dark:border-gray-700">
+        <h2 class="text-sm font-bold uppercase text-primary-900 dark:text-primary-400">Vector set</h2>
+        {% if vector_set.truncated %}
+            <span class="text-xs text-gray-500 dark:text-gray-400">
+                Showing the first {{ vector_set.truncated|number }} elements.
+            </span>
+        {% endif %}
+    </div>
+
+    <div class="flex flex-wrap gap-4 p-4">
+        {% for tile in vector_set.tiles %}
+            <div class="flex-1 min-w-32">
+                <h3 class="text-xs font-bold uppercase text-primary-900 dark:text-primary-400">{{ tile.label }}</h3>
+                <p class="mt-1 text-lg font-semibold text-gray-900 dark:text-white">{{ tile.value }}</p>
+            </div>
+        {% endfor %}
+    </div>
+
+    <p class="py-2 px-4 text-xs text-gray-500 border-t border-gray-200 dark:text-gray-400 dark:border-gray-700">
+        Each element is stored with the vector shown next to it.
+        The values are what the server returns after quantization, so they differ slightly from the ones that were added.
+    </p>
+</div>

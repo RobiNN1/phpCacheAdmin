@@ -243,4 +243,13 @@ trait RedisExtra {
 
         return $values;
     }
+
+    /**
+     * VEMB returns the numbers as a mix of strings and floats, depending on the client.
+     *
+     * @return array<int, float>
+     */
+    public function parseVectorEmbedding(mixed $reply): array {
+        return is_array($reply) ? array_map(static fn (mixed $value): float => (float) $value, array_values($reply)) : [];
+    }
 }

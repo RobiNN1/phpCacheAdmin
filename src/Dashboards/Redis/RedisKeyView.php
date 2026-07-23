@@ -46,6 +46,7 @@ trait RedisKeyView {
                     'zset' => Http::post('range', 0),
                     'hash' => Http::post('hash_key', ''),
                     'stream' => Http::post('stream_id', ''),
+                    'vectorset' => Http::post('element', ''),
                     default => null,
                 };
 
@@ -122,6 +123,7 @@ trait RedisKeyView {
             'subsearch_value' => $subsearch,
             'total_items'     => $total_items,
             'stream_groups'   => $type === 'stream' ? $this->streamGroupsInfo($key) : [],
+            'vector_set'      => $type === 'vectorset' ? $this->vectorSetPanel($key) : [],
         ]);
     }
 
@@ -138,6 +140,10 @@ trait RedisKeyView {
         $items = [];
 
         foreach ($value_items as [$item_key, $item_value]) {
+            if ($type === 'vectorset') {
+                $item_value = implode(', ', $this->redis->vectorEmbedding($key, (string) $item_key));
+            }
+
             if (is_array($item_value)) {
                 try {
                     $item_value = json_encode($item_value, JSON_THROW_ON_ERROR);
@@ -204,6 +210,7 @@ trait RedisKeyView {
             'zset_score' => Http::post('score', 0),
             'hash_key'   => Http::post('hash_key', ''),
             'stream_id'  => Http::post('stream_id', '*'),
+            'element'    => Http::post('element', ''),
             'ttl'        => Http::post('expire', 0),
         ]);
 
@@ -264,6 +271,7 @@ trait RedisKeyView {
             'encoders'  => Config::getEncoders(),
             'encoder'   => $encoder,
             'stream_id' => $stream_id,
+            'element'   => (string) Http::get('element', Http::post('element', '')),
         ]);
     }
 }

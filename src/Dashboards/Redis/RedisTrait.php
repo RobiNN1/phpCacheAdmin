@@ -27,6 +27,7 @@ trait RedisTrait {
     use RedisKeyView;
     use RedisKeysList;
     use RedisStreamGroups;
+    use RedisVectorSet;
     use RedisProfiler;
     use RedisPubSub;
     use RedisConsole;

@@ -198,6 +198,13 @@ trait ServerResources {
                 $used = $used_pages * $pagesize;
                 break;
             case 'Linux':
+                $cgroup = $this->cgroupMemory();
+
+                if ($cgroup !== null) {
+                    [$total, $used] = $cgroup;
+                    break;
+                }
+
                 $meminfo = (string) @file_get_contents('/proc/meminfo');
                 $total = $this->meminfoBytes($meminfo, 'MemTotal');
                 $available = $this->meminfoBytes($meminfo, 'MemAvailable');
@@ -223,6 +230,41 @@ trait ServerResources {
         $used = max(0, min($used, $total));
 
         return ['total' => $total, 'used' => $used, 'free' => $total - $used];
+    }
+
+    /**
+     * @return array{0: int, 1: int}|null
+     */
+    private function cgroupMemory(): ?array {
+        // cgroup v2
+        $max = @file_get_contents('/sys/fs/cgroup/memory.max');
+
+        if (is_string($max)) {
+            $max = trim($max);
+
+            if (preg_match('/^\d+$/', $max) !== 1) {
+                return null;
+            }
+
+            $current = (int) @file_get_contents('/sys/fs/cgroup/memory.current');
+            $stat = (string) @file_get_contents('/sys/fs/cgroup/memory.stat');
+            $inactive_file = preg_match('/^inactive_file (\d+)$/m', $stat, $matches) === 1 ? (int) $matches[1] : 0;
+
+            return [(int) $max, max(0, $current - $inactive_file)];
+        }
+
+        // cgroup v1
+        $limit = (int) @file_get_contents('/sys/fs/cgroup/memory/memory.limit_in_bytes');
+
+        if ($limit <= 0 || $limit >= 1 << 60) {
+            return null;
+        }
+
+        $usage = (int) @file_get_contents('/sys/fs/cgroup/memory/memory.usage_in_bytes');
+        $stat = (string) @file_get_contents('/sys/fs/cgroup/memory/memory.stat');
+        $inactive_file = preg_match('/^total_inactive_file (\d+)$/m', $stat, $matches) === 1 ? (int) $matches[1] : 0;
+
+        return [$limit, max(0, $usage - $inactive_file)];
     }
 
     /**

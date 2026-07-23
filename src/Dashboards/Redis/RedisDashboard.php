@@ -40,7 +40,12 @@ class RedisDashboard implements DashboardInterface {
     public string $sentinel_master = '';
 
     public function __construct(private readonly Template $template, ?string $client = null) {
-        $this->client = $client ?? Config::get('redisclient', extension_loaded('redis') ? 'redis' : 'predis');
+        $this->client = $client ?? Config::get('redisclient', 'redis');
+
+        if ($this->client !== 'predis' && !extension_loaded('redis')) {
+            $this->client = 'predis';
+        }
+
         $this->servers = Config::get('redis', []);
 
         if (ReadonlyMode::enabled()) {

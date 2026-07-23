@@ -51,6 +51,13 @@ final class HttpTest extends TestCase {
         $this->assertSame('a<b>&"c', Http::get('test-raw', '', true));
     }
 
+    public function testGetWithArrayValueReturnsDefault(): void {
+        $_GET['test-array'] = ['a', 'b'];
+        $this->assertSame('default', Http::get('test-array', 'default'));
+        $this->assertSame(8, Http::get('test-array', 8));
+        $this->assertSame('default', Http::get('test-array', 'default', true));
+    }
+
     public function testGetInt(): void {
         $_GET['test-int'] = 4646;
         $this->assertSame(4646, Http::get('test-int', 0));
@@ -71,6 +78,12 @@ final class HttpTest extends TestCase {
 
         $_POST['test-string-empty'] = '';
         $this->assertSame('', Http::post('test-string-empty', ''));
+    }
+
+    public function testPostWithArrayValueReturnsDefault(): void {
+        $_POST['test-array'] = ['a', 'b'];
+        $this->assertSame('default', Http::post('test-array', 'default'));
+        $this->assertSame(8, Http::post('test-array', 8));
     }
 
     public function testPostInt(): void {

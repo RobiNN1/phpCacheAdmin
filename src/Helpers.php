@@ -40,7 +40,7 @@ class Helpers {
         $template = Template::get();
 
         $alert = $template->render('components/alert', [
-            'message'     => $message,
+            'message'     => htmlspecialchars($message),
             'alert_color' => $color, // success/error
         ]);
 
@@ -205,7 +205,7 @@ class Helpers {
     public static function cronjobUrl(string $dashboard, int $server_id): string {
         $https = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ||
             ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https' ||
-            ($_SERVER['SERVER_PORT'] ?? 0) === 443;
+            (int) ($_SERVER['SERVER_PORT'] ?? '0') === 443;
         $host = ($_SERVER['HTTP_HOST'] ?? 'localhost');
         $path = (parse_url(($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH) ?: '/');
 
@@ -277,8 +277,8 @@ class Helpers {
         }
 
         usort($keys, static function (array $a, array $b) use ($dir, $column): int {
-            $a_val = (string) $a['info'][$column];
-            $b_val = (string) $b['info'][$column];
+            $a_val = (string) ($a['info'][$column] ?? '');
+            $b_val = (string) ($b['info'][$column] ?? '');
             $comparison = strnatcmp($a_val, $b_val);
 
             return strtolower($dir) === 'desc' ? -$comparison : $comparison;
@@ -314,9 +314,10 @@ class Helpers {
 
                 if ($i === $last) {
                     $current[] = [
-                            'type' => 'key',
-                            'name' => $leaf_name !== null ? $leaf_name($part) : $part,
-                        ] + $key_item;
+                        'type' => 'key',
+                        'name' => $leaf_name !== null ? $leaf_name($part) : $part,
+                        ...$key_item,
+                    ];
                 } else {
                     if (!isset($current[$part])) {
                         $current[$part] = [

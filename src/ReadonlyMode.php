@@ -13,13 +13,14 @@ use JsonException;
 class ReadonlyMode {
     public const MESSAGE = 'Read-only mode is enabled, this action is not allowed.';
 
-    /**¥
-     *
+    /**
      * @var array<int, string>
      */
     private const GET_ACTIONS = ['delete', 'deleteall', 'form'];
 
     /**
+     * Slowlog reset/config and OPcache warmup are deliberately not blocked.
+     *
      * @var array<int, string>
      */
     private const POST_ACTIONS = [

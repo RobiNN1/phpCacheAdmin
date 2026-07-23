@@ -1,38 +1,37 @@
 {% import 'components/macros.twig' as macros %}
 
-{% set th = 'py-2 px-4 text-xs font-bold uppercase whitespace-nowrap' %}
-{% set td = 'py-2 px-4 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700' %}
-
 <div class="bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
     <div class="flex flex-wrap gap-2 justify-between items-center py-4 px-6">
         <h2 class="text-sm font-bold uppercase text-primary-900 dark:text-primary-400">Connected clients ({{ clients|length|number }})</h2>
-        <p class="text-xs text-gray-500 dark:text-gray-400">Sorted by idle time. Disconnecting a client makes its next command fail; it is up to the client to reconnect.</p>
+        <p class="text-xs text-gray-500 dark:text-gray-400">
+            Sorted by idle time. Disconnecting a client makes its next command fail; it is up to the client to reconnect.
+        </p>
     </div>
 
     <div class="overflow-hidden overflow-x-auto">
         <table class="w-full text-left table-auto dark:text-gray-300">
             <thead>
             <tr class="border-t border-b border-gray-200 dark:border-gray-700 text-primary-900 dark:text-primary-400">
-                <th class="{{ th }}">ID</th>
-                <th class="{{ th }}">Address</th>
+                <th class="py-2 px-4 text-xs font-bold uppercase whitespace-nowrap">ID</th>
+                <th class="py-2 px-4 text-xs font-bold uppercase whitespace-nowrap">Address</th>
                 {% if is_cluster %}
-                    <th class="{{ th }}">Node</th>
+                    <th class="py-2 px-4 text-xs font-bold uppercase whitespace-nowrap">Node</th>
                 {% endif %}
-                <th class="{{ th }} hidden md:table-cell">Name</th>
-                <th class="{{ th }} hidden lg:table-cell">User</th>
-                <th class="{{ th }} hidden lg:table-cell">DB</th>
-                <th class="{{ th }}">Age</th>
-                <th class="{{ th }}">Idle</th>
-                <th class="{{ th }} hidden xl:table-cell">Memory</th>
-                <th class="{{ th }} hidden md:table-cell">Last command</th>
-                <th class="{{ th }} w-24"></th>
+                <th class="py-2 px-4 text-xs font-bold uppercase whitespace-nowrap hidden md:table-cell">Name</th>
+                <th class="py-2 px-4 text-xs font-bold uppercase whitespace-nowrap hidden lg:table-cell">User</th>
+                <th class="py-2 px-4 text-xs font-bold uppercase whitespace-nowrap hidden lg:table-cell">DB</th>
+                <th class="py-2 px-4 text-xs font-bold uppercase whitespace-nowrap">Age</th>
+                <th class="py-2 px-4 text-xs font-bold uppercase whitespace-nowrap">Idle</th>
+                <th class="py-2 px-4 text-xs font-bold uppercase whitespace-nowrap hidden xl:table-cell">Memory</th>
+                <th class="py-2 px-4 text-xs font-bold uppercase whitespace-nowrap hidden md:table-cell">Last command</th>
+                <th class="py-2 px-4 text-xs font-bold uppercase whitespace-nowrap w-24"></th>
             </tr>
             </thead>
             <tbody>
             {% for client in clients %}
                 <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
-                    <td class="{{ td }} whitespace-nowrap">{{ client.id }}</td>
-                    <td class="{{ td }} whitespace-nowrap">
+                    <td class="py-2 px-4 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700 whitespace-nowrap">{{ client.id }}</td>
+                    <td class="py-2 px-4 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700 whitespace-nowrap">
                         {{ client.addr }}
                         {% if client.self %}
                             {{ macros.badge('This dashboard', 'blue') }}
@@ -42,19 +41,17 @@
                         {% endfor %}
                     </td>
                     {% if is_cluster %}
-                        <td class="{{ td }} whitespace-nowrap">{{ client.node }}</td>
+                        <td class="py-2 px-4 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700 whitespace-nowrap">{{ client.node }}</td>
                     {% endif %}
-                    <td class="{{ td }} hidden md:table-cell whitespace-nowrap">{{ client.name }}</td>
-                    <td class="{{ td }} hidden lg:table-cell whitespace-nowrap">{{ client.user }}</td>
-                    <td class="{{ td }} hidden lg:table-cell whitespace-nowrap">{{ client.db }}</td>
-                    {# Minutes are enough for how long a connection has been up, but an idle time is only
-                       interesting while it is still small, so that one keeps its seconds. #}
-                    <td class="{{ td }} whitespace-nowrap">{{ client.age|seconds(false) }}</td>
-                    <td class="{{ td }} whitespace-nowrap">{{ client.idle|seconds }}</td>
-                    <td class="{{ td }} hidden xl:table-cell whitespace-nowrap">{{ client.memory|bytes }}</td>
-                    <td class="{{ td }} hidden md:table-cell whitespace-nowrap">
+                    <td class="py-2 px-4 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700 hidden md:table-cell whitespace-nowrap">{{ client.name }}</td>
+                    <td class="py-2 px-4 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700 hidden lg:table-cell whitespace-nowrap">{{ client.user }}</td>
+                    <td class="py-2 px-4 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700 hidden lg:table-cell whitespace-nowrap">{{ client.db }}</td>
+                    <td class="py-2 px-4 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700 whitespace-nowrap">{{ client.age|seconds(false) }}</td>
+                    <td class="py-2 px-4 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700 whitespace-nowrap">{{ client.idle|seconds }}</td>
+                    <td class="py-2 px-4 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700 hidden xl:table-cell whitespace-nowrap">{{ client.memory|bytes }}</td>
+                    <td class="py-2 px-4 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700 hidden md:table-cell whitespace-nowrap">
                         <code class="text-xs">{{ client.command }}</code></td>
-                    <td class="{{ td }}">
+                    <td class="py-2 px-4 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700">
                         {% if client.self or readonly %}
                             <span class="text-xs text-gray-400 dark:text-gray-500">&mdash;</span>
                         {% else %}
@@ -71,7 +68,7 @@
                 </tr>
             {% else %}
                 <tr>
-                    <td colspan="11" class="{{ td }} text-center">No clients.</td>
+                    <td colspan="11" class="py-2 px-4 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700 text-center">No clients.</td>
                 </tr>
             {% endfor %}
             </tbody>

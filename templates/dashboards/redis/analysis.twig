@@ -1,13 +1,6 @@
 {% import 'components/macros.twig' as macros %}
 
-{% set card = 'p-4 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700' %}
-{% set scroll_card = card ~ ' flex flex-col h-128' %}
-{% set th = 'py-2 px-4 text-xs font-bold uppercase whitespace-nowrap' %}
-{% set td = 'py-2 px-4 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700' %}
-{% set thead_sticky = 'sticky top-0 z-10 bg-white dark:bg-gray-800' %}
-{% set key_link = 'font-semibold text-primary-500 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-500' %}
-
-<div class="{{ card }} mb-4">
+<div class="p-4 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700 mb-4">
     <form method="get" class="flex flex-wrap gap-3 items-end">
         <input type="hidden" name="dashboard" value="redis">
         <input type="hidden" name="tab" value="analysis">
@@ -57,26 +50,26 @@
 
         <p class="w-full text-xs text-gray-500 dark:text-gray-400">
             Scans up to the sample size with SCAN and reads each key's memory usage, type, TTL and item count.
-            The database currently holds {{ total_keys|number }} keys. On a large database this is a sample, not the whole keyspace,
-            so shares are relative to what was scanned.
+            The database currently holds {{ total_keys|number }} keys.
+            On a large database this is a sample, not the whole keyspace, so shares are relative to what was scanned.
         </p>
     </form>
 </div>
 
 {% if tab_message %}
-    <div class="{{ card }} text-center text-gray-500 dark:text-gray-400">{{ tab_message }}</div>
+    <div class="p-4 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700 text-center text-gray-500 dark:text-gray-400">{{ tab_message }}</div>
 {% elseif analysis is null %}
-    <div class="{{ card }} text-center text-gray-500 dark:text-gray-400">
+    <div class="p-4 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700 text-center text-gray-500 dark:text-gray-400">
         Run the analysis to see where memory goes, which namespaces and types dominate, and how many keys never expire.
     </div>
 {% elseif analysis is empty %}
-    <div class="{{ card }} text-center text-gray-500 dark:text-gray-400">The sampled keys no longer exist.</div>
+    <div class="p-4 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700 text-center text-gray-500 dark:text-gray-400">The sampled keys no longer exist.</div>
 {% else %}
     {% set summary = analysis.summary %}
 
     <div class="grid grid-cols-2 gap-4 mb-4 {{ analysis.memory ? 'xl:grid-cols-4' : 'xl:grid-cols-3' }}">
         {% for tile in analysis.tiles %}
-            <div class="{{ card }}">
+            <div class="p-4 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
                 <h3 class="text-xs font-bold uppercase text-primary-900 dark:text-primary-400">{{ tile.label }}</h3>
                 <p class="mt-1 text-xl font-semibold text-gray-900 dark:text-white">{{ tile.value }}</p>
                 <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ tile.note }}</p>
@@ -105,7 +98,7 @@
                             <ul class="mb-2 space-y-1">
                                 {% for item in rec.keys %}
                                     <li class="text-xs break-all">
-                                        <a href="{{ link([], {view: 'key', key: item.key}) }}" class="{{ key_link }}">{{ item.key }}</a>
+                                        <a href="{{ link([], {view: 'key', key: item.key}) }}" class="font-semibold text-primary-500 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-500">{{ item.key }}</a>
                                         <span class="text-gray-500 dark:text-gray-400">{{ item.note }}</span>
                                     </li>
                                 {% endfor %}
@@ -120,7 +113,7 @@
     {% endif %}
 
     <div class="gap-4 xl:grid xl:grid-cols-2">
-        <div class="{{ scroll_card }} mb-4 xl:mb-0">
+        <div class="p-4 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700 flex flex-col h-128 mb-4 xl:mb-0">
             <h2 class="mb-1 text-sm font-bold uppercase text-primary-900 dark:text-primary-400">{{ analysis.memory ? 'Memory by namespace' : 'Keys by namespace' }}</h2>
             <p class="mb-3 text-xs text-gray-500 dark:text-gray-400">
                 Top {{ analysis.namespaces|length }} of {{ summary.namespaces|number }} namespaces,
@@ -128,25 +121,25 @@
             </p>
             <div class="overflow-auto grow">
                 <table class="w-full text-left table-auto dark:text-gray-300">
-                    <thead class="{{ thead_sticky }}">
+                    <thead class="sticky top-0 z-10 bg-white dark:bg-gray-800">
                     <tr class="border-b border-gray-200 dark:border-gray-700 text-primary-900 dark:text-primary-400">
-                        <th class="{{ th }}">Namespace</th>
-                        <th class="{{ th }} w-20">Keys</th>
+                        <th class="py-2 px-4 text-xs font-bold uppercase whitespace-nowrap">Namespace</th>
+                        <th class="py-2 px-4 text-xs font-bold uppercase whitespace-nowrap w-20">Keys</th>
                         {% if analysis.memory %}
-                            <th class="{{ th }} w-24">Memory</th>
+                            <th class="py-2 px-4 text-xs font-bold uppercase whitespace-nowrap w-24">Memory</th>
                         {% endif %}
-                        <th class="{{ th }} w-40">Share</th>
+                        <th class="py-2 px-4 text-xs font-bold uppercase whitespace-nowrap w-40">Share</th>
                     </tr>
                     </thead>
                     <tbody>
                     {% for row in analysis.namespaces %}
                         <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
-                            <td class="{{ td }} break-all">{{ row.name }}</td>
-                            <td class="{{ td }} whitespace-nowrap">{{ row.count|number }}</td>
+                            <td class="py-2 px-4 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700 break-all">{{ row.name }}</td>
+                            <td class="py-2 px-4 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700 whitespace-nowrap">{{ row.count|number }}</td>
                             {% if analysis.memory %}
-                                <td class="{{ td }} whitespace-nowrap">{{ row.memory|bytes }}</td>
+                                <td class="py-2 px-4 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700 whitespace-nowrap">{{ row.memory|bytes }}</td>
                             {% endif %}
-                            <td class="{{ td }}">
+                            <td class="py-2 px-4 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700">
                                 <div class="flex gap-2 items-center">
                                     <div class="grow">{{ macros.progress(row.percent, 'lower', null, 'info') }}</div>
                                     <span class="shrink-0 text-xs text-gray-500 dark:text-gray-400">{{ row.percent }}%</span>
@@ -160,26 +153,26 @@
         </div>
 
         {% if analysis.memory %}
-            <div class="{{ scroll_card }} mb-4 xl:mb-0">
+            <div class="p-4 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700 flex flex-col h-128 mb-4 xl:mb-0">
                 <h2 class="mb-1 text-sm font-bold uppercase text-primary-900 dark:text-primary-400">Biggest keys</h2>
                 <p class="mb-3 text-xs text-gray-500 dark:text-gray-400">The keys that use the most memory in the sample.</p>
                 <div class="overflow-auto grow">
                     <table class="w-full text-left table-auto dark:text-gray-300">
-                        <thead class="{{ thead_sticky }}">
+                        <thead class="sticky top-0 z-10 bg-white dark:bg-gray-800">
                         <tr class="border-b border-gray-200 dark:border-gray-700 text-primary-900 dark:text-primary-400">
-                            <th class="{{ th }}">Key</th>
-                            <th class="{{ th }} w-24">Type</th>
-                            <th class="{{ th }} w-24">Memory</th>
+                            <th class="py-2 px-4 text-xs font-bold uppercase whitespace-nowrap">Key</th>
+                            <th class="py-2 px-4 text-xs font-bold uppercase whitespace-nowrap w-24">Type</th>
+                            <th class="py-2 px-4 text-xs font-bold uppercase whitespace-nowrap w-24">Memory</th>
                         </tr>
                         </thead>
                         <tbody>
                         {% for row in analysis.top_memory %}
                             <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
-                                <td class="{{ td }} break-all">
-                                    <a href="{{ link([], {view: 'key', key: row.key}) }}" class="{{ key_link }}">{{ row.key }}</a>
+                                <td class="py-2 px-4 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700 break-all">
+                                    <a href="{{ link([], {view: 'key', key: row.key}) }}" class="font-semibold text-primary-500 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-500">{{ row.key }}</a>
                                 </td>
-                                <td class="{{ td }}">{{ macros.key_type(row.type) }}</td>
-                                <td class="{{ td }} whitespace-nowrap">{{ row.size|bytes }}</td>
+                                <td class="py-2 px-4 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700">{{ macros.key_type(row.type) }}</td>
+                                <td class="py-2 px-4 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700 whitespace-nowrap">{{ row.size|bytes }}</td>
                             </tr>
                         {% endfor %}
                         </tbody>
@@ -188,43 +181,43 @@
             </div>
         {% endif %}
 
-        <div class="{{ analysis.memory ? card ~ ' col-span-2 xl:order-last' : scroll_card ~ ' mb-4 xl:mb-0' }}">
+        <div class="{{ analysis.memory ? 'p-4 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700 col-span-2 xl:order-last' : 'p-4 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700 flex flex-col h-128 mb-4 xl:mb-0' }}">
             <h2 class="mb-1 text-sm font-bold uppercase text-primary-900 dark:text-primary-400">Keys with the most items</h2>
             <p class="mb-3 text-xs text-gray-500 dark:text-gray-400">Collections with the highest element count. Long collections make commands that walk the whole key slow.</p>
             <div class="overflow-auto grow">
                 <table class="w-full text-left table-auto dark:text-gray-300">
-                    <thead class="{{ thead_sticky }}">
+                    <thead class="sticky top-0 z-10 bg-white dark:bg-gray-800">
                     <tr class="border-b border-gray-200 dark:border-gray-700 text-primary-900 dark:text-primary-400">
-                        <th class="{{ th }}">Key</th>
-                        <th class="{{ th }} w-24">Type</th>
-                        <th class="{{ th }} w-24">Items</th>
+                        <th class="py-2 px-4 text-xs font-bold uppercase whitespace-nowrap">Key</th>
+                        <th class="py-2 px-4 text-xs font-bold uppercase whitespace-nowrap w-24">Type</th>
+                        <th class="py-2 px-4 text-xs font-bold uppercase whitespace-nowrap w-24">Items</th>
                         {% if analysis.memory %}
-                            <th class="{{ th }} w-24">Memory</th>
+                            <th class="py-2 px-4 text-xs font-bold uppercase whitespace-nowrap w-24">Memory</th>
                         {% endif %}
                     </tr>
                     </thead>
                     <tbody>
                     {% for row in analysis.top_length %}
                         <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
-                            <td class="{{ td }} break-all">
-                                <a href="{{ link([], {view: 'key', key: row.key}) }}" class="{{ key_link }}">{{ row.key }}</a>
+                            <td class="py-2 px-4 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700 break-all">
+                                <a href="{{ link([], {view: 'key', key: row.key}) }}" class="font-semibold text-primary-500 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-500">{{ row.key }}</a>
                             </td>
-                            <td class="{{ td }}">{{ macros.key_type(row.type) }}</td>
-                            <td class="{{ td }} whitespace-nowrap">{{ row.items|number }}</td>
+                            <td class="py-2 px-4 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700">{{ macros.key_type(row.type) }}</td>
+                            <td class="py-2 px-4 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700 whitespace-nowrap">{{ row.items|number }}</td>
                             {% if analysis.memory %}
-                                <td class="{{ td }} whitespace-nowrap">{{ row.size|bytes }}</td>
+                                <td class="py-2 px-4 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700 whitespace-nowrap">{{ row.size|bytes }}</td>
                             {% endif %}
                         </tr>
                     {% else %}
                         <tr>
-                            <td colspan="4" class="{{ td }} text-center">No collections in the sample, only strings have no item count.</td>
+                            <td colspan="4" class="py-2 px-4 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700 text-center">No collections in the sample, only strings have no item count.</td>
                         </tr>
                     {% endfor %}
                     </tbody>
                 </table>
             </div>
         </div>
-        <div class="{{ card }} mb-4 xl:mb-0">
+        <div class="p-4 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700 mb-4 xl:mb-0">
             <h2 class="mb-1 text-sm font-bold uppercase text-primary-900 dark:text-primary-400">Data types</h2>
             <p class="mb-3 text-xs text-gray-500 dark:text-gray-400">
                 How the sampled keys{{ analysis.memory ? ' and their memory' : '' }} are spread across types.
@@ -233,23 +226,23 @@
                 <table class="w-full text-left table-auto dark:text-gray-300">
                     <thead>
                     <tr class="border-b border-gray-200 dark:border-gray-700 text-primary-900 dark:text-primary-400">
-                        <th class="{{ th }}">Type</th>
-                        <th class="{{ th }} w-20">Keys</th>
+                        <th class="py-2 px-4 text-xs font-bold uppercase whitespace-nowrap">Type</th>
+                        <th class="py-2 px-4 text-xs font-bold uppercase whitespace-nowrap w-20">Keys</th>
                         {% if analysis.memory %}
-                            <th class="{{ th }} w-24">Memory</th>
+                            <th class="py-2 px-4 text-xs font-bold uppercase whitespace-nowrap w-24">Memory</th>
                         {% endif %}
-                        <th class="{{ th }} w-40">Share</th>
+                        <th class="py-2 px-4 text-xs font-bold uppercase whitespace-nowrap w-40">Share</th>
                     </tr>
                     </thead>
                     <tbody>
                     {% for row in analysis.types %}
                         <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
-                            <td class="{{ td }}">{{ macros.key_type(row.name) }}</td>
-                            <td class="{{ td }} whitespace-nowrap">{{ row.count|number }}</td>
+                            <td class="py-2 px-4 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700">{{ macros.key_type(row.name) }}</td>
+                            <td class="py-2 px-4 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700 whitespace-nowrap">{{ row.count|number }}</td>
                             {% if analysis.memory %}
-                                <td class="{{ td }} whitespace-nowrap">{{ row.memory|bytes }}</td>
+                                <td class="py-2 px-4 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700 whitespace-nowrap">{{ row.memory|bytes }}</td>
                             {% endif %}
-                            <td class="{{ td }}">
+                            <td class="py-2 px-4 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700">
                                 <div class="flex gap-2 items-center">
                                     <div class="grow">{{ macros.progress(row.percent, 'lower', null, 'info') }}</div>
                                     <span class="shrink-0 text-xs text-gray-500 dark:text-gray-400">{{ row.percent }}%</span>
@@ -262,24 +255,24 @@
             </div>
         </div>
 
-        <div class="{{ card }} mb-4 xl:mb-0">
+        <div class="p-4 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700 mb-4 xl:mb-0">
             <h2 class="mb-1 text-sm font-bold uppercase text-primary-900 dark:text-primary-400">Expiration</h2>
             <p class="mb-3 text-xs text-gray-500 dark:text-gray-400">When the sampled keys are due to expire.</p>
             <div class="overflow-x-auto">
                 <table class="w-full text-left table-auto dark:text-gray-300">
                     <thead>
                     <tr class="border-b border-gray-200 dark:border-gray-700 text-primary-900 dark:text-primary-400">
-                        <th class="{{ th }}">TTL</th>
-                        <th class="{{ th }} w-20">Keys</th>
-                        <th class="{{ th }} w-40">Share</th>
+                        <th class="py-2 px-4 text-xs font-bold uppercase whitespace-nowrap">TTL</th>
+                        <th class="py-2 px-4 text-xs font-bold uppercase whitespace-nowrap w-20">Keys</th>
+                        <th class="py-2 px-4 text-xs font-bold uppercase whitespace-nowrap w-40">Share</th>
                     </tr>
                     </thead>
                     <tbody>
                     {% for row in analysis.expiry %}
                         <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
-                            <td class="{{ td }} whitespace-nowrap">{{ row.name }}</td>
-                            <td class="{{ td }} whitespace-nowrap">{{ row.count|number }}</td>
-                            <td class="{{ td }}">
+                            <td class="py-2 px-4 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700 whitespace-nowrap">{{ row.name }}</td>
+                            <td class="py-2 px-4 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700 whitespace-nowrap">{{ row.count|number }}</td>
+                            <td class="py-2 px-4 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700">
                                 <div class="flex gap-2 items-center">
                                     <div class="grow">{{ macros.progress(row.percent, 'lower', null, 'info') }}</div>
                                     <span class="shrink-0 text-xs text-gray-500 dark:text-gray-400">{{ row.percent }}%</span>

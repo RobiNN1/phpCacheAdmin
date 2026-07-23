@@ -520,6 +520,10 @@ abstract class RedisTestCase extends TestCase {
         $this->assertEqualsCanonicalizing(['zvalue1', 'zvalue2_updated'], $this->dashboard->getAllKeyValues('zset', $key));
         $this->assertEqualsWithDelta(30.0, $this->redis->zScore($key, 'zvalue2_updated'), PHP_FLOAT_EPSILON);
         $this->assertEmpty($this->redis->zScore($key, 'zvalue2'));
+
+        $key = 'pu-test-type-zset-float';
+        $this->saveData(['rtype' => 'zset', 'key' => $key, 'value' => 'zfloat', 'score' => '1.5']);
+        $this->assertEqualsWithDelta(1.5, $this->redis->zScore($key, 'zfloat'), PHP_FLOAT_EPSILON);
     }
 
     /**

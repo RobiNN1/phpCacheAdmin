@@ -25,7 +25,7 @@ class Http {
         static $cached_uri = null;
         static $cached_query = [];
 
-        $uri = (string) ($_SERVER['REQUEST_URI'] ?? '');
+        $uri = ($_SERVER['REQUEST_URI'] ?? '');
 
         if ($uri !== $cached_uri) {
             $cached_uri = $uri;
@@ -49,7 +49,7 @@ class Http {
 
     /**
      * Get query parameter.
-     * Set $raw to true for values that are data rather than markup (e.g. cache keys, which may legitimately contain <, >..)
+     * Set $raw to true for values that are data rather than markup (e.g. cache keys, which may legitimately contain <, >, etc.)
      *
      * @template Type
      *
@@ -57,8 +57,8 @@ class Http {
      *
      * @return Type
      */
-    public static function get(string $key, $default = null, bool $raw = false) {
-        if (!isset($_GET[$key])) {
+    public static function get(string $key, mixed $default = null, bool $raw = false): mixed {
+        if (!isset($_GET[$key]) || is_array($_GET[$key])) {
             return $default;
         }
 
@@ -78,8 +78,8 @@ class Http {
      *
      * @return Type
      */
-    public static function post(string $key, $default = null) {
-        if (!isset($_POST[$key])) {
+    public static function post(string $key, mixed $default = null): mixed {
+        if (!isset($_POST[$key]) || is_array($_POST[$key])) {
             return $default;
         }
 
@@ -117,7 +117,7 @@ class Http {
      *
      * @return Type
      */
-    public static function session(string $key, $default = null) {
+    public static function session(string $key, mixed $default = null): mixed {
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }

@@ -1,10 +1,6 @@
 {% import 'components/macros.twig' as macros %}
 
-{% set card = 'mb-4 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700' %}
-{% set th = 'py-2 px-4 text-xs font-bold uppercase whitespace-nowrap' %}
-{% set td = 'py-2 px-4 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700' %}
-
-<div class="{{ card }}">
+<div class="mb-4 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
     <div class="flex flex-wrap gap-3 justify-between items-center py-3 px-4 border-b border-gray-200 dark:border-gray-700">
         <h2 class="text-sm font-bold uppercase text-primary-900 dark:text-primary-400">Consumer groups</h2>
         <span class="text-xs text-gray-500 dark:text-gray-400">
@@ -22,35 +18,36 @@
         <table class="w-full text-left table-auto dark:text-gray-300">
             <thead>
             <tr class="border-b border-gray-200 dark:border-gray-700 text-primary-900 dark:text-primary-400">
-                <th class="{{ th }}">Group</th>
-                <th class="{{ th }} w-24">Consumers</th>
-                <th class="{{ th }} w-24">Pending</th>
-                <th class="{{ th }} w-24">Lag</th>
-                <th class="{{ th }}">Last delivered</th>
-                <th class="{{ th }}">Oldest pending</th>
+                <th class="py-2 px-4 text-xs font-bold uppercase whitespace-nowrap">Group</th>
+                <th class="py-2 px-4 text-xs font-bold uppercase whitespace-nowrap w-24">Consumers</th>
+                <th class="py-2 px-4 text-xs font-bold uppercase whitespace-nowrap w-24">Pending</th>
+                <th class="py-2 px-4 text-xs font-bold uppercase whitespace-nowrap w-24">Lag</th>
+                <th class="py-2 px-4 text-xs font-bold uppercase whitespace-nowrap">Last delivered</th>
+                <th class="py-2 px-4 text-xs font-bold uppercase whitespace-nowrap">Oldest pending</th>
             </tr>
             </thead>
             <tbody>
             {% for group in stream_groups.groups %}
                 <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
-                    <td class="{{ td }} font-semibold break-all">{{ group.name }}</td>
-                    <td class="{{ td }} whitespace-nowrap">{{ group.consumers|number }}</td>
-                    <td class="{{ td }} whitespace-nowrap">
+                    <td class="py-2 px-4 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700 font-semibold break-all">{{ group.name }}</td>
+                    <td class="py-2 px-4 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700 whitespace-nowrap">{{ group.consumers|number }}</td>
+                    <td class="py-2 px-4 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700 whitespace-nowrap">
                         {% if group.pending > 0 %}
                             {{ macros.badge(group.pending|number, 'orange') }}
                         {% else %}
                             {{ group.pending|number }}
                         {% endif %}
                     </td>
-                    <td class="{{ td }} whitespace-nowrap">
+                    <td class="py-2 px-4 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700 whitespace-nowrap">
                         {% if group.lag is null %}
                             <span class="text-gray-400 dark:text-gray-500" title="The server does not report the lag (Redis < 7).">&mdash;</span>
                         {% else %}
                             {{ group.lag|number }}
                         {% endif %}
                     </td>
-                    <td class="{{ td }} whitespace-nowrap"><code class="text-xs">{{ group.last_delivered_id }}</code></td>
-                    <td class="{{ td }} whitespace-nowrap">
+                    <td class="py-2 px-4 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700 whitespace-nowrap">
+                        <code class="text-xs">{{ group.last_delivered_id }}</code></td>
+                    <td class="py-2 px-4 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700 whitespace-nowrap">
                         {% if group.oldest_pending %}
                             <code class="text-xs">{{ group.oldest_pending }}</code>
                         {% else %}

@@ -36,95 +36,144 @@ trait RedisKeyView {
             return $e->getMessage();
         }
 
-        if (isset($_POST['deletesub'])) {
-            if (!Csrf::validateToken(Http::post('csrf_token', ''))) {
-                Helpers::alert('Invalid CSRF token.', 'error');
-            } else {
-                $subkey = match ($type) {
-                    'set' => Http::post('member', 0),
-                    'list' => Http::post('index', 0),
-                    'zset' => Http::post('range', 0),
-                    'hash' => Http::post('hash_key', ''),
-                    'stream' => Http::post('stream_id', ''),
-                    'vectorset' => Http::post('element', ''),
-                    default => null,
-                };
-
-                $this->deleteSubKey($type, $key, $subkey);
-                Http::redirect(['key', 'view', 'p', 'subsearch']);
-            }
-        }
-
-        if (isset($_POST['delete'])) {
-            if (!Csrf::validateToken(Http::post('csrf_token', ''))) {
-                Helpers::alert('Invalid CSRF token.', 'error');
-            } else {
-                $this->redis->del($key);
-                Http::redirect();
-            }
-        }
+        $this->deleteSubKeyAction($type, $key);
+        $this->deleteKeyAction($key);
 
         $ttl = $this->redis->ttl($key);
 
-        if (isset($_GET['export'])) {
-            Helpers::export(
-                [['key' => $key, 'ttl' => $ttl]],
-                $key,
-                fn (string $key): string => bin2hex($this->redis->dump($key))
-            );
-        }
-
-        $value = $this->getAllKeyValues($type, $key);
+        $this->exportKeyAction($key, $ttl);
 
         $mode = Http::get('value_mode', Value::MODE_FORMATTED);
         $mode = Value::isMode($mode) ? $mode : Value::MODE_FORMATTED;
 
-        $paginator = '';
-        $encode_fn = null;
-        $is_formatted = null;
         $subsearch = (string) Http::get('subsearch', '');
-        $total_items = 0;
 
-        if (is_array($value)) {
-            $pairs = [];
-
-            foreach ($value as $item_key => $item_value) {
-                $pairs[] = [$item_key, $item_value];
-            }
-
-            $total_items = count($pairs);
-
-            if ($subsearch !== '') {
-                $pairs = $this->filterSubItems($pairs, $subsearch);
-            }
-
-            $paginator = new Paginator($pairs, [['view', 'key', 'pp', 'subsearch'], ['p' => '']]);
-            $value = $this->formatViewItems($key, $paginator->getPaginated(), $type, $mode);
-            $paginator = $paginator->render();
-        } else {
-            [$value, $encode_fn, $is_formatted] = Value::format($value, $mode);
-        }
+        $value = $this->getAllKeyValues($type, $key);
+        $view_data = is_array($value) ? $this->arrayViewData($key, $type, $value, $mode, $subsearch) : $this->stringViewData($value, $mode);
 
         return $this->template->render('partials/view_key', [
             'key'             => $key,
-            'value'           => $value,
             'type'            => $type,
             'ttl'             => Format::seconds($ttl),
             'size'            => Format::bytes($this->redis->size($key)),
-            'encode_fn'       => $encode_fn,
-            'formatted'       => $is_formatted,
             'value_mode'      => $mode,
             'add_subkey_url'  => Http::queryString([], ['form' => 'new', 'key' => $key]),
             'edit_url'        => Http::queryString([], ['form' => 'edit', 'key' => $key]),
             'view_url'        => Http::queryString([], ['view' => 'key', 'key' => $key]),
             'export_url'      => Http::queryString(['view', 'p', 'key'], ['export' => 'key']),
-            'paginator'       => $paginator,
             'types'           => $this->typesTplOptions(),
             'subsearch_value' => $subsearch,
-            'total_items'     => $total_items,
             'stream_groups'   => $type === 'stream' ? $this->streamGroupsInfo($key) : [],
             'vector_set'      => $type === 'vectorset' ? $this->vectorSetPanel($key) : [],
+            ...$view_data,
         ]);
+    }
+
+    /**
+     * @throws Exception
+     */
+    private function deleteSubKeyAction(string $type, string $key): void {
+        if (!isset($_POST['deletesub'])) {
+            return;
+        }
+
+        if (!Csrf::validateToken(Http::post('csrf_token', ''))) {
+            Helpers::alert('Invalid CSRF token.', 'error');
+
+            return;
+        }
+
+        $subkey = match ($type) {
+            'set' => Http::post('member', 0),
+            'list' => Http::post('index', 0),
+            'zset' => Http::post('range', 0),
+            'hash' => Http::post('hash_key', ''),
+            'stream' => Http::post('stream_id', ''),
+            'vectorset' => Http::post('element', ''),
+            default => null,
+        };
+
+        $this->deleteSubKey($type, $key, $subkey);
+        Http::redirect(['key', 'view', 'p', 'subsearch']);
+    }
+
+    /**
+     * @throws Exception
+     */
+    private function deleteKeyAction(string $key): void {
+        if (!isset($_POST['delete'])) {
+            return;
+        }
+
+        if (!Csrf::validateToken(Http::post('csrf_token', ''))) {
+            Helpers::alert('Invalid CSRF token.', 'error');
+
+            return;
+        }
+
+        $this->redis->del($key);
+        Http::redirect();
+    }
+
+    /**
+     * @throws Exception
+     */
+    private function exportKeyAction(string $key, int $ttl): void {
+        if (!isset($_GET['export'])) {
+            return;
+        }
+
+        Helpers::export(
+            [['key' => $key, 'ttl' => $ttl]],
+            $key,
+            fn (string $key): string => bin2hex($this->redis->dump($key))
+        );
+    }
+
+    /**
+     * @param array<int|string, mixed> $value
+     *
+     * @return array<string, mixed>
+     *
+     * @throws Exception
+     */
+    private function arrayViewData(string $key, string $type, array $value, string $mode, string $subsearch): array {
+        $pairs = [];
+
+        foreach ($value as $item_key => $item_value) {
+            $pairs[] = [$item_key, $item_value];
+        }
+
+        $total_items = count($pairs);
+
+        if ($subsearch !== '') {
+            $pairs = $this->filterSubItems($pairs, $subsearch);
+        }
+
+        $paginator = new Paginator($pairs, [['view', 'key', 'pp', 'subsearch'], ['p' => '']]);
+
+        return [
+            'value'       => $this->formatViewItems($key, $paginator->getPaginated(), $type, $mode),
+            'encode_fn'   => null,
+            'formatted'   => null,
+            'paginator'   => $paginator->render(),
+            'total_items' => $total_items,
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function stringViewData(string $value, string $mode): array {
+        [$formatted_value, $encode_fn, $is_formatted] = Value::format($value, $mode);
+
+        return [
+            'value'       => $formatted_value,
+            'encode_fn'   => $encode_fn,
+            'formatted'   => $is_formatted,
+            'paginator'   => '',
+            'total_items' => 0,
+        ];
     }
 
     /**
@@ -207,7 +256,7 @@ trait RedisKeyView {
 
         $this->store($type, $key, $value, $old_value, [
             'list_index' => $_POST['index'] ?? '',
-            'zset_score' => Http::post('score', 0),
+            'zset_score' => (float) Http::post('score', '0'),
             'hash_key'   => Http::post('hash_key', ''),
             'stream_id'  => Http::post('stream_id', '*'),
             'element'    => Http::post('element', ''),
@@ -226,7 +275,7 @@ trait RedisKeyView {
         $key = (string) Http::get('key', Http::post('key', ''), true);
         $type = Http::post('rtype', 'string');
         $index = $_POST['index'] ?? '';
-        $score = Http::post('score', 0);
+        $score = (float) Http::post('score', '0');
         $hash_key = Http::post('hash_key', '');
         $expire = Http::post('expire', -1);
         $encoder = Http::get('encoder', 'none');

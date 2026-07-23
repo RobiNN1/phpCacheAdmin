@@ -143,7 +143,11 @@ trait RedisTrait {
                         return is_int($exists) && $exists > 0;
                     },
                     function (string $key, string $value, int $ttl): bool {
-                        return $this->redis->restoreKeys($key, ($ttl === -1 ? 0 : $ttl), hex2bin($value));
+                        if ($value === '' || strlen($value) % 2 !== 0 || !ctype_xdigit($value)) {
+                            return false;
+                        }
+
+                        return $this->redis->restoreKeys($key, ($ttl === -1 ? 0 : $ttl), (string) hex2bin($value));
                     }
                 );
             } else {

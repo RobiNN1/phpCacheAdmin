@@ -172,6 +172,22 @@ final class HelpersTest extends TestCase {
         ];
     }
 
+    public function testAlertEscapesHtmlInMessage(): void {
+        $alert = Helpers::alert('Key "<script>alert(1)</script>" has been deleted.', 'success');
+
+        $this->assertStringNotContainsString('<script>', $alert);
+        $this->assertStringContainsString('&lt;script&gt;', $alert);
+    }
+
+    public function testSortKeysWithUnknownColumnKeepsOrder(): void {
+        $_GET['sortdir'] = 'asc';
+        $_GET['sortcol'] = 'missing';
+
+        $keys = [['info' => ['column1' => 'b']], ['info' => ['column1' => 'a']]];
+
+        $this->assertSame($keys, Helpers::sortKeys($keys));
+    }
+
     public function testCountChildren(): void {
         $tree = [
             [

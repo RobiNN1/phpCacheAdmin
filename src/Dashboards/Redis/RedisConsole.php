@@ -74,18 +74,18 @@ trait RedisConsole {
             $command = strtoupper($args[0]);
 
             if (in_array($command, $this->console_blocked, true)) {
-                return $this->consoleJson(
-                    ['error' => 'Command "'.$args[0].'" is not allowed in the console.']
-                    + $this->consoleTabHint($this->console_command_tabs[$command] ?? null, 'Open the %s tab')
-                );
+                return $this->consoleJson([
+                    'error' => 'Command "'.$args[0].'" is not allowed in the console.',
+                    ...$this->consoleTabHint($this->console_command_tabs[$command] ?? null, 'Open the %s tab'),
+                ]);
             }
 
             $output = $this->formatReply($this->redis->consoleCommand($args));
 
-            return $this->consoleJson(
-                ['output' => $output]
-                + $this->consoleTabHint($this->console_command_views[$command] ?? null, 'See it formatted on the %s tab')
-            );
+            return $this->consoleJson([
+                'output' => $output,
+                ...$this->consoleTabHint($this->console_command_views[$command] ?? null, 'See it formatted on the %s tab'),
+            ]);
         } catch (Throwable $e) {
             return $this->consoleJson(['error' => $e->getMessage()]);
         }

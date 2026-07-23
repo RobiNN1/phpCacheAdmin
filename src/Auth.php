@@ -110,6 +110,15 @@ class Auth {
             return false;
         }
 
-        return hash_equals($token, (string) ($_GET['token'] ?? ''));
+        $request_token = $_GET['token'] ?? '';
+
+        if (!is_string($request_token) || !hash_equals($token, $request_token)) {
+            return false;
+        }
+
+        $allowed = ['ajax', 'metrics', 'dashboard', 'server', 'db', 'token'];
+        $_GET = array_intersect_key($_GET, array_fill_keys($allowed, true));
+
+        return true;
     }
 }

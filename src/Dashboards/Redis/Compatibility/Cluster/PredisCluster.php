@@ -330,9 +330,11 @@ class PredisCluster extends PredisClient implements RedisCompatibilityInterface 
     }
 
     /**
+     * @return array<string, mixed>|true
+     *
      * @throws InvalidArgumentException
      */
-    public function execConfig(string $operation, mixed ...$args): mixed {
+    public function execConfig(string $operation, mixed ...$args): array|true {
         switch (strtoupper($operation)) {
             case 'GET':
                 if ($args === []) {

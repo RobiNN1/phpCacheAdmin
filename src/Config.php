@@ -65,7 +65,7 @@ class Config {
      *
      * @return mixed|Default
      */
-    public static function get(string $key, $default = null) {
+    public static function get(string $key, $default = null): mixed {
         if (self::$config !== null) {
             return self::$config[$key] ?? $default;
         }

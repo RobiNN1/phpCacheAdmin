@@ -1,5 +1,4 @@
 <div class="bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
-    {% set label_wrapper = 'flex flex-col gap-1 md:flex-row md:items-center md:gap-2' %}
     <form method="post" class="flex flex-wrap gap-3 items-end py-4 px-6 w-full md:items-center">
         <input type="hidden" name="csrf_token" value="{{ csrf }}">
 
@@ -8,7 +7,7 @@
             label: 'Display items',
             value: slowlog.max_items,
             inline_input: true,
-            wrapper_class: label_wrapper,
+            wrapper_class: 'flex flex-col gap-1 md:flex-row md:items-center md:gap-2',
             input_class: 'w-24',
         }) }}
 
@@ -17,7 +16,7 @@
             label: 'Slower than (μs)',
             value: slowlog.slower_than,
             inline_input: true,
-            wrapper_class: label_wrapper,
+            wrapper_class: 'flex flex-col gap-1 md:flex-row md:items-center md:gap-2',
             input_class: 'w-24',
         }) }}
 

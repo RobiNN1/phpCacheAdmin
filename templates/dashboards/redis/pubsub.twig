@@ -2,31 +2,31 @@
 
 <div class="gap-4 lg:grid lg:grid-cols-2">
     {% if not readonly %}
-    <div class="col-span-2 p-4 mb-2 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
-        <h2 class="mb-4 text-sm font-bold uppercase text-primary-900 dark:text-primary-400">Publish a message</h2>
-        <div class="gap-2 items-end md:flex">
-            <div class="md:w-1/4">
-                {{ include('components/input.twig', {
-                    id: 'pubsub_channel',
-                    label: 'Channel',
-                }) }}
+        <div class="col-span-2 p-4 mb-2 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+            <h2 class="mb-4 text-sm font-bold uppercase text-primary-900 dark:text-primary-400">Publish a message</h2>
+            <div class="gap-2 items-end md:flex">
+                <div class="md:w-1/4">
+                    {{ include('components/input.twig', {
+                        id: 'pubsub_channel',
+                        label: 'Channel',
+                    }) }}
+                </div>
+                <div class="md:flex-1">
+                    {{ include('components/input.twig', {
+                        id: 'pubsub_message',
+                        label: 'Message',
+                    }) }}
+                </div>
+                <div class="mb-4">
+                    {{ include('components/button.twig', {
+                        id: 'pubsub_publish',
+                        text: 'Publish',
+                        color: 'green',
+                    }) }}
+                </div>
             </div>
-            <div class="md:flex-1">
-                {{ include('components/input.twig', {
-                    id: 'pubsub_message',
-                    label: 'Message',
-                }) }}
-            </div>
-            <div class="mb-4">
-                {{ include('components/button.twig', {
-                    id: 'pubsub_publish',
-                    text: 'Publish',
-                    color: 'green',
-                }) }}
-            </div>
+            <div id="pubsub_publish_result" class="text-xs"></div>
         </div>
-        <div id="pubsub_publish_result" class="text-xs"></div>
-    </div>
     {% endif %}
 
     <div class="p-4 mb-2 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
@@ -105,8 +105,9 @@
             </div>
         </template>
         <div class="mt-2 text-xs">
-            Messages are captured via AJAX polling ({{ pubsub_window }}s window per request), so messages published
-            in the short gap between two requests may be missed. While subscribed, the monitor itself counts as one pattern subscription.
+            Messages are captured via AJAX polling ({{ pubsub_window }}s window per request),
+            so messages published in the short gap between two requests may be missed.
+            While subscribed, the monitor itself counts as one pattern subscription.
         </div>
     </div>
 </div>

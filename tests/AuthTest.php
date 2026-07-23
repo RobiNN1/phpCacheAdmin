@@ -106,6 +106,25 @@ final class AuthTest extends TestCase {
         $this->expectNotToPerformAssertions(); // Token grants the cronjob access without a login session.
     }
 
+    public function testCronjobTokenLimitsRequestToMetrics(): void {
+        $this->setConfig("['authusers' => ['admin' => 'secret'], 'authtoken' => 'tok-123']");
+        $_GET['ajax'] = '';
+        $_GET['metrics'] = '';
+        $_GET['token'] = 'tok-123';
+        $_GET['panels'] = '';
+        $_GET['view'] = 'key';
+        $_GET['key'] = 'app:secret';
+
+        Auth::check();
+
+        // The token must not open other ajax actions that are routed by GET parameters.
+        $this->assertArrayNotHasKey('panels', $_GET);
+        $this->assertArrayNotHasKey('view', $_GET);
+        $this->assertArrayNotHasKey('key', $_GET);
+        $this->assertArrayHasKey('metrics', $_GET);
+        $this->assertArrayHasKey('ajax', $_GET);
+    }
+
     public function testLoggedInSessionDoesNotBlock(): void {
         $this->setConfig("['authusers' => ['admin' => 'secret']]");
 

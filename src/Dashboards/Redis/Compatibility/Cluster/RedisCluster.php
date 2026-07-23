@@ -338,9 +338,11 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
     }
 
     /**
+     * @return array<string, mixed>|true
+     *
      * @throws RedisClusterException|InvalidArgumentException
      */
-    public function execConfig(string $operation, mixed ...$args): mixed {
+    public function execConfig(string $operation, mixed ...$args): array|true {
         switch (strtoupper($operation)) {
             case 'GET':
                 if ($args === []) {

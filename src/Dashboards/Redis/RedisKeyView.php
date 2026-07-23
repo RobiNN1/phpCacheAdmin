@@ -24,7 +24,7 @@ trait RedisKeyView {
      * @throws Exception
      */
     private function viewKey(): string {
-        $key = Http::get('key', '');
+        $key = Http::get('key', '', true);
 
         if (!$this->redis->exists($key)) {
             Http::redirect();
@@ -223,7 +223,7 @@ trait RedisKeyView {
      * @throws Exception
      */
     private function form(): string {
-        $key = (string) Http::get('key', Http::post('key', ''));
+        $key = (string) Http::get('key', Http::post('key', ''), true);
         $type = Http::post('rtype', 'string');
         $index = $_POST['index'] ?? '';
         $score = Http::post('score', 0);

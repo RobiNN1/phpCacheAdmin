@@ -49,6 +49,7 @@ class Http {
 
     /**
      * Get query parameter.
+     * Set $raw to true for values that are data rather than markup (e.g. cache keys, which may legitimately contain <, >..)
      *
      * @template Type
      *
@@ -56,15 +57,16 @@ class Http {
      *
      * @return Type
      */
-    public static function get(string $key, $default = null) {
+    public static function get(string $key, $default = null, bool $raw = false) {
         if (!isset($_GET[$key])) {
             return $default;
         }
 
-        $filter = is_int($default) ? FILTER_SANITIZE_NUMBER_INT : FILTER_SANITIZE_FULL_SPECIAL_CHARS;
-        $value = filter_var($_GET[$key], $filter);
+        if (is_int($default)) {
+            return (int) filter_var($_GET[$key], FILTER_SANITIZE_NUMBER_INT);
+        }
 
-        return is_int($default) ? (int) $value : $value;
+        return filter_var($_GET[$key], $raw ? FILTER_UNSAFE_RAW : FILTER_SANITIZE_FULL_SPECIAL_CHARS);
     }
 
     /**

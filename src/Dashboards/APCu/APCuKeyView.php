@@ -24,7 +24,7 @@ trait APCuKeyView {
     }
 
     private function viewKey(): string {
-        $key = Http::get('key', '');
+        $key = Http::get('key', '', true);
 
         if (apcu_exists($key) === false) {
             Http::redirect();
@@ -89,7 +89,7 @@ trait APCuKeyView {
      * Add/edit form.
      */
     private function form(): string {
-        $key = Http::get('key', '');
+        $key = Http::get('key', '', true);
         $expire = 0;
 
         $encoder = Http::get('encoder', 'none');

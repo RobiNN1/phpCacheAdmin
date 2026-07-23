@@ -20,7 +20,7 @@ trait MemcachedKeyView {
      * @throws MemcachedException
      */
     private function viewKey(): string {
-        $key = Http::get('key', '');
+        $key = Http::get('key', '', true);
 
         if (!$this->memcached->exists($key)) {
             Http::redirect();
@@ -92,7 +92,7 @@ trait MemcachedKeyView {
      * @throws MemcachedException
      */
     private function form(): string {
-        $key = Http::get('key', '');
+        $key = Http::get('key', '', true);
         $expire = Http::get('ttl', 0);
         $expire = $expire === -1 ? 0 : $expire;
 

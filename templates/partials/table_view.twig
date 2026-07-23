@@ -38,7 +38,7 @@
                     {% set td_class = is_title ? ' max-w-xs md:max-w-md truncate hover:text-clip hover:break-all hover:whitespace-normal' : '' %}
                     <td class="px-3 py-2 border-b border-gray-200 text-sm{{ td_class }}{{ classes[loop.index]|space }} dark:border-gray-700 dark:text-gray-300">
                         {% if item_key == 'link_title' and view_key %}
-                            {% set link = view_key|replace({__key__: key.key}) %}
+                            {% set link = view_key|replace({__key__: key.key|url_encode}) %}
                             <a class="font-semibold text-primary-500 dark:text-primary-400 dark:hover:text-primary-300 hover:text-primary-700" href="{{ link }}"{{ config('keymodal', false) ? ' data-view-key' : '' }}>
                                 {{ item }}
                                 {% if key.items %}

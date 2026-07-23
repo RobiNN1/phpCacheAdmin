@@ -179,7 +179,8 @@ class Helpers {
             return $output;
         }
 
-        header('Content-disposition: attachment; filename='.$filename.'.json');
+        $safe_filename = preg_replace('/[\x00-\x1f"\\\\]+/', '', $filename);
+        header('Content-disposition: attachment; filename="'.$safe_filename.'.json"');
         header('Content-Type: application/json');
         echo $output;
         exit;

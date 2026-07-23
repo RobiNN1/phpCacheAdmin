@@ -41,6 +41,16 @@ final class HttpTest extends TestCase {
         $this->assertSame('', Http::get('test-string-empty', ''));
     }
 
+    public function testGetSanitizesSpecialChars(): void {
+        $_GET['test-special'] = 'a<b>&"c';
+        $this->assertSame('a&lt;b&gt;&amp;&quot;c', Http::get('test-special', ''));
+    }
+
+    public function testGetRawKeepsSpecialChars(): void {
+        $_GET['test-raw'] = 'a<b>&"c';
+        $this->assertSame('a<b>&"c', Http::get('test-raw', '', true));
+    }
+
     public function testGetInt(): void {
         $_GET['test-int'] = 4646;
         $this->assertSame(4646, Http::get('test-int', 0));

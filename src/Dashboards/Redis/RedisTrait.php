@@ -117,9 +117,10 @@ trait RedisTrait {
 
         try {
             $databases = $this->template->render('components/select', [
-                'id'       => 'db_select',
-                'options'  => $this->getDatabases(),
-                'selected' => Http::get('db', $this->servers[$this->current_server]['database'] ?? 0),
+                'id'         => 'db_select',
+                'options'    => $this->getDatabases(),
+                'selected'   => Http::get('db', $this->servers[$this->current_server]['database'] ?? 0),
+                'aria_label' => 'Database',
             ]);
         } catch (DashboardException|Exception) {
             $databases = '';

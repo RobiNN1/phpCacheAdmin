@@ -1253,6 +1253,9 @@
   .dark\:bg-green-900:where(.dark, .dark *) {
     background-color: oklch(39.3% 0.095 152.535);
   }
+  .dark\:bg-indigo-700:where(.dark, .dark *) {
+    background-color: oklch(45.7% 0.24 277.023);
+  }
   .dark\:bg-indigo-900:where(.dark, .dark *) {
     background-color: oklch(35.9% 0.144 278.697);
   }
@@ -1337,6 +1340,9 @@
   .dark\:placeholder-gray-400:where(.dark, .dark *)::placeholder {
     color: oklch(70.7% 0.022 261.325);
   }
+  .dark\:scheme-dark:where(.dark, .dark *) {
+    color-scheme: dark;
+  }
   .dark\:file\:bg-slate-900:where(.dark, .dark *)::file-selector-button {
     background-color: oklch(20.8% 0.042 265.755);
   }
@@ -1370,6 +1376,9 @@
     }
     .dark\:hover\:text-gray-300:where(.dark, .dark *):hover {
       color: oklch(87.2% 0.01 258.338);
+    }
+    .dark\:hover\:text-gray-500:where(.dark, .dark *):hover {
+      color: oklch(55.1% 0.027 264.364);
     }
     .dark\:hover\:text-primary-300:where(.dark, .dark *):hover {
       color: var(--color-primary-300);
@@ -1465,8 +1474,18 @@
     border-color: var(--color-gray-200, currentColor);
   }
 }
-.dark {
-  color-scheme: dark;
+.card {
+  border-radius: 0.375rem;
+  border-style: var(--tw-border-style);
+  border-width: 1px;
+  border-color: oklch(92.8% 0.006 264.531);
+  background-color: #fff;
+  &:where(.dark, .dark *) {
+    border-color: oklch(37.3% 0.034 259.733);
+  }
+  &:where(.dark, .dark *) {
+    background-color: oklch(27.8% 0.033 256.848);
+  }
 }
 .dashboard-link {
   background-color: var(--link-bg);
@@ -1542,7 +1561,7 @@
   word-wrap: break-word;
 }
 #phpinfo .v i {
-  color: #999;
+  color: #454545;
 }
 #phpinfo img {
   float: right;

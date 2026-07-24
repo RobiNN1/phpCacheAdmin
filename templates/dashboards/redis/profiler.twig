@@ -8,7 +8,7 @@
               and it costs the server throughput while it is on. Redis redacts AUTH, nothing else.',
 }) }}
 
-<div class="p-4 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700 mb-4">
+<div class="p-4 card mb-4">
     <div class="flex flex-wrap gap-3 items-end">
         <div class="w-full sm:w-64">
             {{ include('components/input.twig', {
@@ -31,20 +31,20 @@
             color: 'red',
         }) }}
 
-        <div class="ms-auto text-xs text-gray-500 dark:text-gray-400">
+        <div class="ms-auto text-xs text-gray-600 dark:text-gray-300">
             <span id="profiler_count" class="font-semibold">0</span> commands captured
         </div>
     </div>
 </div>
 
-<div class="p-4 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+<div class="p-4 card">
     <div class="flex justify-between items-center mb-3">
         <h2 class="text-sm font-bold uppercase text-primary-900 dark:text-primary-400">Commands</h2>
-        <span id="profiler_status" class="text-xs text-gray-500 dark:text-gray-400">Not running.</span>
+        <span id="profiler_status" class="text-xs text-gray-600 dark:text-gray-300">Not running.</span>
     </div>
 
     <div id="profiler_log" class="overflow-y-auto p-2 h-128 font-mono text-xs rounded border border-gray-200 dark:border-gray-700">
-        <div id="profiler_empty" class="text-gray-500 dark:text-gray-400">Start the profiler to watch commands as they run.</div>
+        <div id="profiler_empty" class="text-gray-600 dark:text-gray-300">Start the profiler to watch commands as they run.</div>
     </div>
 
     <template id="profiler_row">
@@ -56,7 +56,7 @@
         </div>
     </template>
 
-    <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+    <p class="mt-2 text-xs text-gray-600 dark:text-gray-300">
         Captured over AJAX in {{ window }}s windows, so commands run in the gap between two requests are missed.
         The dashboard's own commands show up here too.
         In a cluster every node is watched at once, nodes that cannot be reached are skipped.

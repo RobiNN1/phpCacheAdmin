@@ -596,9 +596,17 @@ class Modal {
         }
 
         this.is_open = true;
+        this.previously_focused = document.activeElement;
         this.element.classList.remove('pointer-events-none', 'opacity-0');
+        this.element.removeAttribute('inert');
+        this.element.removeAttribute('aria-hidden');
         Modal.#lock_body_scroll();
         document.addEventListener('keydown', this.escapeHandler);
+
+        const focusable = this.element.querySelector(
+            'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        );
+        (focusable ?? this.element).focus();
     }
 
     close() {
@@ -608,8 +616,14 @@ class Modal {
 
         this.is_open = false;
         this.element.classList.add('pointer-events-none', 'opacity-0');
+        this.element.setAttribute('inert', '');
+        this.element.setAttribute('aria-hidden', 'true');
         Modal.#unlock_body_scroll();
         document.removeEventListener('keydown', this.escapeHandler);
+
+        if (this.previously_focused instanceof HTMLElement) {
+            this.previously_focused.focus();
+        }
     }
 
     escapeHandler = (event) => {

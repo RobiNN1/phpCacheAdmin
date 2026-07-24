@@ -1,10 +1,12 @@
-<div class="sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:gap-4">
-    {% for item, data in items %}
-        {{ include('partials/panel.twig', {
-            panel_title: 'Item ' ~ item,
-            array: data,
-        }) }}
-    {% else %}
-        No items.
-    {% endfor %}
-</div>
+{% if items is not empty %}
+    <div class="sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:gap-4">
+        {% for item, data in items %}
+            {{ include('partials/panel.twig', {
+                panel_title: 'Item ' ~ item,
+                array: data,
+            }) }}
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="p-4 card text-center text-gray-600 dark:text-gray-300">No items.</div>
+{% endif %}

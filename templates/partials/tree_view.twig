@@ -13,7 +13,7 @@
                         {{ svg('down', 10, '-rotate-90') }}
                         <span class="tree">{{ item.name }}{{ separator }}*</span>
                     </button>
-                    <span class="text-xs text-gray-500 dark:text-gray-400 items-count">({{ item.count }} items)</span>
+                    <span class="text-xs text-gray-600 dark:text-gray-300 items-count">({{ item.count }} items)</span>
                 </div>
                 <div class="hidden tree-children" data-path="{{ item.path }}">
                     {{ _self.render_tree(item.children, level + 1, show_actions, view_key, macros) }}
@@ -32,7 +32,7 @@
                             <a class="font-semibold text-primary-500 dark:text-primary-400 dark:hover:text-primary-300 hover:text-primary-700" href="{{ link }}"{{ config('keymodal', false) ? ' data-view-key' : '' }}>
                                 {{ item.name }}
                                 {% if item.items %}
-                                    <span class="text-xs text-gray-500 dark:text-gray-400">({{ item.items }} items)</span>
+                                    <span class="text-xs text-gray-600 dark:text-gray-300">({{ item.items }} items)</span>
                                 {% endif %}
                             </a>
                         </span>

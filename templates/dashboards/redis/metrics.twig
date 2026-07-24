@@ -16,28 +16,28 @@
     },
 }) }}
 
-<div class="mb-4 text-sm text-gray-500 dark:text-gray-400">
+<div class="card p-2 mb-4 text-sm text-gray-600 dark:text-gray-300">
     To collect metrics even when the dashboard is not open, add this link to a cronjob:
     <code class="inline-block py-1 px-2 text-xs break-all bg-gray-200 rounded dark:bg-gray-700 dark:text-gray-300">{{ cronjob_url('redis', get('server', 0)) }}</code>
 </div>
 
 <div class="gap-4 lg:grid lg:grid-cols-4">
-    <div class="col-span-4 p-4 mb-2 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+    <div class="col-span-4 p-4 mb-2 card">
         <div id="command_calls_chart" class="h-90"></div>
     </div>
-    <div class="col-span-2 p-4 mb-2 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+    <div class="col-span-2 p-4 mb-2 card">
         <div id="memory_chart" class="h-90"></div>
     </div>
-    <div class="col-span-2 p-4 mb-2 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+    <div class="col-span-2 p-4 mb-2 card">
         <div id="fragmentation_chart" class="h-90"></div>
     </div>
-    <div class="col-span-2 p-4 mb-2 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+    <div class="col-span-2 p-4 mb-2 card">
         <div id="commands_chart" class="h-90"></div>
     </div>
-    <div class="col-span-2 p-4 mb-2 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+    <div class="col-span-2 p-4 mb-2 card">
         <div id="hit_rate_chart" class="h-90"></div>
     </div>
-    <div class="col-span-2 p-4 mb-2 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+    <div class="col-span-2 p-4 mb-2 card">
         <div id="connections_chart" class="h-90"></div>
     </div>
 </div>

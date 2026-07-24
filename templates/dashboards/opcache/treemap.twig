@@ -1,4 +1,4 @@
-<div class="mb-4 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+<div class="mb-4 card">
     <div class="flex flex-wrap gap-3 justify-between items-center py-4 px-6">
         <h2 class="text-sm font-semibold text-gray-900 dark:text-white">Cached scripts memory map</h2>
         {{ include('components/button.twig', {
@@ -9,9 +9,9 @@
 
     <div class="p-4 border-t border-gray-200 dark:border-gray-700">
         {% if treemap is empty %}
-            <div class="p-4 text-center text-gray-500 dark:text-gray-400">No cached scripts.</div>
+            <div class="p-4 text-center text-gray-600 dark:text-gray-300">No cached scripts.</div>
         {% else %}
-            <p class="mb-3 text-xs text-gray-500 dark:text-gray-400">
+            <p class="mb-3 text-xs text-gray-600 dark:text-gray-300">
                 Boxes are sized by memory consumption. Click a folder to zoom in; use the breadcrumb below to go back.
             </p>
             <div id="opcache_treemap" style="height: 600px;"></div>

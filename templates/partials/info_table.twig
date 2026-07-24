@@ -25,7 +25,7 @@
                 </div>
             </div>
             {% if descriptions[name] is defined %}
-                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ descriptions[name] }}</p>
+                <p class="mt-1 text-xs text-gray-600 dark:text-gray-300">{{ descriptions[name] }}</p>
             {% endif %}
         </td>
     </tr>
@@ -33,7 +33,7 @@
 
 <div class="flex gap-4 items-start">
     <div class="flex-1 min-w-0">
-        <div class="mb-4 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+        <div class="mb-4 card">
             <table class="w-full text-sm text-left table-auto">
                 <tbody class="divide-y divide-gray-900/5 dark:divide-white/5">
                 {% for name, value in array %}
@@ -57,7 +57,7 @@
 
     {% if sections is not empty %}
         <aside class="hidden sticky top-4 shrink-0 self-start w-56 lg:block">
-            <nav data-scrollspy class="bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+            <nav data-scrollspy class="card">
                 <div class="py-2 px-4 bg-gray-50 rounded-t-md border-b border-gray-200 dark:border-gray-700 dark:bg-white/5">
                     <h2 class="text-sm font-semibold text-gray-900 dark:text-white">Sections</h2>
                 </div>

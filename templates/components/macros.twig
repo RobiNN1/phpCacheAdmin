@@ -24,12 +24,13 @@
     </div>
 {% endmacro %}
 
-{% macro checkbox(class, disabled, id) %}
+{% macro checkbox(class, disabled, id, label = null) %}
+    {% set aria_label = label ?: ('check-all' in class ? 'Select all keys' : 'Select key') %}
     <input type="checkbox"{{ id ? ' id="%s" name="%s"'|format(id, id)|raw : '' }}
            class="checkbox text-primary-500 -mt-1.5 h-4 w-4 select-none appearance-none rounded border border-gray-300 bg-white align-middle
        checked:border-primary-200 checked:bg-primary-500 focus:outline-hidden focus:ring-3 focus:ring-primary-200 focus:border-primary-300
        dark:bg-gray-900 dark:border-gray-600 dark:checked:bg-primary-500 dark:checked:border-primary-800 dark:focus:ring-primary-400 dark:focus:border-primary-500{{ class|space }}"
-           aria-label=""{{ (disabled is defined and disabled) ? ' disabled' : '' }}>
+           aria-label="{{ aria_label|e }}"{{ (disabled is defined and disabled) ? ' disabled' : '' }}>
 {% endmacro %}
 
 {% macro badge(text, color, class = '') %}

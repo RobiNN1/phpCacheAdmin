@@ -1,8 +1,8 @@
-<div class="mb-4 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+<div class="mb-4 card">
     <form method="post" class="p-4">
         <input type="hidden" name="csrf_token" value="{{ csrf }}">
 
-        <p class="mb-4 text-xs text-gray-500 dark:text-gray-400">
+        <p class="mb-4 text-xs text-gray-600 dark:text-gray-300">
             Compiles PHP files into OPcache without executing them, so the first request after a deployment or a cache reset does not pay compile cost.
             Files that are already cached are skipped.
         </p>
@@ -37,7 +37,7 @@
 </div>
 
 {% if result is not empty %}
-    <div class="mb-4 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+    <div class="mb-4 card">
         <div class="py-2 px-4 bg-gray-50 rounded-t-md border-b border-gray-200 dark:border-gray-700 dark:bg-white/5">
             <h2 class="text-sm font-semibold text-gray-900 dark:text-white">Result</h2>
         </div>
@@ -53,7 +53,7 @@
             {% for tile in tiles %}
                 <div>
                     <div class="text-xl font-semibold {{ tile.color }}">{{ tile.value|number_format }}</div>
-                    <div class="text-xs text-gray-500 dark:text-gray-400">{{ tile.label }}</div>
+                    <div class="text-xs text-gray-600 dark:text-gray-300">{{ tile.label }}</div>
                 </div>
             {% endfor %}
         </div>
@@ -71,7 +71,7 @@
                     {% endfor %}
                 </ul>
                 {% if result.failed > result.errors|length %}
-                    <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">and {{ result.failed - result.errors|length }} more.</p>
+                    <p class="mt-2 text-xs text-gray-600 dark:text-gray-300">and {{ result.failed - result.errors|length }} more.</p>
                 {% endif %}
             </div>
         {% endif %}

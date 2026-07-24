@@ -2,7 +2,7 @@
 
 <div class="gap-4 lg:grid lg:grid-cols-2">
     {% if not readonly %}
-        <div class="col-span-2 p-4 mb-2 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+        <div class="col-span-2 p-4 mb-2 card">
             <h2 class="mb-4 text-sm font-bold uppercase text-primary-900 dark:text-primary-400">Publish a message</h2>
             <div class="gap-2 items-end md:flex">
                 <div class="md:w-1/4">
@@ -29,7 +29,7 @@
         </div>
     {% endif %}
 
-    <div class="p-4 mb-2 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+    <div class="p-4 mb-2 card">
         <div class="flex justify-between items-center mb-4">
             <h2 class="text-sm font-bold uppercase text-primary-900 dark:text-primary-400">Active channels</h2>
             <div class="text-xs">Pattern subscriptions: <span id="pubsub_numpat" class="font-semibold">0</span></div>
@@ -68,7 +68,7 @@
         </div>
     </div>
 
-    <div class="p-4 mb-2 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+    <div class="p-4 mb-2 card">
         <h2 class="mb-4 text-sm font-bold uppercase text-primary-900 dark:text-primary-400">Message monitor</h2>
         <div class="flex flex-wrap gap-2 items-end mb-4">
             <div class="w-full sm:w-48">
@@ -94,12 +94,12 @@
         </div>
 
         <div id="pubsub_messages" class="overflow-y-auto p-2 h-80 font-mono text-xs rounded border border-gray-200 dark:border-gray-700">
-            <div id="pubsub_messages_empty" class="text-gray-500 dark:text-gray-400">Not subscribed.</div>
+            <div id="pubsub_messages_empty" class="text-gray-600 dark:text-gray-300">Not subscribed.</div>
         </div>
 
         <template id="pubsub_message_row">
             <div class="py-0.5 border-b border-gray-100 dark:border-gray-700/50 break-all">
-                <span class="text-gray-500 dark:text-gray-400"></span>
+                <span class="text-gray-600 dark:text-gray-300"></span>
                 <span class="font-semibold text-primary-500 dark:text-primary-400"></span>
                 <span></span>
             </div>

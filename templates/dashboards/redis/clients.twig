@@ -1,9 +1,9 @@
 {% import 'components/macros.twig' as macros %}
 
-<div class="bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+<div class="card">
     <div class="flex flex-wrap gap-2 justify-between items-center py-4 px-6">
         <h2 class="text-sm font-bold uppercase text-primary-900 dark:text-primary-400">Connected clients ({{ clients|length|number }})</h2>
-        <p class="text-xs text-gray-500 dark:text-gray-400">
+        <p class="text-xs text-gray-600 dark:text-gray-300">
             Sorted by idle time. Disconnecting a client makes its next command fail; it is up to the client to reconnect.
         </p>
     </div>

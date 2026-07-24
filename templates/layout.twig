@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" class="scroll-smooth">
+<html lang="en" class="scroll-smooth dark:scheme-dark">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -40,7 +40,7 @@
 <body class="flex flex-col min-h-screen text-gray-900 bg-gray-100 dark:text-gray-200 dark:bg-gray-900" data-dashboard="{{ current }}">
 <div id="alerts">{{ alerts|raw }}</div>
 <header class="flex flex-wrap gap-4 items-center p-4 bg-white border-b border-gray-200 lg:grid lg:grid-cols-3 dark:bg-gray-800 dark:border-gray-700">
-    <a class="block w-48 shrink-0 lg:w-72" href="{{ config('url', '/') }}">{{ svg('logo', null) }}</a>
+    <a class="block w-48 shrink-0 lg:w-72" href="{{ config('url', '/') }}" aria-label="Go to homepage">{{ svg('logo', null) }}</a>
 
     <div class="flex flex-wrap gap-3 items-center lg:gap-4 lg:justify-center">
         {% for link, item in nav %}
@@ -100,12 +100,12 @@
         <footer class="my-4 text-center">
             <div>
                 &copy; {{ 'now'|date('Y') }}
-                <a class="font-semibold text-primary-500 dark:text-primary-400 dark:hover:text-primary-500 hover:text-primary-700" href="https://github.com/RobiNN1">RobiNN1</a>.
+                <a class="font-semibold text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-500" href="https://github.com/RobiNN1">RobiNN1</a>.
                 All Rights Reserved.
             </div>
             <div>
                 v{{ version }}
-                <a class="font-semibold text-primary-500 dark:text-primary-400 dark:hover:text-primary-500 hover:text-primary-700" href="{{ repo }}/issues" target="_blank" rel="noopener">Report Issue</a>
+                <a class="font-semibold text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-500" href="{{ repo }}/issues" target="_blank" rel="noopener">Report Issue</a>
             </div>
         </footer>
     </div>

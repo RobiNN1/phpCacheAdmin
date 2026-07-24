@@ -31,8 +31,8 @@
     --link-active-dark: #0f172a;
 }
 
-.dark {
-    color-scheme: dark;
+.card {
+    @apply bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700;
 }
 
 .dashboard-link {
@@ -128,7 +128,7 @@
 }
 
 #phpinfo .v i {
-    color: #999;
+    color: #454545;
 }
 
 #phpinfo img {

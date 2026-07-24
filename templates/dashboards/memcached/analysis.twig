@@ -1,26 +1,26 @@
 {% import 'components/macros.twig' as macros %}
 
 {% if tab_message %}
-    <div class="p-4 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700 text-center text-gray-500 dark:text-gray-400">{{ tab_message }}</div>
+    <div class="p-4 card text-center text-gray-600 dark:text-gray-300">{{ tab_message }}</div>
 {% elseif analysis is empty %}
-    <div class="p-4 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700 text-center text-gray-500 dark:text-gray-400">There are no keys to analyze.</div>
+    <div class="p-4 card text-center text-gray-600 dark:text-gray-300">There are no keys to analyze.</div>
 {% else %}
     {% set summary = analysis.summary %}
 
     <div class="grid grid-cols-2 gap-4 mb-4 xl:grid-cols-4">
         {% for tile in analysis.tiles %}
-            <div class="p-4 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+            <div class="p-4 card">
                 <h3 class="text-xs font-bold uppercase text-primary-900 dark:text-primary-400">{{ tile.label }}</h3>
                 <p class="mt-1 text-xl font-semibold text-gray-900 dark:text-white">{{ tile.value }}</p>
-                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ tile.note }}</p>
+                <p class="mt-1 text-xs text-gray-600 dark:text-gray-300">{{ tile.note }}</p>
             </div>
         {% endfor %}
     </div>
 
     <div class="gap-4 xl:grid xl:grid-cols-2">
-        <div class="p-4 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700 flex flex-col h-128 mb-4 xl:mb-0">
+        <div class="p-4 card flex flex-col h-128 mb-4 xl:mb-0">
             <h2 class="mb-1 text-sm font-bold uppercase text-primary-900 dark:text-primary-400">Memory by namespace</h2>
-            <p class="mb-3 text-xs text-gray-500 dark:text-gray-400">Top {{ analysis.namespaces|length }} of {{ summary.namespaces|number }} namespaces, by memory used.</p>
+            <p class="mb-3 text-xs text-gray-600 dark:text-gray-300">Top {{ analysis.namespaces|length }} of {{ summary.namespaces|number }} namespaces, by memory used.</p>
             <div class="overflow-auto grow">
                 <table class="w-full text-left table-auto dark:text-gray-300">
                     <thead class="sticky top-0 z-10 bg-white dark:bg-gray-800">
@@ -40,7 +40,7 @@
                             <td class="py-2 px-4 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700">
                                 <div class="flex gap-2 items-center">
                                     <div class="grow">{{ macros.progress(row.percent, 'lower', null, 'info') }}</div>
-                                    <span class="shrink-0 text-xs text-gray-500 dark:text-gray-400">{{ row.percent }}%</span>
+                                    <span class="shrink-0 text-xs text-gray-600 dark:text-gray-300">{{ row.percent }}%</span>
                                 </div>
                             </td>
                         </tr>
@@ -50,9 +50,9 @@
             </div>
         </div>
 
-        <div class="p-4 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700 flex flex-col h-128 mb-4 xl:mb-0">
+        <div class="p-4 card flex flex-col h-128 mb-4 xl:mb-0">
             <h2 class="mb-1 text-sm font-bold uppercase text-primary-900 dark:text-primary-400">Biggest keys</h2>
-            <p class="mb-3 text-xs text-gray-500 dark:text-gray-400">The keys that use the most memory, including item overhead.</p>
+            <p class="mb-3 text-xs text-gray-600 dark:text-gray-300">The keys that use the most memory, including item overhead.</p>
             <div class="overflow-auto grow">
                 <table class="w-full text-left table-auto dark:text-gray-300">
                     <thead class="sticky top-0 z-10 bg-white dark:bg-gray-800">
@@ -75,9 +75,9 @@
             </div>
         </div>
 
-        <div class="p-4 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700 mb-4 xl:mb-0">
+        <div class="p-4 card mb-4 xl:mb-0">
             <h2 class="mb-1 text-sm font-bold uppercase text-primary-900 dark:text-primary-400">Expiration</h2>
-            <p class="mb-3 text-xs text-gray-500 dark:text-gray-400">When the keys are due to expire.</p>
+            <p class="mb-3 text-xs text-gray-600 dark:text-gray-300">When the keys are due to expire.</p>
             <div class="overflow-x-auto">
                 <table class="w-full text-left table-auto dark:text-gray-300">
                     <thead>
@@ -95,7 +95,7 @@
                             <td class="py-2 px-4 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700">
                                 <div class="flex gap-2 items-center">
                                     <div class="grow">{{ macros.progress(row.percent, 'lower', null, 'info') }}</div>
-                                    <span class="shrink-0 text-xs text-gray-500 dark:text-gray-400">{{ row.percent }}%</span>
+                                    <span class="shrink-0 text-xs text-gray-600 dark:text-gray-300">{{ row.percent }}%</span>
                                 </div>
                             </td>
                         </tr>
@@ -105,9 +105,9 @@
             </div>
         </div>
 
-        <div class="p-4 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700 mb-4 xl:mb-0">
+        <div class="p-4 card mb-4 xl:mb-0">
             <h2 class="mb-1 text-sm font-bold uppercase text-primary-900 dark:text-primary-400">Last used</h2>
-            <p class="mb-3 text-xs text-gray-500 dark:text-gray-400">How long ago the keys were last read. Memcached evicts the least recently used keys first.</p>
+            <p class="mb-3 text-xs text-gray-600 dark:text-gray-300">How long ago the keys were last read. Memcached evicts the least recently used keys first.</p>
             <div class="overflow-x-auto">
                 <table class="w-full text-left table-auto dark:text-gray-300">
                     <thead>
@@ -125,7 +125,7 @@
                             <td class="py-2 px-4 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700">
                                 <div class="flex gap-2 items-center">
                                     <div class="grow">{{ macros.progress(row.percent, 'lower', null, 'info') }}</div>
-                                    <span class="shrink-0 text-xs text-gray-500 dark:text-gray-400">{{ row.percent }}%</span>
+                                    <span class="shrink-0 text-xs text-gray-600 dark:text-gray-300">{{ row.percent }}%</span>
                                 </div>
                             </td>
                         </tr>

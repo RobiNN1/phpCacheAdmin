@@ -11,6 +11,7 @@
                 icon: 'search',
                 id: 'submit_subsearch',
                 class: 'rounded-l-none',
+                attributes: {'aria-label': 'Search'},
             }) }}
         </div>
     {% else %}
@@ -32,7 +33,7 @@
 </div>
 
 {% for item in value %}
-    <div class="mb-4 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+    <div class="mb-4 card">
         <div class="flex overflow-y-auto justify-between py-1.5 px-4 border-b border-gray-200 dark:border-gray-700">
             <span class="dark:text-gray-300">
                 {% if type not in types.extra.hide_title %}
@@ -51,7 +52,7 @@
 
             {% if not readonly %}
                 <div>
-                    <a href="{{ edit_url }}&{{ types[type].param }}={{ item.key ~ item_encode_url }}" class="inline-flex gap-1 items-center mr-3 font-semibold text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
+                    <a href="{{ edit_url }}&{{ types[type].param }}={{ item.key ~ item_encode_url }}" class="inline-flex gap-1 items-center mr-3 font-semibold text-gray-600 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-300">
                         {{ svg('edit', 16) }} Edit
                     </a>
 
@@ -74,7 +75,7 @@
 {% endfor %}
 
 {% if value is empty %}
-    <div class="mb-4 p-4 text-center bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400">
+    <div class="mb-4 p-4 text-center card dark:text-gray-400">
         {{ subsearch_value is not empty ? 'No items match your search.' : 'No items.' }}
     </div>
 {% endif %}

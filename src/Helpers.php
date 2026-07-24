@@ -257,6 +257,7 @@ class Helpers {
             'options'       => $options,
             'selected'      => $selected,
             'wrapper_class' => false,
+            'aria_label'    => 'Server',
         ]);
     }
 

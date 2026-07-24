@@ -1,11 +1,11 @@
 {% set color_map = {
-    success: 'bg-green-500',
-    error: 'bg-red-500',
+    success: 'bg-green-500 dark:bg-green-700',
+    error: 'bg-red-500 dark:bg-red-700',
 } %}
 
 {% set placement = inline|default(false) ? 'w-full mb-4' : 'shadow-lg fixed top-5 right-5 z-50 max-w-lg' %}
 
-<div class="py-3 px-4 flex items-center rounded-md {{ color_map[alert_color] ?? 'bg-indigo-500' }} {{ placement }}">
+<div class="py-3 px-4 flex items-center rounded-md {{ color_map[alert_color] ?? 'bg-indigo-500 dark:bg-indigo-700' }} {{ placement }}">
     <div class="mr-3 text-white {{ inline|default(false) ? 'grow' : 'break-all' }}">{{ message|raw }}</div>
     <button type="button" class="close text-white hover:opacity-75" onclick="this.parentElement.remove();">
         {{ svg('close', 13) }}

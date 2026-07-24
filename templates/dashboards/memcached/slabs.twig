@@ -1,6 +1,6 @@
 {% set wasted_percentage = meta.total_malloced > 0 ? (total_wasted / meta.total_malloced * 100)|round(2) : 0 %}
 
-<div class="mb-4 bg-white rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+<div class="mb-4 card">
     <div class="grid grid-cols-2 gap-4 p-4 sm:grid-cols-4">
         {% set tiles = [
             {label: 'Allocated to slab pages', value: meta.total_malloced|bytes, color: 'text-gray-900 dark:text-white'},
@@ -12,7 +12,7 @@
         {% for tile in tiles %}
             <div>
                 <div class="text-xl font-semibold {{ tile.color }}">{{ tile.value }}</div>
-                <div class="text-xs text-gray-500 dark:text-gray-400">{{ tile.label }}</div>
+                <div class="text-xs text-gray-600 dark:text-gray-300">{{ tile.label }}</div>
             </div>
         {% endfor %}
     </div>

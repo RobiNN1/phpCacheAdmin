@@ -36,7 +36,6 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
         Redis::REDIS_ZSET      => 'zset',
         Redis::REDIS_HASH      => 'hash',
         Redis::REDIS_STREAM    => 'stream',
-        Redis::REDIS_VECTORSET => 'vectorset',
         'ReJSON-RL'            => 'json',
     ];
 
@@ -59,6 +58,14 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
         }
 
         $this->nodes = $this->_masters();
+
+        if ($this->supportsVectorSets()) {
+            $this->data_types[Redis::REDIS_VECTORSET] = 'vectorset';
+        }
+    }
+
+    private function supportsVectorSets(): bool {
+        return defined('Redis::REDIS_VECTORSET');
     }
 
     public function getType(string|int $type): string {
@@ -203,7 +210,7 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
      * @throws RedisClusterException
      */
     public function vectorInfo(string $key): array {
-        $info = $this->vinfo($key);
+        $info = $this->supportsVectorSets() ? $this->vinfo($key) : false;
 
         return is_array($info) ? $info : [];
     }
@@ -214,7 +221,7 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
      * @throws RedisClusterException
      */
     public function vectorMembers(string $key, int $count): array {
-        $members = $this->vrandmember($key, $count);
+        $members = $this->supportsVectorSets() ? $this->vrandmember($key, $count) : false;
 
         return is_array($members) ? array_map(strval(...), $members) : [];
     }
@@ -225,7 +232,7 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
      * @throws RedisClusterException
      */
     public function vectorEmbedding(string $key, string $element): array {
-        return $this->parseVectorEmbedding($this->vemb($key, $element));
+        return $this->supportsVectorSets() ? $this->parseVectorEmbedding($this->vemb($key, $element)) : [];
     }
 
     /**
@@ -234,7 +241,7 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
      * @throws JsonException
      */
     public function vectorAttributes(string $key, string $element): string {
-        $attributes = $this->vgetattr($key, $element);
+        $attributes = $this->supportsVectorSets() ? $this->vgetattr($key, $element) : false;
 
         if (is_array($attributes)) {
             $attributes = json_encode($attributes, JSON_THROW_ON_ERROR);
@@ -249,14 +256,14 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
      * @throws RedisClusterException
      */
     public function vectorAdd(string $key, string $element, array $vector, string $attributes = ''): bool {
-        return (bool) $this->vadd($key, $vector, $element, $attributes !== '' ? ['SETATTR' => $attributes] : null);
+        return $this->supportsVectorSets() && $this->vadd($key, $vector, $element, $attributes !== '' ? ['SETATTR' => $attributes] : null);
     }
 
     /**
      * @throws RedisClusterException
      */
     public function vectorRem(string $key, string $element): bool {
-        return (bool) $this->vrem($key, $element);
+        return $this->supportsVectorSets() && $this->vrem($key, $element);
     }
 
     /**

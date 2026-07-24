@@ -80,17 +80,15 @@ configuration, loaded extensions, `phpinfo()`, and CPU, RAM and disk usage.
 
 ## Installation
 
-Unzip the archive and launch index.php in a web browser. No installation is required.
+Download the [latest release](https://github.com/RobiNN1/phpCacheAdmin/releases), unzip it into your web
+directory and open it in a browser. No database and no Composer required.
 
 If you use the defaults (e.g., Redis, Memcached servers), everything should work out of the box.
 To customize the configuration, do not edit `config.dist.php` directly, but copy it into `config.php`.
+Every option can also be set with [environment variables](#environment-variables) or an [.env file](#env-files).
 
 It can also be embedded in your own website when installed via Composer,
 see [example_embedded_version.php](example_embedded_version.php).
-
-## Updating
-
-Replace all files and delete the `/tmp/twig` folder (it contains compiled Twig templates).
 
 ## Common issues
 

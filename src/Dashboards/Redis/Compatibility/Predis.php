@@ -151,7 +151,7 @@ class Predis extends Client implements RedisCompatibilityInterface {
      * @return array<string, mixed>
      */
     public function streamReadGroup(string $key, string $group, string $consumer, int $count): array {
-        return $this->xreadgroup($group, $consumer, $count, null, false, $key, '>') ?: [];
+        return $this->xreadgroup_claim($group, $consumer, [$key => '>'], $count) ?: [];
     }
 
     public function streamCreateGroup(string $key, string $group, string $id = '0'): bool {
@@ -255,6 +255,27 @@ class Predis extends Client implements RedisCompatibilityInterface {
         $size = $this->executeRaw(['MEMORY', 'USAGE', $key]);
 
         return is_int($size) ? $size : 0;
+    }
+
+    public function keyEncoding(string $key): string {
+        $encoding = $this->object('encoding', $key);
+
+        return is_string($encoding) ? $encoding : '';
+    }
+
+    /**
+     * @param array<int, string> $fields
+     *
+     * @return array<string, int>
+     */
+    public function hashFieldTtl(string $key, array $fields): array {
+        return $this->parseHashFieldTtl($this->httl($key, $fields), $fields);
+    }
+
+    public function hashFieldExpire(string $key, string $field, int $ttl): bool {
+        $reply = $ttl > 0 ? $this->hexpire($key, $ttl, [$field]) : $this->hpersist($key, [$field]);
+
+        return $this->hashFieldExpireApplied($reply);
     }
 
     public function flushDatabase(): bool {

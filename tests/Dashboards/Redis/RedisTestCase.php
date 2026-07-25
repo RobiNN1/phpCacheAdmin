@@ -586,6 +586,73 @@ abstract class RedisTestCase extends TestCase {
     /**
      * @throws Exception
      */
+    public function testHashFieldTtl(): void {
+        $this->skipBelowRedis('7.4', 'Hash field expiration');
+
+        $key = 'pu-test-hash-field-ttl';
+
+        $this->saveData(['rtype' => 'hash', 'key' => $key, 'hash_key' => 'expiring', 'value' => 'v', 'hash_expire' => 100]);
+        $this->saveData(['rtype' => 'hash', 'key' => $key, 'hash_key' => 'permanent', 'value' => 'v']);
+
+        $ttls = $this->redis->hashFieldTtl($key, ['expiring', 'permanent']);
+
+        $this->assertArrayNotHasKey('permanent', $ttls); // fields that never expire are left out
+        $this->assertGreaterThan(0, $ttls['expiring']);
+        $this->assertLessThanOrEqual(100, $ttls['expiring']);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testHashFieldTtlRemoved(): void {
+        $this->skipBelowRedis('7.4', 'Hash field expiration');
+
+        $key = 'pu-test-hash-field-persist';
+
+        $this->saveData(['rtype' => 'hash', 'key' => $key, 'hash_key' => 'field', 'value' => 'v', 'hash_expire' => 100]);
+        $this->saveData(['rtype' => 'hash', 'key' => $key, 'hash_key' => 'field', 'value' => 'v', 'hash_expire' => -1]);
+
+        $this->assertSame([], $this->redis->hashFieldTtl($key, ['field']));
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testViewKeyShowsHashFieldTtl(): void {
+        $this->skipBelowRedis('7.4', 'Hash field expiration');
+
+        $key = 'pu-test-hash-field-ttl-view';
+
+        $this->saveData(['rtype' => 'hash', 'key' => $key, 'hash_key' => 'field', 'value' => 'v', 'hash_expire' => 100]);
+
+        $_GET['db'] = 10;
+        $_GET['view'] = 'key';
+        $_GET['key'] = $key;
+
+        $this->assertStringContainsString('1 minute 40 seconds', $this->dashboard->ajax());
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testViewKeyShowsEncodingAndItemSize(): void {
+        $key = 'pu-test-view-info';
+
+        $this->saveData(['rtype' => 'hash', 'key' => $key, 'hash_key' => 'field', 'value' => 'twelve chars']);
+
+        $_GET['db'] = 10;
+        $_GET['view'] = 'key';
+        $_GET['key'] = $key;
+
+        $html = $this->dashboard->ajax();
+
+        $this->assertStringContainsString('Encoding', $html);
+        $this->assertStringContainsString('12,00B', $html); // the size of the value itself
+    }
+
+    /**
+     * @throws Exception
+     */
     public function testHashType(): void {
         $key = 'pu-test-type-hash';
 

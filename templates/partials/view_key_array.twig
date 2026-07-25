@@ -48,6 +48,14 @@
                 {% if item.formatted == true %}
                     {{ macros.badge('Formatted', 'blue', 'uppercase') }}
                 {% endif %}
+
+                {% if item.size %}
+                    <span>Size {{ macros.badge(item.size|bytes, 'sky') }}</span>
+                {% endif %}
+
+                {% if item.ttl %}
+                    <span>TTL {{ macros.badge(item.ttl|seconds, 'orange') }}</span>
+                {% endif %}
             </span>
 
             {% if not readonly %}

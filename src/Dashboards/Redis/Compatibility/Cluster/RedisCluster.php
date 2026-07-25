@@ -322,6 +322,35 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
     /**
      * @throws RedisClusterException
      */
+    public function keyEncoding(string $key): string {
+        $encoding = $this->object('encoding', $key);
+
+        return is_string($encoding) ? $encoding : '';
+    }
+
+    /**
+     * @param array<int, string> $fields
+     *
+     * @return array<string, int>
+     *
+     * @throws RedisClusterException
+     */
+    public function hashFieldTtl(string $key, array $fields): array {
+        return $this->parseHashFieldTtl($this->httl($key, $fields), $fields);
+    }
+
+    /**
+     * @throws RedisClusterException
+     */
+    public function hashFieldExpire(string $key, string $field, int $ttl): bool {
+        $reply = $ttl > 0 ? $this->hexpire($key, $ttl, [$field]) : $this->hpersist($key, [$field]);
+
+        return $this->hashFieldExpireApplied($reply);
+    }
+
+    /**
+     * @throws RedisClusterException
+     */
     public function flushDatabase(): bool {
         foreach ($this->nodes as $node) {
             $this->flushDB($node);

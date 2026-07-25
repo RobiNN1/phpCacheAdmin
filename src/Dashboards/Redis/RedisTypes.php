@@ -196,6 +196,7 @@ trait RedisTypes {
                 }
 
                 $this->redis->hSet($key, $options['hash_key'], $value);
+                $this->storeHashFieldTtl($key, (string) $options['hash_key'], $options['hash_ttl'] ?? null);
                 break;
             case 'stream':
                 if ($options['stream_id'] === Http::get('stream_id', '')) {
@@ -245,6 +246,21 @@ trait RedisTypes {
             } elseif ($ttl === -1) {
                 $this->redis->persist($key);
             }
+        }
+    }
+
+    /**
+     * @throws Exception
+     */
+    private function storeHashFieldTtl(string $key, string $field, mixed $ttl): void {
+        if (!is_numeric($ttl) || !$this->isCommandSupported('HTTL')) {
+            return;
+        }
+
+        $ttl = (int) $ttl;
+
+        if ($ttl > 0 || $ttl === -1) {
+            $this->redis->hashFieldExpire($key, $field, $ttl);
         }
     }
 

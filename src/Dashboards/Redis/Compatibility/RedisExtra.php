@@ -22,6 +22,38 @@ trait RedisExtra {
     private ?array $modules_cache = null;
 
     /**
+     * HEXPIRE and HPERSIST reply with one value per field, anything above zero means it was applied.
+     */
+    protected function hashFieldExpireApplied(mixed $reply): bool {
+        return is_array($reply) && is_numeric($reply[0] ?? null) && (int) $reply[0] > 0;
+    }
+
+    /**
+     * HTTL replies with one value per field, -1 when the field never expires and -2 when it is gone.
+     *
+     * @param array<int, string> $fields
+     *
+     * @return array<string, int>
+     */
+    protected function parseHashFieldTtl(mixed $reply, array $fields): array {
+        if (!is_array($reply)) {
+            return [];
+        }
+
+        $ttls = [];
+
+        foreach (array_values($fields) as $index => $field) {
+            $ttl = $reply[$index] ?? null;
+
+            if (is_numeric($ttl) && (int) $ttl > 0) {
+                $ttls[$field] = (int) $ttl;
+            }
+        }
+
+        return $ttls;
+    }
+
+    /**
      * @return array<int, array<string, mixed>>
      */
     public function parseClientList(string $raw, ?string $self_id = null, ?string $node = null): array {

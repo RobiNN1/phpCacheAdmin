@@ -137,6 +137,25 @@ interface RedisCompatibilityInterface {
     public function size(string $key): int;
 
     /**
+     * Internal representation of the value, e.g. listpack or hashtable.
+     */
+    public function keyEncoding(string $key): string;
+
+    /**
+     * Time to live of hash fields in seconds. Fields that never expire are not in the result.
+     *
+     * @param array<int, string> $fields
+     *
+     * @return array<string, int>
+     */
+    public function hashFieldTtl(string $key, array $fields): array;
+
+    /**
+     * Set the time to live of a single hash field, -1 removes it.
+     */
+    public function hashFieldExpire(string $key, string $field, int $ttl): bool;
+
+    /**
      * Alias to a flushDB().
      */
     public function flushDatabase(): bool;

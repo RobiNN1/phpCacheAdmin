@@ -55,7 +55,9 @@ trait RedisKeyView {
             'key'             => $key,
             'type'            => $type,
             'ttl'             => Format::seconds($ttl),
+            'expires_at'      => $ttl > 0 ? Format::time(time() + $ttl) : '',
             'size'            => Format::bytes($this->redis->size($key)),
+            'encoding'        => $this->redis->keyEncoding($key),
             'value_mode'      => $mode,
             'add_subkey_url'  => Http::queryString([], ['form' => 'new', 'key' => $key]),
             'edit_url'        => Http::queryString([], ['form' => 'edit', 'key' => $key]),
@@ -151,14 +153,30 @@ trait RedisKeyView {
         }
 
         $paginator = new Paginator($pairs, [['view', 'key', 'pp', 'subsearch'], ['p' => '']]);
+        $paginated = $paginator->getPaginated();
 
         return [
-            'value'       => $this->formatViewItems($key, $paginator->getPaginated(), $type, $mode),
+            'value'       => $this->formatViewItems($key, $paginated, $type, $mode, $this->hashFieldTtls($key, $type, $paginated)),
             'encode_fn'   => null,
             'formatted'   => null,
             'paginator'   => $paginator->render(),
             'total_items' => $total_items,
         ];
+    }
+
+    /**
+     * @param array<int, array{0: int|string, 1: mixed}> $items
+     *
+     * @return array<string, int>
+     *
+     * @throws Exception
+     */
+    private function hashFieldTtls(string $key, string $type, array $items): array {
+        if ($type !== 'hash' || $items === [] || !$this->isCommandSupported('HTTL')) {
+            return [];
+        }
+
+        return $this->redis->hashFieldTtl($key, array_map(static fn (array $item): string => (string) $item[0], $items));
     }
 
     /**
@@ -180,12 +198,13 @@ trait RedisKeyView {
      * Format view array items.
      *
      * @param array<int, array{0: int|string, 1: mixed}> $value_items
+     * @param array<string, int>                         $field_ttls
      *
      * @return array<int, mixed>
      *
      * @throws Exception
      */
-    private function formatViewItems(string $key, array $value_items, string $type, string $mode = Value::MODE_FORMATTED): array {
+    private function formatViewItems(string $key, array $value_items, string $type, string $mode = Value::MODE_FORMATTED, array $field_ttls = []): array {
         $items = [];
 
         foreach ($value_items as [$item_key, $item_value]) {
@@ -208,6 +227,8 @@ trait RedisKeyView {
                 'value'     => $formatted_value,
                 'encode_fn' => $encode_fn,
                 'formatted' => $is_formatted,
+                'size'      => strlen((string) $item_value),
+                'ttl'       => $field_ttls[$item_key] ?? null,
                 'sub_key'   => $type === 'zset' ? (string) $this->redis->zScore($key, $item_value) : $item_key,
             ];
         }
@@ -258,6 +279,7 @@ trait RedisKeyView {
             'list_index' => $_POST['index'] ?? '',
             'zset_score' => (float) Http::post('score', '0'),
             'hash_key'   => Http::post('hash_key', ''),
+            'hash_ttl'   => Http::post('hash_expire', ''),
             'stream_id'  => Http::post('stream_id', '*'),
             'element'    => Http::post('element', ''),
             'ttl'        => Http::post('expire', 0),
@@ -307,20 +329,30 @@ trait RedisKeyView {
         }
 
         $value = Value::converter($value, $encoder, 'view');
+        $hash_ttl_supported = $this->isCommandSupported('HTTL');
 
         return $this->template->render('dashboards/redis/form', [
-            'key'       => $key,
-            'value'     => $value,
-            'types'     => $this->getAllTypes(),
-            'type'      => $type,
-            'index'     => $index,
-            'score'     => $score,
-            'hash_key'  => $hash_key,
-            'expire'    => $expire,
-            'encoders'  => Config::getEncoders(),
-            'encoder'   => $encoder,
-            'stream_id' => $stream_id,
-            'element'   => (string) Http::get('element', Http::post('element', '')),
+            'key'                => $key,
+            'value'              => $value,
+            'types'              => $this->getAllTypes(),
+            'type'               => $type,
+            'index'              => $index,
+            'score'              => $score,
+            'hash_key'           => $hash_key,
+            'hash_expire'        => $hash_ttl_supported && $hash_key !== '' ? $this->hashFieldTtl($key, (string) $hash_key) : -1,
+            'hash_ttl_supported' => $hash_ttl_supported,
+            'expire'             => $expire,
+            'encoders'           => Config::getEncoders(),
+            'encoder'            => $encoder,
+            'stream_id'          => $stream_id,
+            'element'            => (string) Http::get('element', Http::post('element', '')),
         ]);
+    }
+
+    /**
+     * @throws Exception
+     */
+    private function hashFieldTtl(string $key, string $field): int {
+        return $this->redis->hashFieldTtl($key, [$field])[$field] ?? -1;
     }
 }

@@ -6,11 +6,24 @@
     {% endif %}
 
     {% if ttl %}
-        <span class="inline-flex gap-1 items-center">TTL {{ macros.badge(ttl == -1 ? 'Doesn\'t expire' : ttl, 'indigo', 'uppercase') }}</span>
+        <span class="inline-flex gap-1 items-center">
+            TTL {{ macros.badge(ttl == -1 ? 'Doesn\'t expire' : ttl, 'indigo', 'uppercase') }}
+            {% if expires_at|default('') is not empty %}
+                <span class="text-xs text-gray-600 dark:text-gray-400">until {{ expires_at }}</span>
+            {% endif %}
+        </span>
     {% endif %}
 
     {% if size %}
         <span class="inline-flex gap-1 items-center">Size {{ macros.badge(size, 'sky') }}</span>
+    {% endif %}
+
+    {% if total_items %}
+        <span class="inline-flex gap-1 items-center">Items {{ macros.badge(total_items|number, 'sky') }}</span>
+    {% endif %}
+
+    {% if encoding|default('') is not empty %}
+        <span class="inline-flex gap-1 items-center">Encoding {{ macros.badge(encoding, 'purple') }}</span>
     {% endif %}
 
     {% if encode_fn %}

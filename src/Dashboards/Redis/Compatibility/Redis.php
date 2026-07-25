@@ -326,6 +326,27 @@ class Redis extends \Redis implements RedisCompatibilityInterface {
         return is_int($size) ? $size : 0;
     }
 
+    public function keyEncoding(string $key): string {
+        $encoding = $this->object('encoding', $key);
+
+        return is_string($encoding) ? $encoding : '';
+    }
+
+    /**
+     * @param array<int, string> $fields
+     *
+     * @return array<string, int>
+     */
+    public function hashFieldTtl(string $key, array $fields): array {
+        return $this->parseHashFieldTtl($this->httl($key, $fields), $fields);
+    }
+
+    public function hashFieldExpire(string $key, string $field, int $ttl): bool {
+        $reply = $ttl > 0 ? $this->hexpire($key, $ttl, [$field]) : $this->hpersist($key, [$field]);
+
+        return $this->hashFieldExpireApplied($reply);
+    }
+
     public function flushDatabase(): bool {
         return $this->flushDB();
     }

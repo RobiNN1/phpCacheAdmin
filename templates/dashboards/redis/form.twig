@@ -46,12 +46,26 @@
         value: score,
     }) }}
 
-    {{ include('components/input.twig', {
-        id: 'hash_key',
-        label: 'Hash Key',
-        extra_attr: 'style="display: ' ~ (type == 'hash' ? 'block' : 'none') ~ ';" id="redis_hash_key"',
-        value: hash_key,
-    }) }}
+    <div class="md:grid md:grid-cols-2 md:gap-2">
+        {{ include('components/input.twig', {
+            id: 'hash_key',
+            label: 'Hash Key',
+            extra_attr: 'style="display: ' ~ (type == 'hash' ? 'block' : 'none') ~ ';" id="redis_hash_key"',
+            value: hash_key,
+        }) }}
+
+        {% if hash_ttl_supported %}
+            {{ include('components/input.twig', {
+                id: 'hash_expire',
+                label: 'Field expiration (in seconds)',
+                type: 'number',
+                extra_attr: 'style="display: ' ~ (type == 'hash' ? 'block' : 'none') ~ ';" id="redis_hash_expire"',
+                help: 'Expiration of this field only, -1 removes it (default). Saving a field always resets it.',
+                value: hash_expire,
+                attr: 'min="-1" max="2147483647"',
+            }) }}
+        {% endif %}
+    </div>
 
     {{ include('components/input.twig', {
         id: 'stream_id',
@@ -101,6 +115,10 @@
         document.getElementById('score').required = e.target.value === 'zset';
         document.getElementById('redis_hash_key').style.display = e.target.value === 'hash' ? 'block' : 'none';
         document.getElementById('hash_key').required = e.target.value === 'hash';
+        const hash_expire = document.getElementById('redis_hash_expire');
+        if (hash_expire) {
+            hash_expire.style.display = e.target.value === 'hash' ? 'block' : 'none';
+        }
         document.getElementById('redis_stream_id').style.display = e.target.value === 'stream' ? 'block' : 'none';
         document.getElementById('redis_element').style.display = e.target.value === 'vectorset' ? 'block' : 'none';
         document.getElementById('element').required = e.target.value === 'vectorset';

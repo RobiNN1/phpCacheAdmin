@@ -63,15 +63,34 @@ class Sentinel {
 
     /**
      * @return array{host: string, port: int}|null
+     *
+     * @throws DashboardException
      */
     private function askPhpRedis(string $host, int $port, string $master_name): ?array {
-        $options = ['host' => $host, 'port' => $port, 'connectTimeout' => 3];
+        return $this->parseReply($this->phpRedisSentinel($host, $port)->getMasterAddrByName($master_name));
+    }
 
-        if (isset($this->server['sentinelpassword'])) {
-            $options['auth'] = $this->server['sentinelpassword'];
+    /**
+     * @throws DashboardException
+     */
+    private function phpRedisSentinel(string $host, int $port): RedisSentinel {
+        $password = $this->server['sentinelpassword'] ?? null;
+
+        if (version_compare((string) phpversion('redis'), '6.0', '>=')) {
+            $options = ['host' => $host, 'port' => $port, 'connectTimeout' => 3];
+
+            if ($password !== null) {
+                $options['auth'] = $password;
+            }
+
+            return new RedisSentinel($options);
         }
 
-        return $this->parseReply((new RedisSentinel($options))->getMasterAddrByName($master_name));
+        if ($password !== null) {
+            throw new DashboardException('A Sentinel password requires phpredis >= 6.0, use Predis instead.');
+        }
+
+        return new RedisSentinel($host, $port, 3);
     }
 
     /**

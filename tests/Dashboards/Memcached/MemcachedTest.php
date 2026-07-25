@@ -55,6 +55,15 @@ final class MemcachedTest extends TestCase {
     }
 
     /**
+     * @throws MemcachedException
+     */
+    private function skipBelowMemcached(string $version, string $feature): void {
+        if (version_compare($this->memcached->version(), $version, '<')) {
+            self::markTestSkipped($feature.' requires Memcached >= '.$version.', the server runs '.$this->memcached->version().'.');
+        }
+    }
+
+    /**
      * @param array<int, string>|string $keys
      */
     private function deleteMemcachedKeys(array|string $keys): void {
@@ -426,6 +435,14 @@ final class MemcachedTest extends TestCase {
      */
     #[DataProvider('commandDataProvider')]
     public function testRunCommand(string $expected, string $command): void {
+        // Commands that older servers do not have yet, get-and-touch and the meta protocol.
+        $required = ['gat' => '1.5.3', 'gats' => '1.5.3', 'mg' => '1.6.0', 'ms' => '1.6.0', 'md' => '1.6.0', 'ma' => '1.6.0', 'mn' => '1.6.0'];
+        $name = (string) strtok($command, ' ');
+
+        if (isset($required[$name])) {
+            $this->skipBelowMemcached($required[$name], 'The "'.$name.'" command');
+        }
+
         $command = strtr($command, ['\r\n' => "\r\n"]);
         $this->assertSame(strtr($expected, ['\r\n' => "\r\n"]), $this->memcached->runCommand($command));
     }
@@ -578,7 +595,8 @@ final class MemcachedTest extends TestCase {
         $analysis = $this->runAnalysis();
 
         $this->assertSame('pu-analysis:zz-blob:huge', $analysis['top_memory'][0]['key']);
-        $this->assertGreaterThan(50000, $analysis['top_memory'][0]['size']);
+        // A metadump counts the item overhead in, the fallback for older servers only the value.
+        $this->assertGreaterThanOrEqual(50000, $analysis['top_memory'][0]['size']);
 
         $this->memcached->flush();
     }
@@ -598,11 +616,22 @@ final class MemcachedTest extends TestCase {
     /**
      * @throws MemcachedException
      */
-    public function testAnalysisExpiryAndIdle(): void {
+    public function testAnalysisExpiry(): void {
         $analysis = $this->runAnalysis();
 
         $this->assertSame(202, $this->findRow($analysis['expiry'], 'No expiry')['count']);
         $this->assertSame(1, $this->findRow($analysis['expiry'], '< 1 hour')['count']);
+
+        $this->memcached->flush();
+    }
+
+    /**
+     * @throws MemcachedException
+     */
+    public function testAnalysisIdle(): void {
+        $this->skipBelowMemcached('1.5.19', 'The last access time');
+
+        $analysis = $this->runAnalysis();
 
         $this->assertSame(203, $this->findRow($analysis['idle'], '< 1 minute')['count']);
 

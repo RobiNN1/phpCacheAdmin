@@ -265,7 +265,7 @@ class PHPMem {
                         $seen_keys[$key_name] = true;
 
                         $exp = ((int) $item[3] === 0) ? -1 : (int) $item[3];
-                        $keys[] = 'key='.$key_name.' exp='.$exp.' la=0 cas=0 fetch=no cls=1 size='.$item[2];
+                        $keys[] = 'key='.rawurlencode($key_name).' exp='.$exp.' la=0 cas=0 fetch=no cls=1 size='.$item[2];
                     }
                 }
             }
@@ -331,9 +331,15 @@ class PHPMem {
         foreach ($this->getKeys() as $line) {
             $data = $this->parseLine($line);
 
-            if (($data['key'] ?? null) === $key) {
-                return $data;
+            if (urldecode((string) ($data['key'] ?? '')) !== $key) {
+                continue;
             }
+
+            if (isset($data['exp']) && $data['exp'] !== -1) {
+                $data['exp'] = max(0, (int) $data['exp'] - time());
+            }
+
+            return $data;
         }
 
         return [];

@@ -106,6 +106,19 @@ abstract class RedisTestCase extends TestCase {
     /**
      * @throws Exception
      */
+    private function skipBelowRedis(string $version, string $feature): void {
+        $server_version = $this->redis->getInfo('server')['redis_version'] ?? '0';
+        // Cluster mode returns one value per node when they are not all the same.
+        $server_version = is_array($server_version) ? (string) min($server_version) : (string) $server_version;
+
+        if (version_compare($server_version, $version, '<')) {
+            self::markTestSkipped($feature.' requires Redis >= '.$version.', the server runs '.$server_version.'.');
+        }
+    }
+
+    /**
+     * @throws Exception
+     */
     public function testAjaxPanels(): void {
         $_GET['db'] = 10;
         $_GET['panels'] = '';
@@ -436,6 +449,8 @@ abstract class RedisTestCase extends TestCase {
      * @throws Exception
      */
     public function testDeleteSubKeyFromStream(): void {
+        $this->skipBelowRedis('5.0', 'Streams');
+
         $this->saveData(['rtype' => 'stream', 'key' => 'pu-del-stream', 'value' => '{"f":"1"}', 'stream_id' => '*']);
         $this->saveData(['rtype' => 'stream', 'key' => 'pu-del-stream', 'value' => '{"f":"2"}', 'stream_id' => '*']);
 
@@ -586,6 +601,8 @@ abstract class RedisTestCase extends TestCase {
      * @throws Exception
      */
     public function testStreamType(): void {
+        $this->skipBelowRedis('5.0', 'Streams');
+
         $key = 'pu-test-type-stream';
 
         $this->saveData([
@@ -608,6 +625,8 @@ abstract class RedisTestCase extends TestCase {
      * @throws Exception
      */
     public function testStreamTypeEditEntry(): void {
+        $this->skipBelowRedis('5.0', 'Streams');
+
         $key = 'pu-test-type-stream';
 
         $this->saveData(['rtype' => 'stream', 'key' => $key, 'value' => json_encode(['field1' => 'v1'], JSON_THROW_ON_ERROR)]);
@@ -628,6 +647,8 @@ abstract class RedisTestCase extends TestCase {
      * @throws Throwable
      */
     private function streamWithGroups(string $key): array {
+        $this->skipBelowRedis('5.0', 'Streams');
+
         foreach (range(1, 5) as $i) {
             $this->redis->streamAdd($key, '*', ['order' => (string) $i]);
         }
@@ -688,6 +709,8 @@ abstract class RedisTestCase extends TestCase {
      * @throws Exception
      */
     public function testStreamWithoutGroups(): void {
+        $this->skipBelowRedis('5.0', 'Streams');
+
         $key = 'pu-test-stream-nogroups';
 
         $this->redis->streamAdd($key, '*', ['field' => 'value']);
@@ -1383,20 +1406,26 @@ abstract class RedisTestCase extends TestCase {
      * @throws Exception
      */
     public function testGetClients(): void {
-        $clients = $this->redis->getClients();
+        $clients = array_values($this->redis->getClients());
 
         $this->assertNotEmpty($clients);
+        $this->assertNotSame('', $clients[0]['addr']);
+        $this->assertArrayHasKey('age', $clients[0]);
+    }
 
-        $self = array_values(array_filter($clients, static fn (array $client): bool => $client['self'] === true));
+    /**
+     * @throws Exception
+     */
+    public function testGetClientsMarksItself(): void {
+        $this->skipBelowRedis('5.0', 'CLIENT ID');
+
+        $self = array_values(array_filter($this->redis->getClients(), static fn (array $client): bool => $client['self'] === true));
 
         $this->assertNotEmpty($self);
 
         if (!self::$is_cluster) {
             $this->assertCount(1, $self);
         }
-
-        $this->assertNotSame('', $self[0]['addr']);
-        $this->assertArrayHasKey('age', $self[0]);
     }
 
     /**
@@ -1471,10 +1500,18 @@ abstract class RedisTestCase extends TestCase {
     public function testClientsTab(): void {
         $_GET['tab'] = 'clients';
 
-        $html = $this->dashboard->dashboard();
+        $this->assertStringContainsString('Connected clients', $this->dashboard->dashboard());
+    }
 
-        $this->assertStringContainsString('Connected clients', $html);
-        $this->assertStringContainsString('This dashboard', $html); // the dashboard's own connection is marked
+    /**
+     * @throws Exception
+     */
+    public function testClientsTabMarksTheOwnConnection(): void {
+        $this->skipBelowRedis('5.0', 'CLIENT ID');
+
+        $_GET['tab'] = 'clients';
+
+        $this->assertStringContainsString('This dashboard', $this->dashboard->dashboard());
     }
 
     /**

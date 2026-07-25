@@ -81,10 +81,7 @@ trait MemcachedKeysList {
      */
     public function keysTreeView(array $raw_lines): array {
         $separator = $this->servers[$this->current_server]['separator'] ?? ':';
-
-        if (version_compare($this->memcached->version(), '1.5.19', '>=')) {
-            $separator = urlencode($separator);
-        }
+        $separator = urlencode($separator);
 
         $this->template->addGlobal('separator', urldecode($separator));
 

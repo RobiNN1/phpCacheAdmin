@@ -103,6 +103,10 @@ class MemcachedDashboard implements DashboardInterface {
                 return (new MemcachedMetrics($this->memcached, $this->servers, $this->current_server))->collectAndRespond();
             }
 
+            if (isset($_GET['live'])) {
+                return $this->liveAjax();
+            }
+
             if (isset($_GET['console'])) {
                 return $this->consoleAjax();
             }

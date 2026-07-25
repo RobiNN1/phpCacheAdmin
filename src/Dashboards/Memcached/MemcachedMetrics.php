@@ -12,9 +12,7 @@ use PDO;
 use RobiNN\Pca\Dashboards\Metrics;
 
 readonly class MemcachedMetrics extends Metrics {
-    private const RATE_COMMANDS = ['get', 'set', 'delete', 'incr', 'decr', 'cas', 'touch', 'flush'];
-
-    private const HIT_RATE_COMMANDS = ['get', 'delete', 'incr', 'decr', 'cas', 'touch'];
+    use MemcachedCommands;
 
     /**
      * @param array<int, array<string, int|string>> $servers
@@ -25,6 +23,14 @@ readonly class MemcachedMetrics extends Metrics {
         int            $selected,
     ) {
         parent::__construct($servers, $selected);
+
+        $columns = [];
+
+        foreach (self::COMMANDS as $command) {
+            $columns['cumulative_requests_'.$command] = 'INTEGER';
+        }
+
+        $this->updateSchema($columns);
     }
 
     protected function schema(): string {
@@ -38,7 +44,7 @@ readonly class MemcachedMetrics extends Metrics {
             traffic_received_rate REAL, traffic_sent_rate REAL,
             cumulative_total_connections INTEGER, cumulative_evictions INTEGER, cumulative_expired_unfetched INTEGER,
             cumulative_bytes_read INTEGER, cumulative_bytes_written INTEGER,
-            cumulative_cmd_get INTEGER, cumulative_cmd_set INTEGER, cumulative_cmd_delete INTEGER, cumulative_cmd_incr INTEGER, cumulative_cmd_decr INTEGER, cumulative_cmd_cas INTEGER, cumulative_cmd_touch INTEGER, cumulative_cmd_flush INTEGER
+            cumulative_requests_get INTEGER, cumulative_requests_set INTEGER, cumulative_requests_delete INTEGER, cumulative_requests_incr INTEGER, cumulative_requests_decr INTEGER, cumulative_requests_cas INTEGER, cumulative_requests_touch INTEGER, cumulative_requests_flush INTEGER
         )
         SQL;
     }
@@ -130,9 +136,9 @@ readonly class MemcachedMetrics extends Metrics {
     private function calculateCommandRates(array $stats, ?array $last_point, int $time_diff): array {
         $command_rates = [];
 
-        foreach (self::RATE_COMMANDS as $cmd) {
-            $current_val = $stats['cmd_'.$cmd] ?? 0;
-            $last_val = $last_point['cumulative_cmd_'.$cmd] ?? null;
+        foreach (self::COMMANDS as $cmd) {
+            $current_val = $this->commandRequests($stats, $cmd);
+            $last_val = $last_point['cumulative_requests_'.$cmd] ?? null;
             $command_rates['request_rate_'.$cmd] = $this->calculateRate($current_val, $last_val, $time_diff);
         }
 
@@ -151,7 +157,7 @@ readonly class MemcachedMetrics extends Metrics {
         $total_hits = 0;
         $total_misses = 0;
 
-        foreach (self::HIT_RATE_COMMANDS as $cmd) {
+        foreach (self::HIT_COMMANDS as $cmd) {
             $hits = $stats[$cmd.'_hits'] ?? 0;
             $misses = $stats[$cmd.'_misses'] ?? 0;
             $total = $hits + $misses;
@@ -220,8 +226,8 @@ readonly class MemcachedMetrics extends Metrics {
             'cumulative_bytes_written'     => $stats['bytes_written'] ?? 0,
         ];
 
-        foreach (self::RATE_COMMANDS as $cmd) {
-            $cumulative_metrics['cumulative_cmd_'.$cmd] = $stats['cmd_'.$cmd] ?? 0;
+        foreach (self::COMMANDS as $cmd) {
+            $cumulative_metrics['cumulative_requests_'.$cmd] = $this->commandRequests($stats, $cmd);
         }
 
         return $cumulative_metrics;

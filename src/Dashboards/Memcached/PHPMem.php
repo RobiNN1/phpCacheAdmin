@@ -451,8 +451,12 @@ class PHPMem {
             return '';
         }
 
-        // Lists of lines, terminated by an END/EN line.
-        if ($command_name === 'stats' || ($command_name === 'lru_crawler' && (str_contains($command, 'metadump') || str_contains($command, 'mgdump')))) {
+        // A metadump is prefixed with an "OK" line since 1.6.43, which is not its terminator (that is END/EN).
+        if ($command_name === 'lru_crawler' && (str_contains($command, 'metadump') || str_contains($command, 'mgdump'))) {
+            return $this->readUntilEndLine(false);
+        }
+
+        if ($command_name === 'stats') {
             return $this->readUntilEndLine();
         }
 
@@ -572,12 +576,12 @@ class PHPMem {
      *
      * @throws MemcachedException
      */
-    private function readUntilEndLine(): string {
+    private function readUntilEndLine(bool $ok_terminates = true): string {
         $buffer = '';
 
         do {
             $buffer .= $this->readChunk(65536);
-        } while (!$this->endsWithStatusLine($buffer));
+        } while (!$this->endsWithStatusLine($buffer, $ok_terminates));
 
         return rtrim($buffer, "\r\n");
     }
@@ -607,7 +611,8 @@ class PHPMem {
 
             array_push($lines, ...$split);
 
-            if ($this->isEndOfResponse(rtrim((string) end($split), "\r"))) {
+            // Used only for a metadump, where the leading "OK" is a prefix, not the terminator.
+            if ($this->isEndOfResponse(rtrim((string) end($split), "\r"), false)) {
                 return $lines;
             }
         }
@@ -617,7 +622,7 @@ class PHPMem {
      * Check whether the last complete line is a terminating status line.
      * List responses contain no data blocks, so the terminator can only ever be the last line.
      */
-    private function endsWithStatusLine(string $buffer): bool {
+    private function endsWithStatusLine(string $buffer, bool $ok_terminates = true): bool {
         if (!str_ends_with($buffer, "\n")) {
             return false; // last line is not complete yet
         }
@@ -625,7 +630,7 @@ class PHPMem {
         $newline = strlen($buffer) > 1 ? strrpos($buffer, "\n", -2) : false;
         $last_line = substr($buffer, $newline === false ? 0 : $newline + 1);
 
-        return $this->isEndOfResponse(rtrim($last_line, "\r\n"));
+        return $this->isEndOfResponse(rtrim($last_line, "\r\n"), $ok_terminates);
     }
 
     /**
@@ -652,8 +657,12 @@ class PHPMem {
         }
     }
 
-    private function isEndOfResponse(string $line): bool {
-        if (in_array($line, ['END', 'EN', 'OK', 'RESET', 'ERROR'], true)) {
+    public function isEndOfResponse(string $line, bool $ok_terminates = true): bool {
+        if (in_array($line, ['END', 'EN', 'RESET', 'ERROR'], true)) {
+            return true;
+        }
+
+        if ($ok_terminates && $line === 'OK') {
             return true;
         }
 

@@ -132,6 +132,7 @@ return [
     'panelrefresh'   => 30, // In seconds, refresh interval for panels - default 30
     'metricsrefresh' => 60, // In seconds, refresh interval for metrics - default 60
     'metricstab'     => '1d', // Default tab in metrics, 1h - Last hour, 1d - Last day, 1w - Last week, 1m - Last month - default 1d
+    'liverefresh'    => 2, // In seconds, sampling interval for the live mode in metrics (1-60) - default 2
     'pubsubrefresh'  => 5, // In seconds, refresh interval for the Pub/Sub active channels list - default 5
     'pubsubwindow'   => 5, // In seconds, how long one Pub/Sub monitor request captures messages (1-10) - default 5
     'hash'           => 'pca', // Any random string to secure a metrics DB file.

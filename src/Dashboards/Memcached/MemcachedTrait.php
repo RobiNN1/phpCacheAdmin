@@ -16,6 +16,7 @@ use RobiNN\Pca\Http;
 use RobiNN\Pca\Paginator;
 
 trait MemcachedTrait {
+    use MemcachedCommands;
     use MemcachedPanels;
     use MemcachedHealth;
     use MemcachedAnalysis;
@@ -121,20 +122,6 @@ trait MemcachedTrait {
             'paginator' => $paginator->render(),
             'view_key'  => Http::queryString([], ['view' => 'key', 'key' => '__key__']),
         ];
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function commandsStatsTab(): array {
-        try {
-            $info = $this->memcached->getServerStats();
-            $commands = $this->commandsStatsData($info);
-        } catch (MemcachedException $e) {
-            $commands = ['error' => $e->getMessage()];
-        }
-
-        return ['commands' => $commands];
     }
 
     /**

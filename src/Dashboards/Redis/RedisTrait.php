@@ -29,6 +29,7 @@ trait RedisTrait {
     use RedisStreamGroups;
     use RedisVectorSet;
     use RedisProfiler;
+    use RedisLive;
     use RedisPubSub;
     use RedisConsole;
 

@@ -151,6 +151,10 @@ class RedisDashboard implements DashboardInterface {
                 return (new RedisMetrics($this->redis, $this->servers, $this->current_server))->collectAndRespond();
             }
 
+            if (isset($_GET['live'])) {
+                return $this->liveAjax();
+            }
+
             if (isset($_GET['pubsub'])) {
                 return $this->pubSubAjax();
             }

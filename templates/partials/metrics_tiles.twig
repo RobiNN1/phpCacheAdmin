@@ -1,0 +1,13 @@
+<div class="mb-2 text-xs text-gray-600 dark:text-gray-300">
+    Latest sample: <span id="metrics_sample_time" class="font-semibold">-</span>
+</div>
+
+<div class="grid grid-cols-2 gap-4 mb-4 xl:grid-cols-4">
+    {% for tile in tiles %}
+        <div class="p-4 card">
+            <h3 class="text-xs font-bold uppercase text-primary-900 dark:text-primary-400">{{ tile.label }}</h3>
+            <p id="metric_{{ tile.id }}" class="mt-1 text-xl font-semibold text-gray-900 dark:text-white">-</p>
+            <p id="metric_{{ tile.id }}_note" class="mt-1 text-xs text-gray-600 dark:text-gray-300">&nbsp;</p>
+        </div>
+    {% endfor %}
+</div>

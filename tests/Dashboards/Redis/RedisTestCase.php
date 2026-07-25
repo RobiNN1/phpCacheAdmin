@@ -217,6 +217,48 @@ abstract class RedisTestCase extends TestCase {
     }
 
     /**
+     * @return array<string, array<string, mixed>>
+     */
+    private function liveInfo(): array {
+        return [
+            'server'  => ['uptime_in_seconds' => '3600'],
+            'stats'   => ['instantaneous_ops_per_sec' => '42', 'keyspace_hits' => '900', 'keyspace_misses' => '100'],
+            'memory'  => ['used_memory' => '1048576', 'used_memory_peak' => '2097152', 'mem_fragmentation_ratio' => '1.25'],
+            'clients' => ['connected_clients' => '7'],
+        ];
+    }
+
+    public function testLiveSnapshot(): void {
+        $snapshot = $this->dashboard->liveSnapshot($this->liveInfo(), ['cmdstat_get' => ['calls' => '10']]);
+
+        $this->assertSame(3600, $snapshot['uptime']);
+        $this->assertSame(42, $snapshot['commands_per_second']);
+        $this->assertSame(['hits' => 900, 'misses' => 100], $snapshot['keyspace']);
+        $this->assertSame(['used' => 1048576, 'peak' => 2097152, 'fragmentation' => 1.25], $snapshot['memory']);
+        $this->assertSame(7, $snapshot['connections']);
+        $this->assertSame(['get' => 10], $snapshot['commands_stats']);
+    }
+
+    public function testLiveSnapshotWithValuesFromMultipleNodes(): void {
+        $info = $this->liveInfo();
+        $info['server']['uptime_in_seconds'] = ['3600', '3500'];
+
+        $this->assertSame(0, $this->dashboard->liveSnapshot($info, [])['uptime']);
+    }
+
+    /**
+     * @throws JsonException
+     */
+    public function testAjaxLive(): void {
+        $_GET['live'] = '';
+
+        $snapshot = json_decode($this->dashboard->ajax(), true, 512, JSON_THROW_ON_ERROR);
+
+        $this->assertArrayHasKey('keyspace', $snapshot);
+        $this->assertGreaterThan(0, $snapshot['time']);
+    }
+
+    /**
      * @param array<string, mixed> $post
      *
      * @throws Exception

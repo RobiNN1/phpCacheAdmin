@@ -758,26 +758,144 @@ const chart = (instance, options, timestamps) => {
         yAxis: yAxis,
         series: series,
         grid: {left: 10, right: 10, top: 80, bottom: 60}
-    });
+    }, {replaceMerge: ['series']});
+};
+
+const metric_tile = (id, value, note = ' ') => {
+    const value_element = document.getElementById(`metric_${id}`);
+
+    if (value_element === null) {
+        return;
+    }
+
+    value_element.textContent = value;
+    document.getElementById(`metric_${id}_note`).textContent = note;
 };
 
 class Metrics {
-    constructor(render_charts, chart_config) {
+    static #live_max_points = 120;
+
+    constructor(render_charts, chart_config, live_point = null) {
         this.render_charts = render_charts;
         this.chart_config = chart_config;
+        this.live_point = live_point;
         this.full_data = [];
+        this.live_data = [];
+        this.live_previous = null;
+        this.live_timer = null;
 
         this.#init_time_switcher();
         this.#init_resize_and_theme();
+        this.#init_visibility();
 
-        this.update();
+        if (this.#is_live()) {
+            this.#start_live();
+        } else {
+            this.update();
+        }
+
         setInterval(() => this.update(), metrics_refresh_interval);
     }
 
     update() {
+        if (this.#is_live()) {
+            return; // the live mode has its own loop
+        }
+
         this.#fetch((data) => {
             this.full_data = data;
-            this.render_charts(this.full_data);
+            this.#render(this.full_data);
+        });
+    }
+
+    #render(data) {
+        this.render_charts(data);
+
+        const sample_time = document.getElementById('metrics_sample_time');
+
+        if (sample_time !== null && data.length > 0) {
+            sample_time.textContent = data[data.length - 1].timestamp;
+        }
+    }
+
+    #is_live() {
+        return this.live_point !== null && metrics_active_filter === 'live';
+    }
+
+    #active_data() {
+        return this.#is_live() ? this.live_data : this.full_data;
+    }
+
+    #start_live() {
+        this.live_data = [];
+        this.live_previous = null;
+        this.#live_sample();
+    }
+
+    #stop_live() {
+        clearTimeout(this.live_timer);
+        this.live_timer = null;
+    }
+
+    #live_sample() {
+        clearTimeout(this.live_timer);
+
+        ajax('live', (request) => {
+            if (!this.#is_live()) {
+                return;
+            }
+
+            const snapshot = ajax_ok(request) ? parse_json(request) : null;
+
+            if (snapshot === null) {
+                set_alerts(ajax_ok(request) ? request.responseText : `Server responded with status ${request.status}`);
+            } else {
+                set_alerts('');
+                this.#add_live_point(snapshot);
+            }
+
+            if (!document.hidden) {
+                this.live_timer = setTimeout(() => this.#live_sample(), live_refresh_interval);
+            }
+        });
+    }
+
+    #add_live_point(snapshot) {
+        const previous = this.live_previous;
+        this.live_previous = snapshot;
+
+        if (previous === null) {
+            return; // the first sample is only a baseline for the next one
+        }
+
+        if (snapshot.uptime < previous.uptime) {
+            this.live_data = []; // the server has been restarted, all counters started over
+            return;
+        }
+
+        const seconds = snapshot.time - previous.time;
+
+        if (seconds <= 0) {
+            return;
+        }
+
+        this.live_data.push(this.live_point(previous, snapshot, seconds));
+
+        while (this.live_data.length > Metrics.#live_max_points) {
+            this.live_data.shift();
+        }
+
+        this.#render(this.live_data);
+    }
+
+    #init_visibility() {
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                this.#stop_live();
+            } else if (this.#is_live()) {
+                this.live_previous = null;
+                this.#live_sample();
+            }
         });
     }
 
@@ -809,7 +927,13 @@ class Metrics {
                 button.classList.add('active');
 
                 metrics_active_filter = button.dataset.tab;
-                this.update();
+                this.#stop_live();
+
+                if (this.#is_live()) {
+                    this.#start_live();
+                } else {
+                    this.update();
+                }
             });
         });
     }
@@ -833,8 +957,8 @@ class Metrics {
                         this.chart_config[key] = echarts.init(chart_element, theme, {renderer: 'svg'});
                     }
 
-                    if (this.full_data && this.full_data.length > 0) {
-                        this.render_charts(this.full_data);
+                    if (this.#active_data().length > 0) {
+                        this.#render(this.#active_data());
                     }
 
                     break;

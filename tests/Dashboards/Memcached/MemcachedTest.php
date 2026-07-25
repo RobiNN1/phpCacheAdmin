@@ -10,6 +10,7 @@ namespace Tests\Dashboards\Memcached;
 
 use Iterator;
 use JsonException;
+use PDO;
 use PHPUnit\Framework\Attributes\DataProvider;
 use RobiNN\Pca\Config;
 use RobiNN\Pca\Dashboards\DashboardException;
@@ -155,6 +156,126 @@ final class MemcachedTest extends TestCase {
         $this->assertCount(1, $data);
 
         @unlink($this->metricsDb($server_name));
+    }
+
+    /**
+     * @throws JsonException|MemcachedException
+     */
+    public function testMetricsRequestRateOfACommandWithoutCounter(): void {
+        $server_name = 'pu-metrics-'.uniqid('', true);
+        $metrics = new MemcachedMetrics($this->memcached, [['name' => $server_name]], 0);
+        $metrics->collectAndRespond();
+
+        $db = $this->metricsDb($server_name);
+        (new PDO('sqlite:'.$db))->exec('UPDATE metrics SET timestamp = '.(time() - 100).', cumulative_requests_delete = 0');
+
+        $this->memcached->set('pu-metrics-delete', 'value');
+        $this->memcached->delete('pu-metrics-delete');
+        $this->memcached->delete('pu-metrics-missing');
+
+        $data = json_decode($metrics->collectAndRespond(), true, 512, JSON_THROW_ON_ERROR);
+
+        $this->assertGreaterThan(0, end($data)['request_rates']['delete']);
+
+        @unlink($db);
+    }
+
+    /**
+     * @throws JsonException|MemcachedException
+     */
+    public function testMetricsLegacyRowsWithoutTheRequestColumns(): void {
+        $server_name = 'pu-metrics-'.uniqid('', true);
+        $metrics = new MemcachedMetrics($this->memcached, [['name' => $server_name]], 0);
+        $metrics->collectAndRespond();
+
+        $db = $this->metricsDb($server_name);
+        (new PDO('sqlite:'.$db))->exec('UPDATE metrics SET timestamp = '.(time() - 100).', cumulative_requests_delete = NULL');
+
+        $this->memcached->delete('pu-metrics-missing');
+
+        $data = json_decode($metrics->collectAndRespond(), true, 512, JSON_THROW_ON_ERROR);
+
+        $this->assertEquals(0, end($data)['request_rates']['delete']);
+
+        @unlink($db);
+    }
+
+    /**
+     * @return array<string, int>
+     */
+    private function liveStats(): array {
+        return [
+            'uptime'            => 3600,
+            'cmd_get'           => 100,
+            'cmd_set'           => 40,
+            'cmd_touch'         => 10,
+            'cmd_flush'         => 2,
+            'get_hits'          => 90,
+            'get_misses'        => 30,
+            'delete_hits'       => 5,
+            'delete_misses'     => 3,
+            'incr_hits'         => 2,
+            'incr_misses'       => 1,
+            'decr_hits'         => 1,
+            'decr_misses'       => 1,
+            'cas_hits'          => 4,
+            'cas_misses'        => 2,
+            'cas_badval'        => 1,
+            'touch_hits'        => 7,
+            'touch_misses'      => 3,
+            'bytes_read'        => 1024,
+            'bytes_written'     => 2048,
+            'evictions'         => 6,
+            'expired_unfetched' => 4,
+            'reclaimed'         => 8,
+            'total_items'       => 60,
+            'total_connections' => 20,
+            'curr_items'        => 50,
+            'curr_connections'  => 5,
+            'bytes'             => 4096,
+            'limit_maxbytes'    => 8192,
+            'threads'           => 4,
+        ];
+    }
+
+    public function testLiveSnapshotUsesCommandCounters(): void {
+        $commands = $this->dashboard->liveSnapshot($this->liveStats())['commands'];
+
+        $this->assertSame(['requests' => 100, 'hits' => 90, 'misses' => 30], $commands['get']);
+        $this->assertSame(['requests' => 40], $commands['set']);
+    }
+
+    public function testLiveSnapshotCountsCommandsWithoutCounter(): void {
+        $commands = $this->dashboard->liveSnapshot($this->liveStats())['commands'];
+
+        $this->assertSame(['requests' => 8, 'hits' => 5, 'misses' => 3], $commands['delete']);
+        $this->assertSame(['requests' => 7, 'hits' => 4, 'misses' => 2], $commands['cas']);
+    }
+
+    public function testLiveSnapshotTotals(): void {
+        $snapshot = $this->dashboard->liveSnapshot($this->liveStats());
+
+        // 100 get + 40 set + 8 delete + 3 incr + 2 decr + 7 cas + 10 touch + 2 flush
+        $this->assertSame(['requests' => 172, 'hits' => 109, 'misses' => 40], $snapshot['totals']);
+    }
+
+    public function testLiveSnapshotWithoutStats(): void {
+        $snapshot = $this->dashboard->liveSnapshot([]);
+
+        $this->assertSame(['requests' => 0, 'hits' => 0, 'misses' => 0], $snapshot['totals']);
+        $this->assertSame(0, $snapshot['gauges']['memory_limit']);
+    }
+
+    /**
+     * @throws JsonException
+     */
+    public function testAjaxLive(): void {
+        $_GET['live'] = '';
+
+        $snapshot = json_decode($this->dashboard->ajax(), true, 512, JSON_THROW_ON_ERROR);
+
+        $this->assertArrayHasKey('get', $snapshot['commands']);
+        $this->assertGreaterThan(0, $snapshot['time']);
     }
 
     /**
@@ -622,5 +743,17 @@ final class MemcachedTest extends TestCase {
         }
 
         unlink($tmp_file_path);
+    }
+
+    /**
+     * Memcached >= 1.6.43 prefixes a metadump with an "OK" line, which must not end the response.
+     */
+    public function testOkDoesNotTerminateAMetadump(): void {
+        $this->assertFalse($this->memcached->isEndOfResponse('OK', false));
+        $this->assertTrue($this->memcached->isEndOfResponse('END', false));
+    }
+
+    public function testOkTerminatesAShortReply(): void {
+        $this->assertTrue($this->memcached->isEndOfResponse('OK'));
     }
 }

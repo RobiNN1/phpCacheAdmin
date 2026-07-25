@@ -9,6 +9,7 @@
     pills: true,
     selected: config('metricstab', '1d'),
     links: {
+        live: 'Live',
         '1h': 'Last hour',
         '1d': 'Last day',
         '1w': 'Last week',
@@ -17,9 +18,22 @@
 }) }}
 
 <div class="card p-2 mb-4 text-sm text-gray-600 dark:text-gray-300">
-    To collect metrics even when the dashboard is not open, add this link to a cronjob:
-    <code class="inline-block py-1 px-2 text-xs break-all bg-gray-200 rounded dark:bg-gray-700 dark:text-gray-300">{{ cronjob_url('redis', get('server', 0)) }}</code>
+    <div>
+        To collect metrics even when the dashboard is not open, add this link to a cronjob:
+        <code class="inline-block py-1 px-2 text-xs break-all bg-gray-200 rounded dark:bg-gray-700 dark:text-gray-300">{{ cronjob_url('redis', get('server', 0)) }}</code>
+    </div>
+    <div class="mt-1">
+        Live runs a single INFO every {{ min(max(config('liverefresh', 2), 1), 60) }}s and calculates the rates in the browser from two consecutive samples.
+        It shows a rolling window and nothing is stored, the hit rate is the rate over the last sample instead of the cumulative one.
+    </div>
 </div>
+
+{{ include('partials/metrics_tiles.twig', {tiles: [
+    {id: 'commands', label: 'Commands'},
+    {id: 'hit_rate', label: 'Hit rate'},
+    {id: 'memory', label: 'Memory'},
+    {id: 'fragmentation', label: 'Fragmentation'},
+]}) }}
 
 <div class="gap-4 lg:grid lg:grid-cols-4">
     <div class="col-span-4 p-4 mb-2 card">
@@ -56,9 +70,22 @@
             connections: echarts.init(document.getElementById('connections_chart'), initial_theme, {renderer: 'svg'}),
         };
 
+        const render_tiles = (point) => {
+            metric_tile('commands', number_format(point.commands_per_second) + '/s', `${number_format(point.connections)} connections`);
+            metric_tile('hit_rate', number_format(point.hit_rate, 2) + '%', 'share of the keyspace lookups that found a key');
+            metric_tile('memory', format_bytes(point.memory.used), `${format_bytes(point.memory.peak)} peak`);
+            metric_tile(
+                'fragmentation',
+                number_format(point.memory.fragmentation, 2),
+                'ratio of the memory the allocator holds to the memory in use'
+            );
+        };
+
         const render_charts = (data) => {
             if (!data || data.length === 0) return;
             const timestamps = data.map(p => p.timestamp.split(' ')[1]);
+
+            render_tiles(data[data.length - 1]);
 
             const command_series = [...new Set(data.flatMap(p => Object.keys(p.commands_stats ?? {})))].map(name => ({
                 name: name,
@@ -145,6 +172,21 @@
             }, timestamps);
         };
 
-        new Metrics(render_charts, chart_config);
+        const live_point = (previous, current) => {
+            const hits = Math.max(0, current.keyspace.hits - previous.keyspace.hits);
+            const misses = Math.max(0, current.keyspace.misses - previous.keyspace.misses);
+
+            return {
+                timestamp: current.timestamp,
+                unix_timestamp: Math.round(current.time),
+                commands_per_second: current.commands_per_second,
+                hit_rate: (hits + misses) > 0 ? Math.round((hits / (hits + misses)) * 10000) / 100 : 0,
+                memory: current.memory,
+                connections: current.connections,
+                commands_stats: current.commands_stats,
+            };
+        };
+
+        new Metrics(render_charts, chart_config, live_point);
     });
 </script>

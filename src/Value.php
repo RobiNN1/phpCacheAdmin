@@ -41,7 +41,7 @@ class Value {
      * @return array<int, mixed>
      */
     public static function format(string $value, string $mode = self::MODE_FORMATTED): array {
-        // Raw and hex show the value as stored, so nothing is decoded and there is no encoder to name.
+        // Raw and hex show the value as stored, so nothing is decoded, and there is no encoder to name.
         if ($mode === self::MODE_HEX) {
             return ['<pre class="json-code">'.htmlspecialchars(self::hexDump($value)).'</pre>', null, false];
         }
@@ -67,8 +67,7 @@ class Value {
     }
 
     /**
-     * The usual offset / bytes / printable layout, e.g.
-     * `00000000  7b 22 61 22 3a 31 7d 00  ff                       |{"a":1}...|`
+     * The usual offset / bytes / printable layout.
      */
     public static function hexDump(string $value, int $per_line = 16): string {
         $length = strlen($value);

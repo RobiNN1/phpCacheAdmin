@@ -22,7 +22,7 @@ trait RedisExtra {
     private ?array $modules_cache = null;
 
     /**
-     * HEXPIRE and HPERSIST reply with one value per field, anything above zero means it was applied.
+     * HEXPIRE and HPERSIST reply with one value per field; anything above zero means it was applied.
      */
     protected function hashFieldExpireApplied(mixed $reply): bool {
         return is_array($reply) && is_numeric($reply[0] ?? null) && (int) $reply[0] > 0;

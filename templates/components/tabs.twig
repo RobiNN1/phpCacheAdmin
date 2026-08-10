@@ -1,17 +1,17 @@
 {% if main %}
     {% set class = '-m-4 px-4 relative bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700' %}
 {% endif %}
+{% if pills %}
+    {% set item_class = 'cursor-pointer text-sm font-semibold inline-flex whitespace-nowrap py-2 px-4 bg-white border-2 border-gray-300 rounded-md hover:border-primary-300 dark:bg-gray-800 dark:border-gray-600 dark:hover:text-gray-300 dark:hover:border-gray-300 [&.active]:border-primary-500 [&.active]:text-primary-500' %}
+{% else %}
+    {% set item_class = 'cursor-pointer text-sm font-semibold inline-flex whitespace-nowrap py-3 px-4 border-b-2 border-transparent hover:text-gray-600 hover:border-gray-600 dark:hover:text-gray-300 dark:hover:border-gray-300 [&.active]:border-primary-500 [&.active]:text-primary-500' %}
+{% endif %}
 <ul class="flex overflow-x-auto mb-4{{ pills ? ' gap-3' : '' }}{{ class|space }}">
     {% for link, title in links %}
         {% if tabs %}
             {% set is_active = selected is defined ? (selected == link) : (links|keys|first == link) %}
         {% else %}
             {% set is_active = get('tab', links|keys|first) == link %}
-        {% endif %}
-        {% if pills %}
-            {% set item_class = 'cursor-pointer text-sm font-semibold inline-flex whitespace-nowrap py-2 px-4 bg-white border-2 border-gray-300 rounded-md hover:border-primary-300 dark:bg-gray-800 dark:border-gray-600 dark:hover:text-gray-300 dark:hover:border-gray-300 [&.active]:border-primary-500 [&.active]:text-primary-500' %}
-        {% else %}
-            {% set item_class = 'cursor-pointer text-sm font-semibold inline-flex whitespace-nowrap py-3 px-4 border-b-2 border-transparent hover:text-gray-600 hover:border-gray-600 dark:hover:text-gray-300 dark:hover:border-gray-300 [&.active]:border-primary-500 [&.active]:text-primary-500' %}
         {% endif %}
         <li class="shrink-0">
             {% if tabs %}
@@ -21,4 +21,15 @@
             {% endif %}
         </li>
     {% endfor %}
+    {% if toggle is defined %}
+        <li class="flex shrink-0 items-center ms-auto">
+            <button type="button" id="{{ toggle.id }}" role="switch" aria-checked="false"
+                    class="cursor-pointer text-sm font-semibold relative inline-flex items-center gap-2 text-gray-600 dark:text-gray-300
+                before:block before:h-5 before:w-9 before:rounded-full before:bg-gray-300 before:transition-colors dark:before:bg-gray-600
+                after:absolute after:top-1/2 after:left-0.5 after:-mt-2 after:size-4 after:rounded-full after:bg-white after:transition-transform
+                aria-checked:text-primary-500 aria-checked:before:bg-primary-500 aria-checked:after:translate-x-4
+                focus-visible:outline-hidden focus-visible:before:ring-3 focus-visible:before:ring-primary-200 dark:focus-visible:before:ring-primary-400"
+                    {{ toggle.title is defined ? 'title="%s"'|format(toggle.title|e)|raw : '' }}>{{ toggle.label }}</button>
+        </li>
+    {% endif %}
 </ul>

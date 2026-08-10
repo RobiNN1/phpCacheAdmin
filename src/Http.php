@@ -49,7 +49,7 @@ class Http {
 
     /**
      * Get query parameter.
-     * Set $raw to true for values that are data rather than markup (e.g. cache keys, which may legitimately contain <, >, etc.)
+     * Set $raw to true for values that are data rather than markup (e.g., cache keys, which may legitimately contain <, >, etc.)
      *
      * @template Type
      *

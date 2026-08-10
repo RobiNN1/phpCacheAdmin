@@ -8,20 +8,15 @@ declare(strict_types=1);
 
 namespace RobiNN\Pca\Dashboards\Memcached;
 
-use JsonException;
 use RobiNN\Pca\Format;
 
 trait MemcachedCommands {
-    private const COMMANDS = ['get', 'set', 'delete', 'incr', 'decr', 'cas', 'touch', 'flush'];
-
     private const COMMAND_COUNTERS = [
         'get'   => 'cmd_get',
         'set'   => 'cmd_set',
         'touch' => 'cmd_touch',
         'flush' => 'cmd_flush',
     ];
-
-    private const HIT_COMMANDS = ['get', 'delete', 'incr', 'decr', 'cas', 'touch'];
 
     /**
      * @param array<string, mixed> $stats
@@ -36,78 +31,6 @@ trait MemcachedCommands {
         $requests = (int) ($stats[$command.'_hits'] ?? 0) + (int) ($stats[$command.'_misses'] ?? 0);
 
         return $command === 'cas' ? $requests + (int) ($stats['cas_badval'] ?? 0) : $requests;
-    }
-
-    /**
-     * A snapshot of the counters the live mode in the Metrics tab turns into per-second rates.
-     *
-     * @param array<string, mixed> $stats
-     *
-     * @return array<string, mixed>
-     */
-    public function liveSnapshot(array $stats): array {
-        $value = static fn (string $key): int => (int) ($stats[$key] ?? 0);
-
-        $commands = [];
-        $total_requests = 0;
-        $total_hits = 0;
-        $total_misses = 0;
-
-        foreach (self::COMMANDS as $command) {
-            $requests = $this->commandRequests($stats, $command);
-            $commands[$command] = ['requests' => $requests];
-            $total_requests += $requests;
-
-            if (!in_array($command, self::HIT_COMMANDS, true)) {
-                continue;
-            }
-
-            $hits = $value($command.'_hits');
-            $misses = $value($command.'_misses');
-
-            $commands[$command] += ['hits' => $hits, 'misses' => $misses];
-            $total_hits += $hits;
-            $total_misses += $misses;
-        }
-
-        return [
-            'time'      => microtime(true),
-            'timestamp' => date('Y-m-d H:i:s'),
-            'uptime'    => $value('uptime'),
-            'commands'  => $commands,
-            'totals'    => ['requests' => $total_requests, 'hits' => $total_hits, 'misses' => $total_misses],
-            'traffic'   => [
-                'read'    => $value('bytes_read'),
-                'written' => $value('bytes_written'),
-            ],
-            'events'    => [
-                'evictions'       => $value('evictions'),
-                'expired'         => $value('expired_unfetched'),
-                'new_items'       => $value('total_items'),
-                'new_connections' => $value('total_connections'),
-            ],
-            'gauges'    => [
-                'items'        => $value('curr_items'),
-                'connections'  => $value('curr_connections'),
-                'memory_used'  => $value('bytes'),
-                'memory_limit' => $value('limit_maxbytes'),
-            ],
-        ];
-    }
-
-    /**
-     * @throws MemcachedException
-     */
-    private function liveAjax(): string {
-        $snapshot = $this->liveSnapshot($this->memcached->getServerStats());
-
-        header('Content-Type: application/json');
-
-        try {
-            return json_encode($snapshot, JSON_THROW_ON_ERROR);
-        } catch (JsonException $e) {
-            return 'JSON error. '.$e->getMessage();
-        }
     }
 
     /**

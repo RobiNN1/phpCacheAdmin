@@ -4,29 +4,7 @@
     </div>
 {% endif %}
 
-{{ include('components/tabs.twig', {
-    tabs: true,
-    pills: true,
-    selected: config('metricstab', '1d'),
-    links: {
-        live: 'Live',
-        '1h': 'Last hour',
-        '1d': 'Last day',
-        '1w': 'Last week',
-        '1m': 'Last month',
-    },
-}) }}
-
-<div class="card p-2 mb-4 text-sm text-gray-600 dark:text-gray-300">
-    <div>
-        To collect metrics even when the dashboard is not open, add this link to a cronjob:
-        <code class="inline-block py-1 px-2 text-xs break-all bg-gray-200 rounded dark:bg-gray-700 dark:text-gray-300">{{ cronjob_url('redis', get('server', 0)) }}</code>
-    </div>
-    <div class="mt-1">
-        Live runs a single INFO every {{ min(max(config('liverefresh', 2), 1), 60) }}s and calculates the rates in the browser from two consecutive samples.
-        It shows a rolling window and nothing is stored, the hit rate is the rate over the last sample instead of the cumulative one.
-    </div>
-</div>
+{{ include('partials/metrics_header.twig', {dashboard: 'redis', sampling: 'one INFO'}) }}
 
 {{ include('partials/metrics_tiles.twig', {tiles: [
     {id: 'commands', label: 'Commands'},
@@ -62,12 +40,12 @@
         const initial_theme = document.documentElement.classList.contains('dark') ? 'dark' : null;
 
         const chart_config = {
-            command_calls: echarts.init(document.getElementById('command_calls_chart'), initial_theme, {renderer: 'svg'}),
-            memory: echarts.init(document.getElementById('memory_chart'), initial_theme, {renderer: 'svg'}),
-            fragmentation: echarts.init(document.getElementById('fragmentation_chart'), initial_theme, {renderer: 'svg'}),
-            commands: echarts.init(document.getElementById('commands_chart'), initial_theme, {renderer: 'svg'}),
-            hit_rate: echarts.init(document.getElementById('hit_rate_chart'), initial_theme, {renderer: 'svg'}),
-            connections: echarts.init(document.getElementById('connections_chart'), initial_theme, {renderer: 'svg'}),
+            command_calls: echarts.init(document.getElementById('command_calls_chart'), initial_theme, {renderer: 'canvas'}),
+            memory: echarts.init(document.getElementById('memory_chart'), initial_theme, {renderer: 'canvas'}),
+            fragmentation: echarts.init(document.getElementById('fragmentation_chart'), initial_theme, {renderer: 'canvas'}),
+            commands: echarts.init(document.getElementById('commands_chart'), initial_theme, {renderer: 'canvas'}),
+            hit_rate: echarts.init(document.getElementById('hit_rate_chart'), initial_theme, {renderer: 'canvas'}),
+            connections: echarts.init(document.getElementById('connections_chart'), initial_theme, {renderer: 'canvas'}),
         };
 
         const render_tiles = (point) => {
@@ -95,13 +73,14 @@
                 emphasis: {focus: 'series'},
                 data: data.map((p, i) => {
                     if (i === 0 || !p.commands_stats || !data[i - 1].commands_stats) return 0;
-                    const val = (p.commands_stats?.[name] ?? 0) - (data[i - 1].commands_stats?.[name] ?? 0);
-                    return val < 0 ? 0 : val;
+                    const seconds = Math.max(1, p.unix_timestamp - data[i - 1].unix_timestamp);
+                    const calls = (p.commands_stats?.[name] ?? 0) - (data[i - 1].commands_stats?.[name] ?? 0);
+                    return calls > 0 ? Number((calls / seconds).toFixed(2)) : 0;
                 })
             })).filter(s => s.data.some(v => v > 0));
 
             chart(chart_config.command_calls, {
-                title: 'Command Calls',
+                title: 'Command Calls per second',
                 legend: command_series.map(s => s.name),
                 tooltip: {
                     confine: true,
@@ -120,7 +99,7 @@
                         return html;
                     }
                 },
-                yAxis: {type: 'value', name: 'Calls'},
+                yAxis: {type: 'value', name: 'Calls/s'},
                 series: command_series
             }, timestamps);
 
@@ -172,21 +151,6 @@
             }, timestamps);
         };
 
-        const live_point = (previous, current) => {
-            const hits = Math.max(0, current.keyspace.hits - previous.keyspace.hits);
-            const misses = Math.max(0, current.keyspace.misses - previous.keyspace.misses);
-
-            return {
-                timestamp: current.timestamp,
-                unix_timestamp: Math.round(current.time),
-                commands_per_second: current.commands_per_second,
-                hit_rate: (hits + misses) > 0 ? Math.round((hits / (hits + misses)) * 10000) / 100 : 0,
-                memory: current.memory,
-                connections: current.connections,
-                commands_stats: current.commands_stats,
-            };
-        };
-
-        new Metrics(render_charts, chart_config, live_point);
+        new Metrics(render_charts, chart_config);
     });
 </script>

@@ -746,8 +746,14 @@ document.addEventListener('keypress', e => {
  * Updating:
  * https://echarts.apache.org/en/builder/echarts.html?charts=line,treemap&components=gridSimple,title,legendScroll,tooltip&svg=true&api=true
  */
+const chart_series_names = new WeakMap();
+
 const chart = (instance, options, timestamps) => {
     const {title, tooltip = {}, legend, yAxis, series} = options;
+    const names = series.map(s => s.name).join('\n');
+    const same_series = chart_series_names.get(instance) === names;
+
+    chart_series_names.set(instance, names);
 
     instance.setOption({
         backgroundColor: 'transparent',
@@ -758,7 +764,7 @@ const chart = (instance, options, timestamps) => {
         yAxis: yAxis,
         series: series,
         grid: {left: 10, right: 10, top: 80, bottom: 60}
-    }, {replaceMerge: ['series']});
+    }, same_series ? {} : {replaceMerge: ['series']});
 };
 
 const metric_tile = (id, value, note = ' ') => {
@@ -773,63 +779,53 @@ const metric_tile = (id, value, note = ' ') => {
 };
 
 class Metrics {
-    static #live_max_points = 120;
+    static #live_storage_key = 'metrics_live';
 
-    constructor(render_charts, chart_config, live_point = null) {
+    constructor(render_charts, chart_config) {
         this.render_charts = render_charts;
         this.chart_config = chart_config;
-        this.live_point = live_point;
-        this.full_data = [];
-        this.live_data = [];
-        this.live_previous = null;
+        this.data = [];
         this.live_timer = null;
+        this.live = localStorage.getItem(Metrics.#live_storage_key) === 'true';
 
         this.#init_time_switcher();
+        this.#init_live_switch();
         this.#init_resize_and_theme();
         this.#init_visibility();
 
-        if (this.#is_live()) {
-            this.#start_live();
-        } else {
-            this.update();
-        }
+        this.update();
 
         setInterval(() => this.update(), metrics_refresh_interval);
     }
 
     update() {
-        if (this.#is_live()) {
-            return; // the live mode has its own loop
-        }
+        this.#fetch({filter: metrics_active_filter}, (data) => {
+            if (data === null || this.#unchanged(data)) {
+                return;
+            }
 
-        this.#fetch((data) => {
-            this.full_data = data;
-            this.#render(this.full_data);
+            this.data = data;
+            this.#render();
         });
     }
 
-    #render(data) {
-        this.render_charts(data);
+    /**
+     * The stored samples are never modified, so the same last one means the same data.
+     */
+    #unchanged(data) {
+        const last = (points) => points.length > 0 ? points[points.length - 1].unix_timestamp : 0;
+
+        return data.length === this.data.length && last(data) === last(this.data);
+    }
+
+    #render() {
+        this.render_charts(this.data);
 
         const sample_time = document.getElementById('metrics_sample_time');
 
-        if (sample_time !== null && data.length > 0) {
-            sample_time.textContent = data[data.length - 1].timestamp;
+        if (sample_time !== null && this.data.length > 0) {
+            sample_time.textContent = this.data[this.data.length - 1].timestamp;
         }
-    }
-
-    #is_live() {
-        return this.live_point !== null && metrics_active_filter === 'live';
-    }
-
-    #active_data() {
-        return this.#is_live() ? this.live_data : this.full_data;
-    }
-
-    #start_live() {
-        this.live_data = [];
-        this.live_previous = null;
-        this.#live_sample();
     }
 
     #stop_live() {
@@ -840,19 +836,14 @@ class Metrics {
     #live_sample() {
         clearTimeout(this.live_timer);
 
-        ajax('live', (request) => {
-            if (!this.#is_live()) {
+        const since = this.data.length > 0 ? this.data[this.data.length - 1].unix_timestamp : 0;
+
+        this.#fetch({filter: metrics_active_filter, live: 1, since: since}, (data, bucket) => {
+            if (!this.live) {
                 return;
             }
 
-            const snapshot = ajax_ok(request) ? parse_json(request) : null;
-
-            if (snapshot === null) {
-                set_alerts(ajax_ok(request) ? request.responseText : `Server responded with status ${request.status}`);
-            } else {
-                set_alerts('');
-                this.#add_live_point(snapshot);
-            }
+            this.#append(data ?? [], bucket);
 
             if (!document.hidden) {
                 this.live_timer = setTimeout(() => this.#live_sample(), live_refresh_interval);
@@ -860,62 +851,88 @@ class Metrics {
         });
     }
 
-    #add_live_point(snapshot) {
-        const previous = this.live_previous;
-        this.live_previous = snapshot;
+    #append(data, bucket) {
+        let appended = false;
 
-        if (previous === null) {
-            return; // the first sample is only a baseline for the next one
+        for (const point of data) {
+            const last = this.data[this.data.length - 1];
+
+            if (last !== undefined && point.unix_timestamp <= last.unix_timestamp) {
+                continue; // already on the chart
+            }
+
+            if (last !== undefined && Math.floor(point.unix_timestamp / bucket) === Math.floor(last.unix_timestamp / bucket)) {
+                this.data[this.data.length - 1] = point;
+            } else {
+                this.data.push(point);
+            }
+
+            appended = true;
         }
 
-        if (snapshot.uptime < previous.uptime) {
-            this.live_data = []; // the server has been restarted, all counters started over
+        if (appended) {
+            this.#render();
+        }
+    }
+
+    #init_live_switch() {
+        const button = document.getElementById('metrics_live');
+
+        if (button === null) {
             return;
         }
 
-        const seconds = snapshot.time - previous.time;
+        const set_state = () => button.setAttribute('aria-checked', this.live ? 'true' : 'false');
 
-        if (seconds <= 0) {
-            return;
+        set_state();
+
+        if (this.live) {
+            this.#live_sample();
         }
 
-        this.live_data.push(this.live_point(previous, snapshot, seconds));
+        button.addEventListener('click', () => {
+            this.live = !this.live;
+            localStorage.setItem(Metrics.#live_storage_key, this.live ? 'true' : 'false');
+            set_state();
 
-        while (this.live_data.length > Metrics.#live_max_points) {
-            this.live_data.shift();
-        }
-
-        this.#render(this.live_data);
+            if (this.live) {
+                this.#live_sample();
+            } else {
+                this.#stop_live();
+            }
+        });
     }
 
     #init_visibility() {
         document.addEventListener('visibilitychange', () => {
             if (document.hidden) {
                 this.#stop_live();
-            } else if (this.#is_live()) {
-                this.live_previous = null;
+            } else if (this.live) {
                 this.#live_sample();
             }
         });
     }
 
-    #fetch(callback) {
+    #fetch(params, callback) {
         ajax('metrics', (request) => {
             if (ajax_ok(request)) {
                 const content_type = request.getResponseHeader('content-type');
                 const data = content_type && content_type.includes('application/json') ? parse_json(request) : null;
 
                 if (data !== null) {
-                    callback(data);
                     set_alerts('');
-                } else {
-                    // Anything that is not JSON is the server sending a rendered alert.
-                    set_alerts(request.responseText);
+                    callback(data, Number(request.getResponseHeader('X-Metrics-Bucket')) || 1);
+
+                    return;
                 }
+
+                set_alerts(request.responseText);
             } else {
                 set_alerts(`Server responded with status ${request.status}`);
             }
-        }, {filter: metrics_active_filter}, false);
+
+            callback(null);
+        }, params, false);
     }
 
     #init_time_switcher() {
@@ -927,13 +944,7 @@ class Metrics {
                 button.classList.add('active');
 
                 metrics_active_filter = button.dataset.tab;
-                this.#stop_live();
-
-                if (this.#is_live()) {
-                    this.#start_live();
-                } else {
-                    this.update();
-                }
+                this.update();
             });
         });
     }
@@ -952,13 +963,15 @@ class Metrics {
                     const theme = document.documentElement.classList.contains('dark') ? 'dark' : null;
 
                     for (const key of Object.keys(this.chart_config)) {
-                        this.chart_config[key].dispose();
                         const chart_element = document.getElementById(`${key}_chart`);
-                        this.chart_config[key] = echarts.init(chart_element, theme, {renderer: 'svg'});
+                        const renderer = chart_element.querySelector('canvas') !== null ? 'canvas' : 'svg';
+
+                        this.chart_config[key].dispose();
+                        this.chart_config[key] = echarts.init(chart_element, theme, {renderer: renderer});
                     }
 
-                    if (this.#active_data().length > 0) {
-                        this.#render(this.#active_data());
+                    if (this.data.length > 0) {
+                        this.#render();
                     }
 
                     break;

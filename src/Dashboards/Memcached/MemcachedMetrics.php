@@ -14,6 +14,10 @@ use RobiNN\Pca\Dashboards\Metrics;
 readonly class MemcachedMetrics extends Metrics {
     use MemcachedCommands;
 
+    private const COMMANDS = ['get', 'set', 'delete', 'incr', 'decr', 'cas', 'touch', 'flush'];
+
+    private const HIT_COMMANDS = ['get', 'delete', 'incr', 'decr', 'cas', 'touch'];
+
     /**
      * @param array<int, array<string, int|string>> $servers
      */

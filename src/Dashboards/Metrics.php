@@ -71,11 +71,17 @@ abstract readonly class Metrics {
             }
         }
 
+        if (!$this->isLive()) {
+            // Live requests are far too frequent for this, the regular refresh runs alongside them anyway.
+            $this->deleteOldMetrics();
+        }
+
         $formatted_data = array_map($this->formatRow(...), $this->fetchRecentMetrics());
 
         if (!headers_sent()) {
             header('Content-Type: application/json');
             header('Cache-Control: no-cache, must-revalidate');
+            header('X-Metrics-Bucket: '.$this->bucketSize());
         }
 
         try {
@@ -83,6 +89,18 @@ abstract readonly class Metrics {
         } catch (JsonException $e) {
             return Helpers::alert($e->getMessage(), 'error');
         }
+    }
+
+    protected function deleteOldMetrics(): void {
+        $days = (int) Config::get('metricsmaxage', 30);
+
+        if ($days <= 0) {
+            return; // everything is kept
+        }
+
+        $stmt = $this->pdo->prepare('DELETE FROM metrics WHERE timestamp < :time_ago');
+        $stmt->bindValue(':time_ago', time() - ($days * 86400), PDO::PARAM_INT);
+        $stmt->execute();
     }
 
     /**
@@ -104,13 +122,23 @@ abstract readonly class Metrics {
         }
     }
 
+    protected function isLive(): bool {
+        return Http::post('live', '') !== '';
+    }
+
+    protected function liveInterval(): int {
+        return min(max((int) Config::get('liverefresh', 2), 1), 60);
+    }
+
     /**
      * Prevents duplicate samples when multiple browser tabs are open or a cronjob runs alongside.
      */
     protected function shouldInsert(): bool {
         $last = $this->pdo->query('SELECT MAX(timestamp) FROM metrics')->fetchColumn();
 
-        return $last === null || (time() - (int) $last) >= (int) ceil(((int) Config::get('metricsrefresh', 60)) / 2);
+        $interval = $this->isLive() ? $this->liveInterval() : (int) ceil(((int) Config::get('metricsrefresh', 60)) / 2);
+
+        return $last === null || (time() - (int) $last) >= $interval;
     }
 
     /**
@@ -125,26 +153,34 @@ abstract readonly class Metrics {
         $stmt->execute(array_values($metrics));
     }
 
-    /**
-     * @return array<int, array<string, mixed>>
-     */
-    protected function fetchRecentMetrics(): array {
-        $filter = Http::post('filter', Config::get('metricstab', '1d'));
-
-        $seconds = match ($filter) {
+    protected function rangeSeconds(): int {
+        return match (Http::post('filter', Config::get('metricstab', '1d'))) {
             '1h' => 3600,
             '1w' => 604800,
             '1m' => 2592000,
             default => 86400,
         };
+    }
 
-        $time_ago = time() - $seconds;
+    /**
+     * Samples within the same bucket are shown as a single point, it keeps the charts at roughly 1440 of them.
+     */
+    protected function bucketSize(): int {
+        return max(1, intdiv($this->rangeSeconds(), 1440));
+    }
 
-        $bucket = max(1, intdiv($seconds, 1440));
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    protected function fetchRecentMetrics(): array {
+        $time_ago = time() - $this->rangeSeconds();
 
-        $stmt = $this->pdo->prepare('SELECT *, MAX(id) FROM metrics WHERE timestamp >= :time_ago GROUP BY timestamp / :bucket ORDER BY timestamp');
-        $stmt->bindValue(':time_ago', $time_ago, PDO::PARAM_INT);
-        $stmt->bindValue(':bucket', $bucket, PDO::PARAM_INT);
+        $since = $this->isLive() ? (int) Http::post('since', 0) : 0;
+        $live = $since > $time_ago;
+
+        $stmt = $this->pdo->prepare('SELECT *, MAX(id) FROM metrics WHERE timestamp > :time_ago GROUP BY timestamp / :bucket ORDER BY timestamp');
+        $stmt->bindValue(':time_ago', $live ? $since : $time_ago, PDO::PARAM_INT);
+        $stmt->bindValue(':bucket', $live ? 1 : $this->bucketSize(), PDO::PARAM_INT);
         $stmt->execute();
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);

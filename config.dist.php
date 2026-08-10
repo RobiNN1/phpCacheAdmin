@@ -38,7 +38,7 @@ return [
             ],*/
             'port' => 6379, // Optional when the default port is used.
             /*'sentinels' => [
-                // List of Sentinels. The current master is looked up on every request, so a failover is picked up on the next page load.
+                // List of Sentinels. The current master is looked up on every request, so failover is picked up on the next page load.
                 '127.0.0.1:26379',
                 '127.0.0.1:26380',
                 '127.0.0.1:26381',
@@ -132,7 +132,8 @@ return [
     'panelrefresh'   => 30, // In seconds, refresh interval for panels - default 30
     'metricsrefresh' => 60, // In seconds, refresh interval for metrics - default 60
     'metricstab'     => '1d', // Default tab in metrics, 1h - Last hour, 1d - Last day, 1w - Last week, 1m - Last month - default 1d
-    'liverefresh'    => 2, // In seconds, sampling interval for the live mode in metrics (1-60) - default 2
+    'liverefresh'    => 2, // In seconds, sampling interval for the live mode toggle in metrics (1-60) - default 2
+    'metricsmaxage'  => 30, // In days, how long the collected metrics are kept; 0 keeps everything - default 30
     'pubsubrefresh'  => 5, // In seconds, refresh interval for the Pub/Sub active channels list - default 5
     'pubsubwindow'   => 5, // In seconds, how long one Pub/Sub monitor request captures messages (1-10) - default 5
     'hash'           => 'pca', // Any random string to secure a metrics DB file.

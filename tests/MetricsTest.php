@@ -13,6 +13,7 @@ use JsonException;
 use PDO;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use RobiNN\Pca\Config;
 use RobiNN\Pca\Dashboards\Metrics;
 
 readonly class DummyMetrics extends Metrics {
@@ -38,6 +39,10 @@ readonly class DummyMetrics extends Metrics {
     public function migrate(array $columns): void {
         $this->updateSchema($columns);
     }
+
+    public function bucket(): int {
+        return $this->bucketSize();
+    }
 }
 
 final class MetricsTest extends TestCase {
@@ -53,8 +58,22 @@ final class MetricsTest extends TestCase {
     }
 
     protected function tearDown(): void {
-        unset($_POST['filter']);
+        unset($_POST['filter'], $_POST['live'], $_POST['since']);
+        putenv('PCA_METRICSMAXAGE');
+        Config::reset();
         @unlink($this->db_file);
+    }
+
+    private function seed(int $timestamp): void {
+        $stmt = $this->metrics->db()->prepare('INSERT INTO metrics (timestamp, value) VALUES (?, 42)');
+        $stmt->execute([$timestamp]);
+    }
+
+    private function rows(int $timestamp): int {
+        $stmt = $this->metrics->db()->prepare('SELECT COUNT(*) FROM metrics WHERE timestamp = ?');
+        $stmt->execute([$timestamp]);
+
+        return (int) $stmt->fetchColumn();
     }
 
     /**
@@ -147,6 +166,131 @@ final class MetricsTest extends TestCase {
 
         $this->assertContains($inside, $timestamps);
         $this->assertNotContains($outside, $timestamps);
+    }
+
+    /**
+     * @throws JsonException
+     */
+    public function testLiveModeCollectsMoreOften(): void {
+        $this->collect();
+        $this->metrics->db()->exec('UPDATE metrics SET timestamp = timestamp - 5');
+
+        $_POST['live'] = '1';
+        $this->collect();
+
+        $this->assertSame(2, (int) $this->metrics->db()->query('SELECT COUNT(*) FROM metrics')->fetchColumn());
+    }
+
+    /**
+     * @throws JsonException
+     */
+    public function testLiveModeReturnsOnlyNewerSamples(): void {
+        $stmt = $this->metrics->db()->prepare('INSERT INTO metrics (timestamp, value) VALUES (?, 42)');
+        $stmt->execute([time() - 300]);
+        $stmt->execute([time() - 200]);
+
+        $_POST['live'] = '1';
+        $_POST['since'] = (string) (time() - 250);
+        $timestamps = array_column($this->collect(), 'unix_timestamp');
+
+        $this->assertNotContains(time() - 300, $timestamps);
+        $this->assertContains(time() - 200, $timestamps);
+    }
+
+    /**
+     * @throws JsonException
+     */
+    public function testLiveModeKeepsTheSamplesApart(): void {
+        $stmt = $this->metrics->db()->prepare('INSERT INTO metrics (timestamp, value) VALUES (?, 42)');
+
+        for ($t = time() - 10; $t <= time(); $t += 2) {
+            $stmt->execute([$t]);
+        }
+
+        $_POST['filter'] = '1d';
+        $_POST['live'] = '1';
+        $_POST['since'] = (string) (time() - 11);
+
+        $this->assertCount(6, $this->collect());
+    }
+
+    /**
+     * @throws JsonException
+     */
+    public function testLiveModeFallsBackToTheWholeRange(): void {
+        $stmt = $this->metrics->db()->prepare('INSERT INTO metrics (timestamp, value) VALUES (?, 42)');
+        $stmt->execute([time() - 300]);
+
+        $_POST['live'] = '1';
+        $_POST['since'] = '0'; // nothing on the chart yet
+
+        $this->assertContains(time() - 300, array_column($this->collect(), 'unix_timestamp'));
+    }
+
+    /**
+     * @throws JsonException
+     */
+    public function testSamplesOlderThanTheMaxAgeAreDeleted(): void {
+        $this->seed(time() - (31 * 86400));
+        $this->collect();
+
+        $this->assertSame(0, $this->rows(time() - (31 * 86400)));
+    }
+
+    /**
+     * @throws JsonException
+     */
+    public function testSamplesWithinTheMaxAgeAreKept(): void {
+        $this->seed(time() - (29 * 86400));
+        $this->collect();
+
+        $this->assertSame(1, $this->rows(time() - (29 * 86400)));
+    }
+
+    /**
+     * @throws JsonException
+     */
+    public function testCleanupCanBeDisabled(): void {
+        putenv('PCA_METRICSMAXAGE=0');
+        Config::reset();
+
+        $this->seed(time() - (31 * 86400));
+        $this->collect();
+
+        $this->assertSame(1, $this->rows(time() - (31 * 86400)));
+    }
+
+    /**
+     * @throws JsonException
+     */
+    public function testLiveRequestsDoNotCleanUp(): void {
+        $this->seed(time() - (31 * 86400));
+
+        $_POST['live'] = '1';
+        $this->collect();
+
+        $this->assertSame(1, $this->rows(time() - (31 * 86400)));
+    }
+
+    /**
+     * @return Iterator<string, array{string, int}>
+     */
+    public static function bucketProvider(): Iterator {
+        yield '1h' => ['1h', 2];
+        yield '1d' => ['1d', 60];
+        yield '1w' => ['1w', 420];
+        yield '1m' => ['1m', 1800];
+        yield 'unknown falls back to 1d' => ['nonsense', 60];
+    }
+
+    /**
+     * The browser folds the live samples into these buckets, it gets them from the X-Metrics-Bucket header.
+     */
+    #[DataProvider('bucketProvider')]
+    public function testBucketSizeOfTheRange(string $filter, int $bucket): void {
+        $_POST['filter'] = $filter;
+
+        $this->assertSame($bucket, $this->metrics->bucket());
     }
 
     public function testUpdateSchemaAddsMissingColumns(): void {

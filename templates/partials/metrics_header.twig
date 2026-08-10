@@ -1,0 +1,30 @@
+{% set links = {'1h': 'Last hour', '1d': 'Last day', '1w': 'Last week', '1m': 'Last month'} %}
+{% set selected = config('metricstab', '1d') %}
+{% set live_refresh = min(max(config('liverefresh', 2), 1), 60) %}
+{% set max_age = config('metricsmaxage', 30) %}
+
+{{ include('components/tabs.twig', {
+    tabs: true,
+    pills: true,
+    selected: selected in links|keys ? selected : '1d',
+    links: links,
+    toggle: {
+        id: 'metrics_live',
+        label: 'Live',
+        title: 'Keep the charts updated between the stored samples.',
+    },
+}) }}
+
+<div class="card p-2 mb-4 text-sm text-gray-600 dark:text-gray-300">
+    <div>
+        To collect metrics even when the dashboard is not open, add this link to a cronjob:
+        <code class="inline-block py-1 px-2 text-xs break-all bg-gray-200 rounded dark:bg-gray-700 dark:text-gray-300">{{ cronjob_url(dashboard, get('server', 0)) }}</code>
+    </div>
+    <div class="mt-1">
+        The charts are redrawn from the stored samples every {{ config('metricsrefresh', 30) }}s.
+        Live mode collects a sample every {{ live_refresh }}s instead ({{ sampling }} per sample) and appends it
+        to the end of the selected range, so the charts keep moving without a refresh.
+        These samples are stored the same way, so the database grows faster while it is on
+        {{ max_age > 0 ? '(samples older than %d days are deleted).'|format(max_age) : '(nothing is deleted, metricsmaxage is off).' }}
+    </div>
+</div>

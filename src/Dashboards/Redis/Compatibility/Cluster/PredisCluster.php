@@ -40,7 +40,7 @@ class PredisCluster extends PredisClient implements RedisCompatibilityInterface 
     ];
 
     /**
-     * Commands whose key follows a subcommand, e.g. OBJECT ENCODING or XINFO GROUPS.
+     * Commands whose key follows a subcommand, e.g., OBJECT ENCODING or XINFO GROUPS.
      */
     private const SUBCOMMAND_KEY_COMMANDS = ['OBJECT', 'XGROUP', 'XINFO'];
 

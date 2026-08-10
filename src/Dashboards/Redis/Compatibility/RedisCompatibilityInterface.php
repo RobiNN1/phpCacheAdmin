@@ -137,7 +137,7 @@ interface RedisCompatibilityInterface {
     public function size(string $key): int;
 
     /**
-     * Internal representation of the value, e.g. listpack or hashtable.
+     * Internal representation of the value, e.g., listpack or hashtable.
      */
     public function keyEncoding(string $key): string;
 
@@ -151,7 +151,7 @@ interface RedisCompatibilityInterface {
     public function hashFieldTtl(string $key, array $fields): array;
 
     /**
-     * Set the time to live of a single hash field, -1 removes it.
+     * Set the time to live of a single hash field; -1 removes it.
      */
     public function hashFieldExpire(string $key, string $field, int $ttl): bool;
 

@@ -33,7 +33,7 @@
         const ajax_panels = {{ ajax_panels is defined and ajax_panels == true ? 'true' : 'false' }};
         const metrics_refresh_interval = {{ config('metricsrefresh', 30) * 1000 }};
         const live_refresh_interval = {{ min(max(config('liverefresh', 2), 1), 60) * 1000 }};
-        let metrics_active_filter = '{{ config('metricstab', '1d') }}';
+        let metrics_active_filter = '{{ config('metricstab', '1d') in ['1h', '1d', '1w', '1m'] ? config('metricstab', '1d') : '1d' }}';
         const decimalsep = '{{ config('decimalsep', ',') }}';
         const thousandssep = '{{ config('thousandssep', ' ') }}';
     </script>

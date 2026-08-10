@@ -210,84 +210,6 @@ final class MemcachedTest extends TestCase {
     }
 
     /**
-     * @return array<string, int>
-     */
-    private function liveStats(): array {
-        return [
-            'uptime'            => 3600,
-            'cmd_get'           => 100,
-            'cmd_set'           => 40,
-            'cmd_touch'         => 10,
-            'cmd_flush'         => 2,
-            'get_hits'          => 90,
-            'get_misses'        => 30,
-            'delete_hits'       => 5,
-            'delete_misses'     => 3,
-            'incr_hits'         => 2,
-            'incr_misses'       => 1,
-            'decr_hits'         => 1,
-            'decr_misses'       => 1,
-            'cas_hits'          => 4,
-            'cas_misses'        => 2,
-            'cas_badval'        => 1,
-            'touch_hits'        => 7,
-            'touch_misses'      => 3,
-            'bytes_read'        => 1024,
-            'bytes_written'     => 2048,
-            'evictions'         => 6,
-            'expired_unfetched' => 4,
-            'reclaimed'         => 8,
-            'total_items'       => 60,
-            'total_connections' => 20,
-            'curr_items'        => 50,
-            'curr_connections'  => 5,
-            'bytes'             => 4096,
-            'limit_maxbytes'    => 8192,
-            'threads'           => 4,
-        ];
-    }
-
-    public function testLiveSnapshotUsesCommandCounters(): void {
-        $commands = $this->dashboard->liveSnapshot($this->liveStats())['commands'];
-
-        $this->assertSame(['requests' => 100, 'hits' => 90, 'misses' => 30], $commands['get']);
-        $this->assertSame(['requests' => 40], $commands['set']);
-    }
-
-    public function testLiveSnapshotCountsCommandsWithoutCounter(): void {
-        $commands = $this->dashboard->liveSnapshot($this->liveStats())['commands'];
-
-        $this->assertSame(['requests' => 8, 'hits' => 5, 'misses' => 3], $commands['delete']);
-        $this->assertSame(['requests' => 7, 'hits' => 4, 'misses' => 2], $commands['cas']);
-    }
-
-    public function testLiveSnapshotTotals(): void {
-        $snapshot = $this->dashboard->liveSnapshot($this->liveStats());
-
-        // 100 get + 40 set + 8 delete + 3 incr + 2 decr + 7 cas + 10 touch + 2 flush
-        $this->assertSame(['requests' => 172, 'hits' => 109, 'misses' => 40], $snapshot['totals']);
-    }
-
-    public function testLiveSnapshotWithoutStats(): void {
-        $snapshot = $this->dashboard->liveSnapshot([]);
-
-        $this->assertSame(['requests' => 0, 'hits' => 0, 'misses' => 0], $snapshot['totals']);
-        $this->assertSame(0, $snapshot['gauges']['memory_limit']);
-    }
-
-    /**
-     * @throws JsonException
-     */
-    public function testAjaxLive(): void {
-        $_GET['live'] = '';
-
-        $snapshot = json_decode($this->dashboard->ajax(), true, 512, JSON_THROW_ON_ERROR);
-
-        $this->assertArrayHasKey('get', $snapshot['commands']);
-        $this->assertGreaterThan(0, $snapshot['time']);
-    }
-
-    /**
      * @throws MemcachedException
      */
     public function testDeleteKey(): void {
@@ -435,7 +357,6 @@ final class MemcachedTest extends TestCase {
      */
     #[DataProvider('commandDataProvider')]
     public function testRunCommand(string $expected, string $command): void {
-        // Commands that older servers do not have yet, get-and-touch and the meta protocol.
         $required = ['gat' => '1.5.3', 'gats' => '1.5.3', 'mg' => '1.6.0', 'ms' => '1.6.0', 'md' => '1.6.0', 'ma' => '1.6.0', 'mn' => '1.6.0'];
         $name = (string) strtok($command, ' ');
 

@@ -4,29 +4,7 @@
     </div>
 {% endif %}
 
-{{ include('components/tabs.twig', {
-    tabs: true,
-    pills: true,
-    selected: config('metricstab', '1d'),
-    links: {
-        live: 'Live',
-        '1h': 'Last hour',
-        '1d': 'Last day',
-        '1w': 'Last week',
-        '1m': 'Last month',
-    },
-}) }}
-
-<div class="card p-2 mb-4 text-sm text-gray-600 dark:text-gray-300">
-    <div>
-        To collect metrics even when the dashboard is not open, add this link to a cronjob:
-        <code class="inline-block py-1 px-2 text-xs break-all bg-gray-200 rounded dark:bg-gray-700 dark:text-gray-300">{{ cronjob_url('memcached', get('server', 0)) }}</code>
-    </div>
-    <div class="mt-1">
-        Live runs a single "stats" command every {{ min(max(config('liverefresh', 2), 1), 60) }}s and calculates the rates in the browser from two consecutive samples.
-        It shows a rolling window and nothing is stored.
-    </div>
-</div>
+{{ include('partials/metrics_header.twig', {dashboard: 'memcached', sampling: 'one "stats" command'}) }}
 
 {{ include('partials/metrics_tiles.twig', {tiles: [
     {id: 'ops', label: 'Operations'},
@@ -65,13 +43,13 @@
         const initial_theme = document.documentElement.classList.contains('dark') ? 'dark' : null;
 
         const chart_config = {
-            hit_rate: echarts.init(document.getElementById('hit_rate_chart'), initial_theme, {renderer: 'svg'}),
-            memory: echarts.init(document.getElementById('memory_chart'), initial_theme, {renderer: 'svg'}),
-            items: echarts.init(document.getElementById('items_chart'), initial_theme, {renderer: 'svg'}),
-            request_rate: echarts.init(document.getElementById('request_rate_chart'), initial_theme, {renderer: 'svg'}),
-            request_dist: echarts.init(document.getElementById('request_dist_chart'), initial_theme, {renderer: 'svg'}),
-            connections: echarts.init(document.getElementById('connections_chart'), initial_theme, {renderer: 'svg'}),
-            traffic: echarts.init(document.getElementById('traffic_chart'), initial_theme, {renderer: 'svg'}),
+            hit_rate: echarts.init(document.getElementById('hit_rate_chart'), initial_theme, {renderer: 'canvas'}),
+            memory: echarts.init(document.getElementById('memory_chart'), initial_theme, {renderer: 'canvas'}),
+            items: echarts.init(document.getElementById('items_chart'), initial_theme, {renderer: 'canvas'}),
+            request_rate: echarts.init(document.getElementById('request_rate_chart'), initial_theme, {renderer: 'canvas'}),
+            request_dist: echarts.init(document.getElementById('request_dist_chart'), initial_theme, {renderer: 'canvas'}),
+            connections: echarts.init(document.getElementById('connections_chart'), initial_theme, {renderer: 'canvas'}),
+            traffic: echarts.init(document.getElementById('traffic_chart'), initial_theme, {renderer: 'canvas'}),
         };
 
         const HIT_RATE_COMMANDS = ['get', 'delete', 'incr', 'decr', 'cas', 'touch'];
@@ -203,43 +181,6 @@
             }, timestamps);
         };
 
-        const live_point = (previous, current, seconds) => {
-            const rate = (a, b) => a >= b ? (a - b) / seconds : 0;
-            const percent = (hits, misses) => (hits + misses) > 0 ? Math.round((hits / (hits + misses)) * 10000) / 100 : 0;
-            const command_rate = (command, counter) => rate(current.commands[command][counter], previous.commands[command][counter]);
-
-            const request_rates = {overall: 0};
-            REQUEST_RATE_COMMANDS.forEach(command => {
-                request_rates[command] = command_rate(command, 'requests');
-                request_rates.overall += request_rates[command];
-            });
-
-            const hit_rates = {
-                overall: percent(rate(current.totals.hits, previous.totals.hits), rate(current.totals.misses, previous.totals.misses))
-            };
-            HIT_RATE_COMMANDS.forEach(command => {
-                hit_rates[command] = percent(command_rate(command, 'hits'), command_rate(command, 'misses'));
-            });
-
-            return {
-                timestamp: current.timestamp,
-                unix_timestamp: Math.round(current.time),
-                hit_rates: hit_rates,
-                request_rates: request_rates,
-                traffic: {
-                    received_rate: rate(current.traffic.read, previous.traffic.read),
-                    sent_rate: rate(current.traffic.written, previous.traffic.written),
-                },
-                memory_used: current.gauges.memory_used,
-                memory_limit: current.gauges.memory_limit,
-                stored_items: current.gauges.items,
-                eviction_rate: rate(current.events.evictions, previous.events.evictions),
-                expired_rate: rate(current.events.expired, previous.events.expired),
-                connections: current.gauges.connections,
-                new_connection_rate: rate(current.events.new_connections, previous.events.new_connections),
-            };
-        };
-
-        new Metrics(render_charts, chart_config, live_point);
+        new Metrics(render_charts, chart_config);
     });
 </script>

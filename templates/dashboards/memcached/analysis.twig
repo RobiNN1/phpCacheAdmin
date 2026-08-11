@@ -1,5 +1,61 @@
 {% import 'components/macros.twig' as macros %}
 
+{% if sizes %}
+    <div class="p-4 card mb-4">
+        <h2 class="mb-1 text-sm font-bold uppercase text-primary-900 dark:text-primary-400">Item sizes</h2>
+        <p class="mb-3 text-xs text-gray-600 dark:text-gray-300">
+            {% if sizes.enabled %}
+                Counted by the server for every item in the cache, so this is not a sample.
+                A class holds everything up to its size, and the size includes the key and the item overhead,
+                which is why nothing lands in the smallest classes.
+            {% else %}
+                The server does not track item sizes. Start it with <code>-o track_sizes</code> to see the
+                distribution of every item in the cache here.
+            {% endif %}
+        </p>
+
+        {% if sizes.enabled %}
+            <div class="overflow-auto max-h-96">
+                <table class="w-full text-left table-auto dark:text-gray-300">
+                    <thead class="sticky top-0 z-10 bg-white dark:bg-gray-800">
+                    <tr class="border-b border-gray-200 dark:border-gray-700 text-primary-900 dark:text-primary-400">
+                        <th class="py-2 px-4 text-xs font-bold uppercase whitespace-nowrap">Size class</th>
+                        <th class="py-2 px-4 text-xs font-bold uppercase whitespace-nowrap w-20">Items</th>
+                        <th class="py-2 px-4 text-xs font-bold uppercase whitespace-nowrap w-40">Share</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for row in sizes.rows %}
+                        <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
+                            {# The classes are 32 bytes apart, rounding would make two of them look the same. #}
+                            <td class="py-2 px-4 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700 whitespace-nowrap">{{ row.name|number }} B</td>
+                            <td class="py-2 px-4 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700 whitespace-nowrap">{{ row.count|number }}</td>
+                            <td class="py-2 px-4 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700">
+                                <div class="flex gap-2 items-center">
+                                    <div class="grow">{{ macros.progress(row.percent, 'lower', null, 'info') }}</div>
+                                    <span class="shrink-0 text-xs text-gray-600 dark:text-gray-300">{{ row.percent }}%</span>
+                                </div>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="3" class="py-2 px-4 text-sm text-center border-t border-gray-200 dark:text-gray-300 dark:border-gray-700">There are no items in the cache.</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                    <tfoot>
+                    <tr class="text-gray-600 dark:text-gray-300">
+                        <td class="py-2 px-4 text-xs font-semibold uppercase border-t border-gray-200 dark:border-gray-700">Total</td>
+                        <td class="py-2 px-4 text-xs font-semibold border-t border-gray-200 dark:border-gray-700 whitespace-nowrap">{{ sizes.total|number }}</td>
+                        <td class="border-t border-gray-200 dark:border-gray-700"></td>
+                    </tr>
+                    </tfoot>
+                </table>
+            </div>
+        {% endif %}
+    </div>
+{% endif %}
+
 {% if tab_message %}
     <div class="p-4 card text-center text-gray-600 dark:text-gray-300">{{ tab_message }}</div>
 {% elseif analysis is empty %}

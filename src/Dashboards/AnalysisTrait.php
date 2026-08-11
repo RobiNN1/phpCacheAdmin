@@ -120,7 +120,7 @@ trait AnalysisTrait {
     /**
      * Turn bucket counts into rows with each bucket's share of the total.
      *
-     * @param array<string, int> $counts
+     * @param array<int|string, int> $counts
      *
      * @return array<int, array<string, mixed>>
      */

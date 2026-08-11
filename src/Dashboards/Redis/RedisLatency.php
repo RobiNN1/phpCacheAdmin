@@ -34,7 +34,7 @@ trait RedisLatency {
         $threshold = $this->latencyThreshold();
         $events = $this->redis->latencyLatest();
 
-        // Worst first, the all-time maximum is what a spike is remembered by.
+        // Worst first, by the all-time maximum.
         usort($events, static fn (array $a, array $b): int => $b['max'] <=> $a['max']);
 
         $event = (string) Http::get('event', '');
@@ -55,7 +55,7 @@ trait RedisLatency {
     }
 
     /**
-     * Both actions only touch diagnostics, the keyspace is never involved.
+     * Both actions only touch diagnostics.
      *
      * @throws Exception
      */
@@ -116,7 +116,7 @@ trait RedisLatency {
 
             $command = substr((string) $field, strlen('latency_percentiles_usec_'));
 
-            // A cluster reports one line per node; a percentile is not an average, so the worst node is kept.
+            // A percentile is not an average, so in a cluster the worst node is kept.
             foreach ($this->fieldValues($latencystats, (string) $field) as $line) {
                 foreach (explode(',', $line) as $pair) {
                     if (!str_contains($pair, '=')) {

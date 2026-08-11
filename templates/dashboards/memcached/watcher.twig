@@ -1,0 +1,188 @@
+{% import 'components/macros.twig' as macros %}
+
+{{ include('components/alert.twig', {
+    alert_color: 'error',
+    inline: true,
+    message: 'A watcher streams what the server does with <strong>every key</strong> it is asked about.
+              Key names, sizes and the fate of each request are visible to anyone looking at this screen, values are not.
+              Watching reads on a busy server means a log line per request, so keep it short.',
+}) }}
+
+<div class="p-4 card mb-4">
+    <div class="flex flex-wrap gap-x-6 gap-y-2 mb-3">
+        {% for mode, label in modes %}
+            <label class="flex gap-2 items-center text-sm text-gray-700 dark:text-gray-300">
+                {{ macros.checkbox('watcher-mode mt-0', false, 'watcher_mode_' ~ mode, label, mode in default) }}
+                {{ label }}
+            </label>
+        {% endfor %}
+    </div>
+
+    <div class="flex flex-wrap gap-3 items-end">
+        <div class="w-full sm:w-64">
+            {{ include('components/input.twig', {
+                id: 'watcher_filter',
+                label: 'Filter',
+                attr: 'placeholder="Hide lines without this text"',
+                wrapper_class: 'flex flex-col',
+            }) }}
+        </div>
+
+        {{ include('components/button.twig', {
+            id: 'watcher_toggle',
+            text: 'Start',
+            color: 'green',
+        }) }}
+
+        {{ include('components/button.twig', {
+            id: 'watcher_clear',
+            text: 'Clear',
+            color: 'red',
+        }) }}
+
+        <div class="ms-auto text-xs text-gray-600 dark:text-gray-300">
+            <span id="watcher_count" class="font-semibold">0</span> lines captured
+        </div>
+    </div>
+</div>
+
+<div class="p-4 card">
+    <div class="flex justify-between items-center mb-3">
+        <h2 class="text-sm font-bold uppercase text-primary-900 dark:text-primary-400">Log</h2>
+        <span id="watcher_status" class="text-xs text-gray-600 dark:text-gray-300">Not running.</span>
+    </div>
+
+    <div id="watcher_log" class="overflow-y-auto p-2 h-128 font-mono text-xs rounded border border-gray-200 dark:border-gray-700">
+        <div id="watcher_empty" class="text-gray-600 dark:text-gray-300">Start the watcher to see what the server is doing.</div>
+    </div>
+
+    <template id="watcher_row">
+        <div class="flex gap-2 py-0.5 border-b border-gray-100 dark:border-gray-700/50">
+            <span class="text-gray-500 shrink-0 dark:text-gray-400"></span>
+            <span class="font-semibold shrink-0 text-primary-500 dark:text-primary-400"></span>
+            <span class="break-all"></span>
+            <span class="ms-auto text-gray-400 shrink-0 dark:text-gray-500"></span>
+        </div>
+    </template>
+
+    <p class="mt-2 text-xs text-gray-600 dark:text-gray-300">
+        Captured over AJAX in {{ window }}s windows, so anything the server does in the gap between two requests is missed.
+        The dashboard's own commands show up here too.
+        The server never waits for a slow watcher, it throws log lines away instead and the count of those is reported here.
+    </p>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const toggle_btn = document.getElementById('watcher_toggle');
+        const filter_input = document.getElementById('watcher_filter');
+        const log_box = document.getElementById('watcher_log');
+        const status = document.getElementById('watcher_status');
+        const counter = document.getElementById('watcher_count');
+
+        const capture_window = parseInt("{{ window }}", 10);
+        const max_rendered = 1000;
+
+        let running = false;
+        let captured = 0;
+        let skipped = 0;
+
+        const selected_modes = () => Array.from(document.querySelectorAll('.watcher-mode:checked'))
+            .map(box => box.id.replace('watcher_mode_', ''));
+
+        const append_log = (log) => {
+            const empty = document.getElementById('watcher_empty');
+            if (empty) {
+                empty.remove();
+            }
+
+            const row = document.getElementById('watcher_row').content.cloneNode(true);
+            const [time, type, key, fields] = row.querySelectorAll('span');
+            const at = new Date(log.time * 1000);
+            const details = Object.entries(log.fields ?? {}).map(([name, value]) => `${name}=${value}`).join(' ');
+
+            time.textContent = at.toLocaleTimeString() + '.' + String(at.getMilliseconds()).padStart(3, '0');
+            type.textContent = log.type;
+            key.textContent = log.key;
+            fields.textContent = details;
+
+            const line = log_box.appendChild(row.firstElementChild);
+            line.dataset.text = (log.type + ' ' + log.key + ' ' + details).toLowerCase();
+            apply_filter(line);
+
+            while (log_box.children.length > max_rendered) {
+                log_box.removeChild(log_box.firstChild);
+            }
+
+            log_box.scrollTop = log_box.scrollHeight;
+        };
+
+        const apply_filter = (line) => {
+            const needle = filter_input.value.trim().toLowerCase();
+            line.hidden = needle !== '' && !line.dataset.text.includes(needle);
+        };
+
+        filter_input.addEventListener('input', () => {
+            log_box.querySelectorAll('[data-text]').forEach(apply_filter);
+        });
+
+        const poll = () => {
+            if (!running) {
+                return;
+            }
+
+            const modes = selected_modes();
+
+            if (modes.length === 0) {
+                status.textContent = 'Pick at least one thing to watch.';
+                setTimeout(poll, 1000);
+                return;
+            }
+
+            status.textContent = 'Capturing…';
+            const started = Date.now();
+
+            ajax(`watcher&window=${capture_window}&modes=${modes.join(',')}`, (request) => {
+                if (!running) {
+                    return;
+                }
+
+                const data = ajax_ok(request) ? parse_json(request) : null;
+
+                if (data === null || data.error) {
+                    status.textContent = data?.error ?? 'The capture failed.';
+                    setTimeout(poll, 2000);
+                    return;
+                }
+
+                (data.logs ?? []).forEach(log => {
+                    captured++;
+                    append_log(log);
+                });
+
+                skipped += data.skipped ?? 0;
+                counter.textContent = captured.toLocaleString() + (skipped > 0 ? ` (${skipped.toLocaleString()} dropped by the server)` : '');
+                // A busy server fills the line limit in milliseconds, polling again right away would just hammer both servers with requests.
+                setTimeout(poll, Math.max(0, 1000 - (Date.now() - started)));
+            });
+        };
+
+        toggle_btn.addEventListener('click', () => {
+            running = !running;
+            toggle_btn.textContent = running ? 'Stop' : 'Start';
+
+            if (running) {
+                poll();
+            } else {
+                status.textContent = 'Stopped.';
+            }
+        });
+
+        document.getElementById('watcher_clear').addEventListener('click', () => {
+            log_box.innerHTML = '';
+            captured = 0;
+            skipped = 0;
+            counter.textContent = '0';
+        });
+    });
+</script>

@@ -23,6 +23,8 @@ trait MemcachedTrait {
     use MemcachedSlabs;
     use MemcachedKeyView;
     use MemcachedKeysList;
+    use MemcachedConnections;
+    use MemcachedWatcher;
     use MemcachedConsole;
 
     /**
@@ -35,6 +37,8 @@ trait MemcachedTrait {
         'slabs'          => 'Slabs',
         'items'          => 'Items',
         'metrics'        => 'Metrics',
+        'connections'    => 'Connections',
+        'watcher'        => 'Watcher',
         'console'        => 'Console',
         'moreinfo'       => 'More info',
     ];
@@ -202,6 +206,8 @@ trait MemcachedTrait {
             'slabs' => $this->slabsTab(),
             'items' => $this->itemsTab(),
             'metrics' => $this->metricsTab(),
+            'connections' => $this->connectionsTab(),
+            'watcher' => $this->watcherTab(),
             'moreinfo' => ['data' => $this->moreinfoTab(), 'tpl' => 'partials/info_table'],
             default => [],
         };

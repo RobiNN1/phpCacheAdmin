@@ -10,6 +10,7 @@ namespace RobiNN\Pca\Dashboards\Redis;
 
 use RobiNN\Pca\Csrf;
 use RobiNN\Pca\Dashboards\ConsoleHistoryTrait;
+use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
 use Throwable;
 
@@ -55,18 +56,18 @@ trait RedisConsole {
 
         try {
             if (isset($_GET['history'])) {
-                return $this->consoleJson(['history' => $this->getConsoleHistory()]);
+                return Helpers::ajaxJson(['history' => $this->getConsoleHistory()]);
             }
 
             if (!Csrf::validateToken(Http::post('csrf_token', ''))) {
-                return $this->consoleJson(['error' => 'Invalid CSRF token.']);
+                return Helpers::ajaxJson(['error' => 'Invalid CSRF token.']);
             }
 
             $line = Http::post('command', '');
             $args = $this->parseCommandLine($line);
 
             if ($args === []) {
-                return $this->consoleJson(['error' => 'Empty command.']);
+                return Helpers::ajaxJson(['error' => 'Empty command.']);
             }
 
             $this->storeConsoleCommand(trim($line));
@@ -74,7 +75,7 @@ trait RedisConsole {
             $command = strtoupper($args[0]);
 
             if (in_array($command, $this->console_blocked, true)) {
-                return $this->consoleJson([
+                return Helpers::ajaxJson([
                     'error' => 'Command "'.$args[0].'" is not allowed in the console.',
                     ...$this->consoleTabHint($this->console_command_tabs[$command] ?? null, 'Open the %s tab'),
                 ]);
@@ -82,12 +83,12 @@ trait RedisConsole {
 
             $output = $this->formatReply($this->redis->consoleCommand($args));
 
-            return $this->consoleJson([
+            return Helpers::ajaxJson([
                 'output' => $output,
                 ...$this->consoleTabHint($this->console_command_views[$command] ?? null, 'See it formatted on the %s tab'),
             ]);
         } catch (Throwable $e) {
-            return $this->consoleJson(['error' => $e->getMessage()]);
+            return Helpers::ajaxJson(['error' => $e->getMessage()]);
         }
     }
 

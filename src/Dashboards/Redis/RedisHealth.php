@@ -18,7 +18,7 @@ trait RedisHealth {
     private int $replication_lag_seconds = 10;
 
     /**
-     * These stay "ok" while the matching persistence method is turned off, so anything else is a real failure.
+     * These stay "ok" while the matching method is off, so anything else is a real failure.
      *
      * @var array<string, string>
      */
@@ -51,8 +51,7 @@ trait RedisHealth {
     }
 
     /**
-     * In a cluster a field holds one value per node and collapses into a single one only when every node agrees,
-     * so anything read out of INFO has to survive both shapes.
+     * In a cluster a field holds one value per node and collapses only when every node agrees.
      *
      * @param array<string, mixed> $section
      *
@@ -281,7 +280,7 @@ trait RedisHealth {
 
         $check = ['name' => 'Replication', 'directive' => 'replicaof', 'utilization' => 0, 'suggestion' => ''];
 
-        // A cluster answers with the role of every node, and a mix of them says nothing about a single server.
+        // A mix of roles in a cluster says nothing about a single server.
         if (count($roles) > 1) {
             sort($roles);
 

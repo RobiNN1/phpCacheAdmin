@@ -8,8 +8,6 @@ declare(strict_types=1);
 
 namespace RobiNN\Pca;
 
-use JsonException;
-
 class ReadonlyMode {
     public const MESSAGE = 'Read-only mode is enabled, this action is not allowed.';
 
@@ -65,11 +63,7 @@ class ReadonlyMode {
                 header('Content-Type: application/json');
             }
 
-            try {
-                return json_encode(['error' => self::MESSAGE], JSON_THROW_ON_ERROR);
-            } catch (JsonException) {
-                return self::MESSAGE;
-            }
+            return Helpers::ajaxJson(['error' => self::MESSAGE]);
         }
 
         return Helpers::alert(self::MESSAGE, 'error');

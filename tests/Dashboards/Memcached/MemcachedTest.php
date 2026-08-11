@@ -695,6 +695,189 @@ final class MemcachedTest extends TestCase {
         unlink($tmp_file_path);
     }
 
+    public function testParseConnections(): void {
+        $connections = $this->dashboard->parseConnections([
+            'curr_connections'       => 3, // "stats conns" has no such field, but nothing may break on one
+            '25:addr'                => 'tcp:0.0.0.0:11211',
+            '25:state'               => 'conn_listening',
+            '25:secs_since_last_cmd' => 124_865,
+            '27:addr'                => 'tcp:127.0.0.1:53054',
+            '27:listen_addr'         => 'tcp:127.0.0.1:11211',
+            '27:state'               => 'conn_parse_cmd',
+            '27:secs_since_last_cmd' => 0,
+        ]);
+
+        $this->assertCount(2, $connections);
+
+        $this->assertSame(25, $connections[0]['fd']);
+        $this->assertTrue($connections[0]['listening']);
+        // A listening socket was not accepted on another one.
+        $this->assertSame('', $connections[0]['listen_addr']);
+
+        $this->assertSame('tcp:127.0.0.1:53054', $connections[1]['addr']);
+        $this->assertSame('tcp:127.0.0.1:11211', $connections[1]['listen_addr']);
+        $this->assertSame(0, $connections[1]['idle']);
+        $this->assertFalse($connections[1]['listening']);
+    }
+
+    /**
+     * @throws MemcachedException
+     */
+    public function testConnectionsTab(): void {
+        $_GET['tab'] = 'connections';
+
+        $rendered = $this->dashboard->dashboard();
+
+        $this->assertStringContainsString('Connections', $rendered);
+        // The dashboard's own connection is always in the list.
+        $this->assertStringContainsString('conn_', $rendered);
+    }
+
+    public function testSizeDistribution(): void {
+        $sizes = $this->dashboard->sizeDistribution(['96' => 3, '288' => 1, '5088' => 4]);
+
+        $this->assertTrue($sizes['enabled']);
+        $this->assertSame(8, $sizes['total']);
+        $this->assertSame([96, 288, 5088], array_column($sizes['rows'], 'name'));
+        $this->assertEqualsWithDelta(37.5, $sizes['rows'][0]['percent'], PHP_FLOAT_EPSILON);
+    }
+
+    public function testSizeDistributionWithoutTrackSizes(): void {
+        $sizes = $this->dashboard->sizeDistribution(['sizes_status' => 'disabled']);
+
+        $this->assertFalse($sizes['enabled']);
+        $this->assertSame([], $sizes['rows']);
+    }
+
+    public function testParseWatchLine(): void {
+        $log = $this->dashboard->parseWatchLine(
+            'ts=1786477627.620824 gid=4 type=item_store key=foo%3Abar status=stored cmd=set ttl=0 clsid=1 cfd=28 size=5'
+        );
+
+        $this->assertSame(4, $log['gid']);
+        $this->assertSame('item_store', $log['type']);
+        // Keys are logged urlencoded.
+        $this->assertSame('foo:bar', $log['key']);
+        $this->assertEqualsWithDelta(1786477627.620824, $log['time'], 0.000001);
+        $this->assertSame(['status' => 'stored', 'cmd' => 'set', 'ttl' => '0', 'clsid' => '1', 'cfd' => '28', 'size' => '5'], $log['fields']);
+    }
+
+    public function testParseWatchLineOfAConnectionEvent(): void {
+        $log = $this->dashboard->parseWatchLine('ts=1786477627.620815 gid=2 type=conn_new rip=127.0.0.1 rport=53051 transport=tcp cfd=28');
+
+        $this->assertSame('conn_new', $log['type']);
+        $this->assertSame('', $log['key']);
+        $this->assertSame('127.0.0.1', $log['fields']['rip']);
+    }
+
+    #[DataProvider('invalidWatchLineProvider')]
+    public function testParseWatchLineWithInvalidInput(string $line): void {
+        $this->assertNull($this->dashboard->parseWatchLine($line));
+    }
+
+    /**
+     * @return Iterator<string, array{0: string}>
+     */
+    public static function invalidWatchLineProvider(): Iterator {
+        yield 'empty line' => [''];
+        yield 'the OK of the watch command' => ['OK'];
+        yield 'no timestamp' => ['gid=4 type=item_store key=foo'];
+        yield 'no type' => ['ts=1786477627.620824 gid=4 key=foo'];
+    }
+
+    /**
+     * @throws MemcachedException
+     */
+    public function testWatcherCapture(): void {
+        $this->skipBelowMemcached('1.4.15', 'Watchers');
+
+        $key = 'pu-watcher-key';
+        $script = sprintf(
+            'require %s; usleep(300000); $m = new PHPMem(%s); $m->set(%s, "watched"); $m->get(%s); $m->delete(%s);',
+            var_export(dirname(__DIR__, 3).'/vendor/autoload.php', true),
+            var_export(['host' => Config::get('memcached')[0]['host'], 'port' => Config::get('memcached')[0]['port']], true),
+            var_export($key, true),
+            var_export($key, true),
+            var_export($key, true)
+        );
+
+        exec(sprintf('%s -r %s > /dev/null 2>&1 &', escapeshellarg(PHP_BINARY), escapeshellarg('use '.PHPMem::class.'; '.$script)));
+
+        $logs = $this->dashboard->captureLogs(['fetchers', 'mutations', 'deletions'], 2, 100);
+
+        $this->assertNotEmpty($logs);
+
+        $stored = array_values(array_filter($logs, static fn (array $log): bool => $log['type'] === 'item_store' && $log['key'] === $key));
+
+        $this->assertCount(1, $stored);
+        $this->assertSame('stored', $stored[0]['fields']['status']);
+    }
+
+    /**
+     * @throws MemcachedException
+     */
+    public function testWatcherCaptureHonorsTheLimit(): void {
+        $this->skipBelowMemcached('1.4.15', 'Watchers');
+
+        $script = sprintf(
+            'require %s; usleep(300000); $m = new PHPMem(%s); for ($i = 0; $i < 200; $i++) { $m->set("pu-watcher-flood-".$i, "v"); }',
+            var_export(dirname(__DIR__, 3).'/vendor/autoload.php', true),
+            var_export(['host' => Config::get('memcached')[0]['host'], 'port' => Config::get('memcached')[0]['port']], true)
+        );
+
+        exec(sprintf('%s -r %s > /dev/null 2>&1 &', escapeshellarg(PHP_BINARY), escapeshellarg('use '.PHPMem::class.'; '.$script)));
+
+        $this->assertCount(5, $this->dashboard->captureLogs(['mutations'], 3, 5));
+    }
+
+    /**
+     * @throws MemcachedException
+     */
+    public function testWatcherRejectsAnUnknownMode(): void {
+        $this->skipBelowMemcached('1.4.15', 'Watchers');
+
+        $this->expectException(MemcachedException::class);
+        $this->expectExceptionMessageIsOrContains('refused to watch "nonsense"');
+
+        $this->dashboard->captureLogs(['nonsense'], 1, 5);
+    }
+
+    /**
+     * @throws JsonException
+     */
+    public function testWatcherAjaxWithoutModes(): void {
+        $_GET['watcher'] = '';
+
+        $this->assertSame('Pick at least one thing to watch.', $this->ajaxJson()['error']);
+    }
+
+    /**
+     * @throws JsonException
+     */
+    public function testWatcherAjaxCapture(): void {
+        $_GET['watcher'] = '';
+        // Only known names are watched, the rest is dropped.
+        $_GET['modes'] = 'mutations,rm -rf';
+        $_GET['window'] = 1;
+
+        $data = $this->ajaxJson();
+
+        $this->assertArrayHasKey('logs', $data);
+        $this->assertArrayHasKey('skipped', $data);
+    }
+
+    /**
+     * @throws MemcachedException
+     */
+    public function testWatcherTab(): void {
+        $_GET['tab'] = 'watcher';
+
+        $rendered = $this->dashboard->dashboard();
+
+        $this->assertStringContainsString('watcher_toggle', $rendered);
+        $this->assertStringContainsString('Evictions', $rendered);
+    }
+
     /**
      * Memcached >= 1.6.43 prefixes a metadump with an "OK" line, which must not end the response.
      */

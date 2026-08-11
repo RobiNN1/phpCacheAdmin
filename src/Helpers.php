@@ -385,6 +385,17 @@ class Helpers {
     }
 
     /**
+     * @param array<int|string, mixed> $data
+     */
+    public static function ajaxJson(array $data, int $flags = 0): string {
+        try {
+            return json_encode($data, JSON_THROW_ON_ERROR | JSON_INVALID_UTF8_SUBSTITUTE | $flags);
+        } catch (JsonException $e) {
+            return (string) json_encode(['error' => 'JSON error. '.$e->getMessage()]);
+        }
+    }
+
+    /**
      * @param array<int|string, mixed> $panel_data
      */
     public static function getPanelsJson(array $panel_data): string {
@@ -393,10 +404,7 @@ class Helpers {
         $api_data = [];
 
         if (isset($panel_data['error'])) {
-            try {
-                return json_encode($panel_data, JSON_THROW_ON_ERROR);
-            } catch (JsonException) {
-            }
+            return self::ajaxJson($panel_data);
         }
 
         foreach ($panel_data as $panel) {
@@ -418,12 +426,7 @@ class Helpers {
             }
         }
 
-        try {
-            return json_encode($api_data, JSON_THROW_ON_ERROR);
-        } catch (JsonException) {
-        }
-
-        return '';
+        return self::ajaxJson($api_data);
     }
 
     public static function utilizationStatus(float $percentage): string {

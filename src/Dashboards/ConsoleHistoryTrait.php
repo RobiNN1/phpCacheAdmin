@@ -14,17 +14,6 @@ use RobiNN\Pca\Config;
 use RobiNN\Pca\Helpers;
 
 trait ConsoleHistoryTrait {
-    /**
-     * @param array<string, mixed> $data
-     */
-    private function consoleJson(array $data): string {
-        try {
-            return json_encode($data, JSON_THROW_ON_ERROR | JSON_INVALID_UTF8_SUBSTITUTE);
-        } catch (JsonException $e) {
-            return 'JSON error. '.$e->getMessage();
-        }
-    }
-
     private function consoleHistoryFile(): string {
         $dir = Config::get('tmpdir', __DIR__.'/../../tmp').'/console';
         $hash = md5(Helpers::getServerTitle($this->servers[$this->current_server]).Config::get('hash', 'pca'));

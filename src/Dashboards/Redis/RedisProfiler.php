@@ -10,6 +10,7 @@ namespace RobiNN\Pca\Dashboards\Redis;
 
 use Exception;
 use RobiNN\Pca\Dashboards\DashboardException;
+use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
 
 trait RedisProfiler {
@@ -56,10 +57,10 @@ trait RedisProfiler {
         try {
             $commands = $this->captureCommands($window, $this->profiler_limit);
         } catch (DashboardException $e) {
-            return json_encode(['error' => $e->getMessage()], JSON_THROW_ON_ERROR | JSON_INVALID_UTF8_SUBSTITUTE);
+            return Helpers::ajaxJson(['error' => $e->getMessage()]);
         }
 
-        return json_encode(['commands' => $commands], JSON_THROW_ON_ERROR | JSON_INVALID_UTF8_SUBSTITUTE);
+        return Helpers::ajaxJson(['commands' => $commands]);
     }
 
     /**

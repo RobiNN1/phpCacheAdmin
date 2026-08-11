@@ -46,13 +46,59 @@ trait MemcachedAnalysis {
      * @throws MemcachedException
      */
     private function analysisTab(): array {
+        $data = ['sizes' => $this->itemSizes()];
         $lines = $this->memcached->getKeys();
 
         if ($lines === []) {
-            return ['analysis' => null, 'tab_message' => 'There are no keys to analyze.'];
+            return $data + ['analysis' => null, 'tab_message' => 'There are no keys to analyze.'];
         }
 
-        return ['analysis' => $this->analyzeKeys($lines)];
+        return $data + ['analysis' => $this->analyzeKeys($lines)];
+    }
+
+    /**
+     * The server counts items per size class on its own, but only when it is started with -o track_sizes.
+     *
+     * @return array<string, mixed>|null
+     *
+     * @throws MemcachedException
+     */
+    private function itemSizes(): ?array {
+        if (version_compare($this->memcached->version(), '1.4.27', '<')) {
+            return null;
+        }
+
+        return $this->sizeDistribution($this->memcached->getServerStats('sizes'));
+    }
+
+    /**
+     * One line per size class, e.g. "STAT 96 12" for twelve items of up to 96 bytes.
+     *
+     * @param array<int|string, mixed> $stats
+     *
+     * @return array<string, mixed>
+     */
+    public function sizeDistribution(array $stats): array {
+        if (isset($stats['sizes_status']) && $stats['sizes_status'] !== 'enabled') {
+            return ['enabled' => false, 'rows' => [], 'total' => 0];
+        }
+
+        $buckets = [];
+
+        foreach ($stats as $size => $count) {
+            if (is_numeric($size) && is_numeric($count)) {
+                $buckets[(int) $size] = (int) $count;
+            }
+        }
+
+        ksort($buckets);
+        $total = array_sum($buckets);
+
+        return [
+            'enabled' => true,
+            'rows'    => $this->distribution($buckets, $total),
+            'total'   => $total,
+        ];
     }
 
     /**

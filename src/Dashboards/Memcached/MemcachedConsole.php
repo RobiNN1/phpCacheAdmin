@@ -10,6 +10,7 @@ namespace RobiNN\Pca\Dashboards\Memcached;
 
 use RobiNN\Pca\Csrf;
 use RobiNN\Pca\Dashboards\ConsoleHistoryTrait;
+use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
 use Throwable;
 
@@ -28,17 +29,17 @@ trait MemcachedConsole {
 
         try {
             if (isset($_GET['history'])) {
-                return $this->consoleJson(['history' => $this->getConsoleHistory()]);
+                return Helpers::ajaxJson(['history' => $this->getConsoleHistory()]);
             }
 
             if (!Csrf::validateToken(Http::post('csrf_token', ''))) {
-                return $this->consoleJson(['error' => 'Invalid CSRF token.']);
+                return Helpers::ajaxJson(['error' => 'Invalid CSRF token.']);
             }
 
             $line = trim(Http::post('command', ''));
 
             if ($line === '') {
-                return $this->consoleJson(['error' => 'Empty command.']);
+                return Helpers::ajaxJson(['error' => 'Empty command.']);
             }
 
             $this->storeConsoleCommand($line);
@@ -46,19 +47,19 @@ trait MemcachedConsole {
             $command_name = (string) strtok($line, ' ');
 
             if (in_array(strtoupper($command_name), $this->console_blocked, true)) {
-                return $this->consoleJson(['error' => 'Command "'.$command_name.'" is not allowed in the console.']);
+                return Helpers::ajaxJson(['error' => 'Command "'.$command_name.'" is not allowed in the console.']);
             }
 
             // Storage commands need their value on a second line; let users type it as a "\n" escape.
             $reply = $this->memcached->runCommand(strtr($line, ['\r\n' => "\r\n", '\n' => "\r\n"]));
 
             if (preg_match('/^(ERROR|CLIENT_ERROR|SERVER_ERROR)\b/', $reply) === 1) {
-                return $this->consoleJson(['error' => $reply]);
+                return Helpers::ajaxJson(['error' => $reply]);
             }
 
-            return $this->consoleJson(['output' => $reply]);
+            return Helpers::ajaxJson(['output' => $reply]);
         } catch (Throwable $e) {
-            return $this->consoleJson(['error' => $e->getMessage()]);
+            return Helpers::ajaxJson(['error' => $e->getMessage()]);
         }
     }
 }

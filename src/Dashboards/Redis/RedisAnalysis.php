@@ -40,7 +40,7 @@ trait RedisAnalysis {
     private int $finding_examples = 5;
 
     /**
-     * The two halves of the KEYSIZES section. Strings are measured in bytes, everything else in items.
+     * The two halves of the KEYSIZES section, bytes for strings and items for the rest.
      *
      * @var array<string, array<string, string>>
      */
@@ -250,7 +250,7 @@ trait RedisAnalysis {
     }
 
     /**
-     * The lower bound of a bucket, e.g. '4K' is 4096. Only used to put the buckets in order.
+     * The lower bound of a bucket, e.g. '4K' is 4096.
      */
     private function bucketBound(int|string $bucket): int {
         $units = ['K' => 1024, 'M' => 1024 ** 2, 'G' => 1024 ** 3, 'T' => 1024 ** 4];

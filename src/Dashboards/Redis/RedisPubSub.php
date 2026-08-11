@@ -11,6 +11,7 @@ namespace RobiNN\Pca\Dashboards\Redis;
 use Exception;
 use RobiNN\Pca\Config;
 use RobiNN\Pca\Csrf;
+use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
 
 trait RedisPubSub {
@@ -31,7 +32,7 @@ trait RedisPubSub {
         $stats = $this->redis->pubSubStats();
         ksort($stats['channels']);
 
-        return json_encode($stats, JSON_THROW_ON_ERROR | JSON_INVALID_UTF8_SUBSTITUTE);
+        return Helpers::ajaxJson($stats);
     }
 
     /**
@@ -39,18 +40,18 @@ trait RedisPubSub {
      */
     private function pubSubPublish(): string {
         if (!Csrf::validateToken(Http::post('csrf_token', ''))) {
-            return json_encode(['error' => 'Invalid CSRF token.'], JSON_THROW_ON_ERROR | JSON_INVALID_UTF8_SUBSTITUTE);
+            return Helpers::ajaxJson(['error' => 'Invalid CSRF token.']);
         }
 
         $channel = Http::post('channel', '');
 
         if ($channel === '') {
-            return json_encode(['error' => 'Channel name is required.'], JSON_THROW_ON_ERROR | JSON_INVALID_UTF8_SUBSTITUTE);
+            return Helpers::ajaxJson(['error' => 'Channel name is required.']);
         }
 
-        return json_encode([
+        return Helpers::ajaxJson([
             'receivers' => $this->redis->publishMessage($channel, Http::post('message', '')),
-        ], JSON_THROW_ON_ERROR | JSON_INVALID_UTF8_SUBSTITUTE);
+        ]);
     }
 
     /**
@@ -67,6 +68,6 @@ trait RedisPubSub {
 
         $messages = $this->redis->captureMessages($pattern === '' ? '*' : $pattern, $window, 100);
 
-        return json_encode(['messages' => $messages], JSON_THROW_ON_ERROR | JSON_INVALID_UTF8_SUBSTITUTE);
+        return Helpers::ajaxJson(['messages' => $messages]);
     }
 }

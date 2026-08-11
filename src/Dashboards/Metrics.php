@@ -9,7 +9,6 @@ declare(strict_types=1);
 namespace RobiNN\Pca\Dashboards;
 
 use Exception;
-use JsonException;
 use PDO;
 use RobiNN\Pca\Config;
 use RobiNN\Pca\Helpers;
@@ -84,11 +83,7 @@ abstract readonly class Metrics {
             header('X-Metrics-Bucket: '.$this->bucketSize());
         }
 
-        try {
-            return json_encode($formatted_data, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-        } catch (JsonException $e) {
-            return Helpers::alert($e->getMessage(), 'error');
-        }
+        return Helpers::ajaxJson($formatted_data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
 
     protected function deleteOldMetrics(): void {

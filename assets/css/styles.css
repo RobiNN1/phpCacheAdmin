@@ -482,6 +482,9 @@
   .gap-x-4 {
     column-gap: calc(0.25rem * 4);
   }
+  .gap-x-6 {
+    column-gap: calc(0.25rem * 6);
+  }
   :where(.-space-x-px > :not(:last-child)) {
     --tw-space-x-reverse: 0;
     margin-inline-start: calc(-1px * var(--tw-space-x-reverse));

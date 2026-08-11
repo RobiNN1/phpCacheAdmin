@@ -1,0 +1,41 @@
+<div class="card">
+    <h2 class="py-3 px-6 text-sm font-bold uppercase text-primary-900 dark:text-primary-400">Connections</h2>
+    <p class="pb-3 px-6 text-xs text-gray-600 dark:text-gray-300">
+        Every client the server currently has open, idle first. Memcached cannot close a connection on request,
+        so this is a look, not a switch. The dashboard's own connection is in the list too.
+    </p>
+    <div class="overflow-hidden overflow-x-auto">
+        <table class="w-full text-left table-auto dark:text-gray-300">
+            <thead>
+            <tr class="border-t border-b border-gray-200 dark:border-gray-700 text-primary-900 dark:text-primary-400">
+                <th class="py-2 px-6 text-xs font-bold uppercase whitespace-nowrap">FD</th>
+                <th class="py-2 px-6 text-xs font-bold uppercase whitespace-nowrap">Address</th>
+                <th class="py-2 px-6 text-xs font-bold uppercase whitespace-nowrap">Accepted on</th>
+                <th class="py-2 px-6 text-xs font-bold uppercase whitespace-nowrap">State</th>
+                <th class="py-2 px-6 text-xs font-bold uppercase whitespace-nowrap">Idle</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for connection in connections %}
+                <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
+                    <td class="py-2 px-6 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700 whitespace-nowrap">{{ connection.fd }}</td>
+                    <td class="py-2 px-6 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700 whitespace-nowrap">{{ connection.addr }}</td>
+                    <td class="py-2 px-6 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700 whitespace-nowrap">{{ connection.listen_addr ?: '-' }}</td>
+                    <td class="py-2 px-6 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700 whitespace-nowrap"><code>{{ connection.state }}</code></td>
+                    <td class="py-2 px-6 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700 whitespace-nowrap">{{ connection.idle|seconds }}</td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="5" class="py-2 px-6 text-sm text-center border-t border-gray-200 dark:text-gray-300 dark:border-gray-700">No client is connected.</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if listeners is not empty %}
+        <p class="py-3 px-6 text-xs text-gray-600 border-t border-gray-200 dark:text-gray-300 dark:border-gray-700">
+            Listening on {{ listeners|join(', ') }}.
+        </p>
+    {% endif %}
+</div>

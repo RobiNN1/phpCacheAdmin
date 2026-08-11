@@ -95,6 +95,24 @@ abstract class RedisTestCase extends TestCase {
         @unlink($this->consoleHistoryFile());
 
         $this->redis->flushDatabase();
+        $this->closeConnection();
+    }
+
+    /**
+     * PHPUnit keeps every test instance alive until the run ends, so a connection left in a property stays open
+     * with it. A few hundred tests would then hold enough sockets to push new ones past the descriptor
+     * stream_select() can watch (FD_SETSIZE), which is what the profiler capture runs on.
+     */
+    private function closeConnection(): void {
+        try {
+            if ($this->redis instanceof Redis || $this->redis instanceof RedisCluster) {
+                $this->redis->close();
+            } else {
+                $this->redis->disconnect();
+            }
+        } catch (Throwable) {
+            // Already gone, which is all this is after.
+        }
     }
 
     private function consoleHistoryFile(): string {
@@ -1258,6 +1276,81 @@ abstract class RedisTestCase extends TestCase {
     }
 
     /**
+     * @return array<string, string>
+     */
+    private function keysizesSection(): array {
+        return [
+            'db0_distrib_strings_sizes' => '8=2,1K=1',
+            'db1_distrib_strings_sizes' => '2=1,4K=3,1M=1',
+            'db1_distrib_lists_items'   => '1=4,64=1',
+            'db1_distrib_hashes_items'  => '8=2',
+        ];
+    }
+
+    public function testKeySizeDistribution(): void {
+        $distribution = $this->dashboard->keySizeDistribution($this->keysizesSection(), 1);
+
+        $this->assertSame(1, $distribution['db']);
+        $this->assertSame(['sizes', 'items'], array_column($distribution['groups'], 'metric'));
+
+        $sizes = $distribution['groups'][0];
+        $this->assertSame(['strings'], $sizes['types']);
+        $this->assertSame(5, $sizes['total']);
+
+        // Buckets are ordered by their size, not by the string that names them.
+        $this->assertSame(['2', '4K', '1M'], array_column($sizes['rows'], 'bucket'));
+        $this->assertEqualsWithDelta(60.0, $this->findRow($this->rowsByBucket($sizes['rows']), '4K')['percent'], PHP_FLOAT_EPSILON);
+
+        $items = $distribution['groups'][1];
+        $this->assertSame(['hashes', 'lists'], $items['types']);
+        $this->assertSame(['hashes' => 2, 'lists' => 5], $items['totals']);
+        $this->assertSame(['1', '8', '64'], array_column($items['rows'], 'bucket'));
+    }
+
+    public function testKeySizeDistributionOfAnEmptyDatabase(): void {
+        $this->assertNull($this->dashboard->keySizeDistribution($this->keysizesSection(), 5));
+        $this->assertNull($this->dashboard->keySizeDistribution([]));
+    }
+
+    public function testKeySizeDistributionSumsTheNodesOfACluster(): void {
+        $section = ['db0_distrib_strings_sizes' => ['8=2,1K=1', '8=3', '2K=1']];
+
+        $rows = $this->rowsByBucket($this->dashboard->keySizeDistribution($section)['groups'][0]['rows']);
+
+        $this->assertSame(5, $this->findRow($rows, '8')['count']);
+        $this->assertSame(1, $this->findRow($rows, '1K')['count']);
+        $this->assertSame(1, $this->findRow($rows, '2K')['count']);
+    }
+
+    /**
+     * @param array<int, array<string, mixed>> $rows
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function rowsByBucket(array $rows): array {
+        return array_map(static fn (array $row): array => ['name' => $row['bucket']] + $row, $rows);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testAnalysisTabShowsTheKeySizeHistogram(): void {
+        $this->skipBelowRedis('8.0', 'The KEYSIZES section of INFO');
+
+        $this->redis->set('pu-keysizes', str_repeat('x', 3000));
+
+        if (!self::$is_cluster) {
+            $_GET['db'] = 10; // the histogram is per database, so it has to be the one the key went into
+        }
+
+        $_GET['tab'] = 'analysis';
+        $rendered = $this->dashboard->dashboard();
+
+        $this->assertStringContainsString('String sizes', $rendered);
+        $this->assertStringContainsString('not a sample', $rendered);
+    }
+
+    /**
      * @param array<string, mixed>|null $expected
      */
     #[DataProvider('monitorLineProvider')]
@@ -1390,6 +1483,152 @@ abstract class RedisTestCase extends TestCase {
         $this->assertIsArray($slowlog_entries[1][3]);
         $this->redis->execConfig('SET', $config_key, $original_config_value);
         $this->assertTrue($this->redis->resetSlowlog());
+    }
+
+    public function testParseLatencyLatest(): void {
+        $events = $this->redis->parseLatencyLatest([
+            ['command', 1405067976, 251, 1001],
+            ['fork', 1405067980, 12, 40],
+            ['', 1405067981, 1, 1], // an event without a name is nothing to show
+            ['incomplete'],
+            'not an event',
+        ], '127.0.0.1:7000');
+
+        $this->assertCount(2, $events);
+        $this->assertSame(['command', 1405067976, 251, 1001, '127.0.0.1:7000'], array_values($events[0]));
+        $this->assertSame('fork', $events[1]['event']);
+    }
+
+    public function testParseLatencyHistoryAndInvalidReplies(): void {
+        $samples = $this->redis->parseLatencyHistory([[1405067976, 251], [1405067980, 12], [1405067981]]);
+
+        $this->assertCount(2, $samples);
+        $this->assertSame(['time' => 1405067976, 'ms' => 251, 'node' => ''], $samples[0]);
+
+        $this->assertSame([], $this->redis->parseLatencyHistory(false));
+        $this->assertSame([], $this->redis->parseLatencyLatest(null));
+    }
+
+    public function testCommandLatencyJoinsPercentilesWithCommandStats(): void {
+        $commands = $this->dashboard->commandLatency([
+            'cmdstat_get'     => ['calls' => 100, 'usec_per_call' => 5.5, 'rejected_calls' => 0, 'failed_calls' => 2],
+            'cmdstat_hgetall' => ['calls' => 10, 'usec_per_call' => 800.0, 'rejected_calls' => 1, 'failed_calls' => 0],
+            'cmdstat_ping'    => ['calls' => 0, 'usec_per_call' => 0], // never called, nothing to say about it
+            'not_a_command'   => ['calls' => 5],
+        ], [
+            'latency_percentiles_usec_get'     => 'p50=1.003,p99=2.007,p99.9=90.111',
+            'latency_percentiles_usec_hgetall' => 'p50=700.415,p99=900.223,p99.9=901.223',
+        ]);
+
+        $this->assertSame(['p50', 'p99', 'p99.9'], $commands['labels']);
+        // Ranked by the slowest percentile, so the command with the worst tail comes first.
+        $this->assertSame(['hgetall', 'get'], array_column($commands['rows'], 'name'));
+
+        $get = $commands['rows'][1];
+        $this->assertSame(100, $get['calls']);
+        $this->assertEqualsWithDelta(5.5, $get['average'], PHP_FLOAT_EPSILON);
+        $this->assertSame(2, $get['failed']);
+        $this->assertEqualsWithDelta(90.111, $get['percentiles']['p99.9'], PHP_FLOAT_EPSILON);
+    }
+
+    public function testCommandLatencyWithoutPercentiles(): void {
+        $commands = $this->dashboard->commandLatency([
+            'cmdstat_get'  => ['calls' => 100, 'usec_per_call' => 5.5],
+            'cmdstat_scan' => ['calls' => 3, 'usec_per_call' => 400.0],
+        ], []);
+
+        $this->assertSame([], $commands['labels']);
+        // With nothing else to rank by, the average decides.
+        $this->assertSame(['scan', 'get'], array_column($commands['rows'], 'name'));
+    }
+
+    public function testCommandLatencyKeepsTheWorstNodeOfACluster(): void {
+        $commands = $this->dashboard->commandLatency(
+            ['cmdstat_get' => ['calls' => 2, 'usec_per_call' => 5.0]],
+            ['latency_percentiles_usec_get' => ['p50=1.003,p99=2.007', 'p50=8.031,p99=1.5']]
+        );
+
+        $this->assertSame(['p50' => 8.031, 'p99' => 2.007], $commands['rows'][0]['percentiles']);
+    }
+
+    /**
+     * @throws Exception|Throwable
+     */
+    public function testLatencyMonitorRecordsAnEvent(): void {
+        $config_key = 'latency-monitor-threshold';
+        $original_config_value = $this->redis->execConfig('GET', $config_key)[$config_key];
+
+        $this->redis->execConfig('SET', $config_key, '1');
+        $this->redis->latencyReset();
+
+        // A short busy loop inside the server is the only way to make an event without the DEBUG command.
+        $this->redis->consoleCommand(['EVAL', 'local x = 0 for i = 1, 3000000 do x = x + i end return x', '0']);
+
+        $events = array_values(array_filter($this->redis->latencyLatest(), static fn (array $event): bool => $event['event'] === 'command'));
+
+        $this->assertNotEmpty($events);
+        $this->assertGreaterThan(0, $events[0]['max']);
+        $this->assertGreaterThan(0, $events[0]['time']);
+
+        $history = $this->redis->latencyHistory('command');
+        $this->assertNotEmpty($history);
+        $this->assertGreaterThan(0, $history[0]['time']);
+
+        $this->redis->execConfig('SET', $config_key, $original_config_value);
+        $this->assertTrue($this->redis->latencyReset());
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testDoctorAdvice(): void {
+        $this->assertNotEmpty($this->redis->latencyDoctor());
+        $this->assertNotEmpty($this->redis->memoryDoctor());
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testLatencyTab(): void {
+        $_GET['tab'] = 'latency';
+
+        $rendered = $this->dashboard->dashboard();
+
+        $this->assertStringContainsString('Latency events', $rendered);
+        $this->assertStringContainsString('Command latency', $rendered);
+        $this->assertStringContainsString('latency-monitor-threshold', $rendered);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testLatencyTabSavesTheThreshold(): void {
+        $config_key = 'latency-monitor-threshold';
+        $original_config_value = $this->redis->execConfig('GET', $config_key)[$config_key];
+
+        $_GET['tab'] = 'latency';
+        $_POST['save_latency'] = '';
+        $_POST['latency_threshold'] = 250;
+        $this->setCsrfToken();
+        Http::stopRedirect();
+
+        $this->dashboard->dashboard();
+
+        $this->assertSame('250', $this->redis->execConfig('GET', $config_key)[$config_key]);
+
+        $this->redis->execConfig('SET', $config_key, $original_config_value);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testLatencyTabResetWithInvalidCsrf(): void {
+        $_GET['tab'] = 'latency';
+        $_POST['reset_latency'] = '';
+        $this->setCsrfToken(false);
+
+        $this->expectOutputRegex('/Invalid CSRF token/');
+        $this->dashboard->dashboard();
     }
 
     public function testParseClientListFields(): void {

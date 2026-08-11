@@ -204,6 +204,9 @@
   .right-5 {
     right: calc(0.25rem * 5);
   }
+  .bottom-0 {
+    bottom: 0px;
+  }
   .z-10 {
     z-index: 10;
   }
@@ -327,6 +330,9 @@
   }
   .h-128 {
     height: calc(0.25rem * 128);
+  }
+  .max-h-96 {
+    max-height: calc(0.25rem * 96);
   }
   .max-h-\[85vh\] {
     max-height: 85vh;

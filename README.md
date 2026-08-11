@@ -34,13 +34,14 @@
 - Works with both **phpredis** and **Predis** clients.
 - View, add, edit, and delete keys. Supports all Redis data types, including **vector sets**.
 - Search within a key's sub-items (hash fields, set/list/sorted set members).
-- **Stream consumer groups** with their consumers, pending entries, lag and the oldest entry still waiting for an acknowledgement.
-- **Analysis** of the keyspace.
+- **Stream consumer groups** with their consumers, pending entries, lag, and the oldest entry still waiting for an acknowledgement.
+- **Analysis** of the keyspace, next to the size distribution of every key in the database that the server tracks on its own (Redis >= 8).
+- **Latency** with the events recorded by the latency monitor and their history, per-command latency percentiles, and the advice of LATENCY / MEMORY DOCTOR.
 - **Clients** list of the connected clients with their idle time, memory and last command, and the option to disconnect any of them.
 - **Profiler** to watch commands as they run, live, via MONITOR. Watches every node at once in a cluster.
 - **Console** for running Redis commands interactively, with a persistent per-server command history.
-- **PUB/SUB** support to browse channels, subscribe, and publish messages.
-- **Metrics** with **health checks**.
+- **PUB/SUB** support to browse channels, subscribe and publish messages.
+- **Metrics** with **health checks** for memory, hit rate, evictions, clients, persistence and replication.
 - **Cluster support**.
 - **Sentinel support**.
 - Supports ACL.
@@ -155,7 +156,7 @@ Other:
 
 Open the [config](https://github.com/RobiNN1/phpCacheAdmin/blob/master/config.dist.php) file for more info.
 
-> To add another server, add the same environment variables, but change `0` to `1` (`2` for third server and so on).
+> To add another server, add the same environment variables, but change `0` to `1` (`2` for the third server and so on).
 
 ### .env files
 

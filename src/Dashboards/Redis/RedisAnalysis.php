@@ -40,6 +40,24 @@ trait RedisAnalysis {
     private int $finding_examples = 5;
 
     /**
+     * The two halves of the KEYSIZES section. Strings are measured in bytes, everything else in items.
+     *
+     * @var array<string, array<string, string>>
+     */
+    private array $keysize_metrics = [
+        'sizes' => [
+            'metric' => 'sizes',
+            'title'  => 'String sizes',
+            'note'   => 'How long the stored strings are, in bytes.',
+        ],
+        'items' => [
+            'metric' => 'items',
+            'title'  => 'Collection lengths',
+            'note'   => 'How many items the lists, sets, sorted sets and hashes hold.',
+        ],
+    ];
+
+    /**
      * Worst first, so the recommendations read top down.
      *
      * @var array<string, int>
@@ -103,6 +121,7 @@ trait RedisAnalysis {
             'pattern'     => $pattern,
             'depth'       => $depth,
             'total_keys'  => $this->redis->databaseSize(),
+            'keysizes'    => $this->keySizes(),
             'analysis'    => null,
         ];
 
@@ -119,6 +138,125 @@ trait RedisAnalysis {
         $data['analysis'] = $this->analyzeKeys($keys, $this->pipeline($keys), $depth, $data['total_keys'], $this->analysisContext());
 
         return $data;
+    }
+
+    /**
+     * Read the KEYSIZES histogram of the selected database.
+     *
+     * @return array<string, mixed>|null
+     */
+    private function keySizes(): ?array {
+        try {
+            $section = $this->redis->getInfo('keysizes');
+        } catch (Exception) {
+            return null;
+        }
+
+        $db = (int) Http::get('db', $this->servers[$this->current_server]['database'] ?? 0);
+
+        return $this->keySizeDistribution($section, $db);
+    }
+
+    /**
+     * Redis 8 keeps a base-2 histogram of string sizes and collection lengths per database and updates it as the keys change.
+     *
+     * @param array<int|string, mixed> $section
+     *
+     * @return array<string, mixed>|null
+     */
+    public function keySizeDistribution(array $section, int $db = 0): ?array {
+        $groups = [];
+
+        foreach (array_keys($section) as $field) {
+            if (preg_match('/^db'.$db.'_distrib_(?<type>\w+)_(?<metric>sizes|items)$/', (string) $field, $matches) !== 1) {
+                continue;
+            }
+
+            $type = $matches['type'];
+            $metric = $matches['metric'];
+
+            // In a cluster the same histogram comes back once per node.
+            foreach ($this->fieldValues($section, (string) $field) as $histogram) {
+                foreach (explode(',', $histogram) as $pair) {
+                    if (!str_contains($pair, '=')) {
+                        continue;
+                    }
+
+                    [$bucket, $count] = explode('=', $pair, 2);
+
+                    if (is_numeric($count)) {
+                        $groups[$metric][$type][$bucket] = ($groups[$metric][$type][$bucket] ?? 0) + (int) $count;
+                    }
+                }
+            }
+        }
+
+        $distribution = array_values(array_filter(array_map(
+            fn (string $metric): ?array => $this->keySizeGroup($groups[$metric] ?? [], $metric),
+            array_keys($this->keysize_metrics)
+        )));
+
+        return $distribution === [] ? null : ['db' => $db, 'groups' => $distribution];
+    }
+
+    /**
+     * Turn the histograms of one metric into rows, one per bucket, with a column per data type.
+     *
+     * @param array<string, array<int|string, int>> $types
+     *
+     * @return array<string, mixed>|null
+     */
+    private function keySizeGroup(array $types, string $metric): ?array {
+        if ($types === []) {
+            return null;
+        }
+
+        ksort($types);
+
+        $buckets = [];
+
+        foreach ($types as $histogram) {
+            $buckets += $histogram;
+        }
+
+        $buckets = array_keys($buckets);
+        usort($buckets, fn (int|string $a, int|string $b): int => $this->bucketBound($a) <=> $this->bucketBound($b));
+
+        $totals = array_map(array_sum(...), $types);
+        $total = array_sum($totals);
+        $rows = [];
+
+        foreach ($buckets as $bucket) {
+
+            $counts = array_map(static function (array $histogram) use ($bucket) {
+                return $histogram[$bucket] ?? 0;
+            }, $types);
+
+            $count = array_sum($counts);
+            $rows[] = [
+                'bucket'  => (string) $bucket,
+                'counts'  => $counts,
+                'count'   => $count,
+                'percent' => $this->percent($count, $total),
+            ];
+        }
+
+        return $this->keysize_metrics[$metric] + [
+                'types'  => array_keys($types),
+                'totals' => $totals,
+                'total'  => $total,
+                'rows'   => $rows,
+            ];
+    }
+
+    /**
+     * The lower bound of a bucket, e.g. '4K' is 4096. Only used to put the buckets in order.
+     */
+    private function bucketBound(int|string $bucket): int {
+        $units = ['K' => 1024, 'M' => 1024 ** 2, 'G' => 1024 ** 3, 'T' => 1024 ** 4];
+        $unit = strtoupper(substr((string) $bucket, -1));
+
+        return (int) $bucket * ($units[$unit] ?? 1);
     }
 
     /**

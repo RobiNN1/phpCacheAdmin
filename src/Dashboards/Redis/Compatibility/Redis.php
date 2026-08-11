@@ -370,6 +370,45 @@ class Redis extends \Redis implements RedisCompatibilityInterface {
         return $this->slowlog('RESET');
     }
 
+    /**
+     * @return array<int, array<string, mixed>>
+     *
+     * @throws RedisException
+     */
+    public function latencyLatest(): array {
+        return $this->parseLatencyLatest($this->rawcommand('LATENCY', 'LATEST'));
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     *
+     * @throws RedisException
+     */
+    public function latencyHistory(string $event): array {
+        return $this->parseLatencyHistory($this->rawcommand('LATENCY', 'HISTORY', $event));
+    }
+
+    /**
+     * @throws RedisException
+     */
+    public function latencyReset(): bool {
+        return is_numeric($this->rawcommand('LATENCY', 'RESET'));
+    }
+
+    /**
+     * @throws RedisException
+     */
+    public function latencyDoctor(): string {
+        return (string) $this->rawcommand('LATENCY', 'DOCTOR');
+    }
+
+    /**
+     * @throws RedisException
+     */
+    public function memoryDoctor(): string {
+        return (string) $this->rawcommand('MEMORY', 'DOCTOR');
+    }
+
     public function commandExists(string $command): bool {
         $info = $this->rawcommand('COMMAND', 'INFO', $command);
 

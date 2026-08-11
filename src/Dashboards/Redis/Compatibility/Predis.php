@@ -301,6 +301,32 @@ class Predis extends Client implements RedisCompatibilityInterface {
         return (string) $this->slowlog('RESET') === 'OK';
     }
 
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    public function latencyLatest(): array {
+        return $this->parseLatencyLatest($this->rawcommand('LATENCY', 'LATEST'));
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    public function latencyHistory(string $event): array {
+        return $this->parseLatencyHistory($this->rawcommand('LATENCY', 'HISTORY', $event));
+    }
+
+    public function latencyReset(): bool {
+        return is_numeric($this->rawcommand('LATENCY', 'RESET'));
+    }
+
+    public function latencyDoctor(): string {
+        return (string) $this->rawcommand('LATENCY', 'DOCTOR');
+    }
+
+    public function memoryDoctor(): string {
+        return (string) $this->rawcommand('MEMORY', 'DOCTOR');
+    }
+
     public function commandExists(string $command): bool {
         $info = $this->rawcommand('COMMAND', 'INFO', $command);
 

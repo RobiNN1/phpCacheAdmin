@@ -183,6 +183,35 @@ interface RedisCompatibilityInterface {
     public function resetSlowlog(): bool;
 
     /**
+     * Get the latency events recorded by the latency monitor.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function latencyLatest(): array;
+
+    /**
+     * Get the recorded samples of a single latency event, oldest first.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function latencyHistory(string $event): array;
+
+    /**
+     * Discard the recorded latency events. Diagnostics only, no stored data is touched.
+     */
+    public function latencyReset(): bool;
+
+    /**
+     * LATENCY DOCTOR advice, as plain text.
+     */
+    public function latencyDoctor(): string;
+
+    /**
+     * MEMORY DOCTOR advice, as plain text.
+     */
+    public function memoryDoctor(): string;
+
+    /**
      * Check if the server supports a command.
      */
     public function commandExists(string $command): bool;

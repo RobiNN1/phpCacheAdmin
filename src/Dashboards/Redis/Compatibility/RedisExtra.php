@@ -88,6 +88,66 @@ trait RedisExtra {
     }
 
     /**
+     * @return array<int, array<string, mixed>>
+     */
+    public function parseLatencyLatest(mixed $reply, ?string $node = null): array {
+        if (!is_array($reply)) {
+            return [];
+        }
+
+        $events = [];
+
+        foreach ($reply as $event) {
+            if (!is_array($event)) {
+                continue;
+            }
+
+            if (count($event) < 4) {
+                continue;
+            }
+
+            if ((string) $event[0] === '') {
+                continue;
+            }
+
+            $events[] = [
+                'event' => (string) $event[0],
+                'time'  => (int) $event[1],
+                'last'  => (int) $event[2],
+                'max'   => (int) $event[3],
+                'node'  => $node ?? '',
+            ];
+        }
+
+        return $events;
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    public function parseLatencyHistory(mixed $reply, ?string $node = null): array {
+        if (!is_array($reply)) {
+            return [];
+        }
+
+        $samples = [];
+
+        foreach ($reply as $sample) {
+            if (!is_array($sample)) {
+                continue;
+            }
+
+            if (count($sample) < 2) {
+                continue;
+            }
+
+            $samples[] = ['time' => (int) $sample[0], 'ms' => (int) $sample[1], 'node' => $node ?? ''];
+        }
+
+        return $samples;
+    }
+
+    /**
      * Parse the raw INFO output into sections.
      * A single 'INFO all' call is a lot faster than requesting every section individually.
      *

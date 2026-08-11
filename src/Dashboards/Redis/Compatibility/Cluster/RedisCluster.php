@@ -443,6 +443,87 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
     }
 
     /**
+     * @return array<int, array<string, mixed>>
+     */
+    public function latencyLatest(): array {
+        $events = [];
+
+        foreach ($this->nodes as $node) {
+            try {
+                $node_events = $this->parseLatencyLatest($this->rawcommand($node, 'LATENCY', 'LATEST'), implode(':', (array) $node));
+            } catch (RedisClusterException) {
+                continue;
+            }
+
+            if ($node_events !== []) {
+                array_push($events, ...$node_events);
+            }
+        }
+
+        return $events;
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    public function latencyHistory(string $event): array {
+        $samples = [];
+
+        foreach ($this->nodes as $node) {
+            try {
+                $node_samples = $this->parseLatencyHistory(
+                    $this->rawcommand($node, 'LATENCY', 'HISTORY', $event),
+                    implode(':', (array) $node)
+                );
+            } catch (RedisClusterException) {
+                continue;
+            }
+
+            if ($node_samples !== []) {
+                array_push($samples, ...$node_samples);
+            }
+        }
+
+        usort($samples, static fn (array $a, array $b): int => $a['time'] <=> $b['time']);
+
+        return $samples;
+    }
+
+    public function latencyReset(): bool {
+        foreach ($this->nodes as $node) {
+            try {
+                $this->rawcommand($node, 'LATENCY', 'RESET');
+            } catch (RedisClusterException) {
+                continue;
+            }
+        }
+
+        return true;
+    }
+
+    public function latencyDoctor(): string {
+        return $this->perNodeReply('LATENCY', 'DOCTOR');
+    }
+
+    public function memoryDoctor(): string {
+        return $this->perNodeReply('MEMORY', 'DOCTOR');
+    }
+
+    private function perNodeReply(string ...$command): string {
+        $replies = [];
+
+        foreach ($this->nodes as $node) {
+            try {
+                $replies[] = implode(':', (array) $node).': '.trim((string) $this->rawcommand($node, ...$command));
+            } catch (RedisClusterException) {
+                continue;
+            }
+        }
+
+        return implode("\n\n", $replies);
+    }
+
+    /**
      * @throws RedisClusterException
      */
     public function commandExists(string $command): bool {

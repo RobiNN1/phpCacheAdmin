@@ -468,6 +468,74 @@ class PredisCluster extends PredisClient implements RedisCompatibilityInterface 
         return true;
     }
 
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    public function latencyLatest(): array {
+        $events = [];
+
+        foreach ($this->nodes as $i => $node) {
+            $node_events = $this->parseLatencyLatest($node->executeRaw(['LATENCY', 'LATEST']), (string) $this->server['nodes'][$i]);
+
+            if ($node_events !== []) {
+                array_push($events, ...$node_events);
+            }
+        }
+
+        return $events;
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    public function latencyHistory(string $event): array {
+        $samples = [];
+
+        foreach ($this->nodes as $i => $node) {
+            $node_samples = $this->parseLatencyHistory(
+                $node->executeRaw(['LATENCY', 'HISTORY', $event]),
+                (string) $this->server['nodes'][$i]
+            );
+
+            if ($node_samples !== []) {
+                array_push($samples, ...$node_samples);
+            }
+        }
+
+        usort($samples, static fn (array $a, array $b): int => $a['time'] <=> $b['time']);
+
+        return $samples;
+    }
+
+    public function latencyReset(): bool {
+        foreach ($this->nodes as $node) {
+            $node->executeRaw(['LATENCY', 'RESET']);
+        }
+
+        return true;
+    }
+
+    public function latencyDoctor(): string {
+        return $this->perNodeReply(['LATENCY', 'DOCTOR']);
+    }
+
+    public function memoryDoctor(): string {
+        return $this->perNodeReply(['MEMORY', 'DOCTOR']);
+    }
+
+    /**
+     * @param array<int, string> $command
+     */
+    private function perNodeReply(array $command): string {
+        $replies = [];
+
+        foreach ($this->nodes as $i => $node) {
+            $replies[] = $this->server['nodes'][$i].': '.trim((string) $node->executeRaw($command));
+        }
+
+        return implode("\n\n", $replies);
+    }
+
     public function commandExists(string $command): bool {
         $info = $this->nodes[0]->executeRaw(['COMMAND', 'INFO', $command]);
 

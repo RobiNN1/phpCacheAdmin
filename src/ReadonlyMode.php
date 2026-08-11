@@ -19,7 +19,7 @@ class ReadonlyMode {
     private const GET_ACTIONS = ['delete', 'deleteall', 'form'];
 
     /**
-     * Slowlog reset/config and OPcache warmup are deliberately not blocked.
+     * Slowlog and latency reset/config and OPcache warmup are deliberately not blocked, they only touch diagnostics.
      *
      * @var array<int, string>
      */

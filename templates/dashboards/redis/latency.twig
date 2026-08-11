@@ -1,0 +1,179 @@
+<div class="card mb-4">
+    <form method="post" class="flex flex-wrap gap-3 items-end py-4 px-6 w-full md:items-center">
+        <input type="hidden" name="csrf_token" value="{{ csrf }}">
+
+        {{ include('components/input.twig', {
+            id: 'latency_threshold',
+            label: 'Monitor events slower than (ms)',
+            value: latency.threshold,
+            inline_input: true,
+            wrapper_class: 'flex flex-col gap-1 md:flex-row md:items-center md:gap-2',
+            input_class: 'w-24',
+        }) }}
+
+        {{ include('components/button.twig', {
+            id: 'save_latency',
+            text: 'Save',
+            color: 'green',
+            submit: true,
+            class: 'md:order-3',
+        }) }}
+
+        {{ include('components/button.twig', {
+            id: 'reset_latency',
+            text: 'Reset',
+            color: 'red',
+            submit: true,
+            class: 'md:order-5',
+        }) }}
+
+        <p class="order-last w-full text-xs text-gray-600 dark:text-gray-300 md:order-4 md:w-auto md:flex-1">
+            This will change the <code>latency-monitor-threshold</code> config value.
+            {% if latency.threshold == 0 %}
+                It is 0, so the latency monitor is off, and no events are recorded. Set it to the number of milliseconds
+                you consider slow (100 is a common start), and the server will remember every operation above it.
+            {% else %}
+                Reset only discards the recorded events, no data is touched.
+            {% endif %}
+        </p>
+    </form>
+</div>
+
+<div class="gap-4 mb-4 xl:grid {{ latency.event ? 'xl:grid-cols-2' : '' }}">
+    <div class="card mb-4 xl:mb-0">
+        <h2 class="py-3 px-6 text-sm font-bold uppercase text-primary-900 dark:text-primary-400">Latency events</h2>
+        <div class="overflow-hidden overflow-x-auto">
+            <table class="w-full text-left table-auto dark:text-gray-300">
+                <thead>
+                <tr class="border-t border-b border-gray-200 dark:border-gray-700 text-primary-900 dark:text-primary-400">
+                    <th class="py-2 px-6 text-xs font-bold uppercase whitespace-nowrap">Event</th>
+                    {% if latency.is_cluster %}
+                        <th class="py-2 px-6 text-xs font-bold uppercase whitespace-nowrap">Node</th>
+                    {% endif %}
+                    <th class="py-2 px-6 text-xs font-bold uppercase whitespace-nowrap">Last spike</th>
+                    <th class="py-2 px-6 text-xs font-bold uppercase whitespace-nowrap">Latest</th>
+                    <th class="py-2 px-6 text-xs font-bold uppercase whitespace-nowrap">All-time max</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for row in latency.events %}
+                    <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
+                        <td class="py-2 px-6 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700 whitespace-nowrap">
+                            <a href="{{ link(['tab'], {event: row.event}) }}" class="font-semibold text-primary-500 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-500">{{ row.event }}</a>
+                        </td>
+                        {% if latency.is_cluster %}
+                            <td class="py-2 px-6 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700 whitespace-nowrap">{{ row.node }}</td>
+                        {% endif %}
+                        <td class="py-2 px-6 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700 whitespace-nowrap">{{ row.time|time }}</td>
+                        <td class="py-2 px-6 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700 whitespace-nowrap">{{ row.last|number }} ms</td>
+                        <td class="py-2 px-6 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700 whitespace-nowrap">{{ row.max|number }} ms</td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="{{ latency.is_cluster ? 5 : 4 }}" class="py-2 px-6 text-sm text-center border-t border-gray-200 dark:text-gray-300 dark:border-gray-700">
+                            {{ latency.threshold == 0 ? 'The latency monitor is off.' : 'No event has been slower than the threshold yet.' }}
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {% if latency.event %}
+        <div class="card">
+            <h2 class="py-3 px-6 text-sm font-bold uppercase text-primary-900 dark:text-primary-400">History of "{{ latency.event }}"</h2>
+            <div class="overflow-hidden overflow-x-auto">
+                <table class="w-full text-left table-auto dark:text-gray-300">
+                    <thead>
+                    <tr class="border-t border-b border-gray-200 dark:border-gray-700 text-primary-900 dark:text-primary-400">
+                        <th class="py-2 px-6 text-xs font-bold uppercase whitespace-nowrap">Time</th>
+                        {% if latency.is_cluster %}
+                            <th class="py-2 px-6 text-xs font-bold uppercase whitespace-nowrap">Node</th>
+                        {% endif %}
+                        <th class="py-2 px-6 text-xs font-bold uppercase whitespace-nowrap">Latency</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for row in latency.history %}
+                        <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
+                            <td class="py-2 px-6 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700 whitespace-nowrap">{{ row.time|time }}</td>
+                            {% if latency.is_cluster %}
+                                <td class="py-2 px-6 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700 whitespace-nowrap">{{ row.node }}</td>
+                            {% endif %}
+                            <td class="py-2 px-6 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700 whitespace-nowrap">{{ row.ms|number }} ms</td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="{{ latency.is_cluster ? 3 : 2 }}" class="py-2 px-6 text-sm text-center border-t border-gray-200 dark:text-gray-300 dark:border-gray-700">The samples of this event are gone.</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+{% if latency.doctor or latency.memory_doctor %}
+    <div class="gap-4 mb-4 {{ latency.doctor and latency.memory_doctor ? 'xl:grid xl:grid-cols-2' : '' }}">
+        {% for advice in [{title: 'Latency doctor', text: latency.doctor}, {title: 'Memory doctor', text: latency.memory_doctor}] %}
+            {% if advice.text %}
+                <div class="p-4 card mb-4 xl:mb-0">
+                    <h2 class="mb-1 text-sm font-bold uppercase text-primary-900 dark:text-primary-400">{{ advice.title }}</h2>
+                    <p class="mb-3 text-xs text-gray-600 dark:text-gray-300">What the server itself makes of its numbers.</p>
+                    <pre class="p-3 text-xs text-gray-700 whitespace-pre-wrap bg-gray-50 rounded border border-gray-200 dark:text-gray-300 dark:bg-white/5 dark:border-gray-700">{{ advice.text }}</pre>
+                </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+{% endif %}
+
+<div class="card">
+    <h2 class="py-3 px-6 text-sm font-bold uppercase text-primary-900 dark:text-primary-400">Command latency</h2>
+    <p class="pb-3 px-6 text-xs text-gray-600 dark:text-gray-300">
+        Since the last <code>CONFIG RESETSTAT</code>, slowest percentile first.
+        {% if latency.commands.labels is empty %}
+            Percentiles are missing, the server does not track them (<code>latency-tracking</code>) or is older than Redis 7.
+        {% else %}
+            The average hides the slow tail; the percentiles are what a client actually waits for.
+            {% if latency.is_cluster %}In a cluster the worst node is shown.{% endif %}
+        {% endif %}
+    </p>
+    <div class="overflow-hidden overflow-x-auto">
+        <table class="w-full text-left table-auto dark:text-gray-300">
+            <thead>
+            <tr class="border-t border-b border-gray-200 dark:border-gray-700 text-primary-900 dark:text-primary-400">
+                <th class="py-2 px-6 text-xs font-bold uppercase whitespace-nowrap">Command</th>
+                <th class="py-2 px-6 text-xs font-bold uppercase whitespace-nowrap">Calls</th>
+                <th class="py-2 px-6 text-xs font-bold uppercase whitespace-nowrap">Average</th>
+                {% for label in latency.commands.labels %}
+                    <th class="py-2 px-6 text-xs font-bold uppercase whitespace-nowrap">{{ label }}</th>
+                {% endfor %}
+                <th class="py-2 px-6 text-xs font-bold uppercase whitespace-nowrap">Rejected</th>
+                <th class="py-2 px-6 text-xs font-bold uppercase whitespace-nowrap">Failed</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for row in latency.commands.rows %}
+                <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
+                    <td class="py-2 px-6 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700 whitespace-nowrap">{{ row.name }}</td>
+                    <td class="py-2 px-6 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700 whitespace-nowrap">{{ row.calls|number }}</td>
+                    <td class="py-2 px-6 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700 whitespace-nowrap">{{ row.average|number(2) }} μs</td>
+                    {% for label in latency.commands.labels %}
+                        <td class="py-2 px-6 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700 whitespace-nowrap">
+                            {{ row.percentiles[label] is defined ? row.percentiles[label]|number(2) ~ ' μs' : '-' }}
+                        </td>
+                    {% endfor %}
+                    <td class="py-2 px-6 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700 whitespace-nowrap {{ row.rejected > 0 ? 'text-red-500 dark:text-red-400' : '' }}">{{ row.rejected|number }}</td>
+                    <td class="py-2 px-6 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700 whitespace-nowrap {{ row.failed > 0 ? 'text-red-500 dark:text-red-400' : '' }}">{{ row.failed|number }}</td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="{{ 5 + latency.commands.labels|length }}" class="py-2 px-6 text-sm text-center border-t border-gray-200 dark:text-gray-300 dark:border-gray-700">No command has been called yet.</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>

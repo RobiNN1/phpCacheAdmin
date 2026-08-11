@@ -56,6 +56,68 @@
     </form>
 </div>
 
+{% if keysizes %}
+    <div class="gap-4 mb-4 {{ keysizes.groups|length > 1 ? 'xl:grid xl:grid-cols-2' : '' }}">
+        {% for group in keysizes.groups %}
+            <div class="p-4 card flex flex-col mb-4 xl:mb-0">
+                <h2 class="mb-1 text-sm font-bold uppercase text-primary-900 dark:text-primary-400">{{ group.title }}</h2>
+                <p class="mb-3 text-xs text-gray-600 dark:text-gray-300">
+                    {{ group.note }}
+                    Counted by the server for every key in db{{ keysizes.db }}, so this is the whole database, not a sample.
+                    Each bucket holds everything from its own value up to the next one.
+                </p>
+                <div class="overflow-auto grow max-h-96">
+                    <table class="w-full text-left table-auto dark:text-gray-300">
+                        <thead class="sticky top-0 z-10 bg-white dark:bg-gray-800">
+                        <tr class="border-b border-gray-200 dark:border-gray-700 text-primary-900 dark:text-primary-400">
+                            <th class="py-2 px-4 text-xs font-bold uppercase whitespace-nowrap">{{ group.metric == 'sizes' ? 'Size' : 'Items' }}</th>
+                            {% if group.types|length > 1 %}
+                                {% for type in group.types %}
+                                    <th class="py-2 px-4 text-xs font-bold uppercase whitespace-nowrap w-20">{{ type }}</th>
+                                {% endfor %}
+                            {% endif %}
+                            <th class="py-2 px-4 text-xs font-bold uppercase whitespace-nowrap w-20">Keys</th>
+                            <th class="py-2 px-4 text-xs font-bold uppercase whitespace-nowrap w-40">Share</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for row in group.rows %}
+                            <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
+                                <td class="py-2 px-4 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700 whitespace-nowrap">{{ row.bucket }}</td>
+                                {% if group.types|length > 1 %}
+                                    {% for type in group.types %}
+                                        <td class="py-2 px-4 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700 whitespace-nowrap">{{ row.counts[type]|number }}</td>
+                                    {% endfor %}
+                                {% endif %}
+                                <td class="py-2 px-4 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700 whitespace-nowrap">{{ row.count|number }}</td>
+                                <td class="py-2 px-4 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700">
+                                    <div class="flex gap-2 items-center">
+                                        <div class="grow">{{ macros.progress(row.percent, 'lower', null, 'info') }}</div>
+                                        <span class="shrink-0 text-xs text-gray-600 dark:text-gray-300">{{ row.percent }}%</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                        <tfoot class="sticky bottom-0 bg-white dark:bg-gray-800">
+                        <tr class="text-gray-600 dark:text-gray-300">
+                            <td class="py-2 px-4 text-xs font-semibold uppercase border-t border-gray-200 dark:border-gray-700">Total</td>
+                            {% if group.types|length > 1 %}
+                                {% for type in group.types %}
+                                    <td class="py-2 px-4 text-xs font-semibold border-t border-gray-200 dark:border-gray-700 whitespace-nowrap">{{ group.totals[type]|number }}</td>
+                                {% endfor %}
+                            {% endif %}
+                            <td class="py-2 px-4 text-xs font-semibold border-t border-gray-200 dark:border-gray-700 whitespace-nowrap">{{ group.total|number }}</td>
+                            <td class="border-t border-gray-200 dark:border-gray-700"></td>
+                        </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
 {% if tab_message %}
     <div class="p-4 card text-center text-gray-600 dark:text-gray-300">{{ tab_message }}</div>
 {% elseif analysis is null %}

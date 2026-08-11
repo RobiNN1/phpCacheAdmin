@@ -98,11 +98,6 @@ abstract class RedisTestCase extends TestCase {
         $this->closeConnection();
     }
 
-    /**
-     * PHPUnit keeps every test instance alive until the run ends, so a connection left in a property stays open
-     * with it. A few hundred tests would then hold enough sockets to push new ones past the descriptor
-     * stream_select() can watch (FD_SETSIZE), which is what the profiler capture runs on.
-     */
     private function closeConnection(): void {
         try {
             if ($this->redis instanceof Redis || $this->redis instanceof RedisCluster) {

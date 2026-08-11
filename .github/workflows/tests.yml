@@ -46,7 +46,7 @@ jobs:
       - name: Install dependencies
         run: composer update --prefer-dist --no-interaction --no-progress
       - name: Execute tests
-        run: vendor/bin/phpunit --display-skipped
+        run: vendor/bin/phpunit
 
   tests-cluster:
     runs-on: ubuntu-latest
@@ -114,7 +114,7 @@ jobs:
       - name: Execute tests
         env:
           PCA_REDIS_0_NODES: '["127.0.0.1:7000","127.0.0.1:7001","127.0.0.1:7002"]'
-        run: vendor/bin/phpunit --display-skipped tests/Dashboards/Redis
+        run: vendor/bin/phpunit tests/Dashboards/Redis
 
   tests-sentinel:
     runs-on: ubuntu-latest
@@ -199,7 +199,7 @@ jobs:
       - name: Execute tests
         env:
           PCA_REDIS_0_SENTINELS: '["127.0.0.1:26379","127.0.0.1:26380","127.0.0.1:26381"]'
-        run: vendor/bin/phpunit --display-skipped tests/Dashboards/Redis
+        run: vendor/bin/phpunit tests/Dashboards/Redis
 
   tests-minimum:
     runs-on: ubuntu-latest
@@ -229,4 +229,4 @@ jobs:
       - name: Install dependencies
         run: composer update --prefer-dist --no-interaction --no-progress
       - name: Execute tests
-        run: vendor/bin/phpunit --display-skipped
+        run: vendor/bin/phpunit

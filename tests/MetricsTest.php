@@ -121,7 +121,9 @@ final class MetricsTest extends TestCase {
         $stmt = $this->metrics->db()->prepare('INSERT INTO metrics (timestamp, value) VALUES (?, 42)');
         $this->metrics->db()->beginTransaction();
 
-        for ($t = time() - 2 * 86400; $t < time(); $t += 60) {
+        $now = time();
+
+        for ($t = $now - 2 * 86400; $t < $now; $t += 60) {
             $stmt->execute([$t]);
         }
 
@@ -156,8 +158,9 @@ final class MetricsTest extends TestCase {
     #[DataProvider('filterProvider')]
     public function testFilterSelectsItsTimeWindow(string $filter, int $window): void {
         $stmt = $this->metrics->db()->prepare('INSERT INTO metrics (timestamp, value) VALUES (?, 42)');
-        $inside = time() - ($window - 100);
-        $outside = time() - ($window + 100);
+        $now = time();
+        $inside = $now - ($window - 100);
+        $outside = $now - ($window + 100);
         $stmt->execute([$inside]);
         $stmt->execute([$outside]);
 
@@ -185,31 +188,34 @@ final class MetricsTest extends TestCase {
      * @throws JsonException
      */
     public function testLiveModeReturnsOnlyNewerSamples(): void {
+        $now = time();
         $stmt = $this->metrics->db()->prepare('INSERT INTO metrics (timestamp, value) VALUES (?, 42)');
-        $stmt->execute([time() - 300]);
-        $stmt->execute([time() - 200]);
+        $stmt->execute([$now - 300]);
+        $stmt->execute([$now - 200]);
 
         $_POST['live'] = '1';
-        $_POST['since'] = (string) (time() - 250);
+        $_POST['since'] = (string) ($now - 250);
         $timestamps = array_column($this->collect(), 'unix_timestamp');
 
-        $this->assertNotContains(time() - 300, $timestamps);
-        $this->assertContains(time() - 200, $timestamps);
+        $this->assertNotContains($now - 300, $timestamps);
+        $this->assertContains($now - 200, $timestamps);
     }
 
     /**
      * @throws JsonException
      */
     public function testLiveModeKeepsTheSamplesApart(): void {
+        $now = time();
         $stmt = $this->metrics->db()->prepare('INSERT INTO metrics (timestamp, value) VALUES (?, 42)');
 
-        for ($t = time() - 10; $t <= time(); $t += 2) {
+        for ($t = $now - 10; $t <= $now; $t += 2) {
             $stmt->execute([$t]);
         }
 
         $_POST['filter'] = '1d';
         $_POST['live'] = '1';
-        $_POST['since'] = (string) (time() - 11);
+        // The samples are only newer than this by a second, so the clock must not move between the two.
+        $_POST['since'] = (string) ($now - 11);
 
         $this->assertCount(6, $this->collect());
     }
@@ -218,33 +224,36 @@ final class MetricsTest extends TestCase {
      * @throws JsonException
      */
     public function testLiveModeFallsBackToTheWholeRange(): void {
+        $now = time();
         $stmt = $this->metrics->db()->prepare('INSERT INTO metrics (timestamp, value) VALUES (?, 42)');
-        $stmt->execute([time() - 300]);
+        $stmt->execute([$now - 300]);
 
         $_POST['live'] = '1';
         $_POST['since'] = '0'; // nothing on the chart yet
 
-        $this->assertContains(time() - 300, array_column($this->collect(), 'unix_timestamp'));
+        $this->assertContains($now - 300, array_column($this->collect(), 'unix_timestamp'));
     }
 
     /**
      * @throws JsonException
      */
     public function testSamplesOlderThanTheMaxAgeAreDeleted(): void {
-        $this->seed(time() - (31 * 86400));
+        $old = time() - (31 * 86400);
+        $this->seed($old);
         $this->collect();
 
-        $this->assertSame(0, $this->rows(time() - (31 * 86400)));
+        $this->assertSame(0, $this->rows($old));
     }
 
     /**
      * @throws JsonException
      */
     public function testSamplesWithinTheMaxAgeAreKept(): void {
-        $this->seed(time() - (29 * 86400));
+        $recent = time() - (29 * 86400);
+        $this->seed($recent);
         $this->collect();
 
-        $this->assertSame(1, $this->rows(time() - (29 * 86400)));
+        $this->assertSame(1, $this->rows($recent));
     }
 
     /**
@@ -254,22 +263,24 @@ final class MetricsTest extends TestCase {
         putenv('PCA_METRICSMAXAGE=0');
         Config::reset();
 
-        $this->seed(time() - (31 * 86400));
+        $old = time() - (31 * 86400);
+        $this->seed($old);
         $this->collect();
 
-        $this->assertSame(1, $this->rows(time() - (31 * 86400)));
+        $this->assertSame(1, $this->rows($old));
     }
 
     /**
      * @throws JsonException
      */
     public function testLiveRequestsDoNotCleanUp(): void {
-        $this->seed(time() - (31 * 86400));
+        $old = time() - (31 * 86400);
+        $this->seed($old);
 
         $_POST['live'] = '1';
         $this->collect();
 
-        $this->assertSame(1, $this->rows(time() - (31 * 86400)));
+        $this->assertSame(1, $this->rows($old));
     }
 
     /**

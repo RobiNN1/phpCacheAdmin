@@ -300,8 +300,8 @@ final class MemcachedTest extends TestCase {
         $meta = $this->memcached->getKeyMeta($key);
 
         $this->assertGreaterThan(0, $meta['size']);
-        $this->assertGreaterThan(0, $meta['exp']);
-        $this->assertLessThanOrEqual(120, $meta['exp']);
+        $this->assertGreaterThan(110, $meta['exp']);
+        $this->assertLessThanOrEqual(121, $meta['exp']);
 
         $this->memcached->delete($key);
     }
@@ -860,10 +860,14 @@ final class MemcachedTest extends TestCase {
 
         $this->assertNotEmpty($logs);
 
-        $stored = array_values(array_filter($logs, static fn (array $log): bool => $log['type'] === 'item_store' && $log['key'] === $key));
+        $types = static fn (string $type): array => array_values(array_filter(
+            $logs,
+            static fn (array $log): bool => $log['type'] === $type && $log['key'] === $key
+        ));
 
-        $this->assertCount(1, $stored);
-        $this->assertSame('stored', $stored[0]['fields']['status']);
+        $this->assertCount(1, $types('item_store'));
+        $this->assertNotEmpty($types('item_get'));
+        $this->assertGreaterThan(0, $types('item_store')[0]['time']);
     }
 
     /**

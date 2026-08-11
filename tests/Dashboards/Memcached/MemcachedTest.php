@@ -427,7 +427,60 @@ final class MemcachedTest extends TestCase {
     public function testConsoleAjaxBlockedCommand(): void {
         $this->setCsrfToken();
 
-        $this->assertStringContainsString('not allowed', (string) $this->consoleAjax('shutdown')['error']);
+        $response = $this->consoleAjax('shutdown');
+
+        $this->assertStringContainsString('not allowed', (string) $response['error']);
+        $this->assertArrayNotHasKey('tab', $response); // there is no tab to send the user to
+    }
+
+    /**
+     * @throws JsonException
+     */
+    public function testConsoleAjaxBlockedCommandSuggestsTab(): void {
+        $this->setCsrfToken();
+
+        $response = $this->consoleAjax('watch fetchers');
+
+        $this->assertStringContainsString('not allowed', (string) $response['error']);
+        $this->assertStringContainsString('tab=watcher', (string) $response['tab']['url']);
+        $this->assertStringContainsString('Watcher', (string) $response['tab']['label']);
+    }
+
+    /**
+     * @throws JsonException
+     */
+    #[DataProvider('consoleCommandTabProvider')]
+    public function testConsoleAjaxAllowedCommandSuggestsTab(string $command, string $tab, string $label): void {
+        $this->setCsrfToken();
+
+        $response = $this->consoleAjax($command);
+
+        $this->assertArrayHasKey('output', $response);
+        $this->assertArrayNotHasKey('error', $response);
+        $this->assertStringContainsString('tab='.$tab, (string) $response['tab']['url']);
+        $this->assertSame('See it formatted on the '.$label.' tab', $response['tab']['label']);
+    }
+
+    /**
+     * @return Iterator<string, array{0: string, 1: string, 2: string}>
+     */
+    public static function consoleCommandTabProvider(): Iterator {
+        yield 'stats' => ['stats', 'moreinfo', 'More info'];
+        yield 'stats items' => ['stats items', 'items', 'Items'];
+        yield 'stats slabs' => ['stats slabs', 'slabs', 'Slabs'];
+        yield 'stats sizes' => ['stats sizes', 'analysis', 'Analysis'];
+        yield 'stats conns' => ['stats conns', 'connections', 'Connections'];
+        // A two-word command wins over the one-word entry it starts with.
+        yield 'stats settings' => ['stats settings', 'moreinfo', 'More info'];
+    }
+
+    /**
+     * @throws JsonException
+     */
+    public function testConsoleAjaxCommandWithoutATab(): void {
+        $this->setCsrfToken();
+
+        $this->assertArrayNotHasKey('tab', $this->consoleAjax('version'));
     }
 
     /**

@@ -12,8 +12,31 @@ use Exception;
 use JsonException;
 use RobiNN\Pca\Config;
 use RobiNN\Pca\Helpers;
+use RobiNN\Pca\Http;
 
-trait ConsoleHistoryTrait {
+trait ConsoleTrait {
+    /**
+     * Point at the tab that shows the same thing as the command but in UI.
+     *
+     * @param array<string, string> $tabs Command => tab key.
+     * @param array<int, string>    $args The command as it was typed, split into tokens.
+     *
+     * @return array<string, array<string, string>>
+     */
+    private function consoleTabHint(array $tabs, array $args, string $label): array {
+        $command = strtoupper($args[0] ?? '');
+        $tab = $tabs[$command.' '.strtoupper($args[1] ?? '')] ?? $tabs[$command] ?? null;
+
+        if ($tab === null) {
+            return [];
+        }
+
+        return ['tab' => [
+            'url'   => Http::queryString([], ['tab' => $tab]),
+            'label' => sprintf($label, $this->tabs[$tab] ?? $tab),
+        ]];
+    }
+
     private function consoleHistoryFile(): string {
         $dir = Config::get('tmpdir', __DIR__.'/../../tmp').'/console';
         $hash = md5(Helpers::getServerTitle($this->servers[$this->current_server]).Config::get('hash', 'pca'));

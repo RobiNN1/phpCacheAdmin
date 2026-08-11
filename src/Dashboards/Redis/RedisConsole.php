@@ -9,13 +9,13 @@ declare(strict_types=1);
 namespace RobiNN\Pca\Dashboards\Redis;
 
 use RobiNN\Pca\Csrf;
-use RobiNN\Pca\Dashboards\ConsoleHistoryTrait;
+use RobiNN\Pca\Dashboards\ConsoleTrait;
 use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
 use Throwable;
 
 trait RedisConsole {
-    use ConsoleHistoryTrait;
+    use ConsoleTrait;
 
     /**
      * Commands that would block the PHP request, hijack the connection, or crash the server.
@@ -77,7 +77,7 @@ trait RedisConsole {
             if (in_array($command, $this->console_blocked, true)) {
                 return Helpers::ajaxJson([
                     'error' => 'Command "'.$args[0].'" is not allowed in the console.',
-                    ...$this->consoleTabHint($this->console_command_tabs[$command] ?? null, 'Open the %s tab'),
+                    ...$this->consoleTabHint($this->console_command_tabs, $args, 'Open the %s tab'),
                 ]);
             }
 
@@ -85,25 +85,11 @@ trait RedisConsole {
 
             return Helpers::ajaxJson([
                 'output' => $output,
-                ...$this->consoleTabHint($this->console_command_views[$command] ?? null, 'See it formatted on the %s tab'),
+                ...$this->consoleTabHint($this->console_command_views, $args, 'See it formatted on the %s tab'),
             ]);
         } catch (Throwable $e) {
             return Helpers::ajaxJson(['error' => $e->getMessage()]);
         }
-    }
-
-    /**
-     * @return array<string, array<string, string>>
-     */
-    private function consoleTabHint(?string $tab, string $label): array {
-        if ($tab === null) {
-            return [];
-        }
-
-        return ['tab' => [
-            'url'   => Http::queryString([], ['tab' => $tab]),
-            'label' => sprintf($label, $this->tabs[$tab] ?? $tab),
-        ]];
     }
 
     /**

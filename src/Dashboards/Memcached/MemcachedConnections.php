@@ -18,7 +18,7 @@ trait MemcachedConnections {
         $connections = $this->parseConnections($this->memcached->getServerStats('conns'));
 
         if ($connections === []) {
-            return ['tab_error' => 'The server did not report any connections, "stats conns" requires Memcached >= 1.4.14.'];
+            return ['tab_error' => 'The server did not report any connections, "stats conns" requires Memcached >= 1.4.18.'];
         }
 
         $listeners = array_values(array_filter($connections, static fn (array $connection): bool => $connection['listening']));

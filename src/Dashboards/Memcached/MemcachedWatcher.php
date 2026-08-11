@@ -13,16 +13,19 @@ use RobiNN\Pca\Http;
 
 trait MemcachedWatcher {
     /**
+     * What the server can stream, and the version that learned to.
+     * Asking for a mode an older server does not know makes it refuse the whole watch.
+     *
      * @link https://github.com/memcached/memcached/blob/master/doc/protocol.txt
      *
-     * @var array<string, string>
+     * @var array<string, array<string, string>>
      */
     private array $watcher_modes = [
-        'fetchers'   => 'Reads (item_get)',
-        'mutations'  => 'Writes (item_store)',
-        'evictions'  => 'Evictions',
-        'deletions'  => 'Deletions',
-        'connevents' => 'Connections',
+        'fetchers'   => ['label' => 'Reads (item_get)', 'since' => '1.4.26'],
+        'mutations'  => ['label' => 'Writes (item_store)', 'since' => '1.4.26'],
+        'evictions'  => ['label' => 'Evictions', 'since' => '1.4.26'],
+        'connevents' => ['label' => 'Connections', 'since' => '1.6.11'],
+        'deletions'  => ['label' => 'Deletions', 'since' => '1.6.20'],
     ];
 
     /**
@@ -41,15 +44,28 @@ trait MemcachedWatcher {
     private int $watcher_limit = 1_000;
 
     /**
+     * Only the modes the server is new enough for, mode => label.
+     *
+     * @return array<string, string>
+     */
+    public function watcherModes(string $version): array {
+        $modes = array_filter($this->watcher_modes, static fn (array $mode): bool => version_compare($version, $mode['since'], '>='));
+
+        return array_map(static fn (array $mode): string => $mode['label'], $modes);
+    }
+
+    /**
      * @return array<string, mixed>
      */
     private function watcherTab(): array {
-        if (version_compare($this->version(), '1.4.15', '<')) {
-            return ['tab_error' => 'Watchers require Memcached >= 1.4.15, the server runs '.$this->version().'.'];
+        $modes = $this->watcherModes($this->version());
+
+        if ($modes === []) {
+            return ['tab_error' => 'Watchers require Memcached >= 1.4.26, the server runs '.$this->version().'.'];
         }
 
         return [
-            'modes'   => $this->watcher_modes,
+            'modes'   => $modes,
             'default' => $this->watcher_default_modes,
             'window'  => $this->watcher_window,
         ];
@@ -59,7 +75,8 @@ trait MemcachedWatcher {
         header('Content-Type: application/json');
 
         $window = min(max((int) Http::get('window', $this->watcher_window), 1), 10);
-        $modes = array_values(array_intersect(explode(',', (string) Http::get('modes', '')), array_keys($this->watcher_modes)));
+        $supported = array_keys($this->watcherModes($this->version()));
+        $modes = array_values(array_intersect(explode(',', (string) Http::get('modes', '')), $supported));
 
         if ($modes === []) {
             return Helpers::ajaxJson(['error' => 'Pick at least one thing to watch.']);

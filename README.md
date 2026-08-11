@@ -54,7 +54,9 @@
 - Uses a custom client, so **no memcache(d) extension** is required.
 - View, add, edit, and delete keys.
 - **Analysis** of the keyspace, with the size distribution of every item in the cache when the server is started with `-o track_sizes`.
-- **Watcher** to see what the server does with each key as it happens - reads, writes, evictions, deletions and connections, straight from the server's own log stream.
+- **Watcher** to see what the server does with each key as it happens - reads, writes, evictions, deletions and
+  connections, straight from the server's own log stream. Only what the server is new enough for is offered
+  (watchers need 1.4.26, connection events 1.6.11, deletions 1.6.20).
 - **Connections** list of the open connections with their state and idle time.
 - **Console** for running Memcached commands interactively, with a persistent per-server command history.
 - **Metrics** with **health checks**.

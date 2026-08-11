@@ -842,7 +842,7 @@ final class MemcachedTest extends TestCase {
      * @throws MemcachedException
      */
     public function testWatcherCapture(): void {
-        $this->skipBelowMemcached('1.4.15', 'Watchers');
+        $this->skipBelowMemcached('1.4.26', 'Watchers');
 
         $key = 'pu-watcher-key';
         $script = sprintf(
@@ -856,7 +856,7 @@ final class MemcachedTest extends TestCase {
 
         exec(sprintf('%s -r %s > /dev/null 2>&1 &', escapeshellarg(PHP_BINARY), escapeshellarg('use '.PHPMem::class.'; '.$script)));
 
-        $logs = $this->dashboard->captureLogs(['fetchers', 'mutations', 'deletions'], 2, 100);
+        $logs = $this->dashboard->captureLogs(['fetchers', 'mutations'], 2, 100);
 
         $this->assertNotEmpty($logs);
 
@@ -870,7 +870,7 @@ final class MemcachedTest extends TestCase {
      * @throws MemcachedException
      */
     public function testWatcherCaptureHonorsTheLimit(): void {
-        $this->skipBelowMemcached('1.4.15', 'Watchers');
+        $this->skipBelowMemcached('1.4.26', 'Watchers');
 
         $script = sprintf(
             'require %s; usleep(300000); $m = new PHPMem(%s); for ($i = 0; $i < 200; $i++) { $m->set("pu-watcher-flood-".$i, "v"); }',
@@ -887,12 +887,19 @@ final class MemcachedTest extends TestCase {
      * @throws MemcachedException
      */
     public function testWatcherRejectsAnUnknownMode(): void {
-        $this->skipBelowMemcached('1.4.15', 'Watchers');
+        $this->skipBelowMemcached('1.4.26', 'Watchers');
 
         $this->expectException(MemcachedException::class);
-        $this->expectExceptionMessageIsOrContains('refused to watch "nonsense"');
+        $this->expectExceptionMessageMatches('/refused to watch "nonsense"/');
 
         $this->dashboard->captureLogs(['nonsense'], 1, 5);
+    }
+
+    public function testWatcherModesDependOnTheServerVersion(): void {
+        $this->assertSame(['fetchers', 'mutations', 'evictions'], array_keys($this->dashboard->watcherModes('1.4.33')));
+        $this->assertSame(['fetchers', 'mutations', 'evictions', 'connevents'], array_keys($this->dashboard->watcherModes('1.6.11')));
+        $this->assertSame(['fetchers', 'mutations', 'evictions', 'connevents', 'deletions'], array_keys($this->dashboard->watcherModes('1.6.20')));
+        $this->assertSame([], $this->dashboard->watcherModes('1.4.25'));
     }
 
     /**
@@ -905,9 +912,11 @@ final class MemcachedTest extends TestCase {
     }
 
     /**
-     * @throws JsonException
+     * @throws JsonException|MemcachedException
      */
     public function testWatcherAjaxCapture(): void {
+        $this->skipBelowMemcached('1.4.26', 'Watchers');
+
         $_GET['watcher'] = '';
         // Only known names are watched, the rest is dropped.
         $_GET['modes'] = 'mutations,rm -rf';
@@ -923,6 +932,8 @@ final class MemcachedTest extends TestCase {
      * @throws MemcachedException
      */
     public function testWatcherTab(): void {
+        $this->skipBelowMemcached('1.4.26', 'Watchers');
+
         $_GET['tab'] = 'watcher';
 
         $rendered = $this->dashboard->dashboard();

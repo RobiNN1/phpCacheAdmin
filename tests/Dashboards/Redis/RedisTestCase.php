@@ -91,6 +91,8 @@ abstract class RedisTestCase extends TestCase {
         $_GET = [];
         $_POST = [];
         $_FILES = [];
+        putenv('PCA_CONSOLE');
+        Config::reset();
 
         @unlink($this->consoleHistoryFile());
 
@@ -2100,6 +2102,76 @@ abstract class RedisTestCase extends TestCase {
         $this->assertArrayNotHasKey('error', $response);
         $this->assertStringContainsString('tab=slowlog', (string) $response['tab']['url']);
         $this->assertStringContainsString('Slow Log', (string) $response['tab']['label']);
+    }
+
+    /**
+     * @throws Exception
+     */
+    #[DataProvider('dangerousCommandProvider')]
+    public function testConsoleBlocksCommandsThatReachPastTheKeyspace(string $command): void {
+        $this->setCsrfToken();
+
+        $response = $this->consoleAjax($command);
+
+        $this->assertStringContainsString('not allowed', (string) $response['error']);
+        $this->assertArrayNotHasKey('output', $response);
+    }
+
+    /**
+     * @return Iterator<string, array{0: string}>
+     */
+    public static function dangerousCommandProvider(): Iterator {
+        yield 'lua' => ['EVAL "return 1" 0'];
+        yield 'a cached script' => ['EVALSHA e0e1f9fabfc9d4800c877a703b823ac0578ff831 0'];
+        yield 'script loading' => ['SCRIPT LOAD "return 1"'];
+        yield 'loading a function library' => ['FUNCTION LOAD "#!lua name=pu"'];
+        yield 'writing the config' => ['CONFIG SET dir /tmp'];
+        yield 'persisting the config' => ['CONFIG REWRITE'];
+        yield 'loading a module' => ['MODULE LOAD /tmp/pu.so'];
+        yield 'replication' => ['REPLICAOF 127.0.0.1 6380'];
+        yield 'the old name of it' => ['SLAVEOF NO ONE'];
+        yield 'moving keys to another server' => ['MIGRATE 127.0.0.1 6380 pu-key 0 100'];
+        yield 'a dump payload' => ['RESTORE pu-key 0 "\\x00"'];
+        yield 'a blocking save' => ['SAVE'];
+    }
+
+    /**
+     * @throws Exception
+     */
+    #[DataProvider('inspectionCommandProvider')]
+    public function testConsoleAllowsTheReadOnlyHalfOfABlockedCommand(string $command): void {
+        $this->setCsrfToken();
+
+        $response = $this->consoleAjax($command);
+
+        $this->assertArrayHasKey('output', $response);
+        $this->assertArrayNotHasKey('error', $response);
+    }
+
+    /**
+     * @return Iterator<string, array{0: string}>
+     */
+    public static function inspectionCommandProvider(): Iterator {
+        yield 'reading the config' => ['CONFIG GET maxmemory'];
+        yield 'listing modules' => ['MODULE LIST'];
+        yield 'listing functions' => ['FUNCTION LIST'];
+        yield 'looking for a script' => ['SCRIPT EXISTS e0e1f9fabfc9d4800c877a703b823ac0578ff831'];
+    }
+
+    /**
+     * @throws Exception|JsonException
+     */
+    public function testConsoleCanBeTurnedOff(): void {
+        putenv('PCA_CONSOLE=false');
+        Config::reset();
+
+        $this->setCsrfToken();
+        $this->assertSame('The console is disabled.', $this->consoleAjax('PING')['error']);
+
+        $_GET['tab'] = 'console';
+        $rendered = (new RedisDashboard(new Template(), $this->client))->dashboard();
+
+        $this->assertStringNotContainsString('>Console<', $rendered);
     }
 
     /**

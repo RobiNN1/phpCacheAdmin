@@ -44,6 +44,8 @@ final class MemcachedTest extends TestCase {
         $_GET = [];
         $_POST = [];
         $_FILES = [];
+        putenv('PCA_CONSOLE');
+        Config::reset();
 
         @unlink($this->consoleHistoryFile());
     }
@@ -490,6 +492,45 @@ final class MemcachedTest extends TestCase {
         $this->setCsrfToken();
 
         $this->assertSame('Empty command.', $this->consoleAjax('   ')['error']);
+    }
+
+    /**
+     * @throws JsonException
+     */
+    #[DataProvider('serverTuningCommandProvider')]
+    public function testConsoleBlocksServerTuning(string $command): void {
+        $this->setCsrfToken();
+
+        $response = $this->consoleAjax($command);
+
+        $this->assertStringContainsString('not allowed', (string) $response['error']);
+        $this->assertArrayNotHasKey('output', $response);
+    }
+
+    /**
+     * @return Iterator<string, array{0: string}>
+     */
+    public static function serverTuningCommandProvider(): Iterator {
+        yield 'memory limit' => ['cache_memlimit 64'];
+        yield 'slab rebalancing' => ['slabs automove 1'];
+        yield 'lru tuning' => ['lru mode flat'];
+        yield 'log verbosity' => ['verbosity 2'];
+    }
+
+    /**
+     * @throws JsonException|MemcachedException
+     */
+    public function testConsoleCanBeTurnedOff(): void {
+        putenv('PCA_CONSOLE=false');
+        Config::reset();
+
+        $this->setCsrfToken();
+        $this->assertSame('The console is disabled.', $this->consoleAjax('version')['error']);
+
+        $_GET['tab'] = 'console';
+        $rendered = (new MemcachedDashboard(new Template()))->dashboard();
+
+        $this->assertStringNotContainsString('>Console<', $rendered);
     }
 
     /**

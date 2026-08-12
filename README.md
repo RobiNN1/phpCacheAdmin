@@ -22,7 +22,7 @@
 - Quickly find keys across your cache.
 - View any key's details in a **modal** without leaving the list.
 - View a value as **formatted, raw, or a hex dump**.
-- **Converters** (gzip, zlib, ...) and **formatters** (unserialize) applied automatically when a value is displayed.
+- **Converters** (gzip, zlib, ...) and **formatters** (unserialize) are applied automatically when a value is displayed.
 - Optional **login page** with basic authentication (enabled by defining users in `authusers`).
 - **Read-only mode** that hides and blocks everything destructive.
 - **No composer required to run**.
@@ -54,7 +54,7 @@
 - Uses a custom client, so **no memcache(d) extension** is required.
 - View, add, edit, and delete keys.
 - **Analysis** of the keyspace, with the size distribution of every item in the cache when the server is started with `-o track_sizes`.
-- **Watcher** to see what the server does with each key as it happens - reads, writes, evictions, deletions and
+- **Watcher** to see what the server does with each key as it happens – reads, writes, evictions, deletions and
   connections, straight from the server's own log stream. Only what the server is new enough for is offered
   (watchers need 1.4.26, connection events 1.6.11, deletions 1.6.20).
 - **Connections** list of the open connections with their state and idle time.
@@ -69,16 +69,18 @@
 - **APCu**:
     - View, edit, and delete user-cached entries.
     - View cache information and memory usage statistics.
-    - **Analysis** of the cache.
+    - **Analysis** of the cache, with a **memory map** of each shared memory segment that shows whether the free memory is one usable piece or crumbs between entries.
     - **Health** checks.
 - **OPcache**:
     - View and invalidate cached scripts.
     - Get statistics on memory usage, hit rates, and cached keys.
     - **Treemap** visualization of cached scripts by memory usage.
+    - **Preload** list of the files kept in memory for the life of the server.
     - **Warmup** that compiles a whole directory into the cache. Useful right after a deployment.
     - **Health** checks.
 - **Realpath Cache**:
     - View and clear PHP's realpath cache entries, with their TTL and memory usage.
+    - **Health** checks for the cache size, expired entries and the TTL, including a warning that `open_basedir` turns the cache off entirely.
 
 There is also a **Server** dashboard for a quick look at the machine phpCacheAdmin runs on - PHP version and
 configuration, loaded extensions, `phpinfo()`, and CPU, RAM and disk usage.
@@ -94,6 +96,14 @@ Every option can also be set with [environment variables](#environment-variables
 
 It can also be embedded in your own website when installed via Composer,
 see [example_embedded_version.php](example_embedded_version.php).
+
+### Access
+
+There is no authentication until you define users in `authusers`([config](https://github.com/RobiNN1/phpCacheAdmin/blob/master/config.dist.php)), so anyone who can open the page can also read,
+change and delete everything in the configured servers.
+Keep it on a trusted network, or turn the login page on, or put your web server's own authentication in front of it.
+Setting `readonly` on top of that leaves only the read-only parts of the dashboards.
+The consoles refuse commands that run code, load a module, replicate from another server or rewrite the server config, and `console` set to `false` removes them altogether.
 
 ## Common issues
 
@@ -129,13 +139,13 @@ Redis:
 - `PCA_REDISCLIENT` `redis` or `predis`. Auto-detected when not set, set it to `predis` if the installed phpredis is older than 5.3.7.
 - `PCA_REDIS_0_NAME` The server name (optional).
 - `PCA_REDIS_0_HOST` Optional when a path or nodes is specified.
-- `PCA_REDIS_0_NODES` List of cluster nodes. You can set value as JSON `["127.0.0.1:7000","127.0.0.1:7001","127.0.0.1:7002"]`.
-- `PCA_REDIS_0_SENTINELS` List of Sentinels, replaces the host/port when set. You can set value as JSON `["127.0.0.1:26379","127.0.0.1:26380","127.0.0.1:26381"]`.
+- `PCA_REDIS_0_NODES` List of cluster nodes. You can set a value as JSON `["127.0.0.1:7000","127.0.0.1:7001","127.0.0.1:7002"]`.
+- `PCA_REDIS_0_SENTINELS` List of Sentinels, replaces the host/port when set. You can set a value as JSON `["127.0.0.1:26379","127.0.0.1:26380","127.0.0.1:26381"]`.
 - `PCA_REDIS_0_SENTINELMASTER` Name of the monitored master (optional). Default `mymaster`.
 - `PCA_REDIS_0_SENTINELPASSWORD` Password of the Sentinels themselves, not of the master (optional).
 - `PCA_REDIS_0_PORT` Optional when the default port is used.
 - `PCA_REDIS_0_SCHEME` Connection scheme (optional). If you need a TLS connection, set it to `tls`.
-- `PCA_REDIS_0_SSL` [SSL options](https://www.php.net/manual/en/context.ssl.php) for TLS. Requires Redis >= 6.0 (optional). You can set value as JSON `{"cafile":"private.pem","verify_peer":true}`.
+- `PCA_REDIS_0_SSL` [SSL options](https://www.php.net/manual/en/context.ssl.php) for TLS. Requires Redis >= 6.0 (optional). You can set a value as JSON `{"cafile":"private.pem","verify_peer":true}`.
 - `PCA_REDIS_0_DATABASE` Default database (optional).
 - `PCA_REDIS_0_USERNAME` ACL - requires Redis >= 6.0 (optional).
 - `PCA_REDIS_0_PASSWORD` Optional.
@@ -154,9 +164,12 @@ Memcached:
 
 Other:
 
+- `PCA_AUTHUSERS` Users for the login page as JSON, e.g. `{"admin":"your-password"}`. Auth is off while it is empty.
+- `PCA_AUTHTOKEN` Token for the metrics cronjob, see [Cronjob](#cronjob).
+- `PCA_CONSOLE` Set it to `false` to remove the Redis and Memcached consoles (optional).
 - `PCA_READONLY` Set it to `true` to block every destructive action (optional).
 - `PCA_PHP_MEMORY_LIMIT` In case you need to increase the PHP memory limit in Docker.
-- `PCA_NGINX_PORT` In case you need to change NGINX port in Docker.
+- `PCA_NGINX_PORT` In case you need to change the NGINX port in Docker.
 
 Open the [config](https://github.com/RobiNN1/phpCacheAdmin/blob/master/config.dist.php) file for more info.
 
@@ -219,6 +232,17 @@ services:
   memcached:
     image: memcached:alpine
 ```
+
+A published port is reachable by anyone who can reach the host, so turn the login page on. `authusers` is an array,
+which as an environment variable means JSON:
+
+```yaml
+environment:
+  - PCA_AUTHUSERS={"admin":"your-password"}
+```
+
+> On a machine that is exposed, mapping the port to localhost only (`127.0.0.1:8080:80`) and reaching it through an
+> SSH tunnel keeps it off the network altogether.
 
 ## Requirements
 

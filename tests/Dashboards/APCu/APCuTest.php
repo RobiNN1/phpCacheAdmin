@@ -349,4 +349,46 @@ final class APCuTest extends TestCase {
 
         $this->assertSame([], $this->dashboard->analyzeKeys([]));
     }
+
+    public function testMemoryMap(): void {
+        $map = $this->dashboard->memoryMap([
+            'num_seg'     => 1,
+            'seg_size'    => 1000,
+            'block_lists' => [[['size' => 100, 'offset' => 600], ['size' => 200, 'offset' => 200]]],
+        ]);
+
+        $this->assertCount(1, $map);
+
+        $segment = $map[0];
+        $this->assertSame(700, $segment['used']);
+        $this->assertSame(300, $segment['free']);
+        $this->assertSame(200, $segment['largest']);
+        $this->assertSame(2, $segment['blocks']);
+
+        $this->assertSame(
+            [['used', 200], ['free', 200], ['used', 200], ['free', 100], ['used', 300]],
+            array_map(static fn (array $span): array => [$span['type'], $span['bytes']], $segment['spans'])
+        );
+        $this->assertEqualsWithDelta(20.0, $segment['spans'][0]['percent'], PHP_FLOAT_EPSILON);
+    }
+
+    public function testMemoryMapOfAFullSegment(): void {
+        $spans = $this->dashboard->memoryMap(['seg_size' => 500, 'block_lists' => [[]]])[0]['spans'];
+
+        $this->assertSame([['used', 500]], array_map(static fn (array $span): array => [$span['type'], $span['bytes']], $spans));
+    }
+
+    public function testMemoryMapOfEverySegment(): void {
+        $map = $this->dashboard->memoryMap([
+            'seg_size'    => 100,
+            'block_lists' => [[['size' => 50, 'offset' => 0]], [['size' => 20, 'offset' => 80]]],
+        ]);
+
+        $this->assertSame([0, 1], array_column($map, 'segment'));
+        $this->assertSame([50, 80], array_column($map, 'used'));
+    }
+
+    public function testMemoryMapWithoutSegments(): void {
+        $this->assertSame([], $this->dashboard->memoryMap([]));
+    }
 }

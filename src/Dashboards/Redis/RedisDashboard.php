@@ -48,7 +48,7 @@ class RedisDashboard implements DashboardInterface {
 
         $this->servers = Config::get('redis', []);
 
-        if (ReadonlyMode::enabled()) {
+        if (ReadonlyMode::enabled() || !$this->consoleEnabled()) {
             unset($this->tabs['console']);
         }
 

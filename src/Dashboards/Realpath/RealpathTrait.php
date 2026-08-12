@@ -11,8 +11,36 @@ namespace RobiNN\Pca\Dashboards\Realpath;
 use RobiNN\Pca\Format;
 use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
+use RobiNN\Pca\Paginator;
 
 trait RealpathTrait {
+    use RealpathHealth;
+
+    /**
+     * @var array<string, string>
+     */
+    private array $tabs = [
+        'keys'   => 'Keys',
+        'health' => 'Health',
+    ];
+
+    private function mainDashboard(): string {
+        $tab = Http::get('tab', '');
+        $tab = array_key_exists($tab, $this->tabs) ? $tab : array_key_first($this->tabs);
+
+        if ($tab === 'health') {
+            return $this->template->render('partials/health', ['checks' => $this->getHealthChecks()]);
+        }
+
+        $paginator = new Paginator($this->getAllKeys());
+
+        return $this->template->render('dashboards/realpath', [
+            'keys'      => $paginator->getPaginated(),
+            'all_keys'  => count($this->all_keys),
+            'paginator' => $paginator->render(),
+        ]);
+    }
+
     private function panels(): string {
         $total_memory = Format::iniSizeToBytes((string) ini_get('realpath_cache_size'));
         $memory_used = realpath_cache_size();

@@ -18,11 +18,11 @@ trait MemcachedConsole {
     use ConsoleTrait;
 
     /**
-     * Commands that would stream indefinitely or shut the server down.
+     * Commands that would block the PHP request, hijack the connection, or crash the server.
      *
      * @var array<int, string>
      */
-    private array $console_blocked = ['WATCH', 'SHUTDOWN'];
+    private array $console_blocked = ['WATCH', 'SHUTDOWN', 'CACHE_MEMLIMIT', 'SLABS', 'LRU', 'VERBOSITY'];
 
     /**
      * Blocked commands the dashboard covers with a tab, so the error can point there instead of being a dead end.
@@ -53,6 +53,10 @@ trait MemcachedConsole {
     private function consoleAjax(): string {
         header('Content-Type: application/json');
 
+        if (!$this->consoleEnabled()) {
+            return Helpers::ajaxJson(['error' => 'The console is disabled.']);
+        }
+
         try {
             if (isset($_GET['history'])) {
                 return Helpers::ajaxJson(['history' => $this->getConsoleHistory()]);
@@ -72,9 +76,11 @@ trait MemcachedConsole {
 
             $args = preg_split('/\s+/', $line) ?: [];
 
-            if (in_array(strtoupper($args[0]), $this->console_blocked, true)) {
+            $blocked = $this->blockedCommand($this->console_blocked, $args);
+
+            if ($blocked !== null) {
                 return Helpers::ajaxJson([
-                    'error' => 'Command "'.$args[0].'" is not allowed in the console.',
+                    'error' => 'Command "'.$blocked.'" is not allowed in the console.',
                     ...$this->consoleTabHint($this->console_command_tabs, $args, 'Open the %s tab'),
                 ]);
             }

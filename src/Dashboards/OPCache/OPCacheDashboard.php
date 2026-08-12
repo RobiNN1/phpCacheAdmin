@@ -18,6 +18,9 @@ class OPCacheDashboard implements DashboardInterface {
     use OPCacheTrait;
 
     public function __construct(private readonly Template $template) {
+        if (!$this->preloadIsConfigured()) {
+            unset($this->tabs['preload']);
+        }
     }
 
     public static function check(): bool {

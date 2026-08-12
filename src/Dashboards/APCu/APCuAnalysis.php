@@ -53,11 +53,86 @@ trait APCuAnalysis {
             $entries[] = $item;
         }
 
+        $data = ['memory_map' => $this->memoryMap(apcu_sma_info())];
+
         if ($entries === []) {
-            return ['analysis' => null, 'tab_message' => 'There are no keys to analyze.'];
+            return $data + ['analysis' => null, 'tab_message' => 'There are no keys to analyze.'];
         }
 
-        return ['analysis' => $this->analyzeKeys($entries)];
+        return $data + ['analysis' => $this->analyzeKeys($entries)];
+    }
+
+    /**
+     * @param array<string, mixed> $sma
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function memoryMap(array $sma): array {
+        $segment_size = (int) ($sma['seg_size'] ?? 0);
+        $segments = [];
+
+        if ($segment_size <= 0) {
+            return [];
+        }
+
+        foreach ((array) ($sma['block_lists'] ?? []) as $number => $blocks) {
+            $blocks = array_values(array_filter((array) $blocks, static fn (mixed $block): bool => is_array($block) && isset($block['offset'], $block['size'])));
+            usort($blocks, static fn (array $a, array $b): int => $a['offset'] <=> $b['offset']);
+
+            $spans = [];
+            $cursor = 0;
+            $free = 0;
+            $largest = 0;
+
+            foreach ($blocks as $block) {
+                $offset = (int) $block['offset'];
+                $size = (int) $block['size'];
+
+                $spans[] = ['type' => 'used', 'bytes' => $offset - $cursor];
+                $spans[] = ['type' => 'free', 'bytes' => $size];
+
+                $cursor = $offset + $size;
+                $free += $size;
+                $largest = max($largest, $size);
+            }
+
+            $spans[] = ['type' => 'used', 'bytes' => $segment_size - $cursor];
+
+            $segments[] = [
+                'segment' => (int) $number,
+                'size'    => $segment_size,
+                'used'    => $segment_size - $free,
+                'free'    => $free,
+                'largest' => $largest,
+                'blocks'  => count($blocks),
+                'spans'   => $this->mapSpans($spans, $segment_size),
+            ];
+        }
+
+        return $segments;
+    }
+
+    /**
+     * @param array<int, array<string, int|string>> $spans
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function mapSpans(array $spans, int $segment_size): array {
+        $mapped = [];
+
+        foreach ($spans as $span) {
+            if ((int) $span['bytes'] <= 0) {
+                continue;
+            }
+
+            $mapped[] = [
+                'type'    => $span['type'],
+                'bytes'   => (int) $span['bytes'],
+                'percent' => $this->percent((int) $span['bytes'], $segment_size),
+            ];
+        }
+
+        return $mapped;
     }
 
     /**

@@ -1,0 +1,82 @@
+<div class="gap-4 {{ blacklist.filename ? 'xl:grid xl:grid-cols-2' : '' }}">
+    <div class="p-4 card flex flex-col mb-4 xl:mb-0">
+        <h2 class="mb-1 text-sm font-bold uppercase text-primary-900 dark:text-primary-400">Preloaded scripts</h2>
+
+        {% if preload.script %}
+            <p class="mb-3 text-xs text-gray-600 dark:text-gray-300">
+                Compiled when the server started and kept for as long as it runs. These cannot be invalidated; a restart is the only way to reload them.
+            </p>
+
+            <dl class="grid grid-cols-2 gap-x-4 gap-y-1 mb-3 text-xs sm:grid-cols-3">
+                {% for label, value in {
+                    Script: preload.script,
+                    User: preload.user ?: 'Not set',
+                    Memory: preload.memory|bytes,
+                    Files: preload.files|length|number,
+                    Functions: preload.functions|number,
+                    Classes: preload.classes|number,
+                } %}
+                    <div>
+                        <dt class="font-semibold text-gray-500 dark:text-gray-400">{{ label }}</dt>
+                        <dd class="text-gray-900 break-all dark:text-gray-200">{{ value }}</dd>
+                    </div>
+                {% endfor %}
+            </dl>
+
+            <div class="overflow-auto max-h-96">
+                <table class="w-full text-left table-auto dark:text-gray-300">
+                    <tbody>
+                    {% for file in preload.files %}
+                        <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
+                            <td class="py-1 px-2 font-mono text-xs border-t border-gray-200 dark:text-gray-300 dark:border-gray-700 break-all">{{ file }}</td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td class="py-2 px-2 text-sm text-center border-t border-gray-200 dark:text-gray-300 dark:border-gray-700">The server reported no preloaded files.</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-xs text-gray-600 dark:text-gray-300">
+                Preloading is not configured. Point <code>opcache.preload</code> at a script that includes the files
+                your application always needs, and they are compiled once at start-up instead of per worker.
+            </p>
+        {% endif %}
+    </div>
+
+    {% if blacklist.filename %}
+        <div class="p-4 card flex flex-col">
+            <h2 class="mb-1 text-sm font-bold uppercase text-primary-900 dark:text-primary-400">Never cached</h2>
+            <p class="mb-3 text-xs text-gray-600 dark:text-gray-300">
+                Patterns from <code>{{ blacklist.filename }}</code>. Files matching them are compiled on every
+                request. The file is only read at start-up, and OPcache does not report which files a pattern
+                actually skipped, so a stale line looks the same as a working one.
+            </p>
+
+            {% if blacklist.unreadable is not empty %}
+                <p class="p-2 mb-3 text-xs text-gray-700 bg-gray-50 rounded border border-gray-200 dark:text-gray-300 dark:bg-white/5 dark:border-gray-700">
+                    Cannot read {{ blacklist.unreadable|join(', ') }}.
+                    The dashboard's user needs access to it; the server itself reads it at start-up.
+                </p>
+            {% endif %}
+
+            <div class="overflow-auto max-h-96">
+                <table class="w-full text-left table-auto dark:text-gray-300">
+                    <tbody>
+                    {% for pattern in blacklist.patterns %}
+                        <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
+                            <td class="py-1 px-2 font-mono text-xs border-t border-gray-200 dark:text-gray-300 dark:border-gray-700 break-all">{{ pattern }}</td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td class="py-2 px-2 text-sm text-center border-t border-gray-200 dark:text-gray-300 dark:border-gray-700">No patterns.</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% endif %}
+</div>

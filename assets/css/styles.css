@@ -258,6 +258,9 @@
   .mt-3 {
     margin-top: calc(0.25rem * 3);
   }
+  .mt-4 {
+    margin-top: calc(0.25rem * 4);
+  }
   .mr-2 {
     margin-right: calc(0.25rem * 2);
   }
@@ -318,6 +321,9 @@
   }
   .h-4 {
     height: calc(0.25rem * 4);
+  }
+  .h-6 {
+    height: calc(0.25rem * 6);
   }
   .h-80 {
     height: calc(0.25rem * 80);
@@ -1165,6 +1171,9 @@
     .sm\:grid-cols-2 {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
+    .sm\:grid-cols-3 {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
     .sm\:grid-cols-4 {
       grid-template-columns: repeat(4, minmax(0, 1fr));
     }
@@ -1318,6 +1327,9 @@
   }
   .dark\:bg-blue-900:where(.dark, .dark *) {
     background-color: oklch(37.9% 0.146 265.522);
+  }
+  .dark\:bg-gray-600:where(.dark, .dark *) {
+    background-color: oklch(44.6% 0.03 256.802);
   }
   .dark\:bg-gray-700:where(.dark, .dark *) {
     background-color: oklch(37.3% 0.034 259.733);

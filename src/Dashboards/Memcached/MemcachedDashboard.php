@@ -35,7 +35,7 @@ class MemcachedDashboard implements DashboardInterface {
         $server = Http::get('server', 0);
         $this->current_server = array_key_exists($server, $this->servers) ? $server : 0;
 
-        if (ReadonlyMode::enabled()) {
+        if (ReadonlyMode::enabled() || !$this->consoleEnabled()) {
             unset($this->tabs['console']);
         }
     }

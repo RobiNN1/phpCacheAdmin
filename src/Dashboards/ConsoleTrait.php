@@ -16,6 +16,27 @@ use RobiNN\Pca\Http;
 
 trait ConsoleTrait {
     /**
+     * The name to refuse, which is the subcommand when only that one is blocked, or null when it is allowed.
+     *
+     * @param array<int, string> $blocked Command names, or "COMMAND SUBCOMMAND" to block a single subcommand.
+     * @param array<int, string> $args    The command as it was typed, split into tokens.
+     */
+    private function blockedCommand(array $blocked, array $args): ?string {
+        $command = ($args[0] ?? '');
+        $subcommand = isset($args[1]) ? $command.' '.$args[1] : '';
+
+        if ($subcommand !== '' && in_array(strtoupper($subcommand), $blocked, true)) {
+            return $subcommand;
+        }
+
+        return in_array(strtoupper($command), $blocked, true) ? $command : null;
+    }
+
+    private function consoleEnabled(): bool {
+        return (bool) Config::get('console', true);
+    }
+
+    /**
      * Point at the tab that shows the same thing as the command but in UI.
      *
      * @param array<string, string> $tabs Command => tab key.

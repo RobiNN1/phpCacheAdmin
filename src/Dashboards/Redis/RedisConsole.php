@@ -27,6 +27,10 @@ trait RedisConsole {
         'SYNC', 'PSYNC', 'WAIT', 'WAITAOF', 'DEBUG', 'SHUTDOWN',
         'BLPOP', 'BRPOP', 'BLMOVE', 'BLMPOP', 'BRPOPLPUSH', 'BZPOPMIN', 'BZPOPMAX', 'BZMPOP',
         'XREAD', 'XREADGROUP',
+        'EVAL', 'EVALSHA', 'EVAL_RO', 'EVALSHA_RO', 'FCALL', 'FCALL_RO',
+        'SLAVEOF', 'REPLICAOF', 'MIGRATE', 'RESTORE', 'SAVE',
+        'CONFIG SET', 'CONFIG REWRITE', 'MODULE LOAD', 'MODULE UNLOAD', 'FUNCTION LOAD', 'FUNCTION RESTORE',
+        'SCRIPT LOAD',
     ];
 
     /**
@@ -54,6 +58,10 @@ trait RedisConsole {
     private function consoleAjax(): string {
         header('Content-Type: application/json');
 
+        if (!$this->consoleEnabled()) {
+            return Helpers::ajaxJson(['error' => 'The console is disabled.']);
+        }
+
         try {
             if (isset($_GET['history'])) {
                 return Helpers::ajaxJson(['history' => $this->getConsoleHistory()]);
@@ -72,11 +80,11 @@ trait RedisConsole {
 
             $this->storeConsoleCommand(trim($line));
 
-            $command = strtoupper($args[0]);
+            $blocked = $this->blockedCommand($this->console_blocked, $args);
 
-            if (in_array($command, $this->console_blocked, true)) {
+            if ($blocked !== null) {
                 return Helpers::ajaxJson([
-                    'error' => 'Command "'.$args[0].'" is not allowed in the console.',
+                    'error' => 'Command "'.$blocked.'" is not allowed in the console.',
                     ...$this->consoleTabHint($this->console_command_tabs, $args, 'Open the %s tab'),
                 ]);
             }

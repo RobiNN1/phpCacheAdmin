@@ -12,7 +12,6 @@ use RobiNN\Pca\Csrf;
 use RobiNN\Pca\Dashboards\DashboardInterface;
 use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
-use RobiNN\Pca\Paginator;
 use RobiNN\Pca\Template;
 
 class RealpathDashboard implements DashboardInterface {
@@ -20,7 +19,6 @@ class RealpathDashboard implements DashboardInterface {
 
     /**
      * @var array<string, mixed>
-     * @noinspection PhpPrivateFieldCanBeLocalVariableInspection
      */
     private array $all_keys = [];
 
@@ -74,13 +72,8 @@ class RealpathDashboard implements DashboardInterface {
 
         $this->template->addGlobal('side', $this->panels());
 
-        $keys = $this->getAllKeys();
-        $paginator = new Paginator($keys);
+        $tabs = $this->template->render('components/tabs', ['links' => $this->tabs, 'main' => true]);
 
-        return $this->template->render('dashboards/realpath', [
-            'keys'      => $paginator->getPaginated(),
-            'all_keys'  => count($this->all_keys),
-            'paginator' => $paginator->render(),
-        ]);
+        return $tabs.$this->mainDashboard();
     }
 }

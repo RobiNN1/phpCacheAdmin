@@ -15,6 +15,7 @@ trait OPCacheTrait {
     use OPCachePanels;
     use OPCacheHealth;
     use OPCacheScripts;
+    use OPCachePreload;
     use OPCacheWarmup;
     use OPCacheConfiguration;
 
@@ -29,6 +30,7 @@ trait OPCacheTrait {
         'scripts'  => 'Scripts',
         'health'   => 'Health',
         'treemap'  => 'Memory map',
+        'preload'  => 'Preload',
         'warmup'   => 'Warmup',
         'moreinfo' => 'More info',
     ];
@@ -66,6 +68,7 @@ trait OPCacheTrait {
             'scripts' => $this->scriptsTab(),
             'health' => ['data' => $this->healthTab(), 'tpl' => 'partials/health'],
             'treemap' => $this->treemapTab(),
+            'preload' => $this->preloadTab(),
             'warmup' => $this->warmupTab(),
             'moreinfo' => ['data' => $this->moreinfoTab(), 'tpl' => 'partials/info_table'],
             default => [],

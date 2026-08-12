@@ -1,5 +1,33 @@
 {% import 'components/macros.twig' as macros %}
 
+{% if memory_map is not empty %}
+    <div class="p-4 card mb-4">
+        <h2 class="mb-1 text-sm font-bold uppercase text-primary-900 dark:text-primary-400">Memory map</h2>
+        <p class="mb-3 text-xs text-gray-600 dark:text-gray-300">
+            Every shared memory segment from start to end, in order.
+            Free memory split into many small pieces means a large entry no longer fits even though the total looks free, and APCu has no way to compact it.
+        </p>
+
+        {% for segment in memory_map %}
+            <div class="{{ not loop.first ? 'mt-4' : '' }}">
+                <div class="flex overflow-hidden w-full h-6 bg-gray-200 rounded dark:bg-gray-700">
+                    {% for span in segment.spans %}
+                        <div class="{{ span.type == 'used' ? 'bg-primary-500' : 'bg-gray-200 dark:bg-gray-600' }}"
+                             style="width: {{ span.percent }}%; min-width: 1px;"
+                             title="{{ span.type|capitalize }} {{ span.bytes|bytes }}"></div>
+                    {% endfor %}
+                </div>
+                <p class="mt-1 text-xs text-gray-600 dark:text-gray-300">
+                    {% if memory_map|length > 1 %}Segment {{ segment.segment }}: {% endif %}
+                    {{ segment.used|bytes }} of {{ segment.size|bytes }} used,
+                    {{ segment.free|bytes }} free in {{ segment.blocks|number }} block{{ segment.blocks != 1 ? 's' : '' }},
+                    largest {{ segment.largest|bytes }}.
+                </p>
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
 {% if tab_message %}
     <div class="p-4 card text-center text-gray-600 dark:text-gray-300">{{ tab_message }}</div>
 {% elseif analysis is empty %}

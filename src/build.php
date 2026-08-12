@@ -4,6 +4,7 @@ declare(strict_types=1);
 $pages = [
     'index.php',
     'phpredisadmin-alternative.php',
+    'redis-commander-alternative.php',
     'opcache-gui-alternative.php',
     'phpmemcachedadmin-alternative.php',
 ];

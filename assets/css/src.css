@@ -5,25 +5,61 @@
 @source '../../src/*.php';
 
 @theme {
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Arial, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
     --color-redis: #ee5145;
     --color-memcached: #2b8e84;
     --color-opcache: #0ea5e9;
     --color-apcu: #3b82f6;
     --color-realpath: #748abd;
+
+    --color-ink: #0d1424;
+    --color-ink-soft: #131b2e;
+    --color-ink-line: #24304a;
+    --color-body: #5b6577;
+    --color-muted: #8a93a6;
+    --color-line: #e8eaef;
+    --color-line-soft: #eceef3;
+    --color-surface: #fbfbfc;
+    --color-fill: #f1f2f6;
+
+    --radius-btn: 10px;
+    --radius-box: 14px;
+    --radius-card: 16px;
+    --radius-panel: 18px;
+
+    --shadow-card: 0 1px 2px rgba(13, 20, 36, .04);
+    --shadow-btn: 0 1px 2px rgba(13, 20, 36, .08);
+    --shadow-lift: 0 1px 2px rgba(13, 20, 36, .04), 0 14px 36px -14px rgba(13, 20, 36, .14);
 }
 
 .dark {
     color-scheme: dark;
 }
 
-@utility blur-2xl {
-    filter: blur(40px);
-}
+@layer base {
+    h1, h2, h3 {
+        color: var(--color-ink);
+    }
 
-@utility blur-3xl {
-    filter: blur(64px);
+    .dark h1, .dark h2, .dark h3 {
+        color: #fff;
+    }
 }
 
 @utility backdrop-blur-xl {
-    backdrop-filter: blur(24px);
+    backdrop-filter: blur(12px);
+}
+
+.copy-btn .icon-check {
+    display: none;
+}
+
+.copy-btn.copied .icon-copy {
+    display: none;
+}
+
+.copy-btn.copied .icon-check {
+    display: block;
 }

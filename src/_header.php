@@ -26,10 +26,84 @@ if (!function_exists('asset')) {
     }
 }
 
+if (!function_exists('command_block')) {
+    /**
+     * @param array<int, string> $lines_html Pre-highlighted HTML, one entry per displayed line.
+     * @param string             $copy_text  Single-line command placed on the clipboard.
+     */
+    function command_block(array $lines_html, string $copy_text): string {
+        $html = '<div class="relative rounded-box bg-ink">';
+        $html .= '<button type="button" class="copy-btn absolute top-3 right-3 p-2 rounded-lg border transition-colors cursor-pointer text-slate-400 bg-white/5 border-white/10 hover:text-white hover:bg-white/15" data-copy="'.htmlspecialchars($copy_text, ENT_QUOTES).'" title="Copy to clipboard">';
+        $html .= svg('copy', 16, 'icon-copy').svg('check', 16, 'icon-check text-emerald-300');
+        $html .= '<span class="sr-only">Copy to clipboard</span>';
+        $html .= '</button>';
+        $html .= '<div class="overflow-x-auto p-6 pr-16"><code class="block font-mono text-sm leading-loose whitespace-nowrap text-slate-200">';
+
+        $last = count($lines_html) - 1;
+
+        foreach ($lines_html as $i => $line) {
+            $indent = $i > 0 ? ' pl-6' : '';
+            $continuation = $i < $last ? ' <span class="text-slate-500">\</span>' : '';
+            $html .= '<span class="block'.$indent.'">'.$line.$continuation.'</span>';
+        }
+
+        return $html.'</code></div></div>';
+    }
+}
+
+if (!function_exists('compare_cell')) {
+    function compare_cell(bool|string $value, bool $positive_column): string {
+        if ($value === true) {
+            return '<span class="inline-flex justify-center text-emerald-500">'.svg('check', 18).'<span class="sr-only">Yes</span></span>';
+        }
+
+        if ($value === false) {
+            return '<span class="inline-flex justify-center text-gray-300 dark:text-gray-600">'.svg('x', 14).'<span class="sr-only">No</span></span>';
+        }
+
+        $color = $positive_column ? 'text-slate-700 dark:text-slate-300' : 'text-muted dark:text-gray-500';
+
+        return '<span class="'.$color.'">'.$value.'</span>';
+    }
+}
+
+if (!function_exists('ld_json')) {
+    function ld_json(array $schema): string {
+        return '<script type="application/ld+json">'.json_encode($schema, JSON_UNESCAPED_SLASHES).'</script>';
+    }
+}
+
+if (!function_exists('faq_schema')) {
+    function faq_schema(array $faqs): array {
+        return [
+            '@context'   => 'https://schema.org',
+            '@type'      => 'FAQPage',
+            'mainEntity' => array_map(static fn (array $faq): array => [
+                '@type'          => 'Question',
+                'name'           => $faq[0],
+                'acceptedAnswer' => ['@type' => 'Answer', 'text' => trim(preg_replace('/\s+/', ' ', html_entity_decode(strip_tags($faq[1]), ENT_QUOTES)))],
+            ], $faqs),
+        ];
+    }
+}
+
+if (!function_exists('breadcrumb_schema')) {
+    function breadcrumb_schema(string $name, string $url): array {
+        return [
+            '@context'        => 'https://schema.org',
+            '@type'           => 'BreadcrumbList',
+            'itemListElement' => [
+                ['@type' => 'ListItem', 'position' => 1, 'name' => 'Home', 'item' => 'https://phpcacheadmin.com/'],
+                ['@type' => 'ListItem', 'position' => 2, 'name' => $name, 'item' => $url],
+            ],
+        ];
+    }
+}
+
 $page_title = $page_title ?? 'phpCacheAdmin - Modern GUI for Redis, Memcached, OPCache & APCu';
 $page_desc = $page_desc ?? 'Modern dashboard & manager for Redis, Memcached, APCu, OPCache and Realpath. A Docker-ready alternative to phpRedisAdmin & opcache-gui with Cluster & ACL.';
 $canonical_url = $canonical_url ?? 'https://phpcacheadmin.com/';
-$page_keywords = $page_keywords ?? 'phpCacheAdmin, Redis GUI, Redis Manager, Memcached Admin, Memcached Manager, OPCache GUI, OPCache Manager, APCu Dashboard, APCu Manager, Realpath Cache, phpRedisAdmin alternative, Redis Cluster, Docker, PHP cache manager';
+$page_keywords = $page_keywords ?? 'phpCacheAdmin, Redis GUI, Redis Manager, Redis web interface, Memcached Admin, Memcached Manager, OPCache GUI, OPCache Manager, APCu Dashboard, APCu Manager, Realpath Cache, phpRedisAdmin alternative, Redis Commander alternative, Redis Cluster, Docker, PHP cache manager';
 ?>
 <!doctype html>
 <html lang="en">
@@ -54,6 +128,9 @@ $page_keywords = $page_keywords ?? 'phpCacheAdmin, Redis GUI, Redis Manager, Mem
     <meta name="twitter:image" content="https://phpcacheadmin.com/assets/img/og-image.png">
     <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon.png">
     <meta name="theme-color" content="#ffffff">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
     <link rel="stylesheet" href="assets/css/styles.css?v=<?php echo filemtime(__DIR__.'/../assets/css/styles.css'); ?>">
     <script>
         const theme = localStorage.getItem('theme') || 'system';
@@ -82,6 +159,12 @@ $page_keywords = $page_keywords ?? 'phpCacheAdmin, Redis GUI, Redis Manager, Mem
           },
           "description": "<?php echo $page_desc; ?>",
       "url": "<?php echo $canonical_url; ?>",
+      "sameAs": [
+        "https://github.com/RobiNN1/phpCacheAdmin",
+        "https://hub.docker.com/r/robinn/phpcacheadmin",
+        "https://packagist.org/packages/robinn/phpcacheadmin",
+        "https://alternativeto.net/software/phpcacheadmin/about/"
+      ],
       "author": {
         "@type": "Person",
         "name": "RobiNN1"
@@ -89,14 +172,8 @@ $page_keywords = $page_keywords ?? 'phpCacheAdmin, Redis GUI, Redis Manager, Mem
     }
     </script>
 </head>
-<body class="overflow-x-hidden antialiased transition-colors duration-300 bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-300">
-<div class="overflow-hidden fixed inset-0 z-0 pointer-events-none">
-    <div class="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-sky-500/20 blur-3xl mix-blend-multiply dark:mix-blend-screen dark:bg-sky-500/10"></div>
-    <div class="absolute -left-20 top-40 w-72 h-72 rounded-full bg-redis/20 blur-3xl mix-blend-multiply dark:mix-blend-screen dark:bg-redis/10"></div>
-    <div class="absolute right-20 bottom-20 w-80 h-80 rounded-full bg-memcached/20 blur-3xl mix-blend-multiply dark:mix-blend-screen dark:bg-memcached/10"></div>
-</div>
-
-<nav class="fixed top-0 z-50 w-full border-b border-gray-100 bg-white/50 backdrop-blur-xl dark:border-b-white/5 dark:bg-slate-950/70">
+<body class="overflow-x-hidden antialiased transition-colors duration-300 bg-white text-body dark:bg-ink dark:text-slate-300">
+<nav class="fixed top-0 z-50 w-full border-b border-line-soft bg-white/90 backdrop-blur-xl dark:border-b-ink-line dark:bg-ink/90">
     <div class="px-4 mx-auto max-w-7xl">
         <div class="flex flex-wrap justify-between items-center lg:text-xl">
             <a class="inline-block py-3" href="/" aria-label="Link to this site">
@@ -104,7 +181,7 @@ $page_keywords = $page_keywords ?? 'phpCacheAdmin, Redis GUI, Redis Manager, Mem
             </a>
 
             <div class="flex items-center py-3 md:hidden">
-                <button id="toggle-menu" type="button" class="text-gray-600 dark:text-gray-300">
+                <button id="toggle-menu" type="button" class="text-body dark:text-gray-300">
                     <?php echo svg('menu', 24); ?>
                     <span class="sr-only">Toggle menu</span>
                 </button>
@@ -113,19 +190,19 @@ $page_keywords = $page_keywords ?? 'phpCacheAdmin, Redis GUI, Redis Manager, Mem
             <div class="hidden order-last w-full md:flex md:w-auto md:order-0" id="menu">
                 <div class="flex flex-col gap-6 items-center py-4 w-full md:flex-row md:gap-8 md:py-0">
                     <div class="flex gap-3 justify-center">
-                        <div class="flex p-1 gap-1 h-10 items-center rounded-lg bg-gray-100 dark:bg-white/5 border border-transparent dark:border-white/5 [&>.active]:bg-white dark:[&>.active]:bg-slate-700 [&>.active]:text-gray-900 dark:[&>.active]:text-white [&>.active]:shadow-sm">
-                            <button class="flex justify-center items-center w-8 h-8 text-gray-500 rounded-md transition-all cursor-pointer dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200" type="button" data-theme="light" title="Light">
+                        <div class="flex p-1 gap-0.5 h-10 items-center rounded-btn bg-fill dark:bg-white/5 [&>.active]:bg-white dark:[&>.active]:bg-ink-soft [&>.active]:text-ink dark:[&>.active]:text-white [&>.active]:shadow-btn">
+                            <button class="flex justify-center items-center w-8 h-8 rounded-lg transition-colors cursor-pointer text-muted dark:text-gray-400 hover:text-ink dark:hover:text-gray-200" type="button" data-theme="light" title="Light">
                                 <?php echo svg('sun'); ?>
                             </button>
-                            <button class="flex justify-center items-center w-8 h-8 text-gray-500 rounded-md transition-all cursor-pointer dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200" type="button" data-theme="dark" title="Dark">
+                            <button class="flex justify-center items-center w-8 h-8 rounded-lg transition-colors cursor-pointer text-muted dark:text-gray-400 hover:text-ink dark:hover:text-gray-200" type="button" data-theme="dark" title="Dark">
                                 <?php echo svg('moon'); ?>
                             </button>
-                            <button class="flex justify-center items-center w-8 h-8 text-gray-500 rounded-md transition-all cursor-pointer dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200" type="button" data-theme="system" title="System">
+                            <button class="flex justify-center items-center w-8 h-8 rounded-lg transition-colors cursor-pointer text-muted dark:text-gray-400 hover:text-ink dark:hover:text-gray-200" type="button" data-theme="system" title="System">
                                 <?php echo svg('system'); ?>
                             </button>
                         </div>
 
-                        <a href="https://github.com/RobiNN1/phpCacheAdmin" target="_blank" rel="noopener noreferrer" class="flex gap-2 justify-center items-center px-4 h-10 text-sm font-semibold text-white bg-gray-900 rounded-lg transition-opacity dark:text-gray-900 dark:bg-white hover:opacity-90">
+                        <a href="https://github.com/RobiNN1/phpCacheAdmin" target="_blank" rel="noopener noreferrer" class="flex gap-2 justify-center items-center px-4 h-10 text-sm font-semibold text-white rounded-btn transition-colors bg-ink hover:bg-slate-700 dark:text-ink dark:bg-white dark:hover:bg-slate-200">
                             <?php echo svg('github', 20); ?>
                             <span>GitHub</span>
                         </a>

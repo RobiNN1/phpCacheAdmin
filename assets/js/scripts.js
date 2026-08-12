@@ -24,7 +24,7 @@ const update_theme = () => {
 
     document.documentElement.classList.toggle('dark', current_theme === 'dark');
 
-    const theme_colors = {light: '#fff', dark: '#1f2937'};
+    const theme_colors = {light: '#fff', dark: '#0d1424'};
     document.querySelector("meta[name='theme-color']").content = theme_colors[current_theme];
 };
 
@@ -57,6 +57,18 @@ update_theme();
 init_theme_switcher();
 
 /**
+ * Copy to clipboard
+ */
+document.querySelectorAll('.copy-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        navigator.clipboard.writeText(btn.getAttribute('data-copy')).then(() => {
+            btn.classList.add('copied');
+            setTimeout(() => btn.classList.remove('copied'), 2000);
+        });
+    });
+});
+
+/**
  * Tabs
  */
 document.addEventListener('DOMContentLoaded', () => {
@@ -67,6 +79,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const group = btn.getAttribute('data-group');
 
             const group_buttons = document.querySelectorAll(`.tab-link[data-group="${group}"]`);
+
+            const url = btn.getAttribute('data-url');
+            const url_label = document.getElementById('preview-url');
+
+            if (url && url_label) {
+                url_label.textContent = url;
+            }
 
             group_buttons.forEach(other_btn => {
                 const is_active = other_btn === btn;

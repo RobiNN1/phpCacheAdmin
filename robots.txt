@@ -1,4 +1,6 @@
 User-agent: *
 Allow: /
+Disallow: /src/
+Disallow: /templates/
 
 Sitemap: https://phpcacheadmin.com/sitemap.xml

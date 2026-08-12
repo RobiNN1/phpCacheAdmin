@@ -885,6 +885,10 @@ final class MemcachedTest extends TestCase {
         exec(sprintf('%s -r %s > /dev/null 2>&1 &', escapeshellarg(PHP_BINARY), escapeshellarg('use '.PHPMem::class.'; '.$script)));
 
         $this->assertCount(5, $this->dashboard->captureLogs(['mutations'], 3, 5));
+
+        for ($i = 0; $i < 200; $i++) {
+            $this->memcached->delete('pu-watcher-flood-'.$i);
+        }
     }
 
     /**

@@ -2139,7 +2139,9 @@ abstract class RedisTestCase extends TestCase {
      * @throws Exception
      */
     #[DataProvider('inspectionCommandProvider')]
-    public function testConsoleAllowsTheReadOnlyHalfOfABlockedCommand(string $command): void {
+    public function testConsoleAllowsTheReadOnlyHalfOfABlockedCommand(string $command, string $since): void {
+        $this->skipBelowRedis($since, $command);
+
         $this->setCsrfToken();
 
         $response = $this->consoleAjax($command);
@@ -2149,13 +2151,13 @@ abstract class RedisTestCase extends TestCase {
     }
 
     /**
-     * @return Iterator<string, array{0: string}>
+     * @return Iterator<string, array{0: string, 1: string}>
      */
     public static function inspectionCommandProvider(): Iterator {
-        yield 'reading the config' => ['CONFIG GET maxmemory'];
-        yield 'listing modules' => ['MODULE LIST'];
-        yield 'listing functions' => ['FUNCTION LIST'];
-        yield 'looking for a script' => ['SCRIPT EXISTS e0e1f9fabfc9d4800c877a703b823ac0578ff831'];
+        yield 'reading the config' => ['CONFIG GET maxmemory', '2.0'];
+        yield 'looking for a script' => ['SCRIPT EXISTS e0e1f9fabfc9d4800c877a703b823ac0578ff831', '2.6'];
+        yield 'listing modules' => ['MODULE LIST', '4.0'];
+        yield 'listing functions' => ['FUNCTION LIST', '7.0'];
     }
 
     /**

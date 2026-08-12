@@ -205,7 +205,7 @@ A Docker image is also available: https://hub.docker.com/r/robinn/phpcacheadmin
 Run with a single command:
 
 ```bash
-docker run -p 8080:80 -d --name phpcacheadmin -e "PCA_REDIS_0_HOST=redis_host" -e "PCA_REDIS_0_PORT=6379" -e "PCA_MEMCACHED_0_HOST=memcached_host" -e "PCA_MEMCACHED_0_PORT=11211" robinn/phpcacheadmin
+docker run -p 127.0.0.1:8080:80 -d --name phpcacheadmin -e "PCA_REDIS_0_HOST=redis_host" -e "PCA_REDIS_0_PORT=6379" -e "PCA_MEMCACHED_0_HOST=memcached_host" -e "PCA_MEMCACHED_0_PORT=11211" robinn/phpcacheadmin
 ```
 
 Or use it in **docker-compose.yml**
@@ -215,7 +215,7 @@ services:
   phpcacheadmin:
     image: robinn/phpcacheadmin
     ports:
-      - "8080:80"
+      - "127.0.0.1:8080:80"
     #volumes:
     # If you want to use config.php instead of ENV variables
     #  - "./config.php:/var/www/html/config.php"
@@ -233,16 +233,16 @@ services:
     image: memcached:alpine
 ```
 
-A published port is reachable by anyone who can reach the host, so turn the login page on. `authusers` is an array,
-which as an environment variable means JSON:
+Both examples publish the port to `127.0.0.1`, so the dashboard is reachable from that machine only - through an SSH
+tunnel from anywhere else. Drop the address (`-p 8080:80`) to open it to the network, and turn the login page on when
+you do. `authusers` is an array, which as an environment variable means JSON:
 
 ```yaml
 environment:
   - PCA_AUTHUSERS={"admin":"your-password"}
 ```
 
-> On a machine that is exposed, mapping the port to localhost only (`127.0.0.1:8080:80`) and reaching it through an
-> SSH tunnel keeps it off the network altogether.
+> Publishing a port with Docker can also open it through the host firewall, which is why the examples keep it on localhost.
 
 ## Requirements
 

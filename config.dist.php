@@ -75,6 +75,7 @@ return [
     'apcuseparator'  => ':', // Separator for tree view (optional).
     //'readonly'       => true, // Block all destructive actions (deleting, editing, consoles, ...) - default false.
     'console'        => true, // Remove the consoles - default true.
+    //'redisblockedcommands' => ['CONFIG SET', 'CONFIG REWRITE', 'REPLICAOF', 'SLAVEOF', 'MIGRATE', 'RESTORE', 'SAVE'], // Extra commands to refuse in the Redis console.
     'authusers'      => [
         // Auth is enabled when at least one user is defined. Leave it commented out (or empty) to disable.
         //'admin' => 'your-password',

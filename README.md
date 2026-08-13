@@ -103,7 +103,7 @@ There is no authentication until you define users in `authusers`([config](https:
 change and delete everything in the configured servers.
 Keep it on a trusted network, or turn the login page on, or put your web server's own authentication in front of it.
 Setting `readonly` on top of that leaves only the read-only parts of the dashboards.
-The consoles refuse commands that run code, load a module, replicate from another server or rewrite the server config, and `console` set to `false` removes them altogether.
+The consoles always refuse commands that run code on the server (`EVAL`, `MODULE LOAD`, ...), `redisblockedcommands` refuses any others you name, and `console` set to `false` removes the consoles altogether.
 
 ## Common issues
 
@@ -167,6 +167,7 @@ Other:
 - `PCA_AUTHUSERS` Users for the login page as JSON, e.g. `{"admin":"your-password"}`. Auth is off while it is empty.
 - `PCA_AUTHTOKEN` Token for the metrics cronjob, see [Cronjob](#cronjob).
 - `PCA_CONSOLE` Set it to `false` to remove the Redis and Memcached consoles (optional).
+- `PCA_REDISBLOCKEDCOMMANDS` Extra commands to refuse in the Redis console, as JSON `["CONFIG SET","SAVE"]` (optional).
 - `PCA_READONLY` Set it to `true` to block every destructive action (optional).
 - `PCA_PHP_MEMORY_LIMIT` In case you need to increase the PHP memory limit in Docker.
 - `PCA_NGINX_PORT` In case you need to change the NGINX port in Docker.

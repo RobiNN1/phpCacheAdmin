@@ -18,7 +18,8 @@ trait RedisConsole {
     use ConsoleTrait;
 
     /**
-     * Commands that would block the PHP request, hijack the connection, or crash the server.
+     * Commands that would block the PHP request, hijack the connection, crash the server, or run code on it.
+     * Anything else can be blocked with the 'redisblockedcommands' option.
      *
      * @var array<int, string>
      */
@@ -27,10 +28,8 @@ trait RedisConsole {
         'SYNC', 'PSYNC', 'WAIT', 'WAITAOF', 'DEBUG', 'SHUTDOWN',
         'BLPOP', 'BRPOP', 'BLMOVE', 'BLMPOP', 'BRPOPLPUSH', 'BZPOPMIN', 'BZPOPMAX', 'BZMPOP',
         'XREAD', 'XREADGROUP',
-        'EVAL', 'EVALSHA', 'EVAL_RO', 'EVALSHA_RO', 'FCALL', 'FCALL_RO',
-        'SLAVEOF', 'REPLICAOF', 'MIGRATE', 'RESTORE', 'SAVE',
-        'CONFIG SET', 'CONFIG REWRITE', 'MODULE LOAD', 'MODULE UNLOAD', 'FUNCTION LOAD', 'FUNCTION RESTORE',
-        'SCRIPT LOAD',
+        'EVAL', 'EVALSHA', 'EVAL_RO', 'EVALSHA_RO', 'FCALL', 'FCALL_RO', 'SCRIPT LOAD', 'FUNCTION LOAD',
+        'FUNCTION RESTORE', 'MODULE LOAD', 'MODULE UNLOAD',
     ];
 
     /**
@@ -80,7 +79,7 @@ trait RedisConsole {
 
             $this->storeConsoleCommand(trim($line));
 
-            $blocked = $this->blockedCommand($this->console_blocked, $args);
+            $blocked = $this->blockedCommand([...$this->console_blocked, ...$this->configuredBlockedCommands('redisblockedcommands')], $args);
 
             if ($blocked !== null) {
                 return Helpers::ajaxJson([

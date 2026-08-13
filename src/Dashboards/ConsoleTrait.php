@@ -37,6 +37,17 @@ trait ConsoleTrait {
     }
 
     /**
+     * Extra commands to refuse, from the config. A "COMMAND SUBCOMMAND" entry blocks only that subcommand.
+     *
+     * @return array<int, string>
+     */
+    private function configuredBlockedCommands(string $option): array {
+        $commands = array_filter((array) Config::get($option, []), is_string(...));
+
+        return array_map(static fn (string $command): string => strtoupper(trim($command)), array_values($commands));
+    }
+
+    /**
      * Point at the tab that shows the same thing as the command but in UI.
      *
      * @param array<string, string> $tabs Command => tab key.

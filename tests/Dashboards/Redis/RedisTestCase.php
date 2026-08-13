@@ -92,6 +92,7 @@ abstract class RedisTestCase extends TestCase {
         $_POST = [];
         $_FILES = [];
         putenv('PCA_CONSOLE');
+        putenv('PCA_REDISBLOCKEDCOMMANDS');
         Config::reset();
 
         @unlink($this->consoleHistoryFile());
@@ -2123,23 +2124,18 @@ abstract class RedisTestCase extends TestCase {
     public static function dangerousCommandProvider(): Iterator {
         yield 'lua' => ['EVAL "return 1" 0'];
         yield 'a cached script' => ['EVALSHA e0e1f9fabfc9d4800c877a703b823ac0578ff831 0'];
+        yield 'a read-only script' => ['EVAL_RO "return 1" 0'];
         yield 'script loading' => ['SCRIPT LOAD "return 1"'];
         yield 'loading a function library' => ['FUNCTION LOAD "#!lua name=pu"'];
-        yield 'writing the config' => ['CONFIG SET dir /tmp'];
-        yield 'persisting the config' => ['CONFIG REWRITE'];
         yield 'loading a module' => ['MODULE LOAD /tmp/pu.so'];
-        yield 'replication' => ['REPLICAOF 127.0.0.1 6380'];
-        yield 'the old name of it' => ['SLAVEOF NO ONE'];
-        yield 'moving keys to another server' => ['MIGRATE 127.0.0.1 6380 pu-key 0 100'];
-        yield 'a dump payload' => ['RESTORE pu-key 0 "\\x00"'];
-        yield 'a blocking save' => ['SAVE'];
+        yield 'unloading one' => ['MODULE UNLOAD pu'];
     }
 
     /**
      * @throws Exception
      */
     #[DataProvider('inspectionCommandProvider')]
-    public function testConsoleAllowsTheReadOnlyHalfOfABlockedCommand(string $command, string $since): void {
+    public function testConsoleAllowsCommandsThatAreNotBlocked(string $command, string $since): void {
         $this->skipBelowRedis($since, $command);
 
         $this->setCsrfToken();
@@ -2155,6 +2151,7 @@ abstract class RedisTestCase extends TestCase {
      */
     public static function inspectionCommandProvider(): Iterator {
         yield 'reading the config' => ['CONFIG GET maxmemory', '2.0'];
+        yield 'writing the config' => ['CONFIG SET maxmemory 0', '2.0'];
         yield 'looking for a script' => ['SCRIPT EXISTS e0e1f9fabfc9d4800c877a703b823ac0578ff831', '2.6'];
         yield 'listing modules' => ['MODULE LIST', '4.0'];
         yield 'listing functions' => ['FUNCTION LIST', '7.0'];

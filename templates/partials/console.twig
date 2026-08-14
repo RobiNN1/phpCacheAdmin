@@ -35,6 +35,6 @@
     <div class="py-2 px-4 text-xs border-t border-gray-200 dark:text-gray-400 dark:border-gray-700">{{ note|raw }}</div>
 </div>
 
-<script>
+<script nonce="{{ nonce }}">
     document.addEventListener('DOMContentLoaded', () => new Console({commandsUrl: "{{ commands_url }}"}));
 </script>

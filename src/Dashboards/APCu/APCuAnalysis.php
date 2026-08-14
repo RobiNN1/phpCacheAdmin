@@ -9,7 +9,6 @@ declare(strict_types=1);
 namespace RobiNN\Pca\Dashboards\APCu;
 
 use APCUIterator;
-use RobiNN\Pca\Config;
 use RobiNN\Pca\Dashboards\AnalysisTrait;
 use RobiNN\Pca\Format;
 
@@ -171,7 +170,7 @@ trait APCuAnalysis {
      * @return array<string, mixed>
      */
     public function analyzeKeys(array $entries): array {
-        $separator = (string) Config::get('apcuseparator', ':');
+        $separator = $this->separator();
         $time = time();
 
         $this->resetTopThresholds();

@@ -1,4 +1,4 @@
-<?php
+<?php // @formatter:off
 /**
  * This file is part of the phpCacheAdmin.
  * Copyright (c) Róbert Kelčák (https://kelcak.com/)
@@ -12,12 +12,9 @@ declare(strict_types=1);
 
 return [
     /**
-     * The order of the items also changes the position of the
-     * sidebar links, the first item is also the default dashboard.
-     *
-     * You can comment out (or delete) any dashboard.
+     * Enabled dashboards and their order. The first item is the default dashboard.
      */
-    'dashboards'     => [
+    'dashboards' => [
         RobiNN\Pca\Dashboards\Server\ServerDashboard::class,
         RobiNN\Pca\Dashboards\Redis\RedisDashboard::class,
         RobiNN\Pca\Dashboards\Memcached\MemcachedDashboard::class,
@@ -25,8 +22,13 @@ return [
         RobiNN\Pca\Dashboards\APCu\APCuDashboard::class,
         RobiNN\Pca\Dashboards\Realpath\RealpathDashboard::class,
     ],
-    //'redisclient'    => 'predis', // redis or predis. Auto-detected when not set.
-    'redis'          => [
+    'redisoptions' => [
+        //'client' => 'predis', // redis or predis. Auto-detected when not set.
+        //'blockedcommands' => ['CONFIG SET', 'CONFIG REWRITE', 'REPLICAOF', 'SLAVEOF', 'MIGRATE', 'RESTORE', 'SAVE'], // Extra commands to refuse in the console.
+        'pubsubrefresh' => 5, // In seconds, refresh interval for the Pub/Sub active channels list - default 5
+        'pubsubwindow' => 5, // In seconds, how long one Pub/Sub monitor request captures messages (1-10) - default 5
+    ],
+    'redis' => [
         [
             'name' => 'Localhost', // The server name (optional).
             'host' => '127.0.0.1', // Optional when a path or nodes is specified.
@@ -43,26 +45,29 @@ return [
                 '127.0.0.1:26380',
                 '127.0.0.1:26381',
             ],*/
-            //'sentinelmaster'   => 'mymaster', // Name of the monitored master (optional). Default mymaster.
+            //'sentinelmaster' => 'mymaster', // Name of the monitored master (optional). Default mymaster.
             //'sentinelpassword' => '', // Password of the Sentinels themselves, not of the master (optional).
-            //'scheme'    => 'tls', // Connection scheme (optional).
-            /*'ssl'       => [
+            //'scheme' => 'tls', // Connection scheme (optional).
+            /*'ssl' => [
                 // SSL options for TLS https://www.php.net/manual/en/context.ssl.php - requires Redis >= 6.0 (optional).
-                'cafile'      => 'private.pem',
+                'cafile' => 'private.pem',
                 'verify_peer' => true,
             ],*/
-            //'database'  => 0, // Default database (optional).
-            //'username'  => '', // ACL - requires Redis >= 6.0 (optional).
-            //'password'  => '', // Optional.
-            //'authfile'  => '/run/secrets/file_name', // File with a password, e.g., Docker secrets (optional).
-            //'path'      => '/var/run/redis/redis-server.sock', // Unix domain socket (optional).
+            //'database' => 0, // Default database (optional).
+            //'username' => '', // ACL - requires Redis >= 6.0 (optional).
+            //'password' => '', // Optional.
+            //'authfile' => '/run/secrets/file_name', // File with a password, e.g., Docker secrets (optional).
+            //'path' => '/var/run/redis/redis-server.sock', // Unix domain socket (optional).
             //'databases' => 16, // Number of databases, use this if the CONFIG command is disabled (optional).
             //'scanthreshold' => 100_000, // Use SCAN automatically instead of KEYS when the database has more keys than this, 1000 keys are retrieved (optional). Default 100_000.
-            //'scansize'  => 1000, // Always use SCAN and retrieve at most this many keys, regardless of 'scanthreshold' (optional).
+            //'scansize' => 1000, // Always use SCAN and retrieve at most this many keys, regardless of 'scanthreshold' (optional).
             //'separator' => ':', // Separator for tree view (optional).
         ],
     ],
-    'memcached'      => [
+    'memcachedoptions' => [
+        //'blockedcommands' => ['flush_all', 'stats reset'], // Extra commands to refuse in the console, the case does not matter.
+    ],
+    'memcached' => [
         [
             'name' => 'Localhost', // The server name, optional.
             'host' => '127.0.0.1', // Optional when a path is specified.
@@ -72,30 +77,38 @@ return [
             //'extension' => true, // Enable Memcached extension only for get and set operations (optional).
         ],
     ],
-    'apcuseparator'  => ':', // Separator for tree view (optional).
-    //'readonly'       => true, // Block all destructive actions (deleting, editing, consoles, ...) - default false.
-    'console'        => true, // Remove the consoles - default true.
-    //'redisblockedcommands' => ['CONFIG SET', 'CONFIG REWRITE', 'REPLICAOF', 'SLAVEOF', 'MIGRATE', 'RESTORE', 'SAVE'], // Extra commands to refuse in the Redis console.
-    'authusers'      => [
-        // Auth is enabled when at least one user is defined. Leave it commented out (or empty) to disable.
+    'apcu' => [
+        'separator' => ':', // Separator for tree view (optional).
+    ],
+    'opcache' => [
+        //'warmuppaths' => ['/var/www'], // Directories the warmup may compile from. Defaults to the document root.
+    ],
+    // Access
+    //'readonly' => true, // Block all destructive actions (deleting, editing, consoles, ...) - default false.
+    'console' => true, // Remove the consoles - default true.
+    'authusers' => [
+        // Auth is enabled when at least one user is defined. Passwords can be `password_hash()` hashes.
         //'admin' => 'your-password',
     ],
-    'authtoken'      => 'your-secret-token', // Append &token=your-secret-token to the cronjob URL when auth is enabled.
+    'authtoken' => 'your-secret-token', // Send it as the X-Pca-Token header, or append &token=your-secret-token to the cronjob URL, when auth is enabled.
+    // Security
+    'securityheaders' => true, // Send CSP, X-Frame-Options, X-Content-Type-Options and Referrer-Policy - default true.
+    //'debug' => true, // Show PHP and template errors on the page instead of only in the error log, and reload templates on every change - default false.
     // Decoding / Encoding functions
-    'converters'     => [
+    'converters' => [
         'gzcompress' => [
             'view' => static fn (string $value): ?string => @gzuncompress($value) !== false ? gzuncompress($value) : null,
             'save' => static fn (string $value): string => gzcompress($value),
         ],
-        'gzencode'   => [
+        'gzencode' => [
             'view' => static fn (string $value): ?string => @gzdecode($value) !== false ? gzdecode($value) : null,
             'save' => static fn (string $value): string => gzencode($value),
         ],
-        'gzdeflate'  => [
+        'gzdeflate' => [
             'view' => static fn (string $value): ?string => @gzinflate($value) !== false ? gzinflate($value) : null,
             'save' => static fn (string $value): string => gzdeflate($value),
         ],
-        'zlib'       => [
+        'zlib' => [
             'view' => static fn (string $value): ?string => @zlib_decode($value) !== false ? zlib_decode($value) : null,
             'save' => static fn (string $value): string => zlib_encode($value, ZLIB_ENCODING_DEFLATE),
         ],
@@ -110,7 +123,7 @@ return [
         ],*/
     ],
     // Formatting functions, it runs after decoding
-    'formatters'     => [
+    'formatters' => [
         'unserialize' => static function (string $value): ?string {
             $unserialized_value = @unserialize($value, ['allowed_classes' => false]);
             if ($unserialized_value !== false && is_array($unserialized_value)) {
@@ -125,23 +138,21 @@ return [
         },
     ],
     // Customizations
-    //'timezone'       => 'Europe/Bratislava', // Leave empty (or commented out) to get it automatically obtained.
-    'timeformat'     => 'd. m. Y H:i:s',
-    'decimalsep'     => ',',
-    'thousandssep'   => ' ',
-    'listview'       => 'table', // table/tree - default key list view
-    'keymodal'       => false, // Open the key view in a modal instead of a separate page - default false
-    'panelrefresh'   => 30, // In seconds, refresh interval for panels - default 30
+    //'timezone' => 'Europe/Bratislava', // Leave empty (or commented out) to get it automatically obtained.
+    'timeformat' => 'd. m. Y H:i:s',
+    'decimalsep' => ',',
+    'thousandssep' => ' ',
+    'listview' => 'table', // table/tree - default key list view
+    'keymodal' => false, // Open the key view in a modal instead of a separate page - default false
+    'panelrefresh' => 30, // In seconds, refresh interval for panels - default 30
     'metricsrefresh' => 60, // In seconds, refresh interval for metrics - default 60
-    'metricstab'     => '1d', // Default tab in metrics, 1h - Last hour, 1d - Last day, 1w - Last week, 1m - Last month - default 1d
-    'liverefresh'    => 2, // In seconds, sampling interval for the live mode toggle in metrics (1-60) - default 2
-    'metricsmaxage'  => 30, // In days, how long the collected metrics are kept; 0 keeps everything - default 30
-    'pubsubrefresh'  => 5, // In seconds, refresh interval for the Pub/Sub active channels list - default 5
-    'pubsubwindow'   => 5, // In seconds, how long one Pub/Sub monitor request captures messages (1-10) - default 5
-    'hash'           => 'pca', // Any random string to secure a metrics DB file.
-    'tmpdir'         => __DIR__.'/tmp', // Directory for temporary files.
-    'metricsdir'     => __DIR__.'/tmp/metrics', // Directory for metrics DB files.
-    'twigcache'      => __DIR__.'/tmp/twig', // Directory for Twig cache files.
-    //'pcapath'        => 'vendor/robinn/phpcacheadmin/', // Path to the package when installed via composer. Used for assets.
-    //'url'            => '/', // URL to the dashboard when installed via composer, e.g., /phpcacheadmin
+    'metricstab' => '1d', // Default tab in metrics, 1h - Last hour, 1d - Last day, 1w - Last week, 1m - Last month - default 1d
+    'liverefresh' => 2, // In seconds, sampling interval for the live mode toggle in metrics (1-60) - default 2
+    'metricsmaxage' => 30, // In days, how long the collected metrics are kept. 0 keeps everything - default 30
+    'hash' => 'pca', // Any random string to secure a metrics DB file.
+    'tmpdir' => __DIR__.'/tmp', // Directory for temporary files.
+    'metricsdir' => __DIR__.'/tmp/metrics', // Directory for metrics DB files.
+    'twigcache' => __DIR__.'/tmp/twig', // Directory for Twig cache files.
+    //'pcapath' => 'vendor/robinn/phpcacheadmin/', // Path to the package when installed via composer. Used for assets.
+    //'url' => '/', // URL to the dashboard when installed via composer, e.g., /phpcacheadmin
 ];

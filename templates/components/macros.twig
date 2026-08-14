@@ -44,7 +44,7 @@
         blue: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
     } %}
 
-    <span class="inline-block py-1 px-3 font-bold text-xs rounded-full {{ colors[color] ?? colors.blue }}{{ class|space }}">{{ text|raw }}</span>
+    <span class="inline-block py-1 px-3 font-bold text-xs rounded-full {{ colors[color] ?? colors.blue }}{{ class|space }}">{{ text }}</span>
 {% endmacro %}
 
 {% macro key_type(type) %}

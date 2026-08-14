@@ -136,7 +136,7 @@
         {% if latency.commands.labels is empty %}
             Percentiles are missing, the server does not track them (<code>latency-tracking</code>) or is older than Redis 7.
         {% else %}
-            The average hides the slow tail; the percentiles are what a client actually waits for.
+            The average hides the slow tail. The percentiles are what a client actually waits for.
             {% if latency.is_cluster %}In a cluster the worst node is shown.{% endif %}
         {% endif %}
     </p>

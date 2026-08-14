@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 namespace RobiNN\Pca;
 
-use Exception;
+use Random\RandomException;
 use RuntimeException;
 
 class Csrf {
@@ -16,13 +16,11 @@ class Csrf {
         $token = Http::session('csrf_token', '');
 
         if ($token === '') {
-            if (session_status() === PHP_SESSION_NONE) {
-                session_start();
-            }
+            Http::startSession();
 
             try {
                 $token = bin2hex(random_bytes(32));
-            } catch (Exception $e) {
+            } catch (RandomException $e) {
                 throw new RuntimeException('Could not generate secure random bytes.', 0, $e);
             }
 

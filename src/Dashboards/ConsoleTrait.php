@@ -37,12 +37,13 @@ trait ConsoleTrait {
     }
 
     /**
-     * Extra commands to refuse, from the config. A "COMMAND SUBCOMMAND" entry blocks only that subcommand.
+     * Extra commands to refuse, from the "blockedcommands" option of the given config group.
+     * A "COMMAND SUBCOMMAND" entry blocks only that subcommand.
      *
      * @return array<int, string>
      */
-    private function configuredBlockedCommands(string $option): array {
-        $commands = array_filter((array) Config::get($option, []), is_string(...));
+    private function configuredBlockedCommands(string $group): array {
+        $commands = array_filter((array) Config::getOption($group, 'blockedcommands', []), is_string(...));
 
         return array_map(static fn (string $command): string => strtoupper(trim($command)), array_values($commands));
     }
@@ -116,9 +117,8 @@ trait ConsoleTrait {
         }
 
         $file = $this->consoleHistoryFile();
-        $dir = dirname($file);
 
-        if (!is_dir($dir) && !mkdir($dir, 0777, true) && !is_dir($dir)) {
+        if (!Helpers::makeDir(dirname($file))) {
             return;
         }
 

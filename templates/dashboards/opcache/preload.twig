@@ -4,7 +4,7 @@
 
         {% if preload.script %}
             <p class="mb-3 text-xs text-gray-600 dark:text-gray-300">
-                Compiled when the server started and kept for as long as it runs. These cannot be invalidated; a restart is the only way to reload them.
+                Compiled when the server started and kept for as long as it runs. These cannot be invalidated. A restart is the only way to reload them.
             </p>
 
             <dl class="grid grid-cols-2 gap-x-4 gap-y-1 mb-3 text-xs sm:grid-cols-3">
@@ -58,7 +58,7 @@
             {% if blacklist.unreadable is not empty %}
                 <p class="p-2 mb-3 text-xs text-gray-700 bg-gray-50 rounded border border-gray-200 dark:text-gray-300 dark:bg-white/5 dark:border-gray-700">
                     Cannot read {{ blacklist.unreadable|join(', ') }}.
-                    The dashboard's user needs access to it; the server itself reads it at start-up.
+                    The dashboard's user needs access to it. The server itself reads it at start-up.
                 </p>
             {% endif %}
 

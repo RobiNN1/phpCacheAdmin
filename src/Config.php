@@ -13,6 +13,13 @@ use JsonException;
 
 class Config {
     /**
+     * Config keys that hold the options of one dashboard, so an ENV variable can address them by name.
+     *
+     * @var array<int, string>
+     */
+    private const GROUPED = ['redis', 'memcached', 'apcu', 'opcache'];
+
+    /**
      * @var array<string, mixed>|null
      */
     private static ?array $config = null;
@@ -33,29 +40,18 @@ class Config {
     }
 
     /**
-     * Load environment variables from .env files.
+     * Load environment variables from an .env file.
      *
      * Requires vlucas/phpdotenv.
      *
-     * Real environment variables (e.g., set by Docker) always take precedence over the values defined in .env files.
+     * Real environment variables (e.g., set by Docker) always take precedence over the values defined in the file.
      */
     public static function loadDotenv(?string $path = null): void {
         if (!class_exists(Dotenv::class)) {
             return;
         }
 
-        $path ??= __DIR__.'/..';
-
-        $environment = getenv('PCA_ENV') ?: getenv('APP_ENV') ?: '';
-
-        $files = ['.env', '.env.local'];
-
-        if ($environment !== '') {
-            $files[] = '.env.'.$environment;
-            $files[] = '.env.'.$environment.'.local';
-        }
-
-        Dotenv::createUnsafeImmutable($path, $files, false)->safeLoad();
+        Dotenv::createUnsafeImmutable($path ?? __DIR__.'/..', '.env')->safeLoad();
     }
 
     /**
@@ -92,6 +88,21 @@ class Config {
     }
 
     /**
+     * Get a single option out of one of the grouped keys, e.g., getOption('apcu', 'separator').
+     *
+     * @template Default
+     *
+     * @param Default $default
+     *
+     * @return mixed|Default
+     */
+    public static function getOption(string $group, string $option, mixed $default = null): mixed {
+        $options = (array) self::get($group, []);
+
+        return $options[$option] ?? $default;
+    }
+
+    /**
      * Get config from ENV.
      *
      * All keys from the config file are supported ENV variables, they just must start with PCA_ prefix.
@@ -115,6 +126,16 @@ class Config {
         return $config;
     }
 
+    private static function startsWithAny(string $name): bool {
+        foreach (self::GROUPED as $prefix) {
+            if (str_starts_with($name, $prefix)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     /**
      * Convert an ENV variable to an array.
      *
@@ -133,8 +154,9 @@ class Config {
             }
         }
 
-        // Redis and Memcached variables: PCA_REDIS_1_HOST $config['redis'][1]['host']
-        if (str_starts_with($lower_var, 'redis') || str_starts_with($lower_var, 'memcached')) {
+        // Options grouped per dashboard: PCA_REDIS_1_HOST $config['redis'][1]['host'], PCA_APCU_SEPARATOR $config['apcu']['separator'].
+        // A name with no underscore after the group (PCA_REDISCLIENT) stays at the top level, there is nothing to nest it in.
+        if (self::startsWithAny($lower_var)) {
             $keys = explode('_', $lower_var);
             $final_key = array_pop($keys);
 

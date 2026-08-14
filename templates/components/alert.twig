@@ -7,7 +7,7 @@
 
 <div class="py-3 px-4 flex items-center rounded-md {{ color_map[alert_color] ?? 'bg-indigo-500 dark:bg-indigo-700' }} {{ placement }}">
     <div class="mr-3 text-white {{ inline|default(false) ? 'grow' : 'break-all' }}">{{ message|raw }}</div>
-    <button type="button" class="close text-white hover:opacity-75" onclick="this.parentElement.remove();">
+    <button type="button" class="close text-white hover:opacity-75" data-alert-dismiss>
         {{ svg('close', 13) }}
     </button>
 </div>

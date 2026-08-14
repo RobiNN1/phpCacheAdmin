@@ -9,7 +9,6 @@ declare(strict_types=1);
 namespace RobiNN\Pca\Dashboards\APCu;
 
 use APCUIterator;
-use RobiNN\Pca\Config;
 use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
 
@@ -78,7 +77,7 @@ trait APCuKeysList {
      * @return array<int|string, mixed>
      */
     public function keysTreeView(array $keys): array {
-        $separator = Config::get('apcuseparator', ':');
+        $separator = $this->separator();
         $this->template->addGlobal('separator', $separator);
 
         $tree_keys = [];

@@ -11,6 +11,7 @@ namespace RobiNN\Pca\Dashboards\Server;
 use JsonException;
 use RobiNN\Pca\Config;
 use RobiNN\Pca\Format;
+use RobiNN\Pca\Helpers;
 use Throwable;
 
 trait ServerResources {
@@ -74,7 +75,7 @@ trait ServerResources {
 
             $json = json_encode($stats, JSON_THROW_ON_ERROR);
 
-            if (is_dir($dir) || mkdir($dir, 0777, true) || is_dir($dir)) {
+            if (Helpers::makeDir($dir)) {
                 @file_put_contents($file, $json);
             }
 

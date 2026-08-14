@@ -92,24 +92,16 @@ directory and open it in a browser. No database and no Composer required.
 
 If you use the defaults (e.g., Redis, Memcached servers), everything should work out of the box.
 To customize the configuration, do not edit `config.dist.php` directly, but copy it into `config.php`.
-Every option can also be set with [environment variables](#environment-variables) or an [.env file](#env-files).
+Every option can also be set with [environment variables](#environment-variables) or an [.env file](#env-file).
 
-It can also be embedded in your own website when installed via Composer,
-see [example_embedded_version.php](example_embedded_version.php).
+It can also be embedded in your own website when installed via Composer, see [example_embedded_version.php](example_embedded_version.php).
 
 ### Access
 
-There is no authentication until you define users in `authusers`([config](https://github.com/RobiNN1/phpCacheAdmin/blob/master/config.dist.php)), so anyone who can open the page can also read,
-change and delete everything in the configured servers.
+There is no authentication until you define users in `authusers`([config](https://github.com/RobiNN1/phpCacheAdmin/blob/master/config.dist.php)),
+so anyone who can open the page can also read, change and delete everything in the configured servers.
 Keep it on a trusted network, or turn the login page on, or put your web server's own authentication in front of it.
 Setting `readonly` on top of that leaves only the read-only parts of the dashboards.
-The consoles always refuse commands that run code on the server (`EVAL`, `MODULE LOAD`, ...), `redisblockedcommands` refuses any others you name, and `console` set to `false` removes the consoles altogether.
-
-## Common issues
-
-If you get the error "Fatal error: Allowed memory size of x bytes exhausted" or a blank page, increase the PHP memory
-limit or enable the SCAN command (set `PCA_REDIS_0_SCANSIZE` or uncomment `scansize` in `config.php`).
-For Redis databases with more than 100 000 keys, SCAN is used automatically (the limit is configurable with `scanthreshold`).
 
 ## Cronjob
 
@@ -125,18 +117,23 @@ Metrics are collected whenever this link is refreshed, so you can set any time i
 
 If you have authentication enabled, set `authtoken` in `config.php` and append `&token=your-secret-token`
 to the cronjob URL so it can collect metrics without a login session.
+The same token is also read from an `X-Pca-Token` header, which keeps it out of the access log:
+
+```bash
+curl -s -o /dev/null -H "X-Pca-Token: your-secret-token" "https://example.com/phpCacheAdmin/?dashboard=redis&server=0&ajax&metrics"
+```
 
 ## Environment variables
 
-All keys from the [config](https://github.com/RobiNN1/phpCacheAdmin/blob/master/config.dist.php) file are supported ENV variables,
-they just must start with `PCA_` prefix.
-
-Options with an array can be set using "dot notation" but use `_` instead of a dot.
-Or you can even use JSON (e.g., Redis SSL option).
+All keys from the [config](https://github.com/RobiNN1/phpCacheAdmin/blob/master/config.dist.php) file are supported ENV variables, they just must start with `PCA_` prefix.
+Array options use "_" e.g., PCA_REDIS_0_HOST, and values may also be JSON.
 
 Redis:
 
-- `PCA_REDISCLIENT` `redis` or `predis`. Auto-detected when not set, set it to `predis` if the installed phpredis is older than 5.3.7.
+- `PCA_REDISOPTIONS_CLIENT` `redis` or `predis`. Auto-detected when not set, set it to `predis` if the installed phpredis is older than 5.3.7.
+- `PCA_REDISOPTIONS_BLOCKEDCOMMANDS` Extra commands to refuse in the console, as JSON `["CONFIG SET","SAVE"]` (optional).
+- `PCA_REDISOPTIONS_PUBSUBREFRESH` Refresh interval for the Pub/Sub active channels list, in seconds (optional).
+- `PCA_REDISOPTIONS_PUBSUBWINDOW` How long one Pub/Sub monitor request captures messages, in seconds, 1–10 (optional).
 - `PCA_REDIS_0_NAME` The server name (optional).
 - `PCA_REDIS_0_HOST` Optional when a path or nodes is specified.
 - `PCA_REDIS_0_NODES` List of cluster nodes. You can set a value as JSON `["127.0.0.1:7000","127.0.0.1:7001","127.0.0.1:7002"]`.
@@ -157,18 +154,25 @@ Redis:
 
 Memcached:
 
+- `PCA_MEMCACHEDOPTIONS_BLOCKEDCOMMANDS` Extra commands to refuse in the console, as JSON `["flush_all","stats reset"]` (optional).
 - `PCA_MEMCACHED_0_NAME` The server name (optional).
 - `PCA_MEMCACHED_0_HOST` Optional when a path is specified.
 - `PCA_MEMCACHED_0_PORT` Optional when the default port is used.
 - `PCA_MEMCACHED_0_PATH` Unix domain socket (optional).
 
+APCu and OPcache:
+
+- `PCA_APCU_SEPARATOR` Separator for the tree view (optional).
+- `PCA_OPCACHE_WARMUPPATHS` Directories the warmup may compile from, as JSON `["/var/www"]`. Defaults to the document root.
+
 Other:
 
-- `PCA_AUTHUSERS` Users for the login page as JSON, e.g. `{"admin":"your-password"}`. Auth is off while it is empty.
+- `PCA_AUTHUSERS` Users for the login page as JSON, e.g. `{"admin":"your-password"}`. Auth is off while it is empty. Passwords can be `password_hash()` hashes.
 - `PCA_AUTHTOKEN` Token for the metrics cronjob, see [Cronjob](#cronjob).
-- `PCA_CONSOLE` Set it to `false` to remove the Redis and Memcached consoles (optional).
-- `PCA_REDISBLOCKEDCOMMANDS` Extra commands to refuse in the Redis console, as JSON `["CONFIG SET","SAVE"]` (optional).
+- `PCA_CONSOLE` Set it to `false` to remove the consoles (optional).
 - `PCA_READONLY` Set it to `true` to block every destructive action (optional).
+- `PCA_SECURITYHEADERS` Set it to `false` to stop sending CSP and the other protection headers (optional).
+- `PCA_DEBUG` Set it to `true` to show PHP and template errors on the page instead of only in the error log (optional).
 - `PCA_PHP_MEMORY_LIMIT` In case you need to increase the PHP memory limit in Docker.
 - `PCA_NGINX_PORT` In case you need to change the NGINX port in Docker.
 
@@ -176,27 +180,18 @@ Open the [config](https://github.com/RobiNN1/phpCacheAdmin/blob/master/config.di
 
 > To add another server, add the same environment variables, but change `0` to `1` (`2` for the third server and so on).
 
-### .env files
+### .env file
 
-You can keep these variables in a `.env` file instead of exporting them in the shell.
-This requires [vlucas/phpdotenv](https://github.com/vlucas/phpdotenv):
+You can keep these variables in a `.env` file instead of exporting them in the shell. This requires [vlucas/phpdotenv](https://github.com/vlucas/phpdotenv):
 
 ```bash
 composer require vlucas/phpdotenv
 ```
 
 Copy [.env.example](https://github.com/RobiNN1/phpCacheAdmin/blob/master/.env.example) to `.env` and adjust the values.
-The following files are loaded automatically (in order of precedence, the more specific file wins):
+It mirrors `config.dist.php`, so whatever is active there is active in it as well.
 
-1. `.env.{environment}.local`
-2. `.env.{environment}`
-3. `.env.local`
-4. `.env`
-
-`{environment}` comes from the `PCA_ENV` (or `APP_ENV`) variable, e.g., `PCA_ENV=development` also loads `.env.development`.
-This lets you keep committed defaults in `.env` and override them locally in `.env.local`, which is git-ignored.
-
-Real environment variables (e.g., set by Docker) always take precedence over the values in `.env` files,
+Real environment variables (e.g., set by Docker) always take precedence over the values in `.env`,
 so you can still override anything at runtime.
 
 ## Docker
@@ -225,6 +220,7 @@ services:
       - PCA_REDIS_0_PORT=6379
       - PCA_MEMCACHED_0_HOST=memcached
       - PCA_MEMCACHED_0_PORT=11211
+      - PCA_AUTHUSERS={"admin":"your-password"}
     depends_on:
       - redis
       - memcached
@@ -234,22 +230,11 @@ services:
     image: memcached:alpine
 ```
 
-Both examples publish the port to `127.0.0.1`, so the dashboard is reachable from that machine only - through an SSH
-tunnel from anywhere else. Drop the address (`-p 8080:80`) to open it to the network, and turn the login page on when
-you do. `authusers` is an array, which as an environment variable means JSON:
-
-```yaml
-environment:
-  - PCA_AUTHUSERS={"admin":"your-password"}
-```
-
-> Publishing a port with Docker can also open it through the host firewall, which is why the examples keep it on localhost.
-
 ## Requirements
 
 - PHP >= 8.2 (Use [v1 branch](https://github.com/RobiNN1/phpCacheAdmin/tree/v1.x) if you need support for >=7.4)
 - Redis server >= 4.0, or Valkey / KeyDB
-- phpredis >= 5.3.7 (the oldest build for PHP 8.2), otherwise set `redisclient` to `predis` .
+- phpredis >= 5.3.7 (the oldest build for PHP 8.2), otherwise set `client` in `redisoptions` to `predis` .
 - Memcached server >= 1.4.31. SASL is not supported because there is no way to get the keys
 - sqlite3 extension for metrics
 
@@ -267,6 +252,5 @@ If you have a feature request, suggestion, or have found a bug,
 please open an Issue describing what you would like to see.
 AI tools are fine, but unchecked AI-generated code with irrelevant changes is not.
 Discussing your ideas first saves everyone's time and prevents rejected contributions.
-
 
 <!-- Font used in logo Arial Rounded MT Bold -->

@@ -23,7 +23,7 @@ trait OPCachePreload {
         $preload = $status['preload_statistics'] ?? [];
 
         return [
-            'preload' => [
+            'preload'   => [
                 'script'    => (string) ($directives['opcache.preload'] ?? ''),
                 'user'      => (string) ($directives['opcache.preload_user'] ?? ''),
                 'memory'    => (int) ($preload['memory_consumption'] ?? 0),

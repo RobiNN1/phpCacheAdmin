@@ -37,6 +37,21 @@ const set_alerts = (html) => {
     document.getElementById('alerts').innerHTML = html;
 };
 
+document.addEventListener('click', (e) => {
+    const dismiss = e.target.closest('[data-alert-dismiss]');
+
+    if (dismiss) {
+        dismiss.parentElement.remove();
+        return;
+    }
+
+    const confirmable = e.target.closest('[data-confirm]');
+
+    if (confirmable && !confirm(confirmable.dataset.confirm)) {
+        e.preventDefault();
+    }
+});
+
 const query_params = (params) => {
     const url = new URL(location.href);
     const search_params = new URLSearchParams(url.search);

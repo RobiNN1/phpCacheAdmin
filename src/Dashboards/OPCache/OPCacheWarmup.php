@@ -11,12 +11,15 @@ namespace RobiNN\Pca\Dashboards\OPCache;
 use FilesystemIterator;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
+use RobiNN\Pca\Config;
 use RobiNN\Pca\Csrf;
 use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
 use Throwable;
 
 trait OPCacheWarmup {
+    private const WARMUP_MAX_FILES = 25_000;
+
     /**
      * @return array<string, mixed>
      */
@@ -65,8 +68,8 @@ trait OPCacheWarmup {
 
         $real_path = realpath($path);
 
-        if ($real_path === false || !is_readable($real_path)) {
-            return ['error' => 'Path does not exist or is not readable: '.$path];
+        if ($real_path === false || !is_readable($real_path) || !$this->warmupPathAllowed($real_path)) {
+            return ['error' => 'The path is not readable or is outside the directories allowed by the "opcache.warmuppaths" option.'];
         }
 
         $files = $this->findFiles($real_path, $this->parseExtensions($extensions));
@@ -109,6 +112,29 @@ trait OPCacheWarmup {
     /**
      * @return array<int, string>
      */
+    private function warmupRoots(): array {
+        $configured = array_filter((array) Config::getOption('opcache', 'warmuppaths', []), is_string(...));
+
+        if ($configured === []) {
+            $configured = [$_SERVER['DOCUMENT_ROOT'] ?? ''];
+        }
+
+        return array_values(array_filter(array_map(realpath(...), $configured), is_string(...)));
+    }
+
+    private function warmupPathAllowed(string $path): bool {
+        foreach ($this->warmupRoots() as $root) {
+            if ($path === $root || str_starts_with($path, $root.DIRECTORY_SEPARATOR)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @return array<int, string>
+     */
     private function parseExtensions(string $extensions): array {
         $parsed = array_filter(array_map(
             static fn (string $extension): string => strtolower(ltrim(trim($extension), '.')),
@@ -139,6 +165,10 @@ trait OPCacheWarmup {
         foreach ($iterator as $file) {
             if ($file->isFile() && in_array(strtolower($file->getExtension()), $extensions, true)) {
                 $files[] = $file->getPathname();
+
+                if (count($files) >= self::WARMUP_MAX_FILES) {
+                    break;
+                }
             }
         }
 

@@ -58,7 +58,7 @@ class Template {
         if ($app_version !== $saved_version) {
             $this->clearTwigCache($cache_dir);
 
-            if (!mkdir($cache_dir, 0777, true) && !is_dir($cache_dir)) {
+            if (!Helpers::makeDir($cache_dir)) {
                 throw new RuntimeException(sprintf('Directory "%s" was not created', $cache_dir));
             }
 
@@ -110,7 +110,7 @@ class Template {
         $loader = new FilesystemLoader(__DIR__.'/../templates');
         $twig = new Environment($loader, [
             'cache' => Config::get('twigcache', __DIR__.'/../tmp/twig'),
-            'debug' => Config::get('twigdebug', false),
+            'debug' => Config::get('debug', false), // Also turns on auto_reload, so template edits are picked up.
         ]);
 
         foreach ($this->paths as $namespace => $path) {
@@ -123,7 +123,7 @@ class Template {
             }
         }
 
-        if (Config::get('twigdebug', false)) {
+        if (Config::get('debug', false)) {
             $twig->addExtension(new DebugExtension());
         }
 
@@ -132,6 +132,7 @@ class Template {
         $twig->addFunction(new TwigFunction('link', Http::queryString(...), ['is_safe' => ['html']]));
         $twig->addFunction(new TwigFunction('get', Http::get(...)));
         $twig->addFunction(new TwigFunction('config', Config::get(...)));
+        $twig->addFunction(new TwigFunction('config_option', Config::getOption(...)));
         $twig->addFunction(new TwigFunction('is_numeric', is_numeric(...)));
         $twig->addFunction(new TwigFunction('cronjob_url', Helpers::cronjobUrl(...)));
 
@@ -158,6 +159,7 @@ class Template {
 
         $twig->addGlobal('ajax_panels', false);
         $twig->addGlobal('csrf', Csrf::generateToken());
+        $twig->addGlobal('nonce', Http::nonce());
 
         foreach ($this->globals as $name => $value) {
             $twig->addGlobal($name, $value);
@@ -189,7 +191,15 @@ class Template {
 
             return $twig->render($tpl.'.twig', $data);
         } catch (Exception $e) {
-            return $e->getMessage().' in '.$e->getFile().' at line: '.$e->getLine();
+            $message = $e->getMessage().' in '.$e->getFile().' at line: '.$e->getLine();
+
+            if (!Config::get('debug', false)) {
+                error_log('phpCacheAdmin template error: '.$message);
+
+                return 'Template error, see the PHP error log for details. Set "debug" to true in the configuration to show it here.';
+            }
+
+            return $message;
         }
     }
 }

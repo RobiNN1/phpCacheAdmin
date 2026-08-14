@@ -43,7 +43,7 @@ trait MemcachedHealth {
             'utilization' => round($utilization, 2),
             'status'      => $status,
             'detail'      => Format::bytes($bytes).' of '.Format::bytes($limit).' used',
-            'suggestion'  => $status !== 'healthy' ? 'Memory is filling up. When it is full, Memcached evicts older items to make room; consider raising the memory limit (-m).' : '',
+            'suggestion'  => $status !== 'healthy' ? 'Memory is filling up. When it is full, Memcached evicts older items to make room. Consider raising the memory limit (-m).' : '',
         ];
     }
 
@@ -113,7 +113,7 @@ trait MemcachedHealth {
             $suggestion = Format::number($rejected).' connections have been rejected because the connection limit was reached. Raise it with the -c option.';
         } else {
             $status = Helpers::utilizationStatus($utilization);
-            $suggestion = $status !== 'healthy' ? 'Connection usage is high; consider raising the connection limit (-c).' : '';
+            $suggestion = $status !== 'healthy' ? 'Connection usage is high. Consider raising the connection limit (-c).' : '';
         }
 
         return [

@@ -36,6 +36,20 @@ class Helpers {
         return $cache[$cache_key] = str_replace("\n", '', $svg);
     }
 
+    public static function makeDir(string $dir): bool {
+        if (!is_dir($dir) && !mkdir($dir, 0777, true) && !is_dir($dir)) {
+            return false;
+        }
+
+        $htaccess = $dir.'/.htaccess';
+
+        if (!is_file($htaccess)) {
+            @file_put_contents($htaccess, "Require all denied\n<IfModule !mod_authz_core.c>\n    Deny from all\n</IfModule>\n");
+        }
+
+        return true;
+    }
+
     public static function alert(string $message, ?string $color = null): string {
         $template = Template::get();
 
@@ -203,9 +217,7 @@ class Helpers {
     }
 
     public static function cronjobUrl(string $dashboard, int $server_id): string {
-        $https = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ||
-            ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https' ||
-            (int) ($_SERVER['SERVER_PORT'] ?? '0') === 443;
+        $https = Http::isHttps();
         $host = ($_SERVER['HTTP_HOST'] ?? 'localhost');
         $path = (parse_url(($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH) ?: '/');
 
@@ -291,7 +303,7 @@ class Helpers {
     /**
      * Build a folder tree for the tree view from a flat list of keys.
      *
-     * Each item must contain the full key name under 'key'; everything else ('info', 'items', ...) is copied to the leaf node as is.
+     * Each item must contain the full key name under 'key'. Everything else ('info', 'items', ...) is copied to the leaf node as is.
      *
      * @param array<int, array<string, mixed>> $keys
      * @param callable|null                    $leaf_name Optional formatter for the displayed leaf name.

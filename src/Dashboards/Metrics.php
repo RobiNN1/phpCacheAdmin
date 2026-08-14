@@ -29,7 +29,7 @@ abstract readonly class Metrics {
         $prefix = strtolower(str_replace('Metrics', '', substr((string) strrchr(static::class, '\\'), 1)));
         $db = $dir.'/'.$prefix.'_metrics_'.$hash.'.db';
 
-        if (!is_dir($dir) && !mkdir($dir, 0777, true) && !is_dir($dir)) {
+        if (!Helpers::makeDir($dir)) {
             throw new RuntimeException(sprintf('Directory "%s" was not created', $dir));
         }
 

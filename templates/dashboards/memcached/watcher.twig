@@ -68,11 +68,11 @@
     <p class="mt-2 text-xs text-gray-600 dark:text-gray-300">
         Captured over AJAX in {{ window }}s windows, so anything the server does in the gap between two requests is missed.
         The dashboard's own commands show up here too.
-        The server never waits for a slow watcher, it throws log lines away instead and the count of those is reported here.
+        The server never waits for a slow watcher, it throws log lines away instead, and the count of those is reported here.
     </p>
 </div>
 
-<script>
+<script nonce="{{ nonce }}">
     document.addEventListener('DOMContentLoaded', () => {
         const toggle_btn = document.getElementById('watcher_toggle');
         const filter_input = document.getElementById('watcher_filter');

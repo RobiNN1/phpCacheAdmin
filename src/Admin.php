@@ -43,6 +43,8 @@ class Admin {
     }
 
     public function render(): string {
+        Http::securityHeaders();
+
         if ($this->dashboards === []) {
             return 'No dashboards are available. Enable at least one dashboard in the configuration ("dashboards" option).';
         }
@@ -78,7 +80,7 @@ class Admin {
             'colors'     => $colors,
             'site_title' => $info['title'],
             'nav'        => $nav,
-            'logout_url' => Auth::isEnabled() ? Http::queryString([], ['logout' => 'yes']) : null,
+            'logout_url' => Auth::isEnabled() ? Http::queryString() : null,
             'version'    => self::VERSION,
             'repo'       => 'https://github.com/RobiNN1/phpCacheAdmin',
             'dashboard'  => $dashboard->dashboard(),

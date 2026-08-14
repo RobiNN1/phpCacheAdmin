@@ -1,4 +1,5 @@
-{% set pubsub_window = min(max(config('pubsubwindow', 5), 1), 10) %}
+{% set pubsub_window = min(max(config_option('redisoptions', 'pubsubwindow', 5), 1), 10) %}
+{% set pubsub_refresh = config_option('redisoptions', 'pubsubrefresh', 5) %}
 
 <div class="gap-4 lg:grid lg:grid-cols-2">
     {% if not readonly %}
@@ -64,7 +65,7 @@
         <div class="mt-2 text-xs">
             Only channels with at least one direct (SUBSCRIBE) subscriber are listed, pattern subscriptions
             (PSUBSCRIBE, including the message monitor) appear in the counter above instead.
-            Refreshed every {{ config('pubsubrefresh', 5) }}s.
+            Refreshed every {{ pubsub_refresh }}s.
         </div>
     </div>
 
@@ -112,7 +113,7 @@
     </div>
 </div>
 
-<script>
+<script nonce="{{ nonce }}">
     document.addEventListener('DOMContentLoaded', () => {
         const publish_btn = document.getElementById('pubsub_publish');
         const publish_result = document.getElementById('pubsub_publish_result');
@@ -123,7 +124,7 @@
         const messages_box = document.getElementById('pubsub_messages');
 
         const capture_window = parseInt("{{ pubsub_window }}", 10);
-        const stats_refresh_ms = parseInt("{{ config('pubsubrefresh', 5) }}", 10) * 1000;
+        const stats_refresh_ms = parseInt("{{ pubsub_refresh }}", 10) * 1000;
 
         // Redis glob pattern (*, ?, [...]) to RegExp, to check if the monitor would receive a channel.
         const channel_matches = (pattern, channel) => {

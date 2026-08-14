@@ -108,7 +108,7 @@
     }) }}
 </form>
 
-<script>
+<script nonce="{{ nonce }}">
     document.getElementById('rtype').addEventListener('change', e => {
         document.getElementById('redis_index').style.display = e.target.value === 'list' ? 'block' : 'none';
         document.getElementById('redis_score').style.display = e.target.value === 'zset' ? 'block' : 'none';

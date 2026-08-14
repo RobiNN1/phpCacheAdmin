@@ -16,7 +16,7 @@
             }
         </style>
     {%- endif %}
-    <script>
+    <script nonce="{{ nonce }}">
         const theme = localStorage.getItem('theme') || 'system';
         let current_theme = theme;
 
@@ -64,8 +64,12 @@
         {% endif %}
 
         <div class="flex gap-4 items-center">
-            {% if logout_url %}
-                <a class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" href="{{ logout_url }}" title="Logout">{{ svg('logout', 28) }}</a>
+            {% if logout_url is not null %}
+                <form method="post" action="{{ logout_url }}" class="flex">
+                    <input type="hidden" name="csrf_token" value="{{ csrf }}">
+                    <button type="submit" name="pca_logout" value="1" title="Logout"
+                            class="text-gray-700 cursor-pointer dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">{{ svg('logout', 28) }}</button>
+                </form>
             {% endif %}
 
             <div class="flex border rounded-sm overflow-hidden border-gray-300 dark:border-gray-600 [&>.active]:text-gray-600 dark:[&>.active]:text-gray-300 [&>.active]:bg-gray-200 dark:[&>.active]:bg-gray-950">

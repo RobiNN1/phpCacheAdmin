@@ -79,7 +79,7 @@ trait RedisConsole {
 
             $this->storeConsoleCommand(trim($line));
 
-            $blocked = $this->blockedCommand([...$this->console_blocked, ...$this->configuredBlockedCommands('redisblockedcommands')], $args);
+            $blocked = $this->blockedCommand([...$this->console_blocked, ...$this->configuredBlockedCommands('redisoptions')], $args);
 
             if ($blocked !== null) {
                 return Helpers::ajaxJson([

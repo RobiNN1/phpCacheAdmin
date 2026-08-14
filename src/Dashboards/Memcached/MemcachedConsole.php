@@ -76,7 +76,7 @@ trait MemcachedConsole {
 
             $args = preg_split('/\s+/', $line) ?: [];
 
-            $blocked = $this->blockedCommand($this->console_blocked, $args);
+            $blocked = $this->blockedCommand([...$this->console_blocked, ...$this->configuredBlockedCommands('memcachedoptions')], $args);
 
             if ($blocked !== null) {
                 return Helpers::ajaxJson([
@@ -85,7 +85,7 @@ trait MemcachedConsole {
                 ]);
             }
 
-            // Storage commands need their value on a second line; let users type it as a "\n" escape.
+            // Storage commands need their value on a second line. Let users type it as a "\n" escape.
             $reply = $this->memcached->runCommand(strtr($line, ['\r\n' => "\r\n", '\n' => "\r\n"]));
 
             if (preg_match('/^(ERROR|CLIENT_ERROR|SERVER_ERROR)\b/', $reply) === 1) {

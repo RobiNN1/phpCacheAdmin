@@ -59,7 +59,7 @@ trait RedisPubSub {
      */
     private function pubSubSubscribe(): string {
         $pattern = (string) Http::get('subscribe', '*');
-        $window = min(max((int) Http::get('window', Config::get('pubsubwindow', 5)), 1), 10);
+        $window = min(max((int) Http::get('window', Config::getOption('redisoptions', 'pubsubwindow', 5)), 1), 10);
 
         // Release the session lock, capturing messages blocks for the whole window.
         if (session_status() === PHP_SESSION_ACTIVE) {

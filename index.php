@@ -6,9 +6,8 @@
 
 declare(strict_types=1);
 
-// Always display errors
-ini_set('display_errors', 'On');
-ini_set('display_startup_errors', 'On');
+ini_set('display_errors', 'Off');
+ini_set('display_startup_errors', 'Off');
 error_reporting(E_ALL);
 
 if (getenv('PCA_PHP_MEMORY_LIMIT')) {
@@ -32,6 +31,11 @@ if (is_file(__DIR__.'/vendor/autoload.php')) {
 }
 
 RobiNN\Pca\Config::loadDotenv($path);
+
+if (RobiNN\Pca\Config::get('debug', false)) {
+    ini_set('display_errors', 'On');
+    ini_set('display_startup_errors', 'On');
+}
 
 RobiNN\Pca\Auth::check();
 

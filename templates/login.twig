@@ -6,7 +6,7 @@
     <title>Login - phpCacheAdmin</title>
     <link rel="icon" type="image/png" sizes="32x32" href="{{ config('pcapath', '') }}assets/favicon.png">
     <link rel="stylesheet" href="{{ config('pcapath', '') }}assets/css/styles.css?v={{ version }}">
-    <script>
+    <script nonce="{{ nonce }}">
         const theme = localStorage.getItem('theme') || 'system';
         let current_theme = theme;
 
@@ -40,8 +40,7 @@
                    class="block py-2 px-4 w-full text-sm bg-white rounded-sm border border-gray-300 focus:outline-hidden focus:ring-3 focus:ring-primary-200 focus:border-primary-300 dark:text-white dark:bg-gray-800 dark:border-gray-600 dark:focus:ring-primary-500 dark:focus:border-primary-400">
         </div>
 
-        <button type="submit" name="pca_login" value="1"
-                class="py-2 px-4 w-full font-semibold text-white rounded-sm cursor-pointer bg-primary-500 hover:bg-primary-600">
+        <button type="submit" name="pca_login" value="1" class="py-2 px-4 w-full font-semibold text-white rounded-sm cursor-pointer bg-primary-500 hover:bg-primary-600">
             Sign in
         </button>
     </form>

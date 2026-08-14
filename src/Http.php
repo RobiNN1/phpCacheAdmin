@@ -8,11 +8,84 @@ declare(strict_types=1);
 
 namespace RobiNN\Pca;
 
+use Random\RandomException;
+use RuntimeException;
+
 class Http {
     private static bool $stop_redirect = false;
 
+    private static ?string $nonce = null;
+
     public static function stopRedirect(): void {
         self::$stop_redirect = true;
+    }
+
+    public static function isHttps(): bool {
+        return (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ||
+            ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https' ||
+            (int) ($_SERVER['SERVER_PORT'] ?? '0') === 443;
+    }
+
+    /**
+     * Start the session with cookie flags that PHP does not set on its own.
+     */
+    public static function startSession(): void {
+        if (session_status() !== PHP_SESSION_NONE || headers_sent()) {
+            return;
+        }
+
+        session_set_cookie_params([
+            'httponly' => true, // The session cookie is of no use to any script on the page.
+            'samesite' => 'Lax',
+            'secure'   => self::isHttps(),
+        ]);
+
+        // Refuse a session id the browser was given by someone else.
+        ini_set('session.use_strict_mode', '1');
+
+        session_start();
+    }
+
+    /**
+     * A per-request value that marks the inline scripts of the page as the ones it wrote itself.
+     */
+    public static function nonce(): string {
+        if (self::$nonce === null) {
+            try {
+                self::$nonce = bin2hex(random_bytes(16));
+            } catch (RandomException $e) {
+                throw new RuntimeException('Could not generate secure random bytes.', 0, $e);
+            }
+        }
+
+        return self::$nonce;
+    }
+
+    /**
+     * Sent before any output. The CSP is what keeps a value stored in the cache from becoming a script.
+     */
+    public static function securityHeaders(): void {
+        if (headers_sent() || !Config::get('securityheaders', true)) {
+            return;
+        }
+
+        $csp = [
+            "default-src 'self'",
+            "script-src 'self' 'nonce-".self::nonce()."'",
+            "style-src 'self' 'unsafe-inline'", // Progress bars and dashboard colors are inline styles.
+            "img-src 'self' data:",
+            "connect-src 'self'",
+            "object-src 'none'",
+            "base-uri 'none'",
+            "form-action 'self'",
+            "frame-ancestors 'self'", // 'self' rather than 'none', the dashboard can be embedded in another page.
+        ];
+
+        header('Content-Security-Policy: '.implode('; ', $csp));
+        header('X-Content-Type-Options: nosniff');
+        header('X-Frame-Options: SAMEORIGIN');
+        // Keeps the metrics token out of the referrer of any link that leaves the dashboard.
+        header('Referrer-Policy: same-origin');
     }
 
     /**
@@ -118,9 +191,7 @@ class Http {
      * @return Type
      */
     public static function session(string $key, mixed $default = null): mixed {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
+        self::startSession();
 
         if (!isset($_SESSION[$key])) {
             return $default;

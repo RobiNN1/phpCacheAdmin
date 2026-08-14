@@ -179,7 +179,7 @@ trait RedisHealth {
             $suggestion = Format::number($rejected).' connections have been rejected because the client limit was reached. Raise the maxclients setting.';
         } else {
             $status = Helpers::utilizationStatus($utilization);
-            $suggestion = $status !== 'healthy' ? 'Client connection usage is high; consider raising maxclients.' : '';
+            $suggestion = $status !== 'healthy' ? 'Client connection usage is high. Consider raising maxclients.' : '';
         }
 
         $detail = $max > 0 ? Format::number($connected).' of '.Format::number($max).' clients' : Format::number($connected).' clients';

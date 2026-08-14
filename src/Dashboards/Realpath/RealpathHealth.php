@@ -12,9 +12,6 @@ use RobiNN\Pca\Format;
 use RobiNN\Pca\Helpers;
 
 trait RealpathHealth {
-    /**
-     * Anything at or below the PHP default expires often enough to be worth pointing out.
-     */
     private int $default_ttl = 120;
 
     /**
@@ -24,11 +21,11 @@ trait RealpathHealth {
      */
     public function getHealthChecks(?array $info = null): array {
         $info ??= [
-            'used'          => realpath_cache_size(),
-            'total'         => Format::iniSizeToBytes((string) ini_get('realpath_cache_size')),
-            'ttl'           => (int) ini_get('realpath_cache_ttl'),
-            'open_basedir'  => (string) ini_get('open_basedir'),
-            'entries'       => realpath_cache_get(),
+            'used'         => realpath_cache_size(),
+            'total'        => Format::iniSizeToBytes((string) ini_get('realpath_cache_size')),
+            'ttl'          => (int) ini_get('realpath_cache_ttl'),
+            'open_basedir' => (string) ini_get('open_basedir'),
+            'entries'      => realpath_cache_get(),
         ];
 
         return [
@@ -49,10 +46,10 @@ trait RealpathHealth {
         // open_basedir sets realpath_cache_size to 0, so there is no cache to measure.
         if ((string) $info['open_basedir'] !== '') {
             return $check + [
-                'status'     => 'info',
-                'detail'     => 'The cache is disabled because open_basedir is set',
-                'suggestion' => 'PHP resolves every path again on each request, which costs extra stat() calls. That is the price of the open_basedir restriction, not something to fix here.',
-            ];
+                    'status'     => 'info',
+                    'detail'     => 'The cache is disabled because open_basedir is set',
+                    'suggestion' => 'PHP resolves every path again on each request, which costs extra stat() calls. That is the price of the open_basedir restriction, not something to fix here.',
+                ];
         }
 
         $used = (int) $info['used'];
@@ -60,10 +57,10 @@ trait RealpathHealth {
 
         if ($total <= 0) {
             return $check + [
-                'status'     => 'info',
-                'detail'     => Format::bytes($used).' used, no cache size is set',
-                'suggestion' => '',
-            ];
+                    'status'     => 'info',
+                    'detail'     => Format::bytes($used).' used, no cache size is set',
+                    'suggestion' => '',
+                ];
         }
 
         $utilization = ($used / $total) * 100;

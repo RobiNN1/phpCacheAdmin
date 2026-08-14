@@ -35,7 +35,7 @@
 </div>
 
 <script src="{{ asset('assets/js/echarts.min.js') }}"></script>
-<script>
+<script nonce="{{ nonce }}">
     document.addEventListener('DOMContentLoaded', () => {
         const initial_theme = document.documentElement.classList.contains('dark') ? 'dark' : null;
 

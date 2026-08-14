@@ -12,7 +12,7 @@
             <div class="p-4 text-center text-gray-600 dark:text-gray-300">No cached scripts.</div>
         {% else %}
             <p class="mb-3 text-xs text-gray-600 dark:text-gray-300">
-                Boxes are sized by memory consumption. Click a folder to zoom in; use the breadcrumb below to go back.
+                Boxes are sized by memory consumption. Click a folder to zoom in. Use the breadcrumb below to go back.
             </p>
             <div id="opcache_treemap" style="height: 600px;"></div>
         {% endif %}
@@ -20,9 +20,9 @@
 </div>
 
 {% if treemap is not empty %}
-    <script id="treemap_data" type="application/json">{{ treemap|json_encode|raw }}</script>
+    <script id="treemap_data" type="application/json" nonce="{{ nonce }}">{{ treemap|json_encode|raw }}</script>
     <script src="{{ config('pcapath', '') }}assets/js/echarts.min.js"></script>
-    <script>
+    <script nonce="{{ nonce }}">
         document.addEventListener('DOMContentLoaded', () => {
             const element = document.getElementById('opcache_treemap');
             const data = JSON.parse(document.getElementById('treemap_data').textContent);

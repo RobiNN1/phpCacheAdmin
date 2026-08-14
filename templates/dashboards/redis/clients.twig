@@ -4,7 +4,7 @@
     <div class="flex flex-wrap gap-2 justify-between items-center py-4 px-6">
         <h2 class="text-sm font-bold uppercase text-primary-900 dark:text-primary-400">Connected clients ({{ clients|length|number }})</h2>
         <p class="text-xs text-gray-600 dark:text-gray-300">
-            Sorted by idle time. Disconnecting a client makes its next command fail; it is up to the client to reconnect.
+            Sorted by idle time. Disconnecting a client makes its next command fail. It is up to the client to reconnect.
         </p>
     </div>
 
@@ -59,7 +59,7 @@
                                 <input type="hidden" name="csrf_token" value="{{ csrf }}">
                                 <input type="hidden" name="kill_client" value="{{ client.id }}">
                                 <button type="submit" class="inline-flex gap-1 items-center text-sm font-semibold text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
-                                        onclick="return confirm('Disconnect client {{ client.id }} ({{ client.addr }})?');">
+                                        data-confirm="Disconnect client {{ client.id }} ({{ client.addr }})?">
                                     {{ svg('trash', 16) }} Kill
                                 </button>
                             </form>

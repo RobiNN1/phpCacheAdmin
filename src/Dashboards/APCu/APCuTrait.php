@@ -22,6 +22,10 @@ trait APCuTrait {
     use APCuKeyView;
     use APCuKeysList;
 
+    public function separator(): string {
+        return (string) Config::getOption('apcu', 'separator', ':');
+    }
+
     /**
      * @var array<string, string>
      */

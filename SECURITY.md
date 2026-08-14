@@ -21,16 +21,15 @@ Whether the dashboard is reachable by anyone else is therefore a deployment deci
 - `authusers` - the built-in login page. Passwords can be `password_hash()` hashes.
 - `readonly` - blocks every destructive action and removes the consoles.
 - `console` - set it to `false` to remove the Redis and Memcached consoles on their own.
-- `redisblockedcommands` - extra commands to refuse in the Redis console.
-
-The Docker examples publish the port to `127.0.0.1` for the same reason.
+- `redisoptions.blockedcommands` / `memcachedoptions.blockedcommands` - extra commands to refuse in the console.
 
 ### The consoles
 
 The consoles exist to run commands against the server, so most of what they can do is by design – the same as the SQL
 tab of a database tool. Commands that execute code on the server (`EVAL` and the rest of the Lua and functions family,
 `MODULE LOAD`) are always refused because those turn cache access into code execution on the host. Anything else can be
-refused with `redisblockedcommands`, and the whole feature can be removed with `console => false`.
+refused with `blockedcommands` in `redisoptions` / `memcachedoptions`, and the whole feature can be removed with
+`console => false`.
 
 ## Reporting a vulnerability
 
@@ -48,7 +47,7 @@ discuss it privately first. Include the version, the configuration it happens wi
 
 - No authentication in the default configuration, or a dashboard exposed to a network without it. See above.
 - Commands run in the console, or the data the dashboard can reach on servers it is configured for. Use `readonly`,
-  `console => false` or `redisblockedcommands` if the people with access should not have that.
+  `console => false` or `blockedcommands` if the people with access should not have that.
 - Weaknesses of the cache server itself, e.g., a Redis that allows `CONFIG SET dir`, runs as root, or has
   `enable-module-command` turned on. Report those to the server's maintainers.
 - Findings from a scanner with no working proof, and reports about dependencies that are only used for development.

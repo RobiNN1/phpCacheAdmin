@@ -96,6 +96,22 @@ final class ConfigTest extends TestCase {
         $this->assertSame(6380, $redis_config[2]['port'] ?? null);
     }
 
+    public function testEnvNestedForDashboardsWithoutServers(): void {
+        $this->setEnv('PCA_APCU_SEPARATOR', '#');
+        $this->setEnv('PCA_OPCACHE_WARMUPPATHS', '["/srv/app","/srv/lib"]');
+
+        $this->assertSame('#', Config::get('apcu', [])['separator'] ?? null);
+        $this->assertSame(['/srv/app', '/srv/lib'], Config::get('opcache', [])['warmuppaths'] ?? null);
+    }
+
+    public function testGroupNameWithoutUnderscoreStaysTopLevel(): void {
+        // "redisclient" starts with a group name but has nothing to nest, it must not end up in the server list.
+        $this->setEnv('PCA_REDISCLIENT', 'predis');
+
+        $this->assertSame('predis', Config::get('redisclient'));
+        $this->assertArrayNotHasKey('client', Config::get('redis', []));
+    }
+
     public function testEnvCollisionWithScalar(): void {
         $this->setEnv('PCA_TIMEFORMAT', 'd. m. Y H:i:s');
         $this->setEnv('PCA_TIMEFORMAT_EXTRA', 'test');
@@ -132,7 +148,7 @@ final class ConfigTest extends TestCase {
         $this->assertSame('from_env_file', $config_value);
     }
 
-    public function testDotenvLocalOverridesBase(): void {
+    public function testOnlyTheBaseDotenvFileIsRead(): void {
         if (!class_exists(Dotenv::class)) {
             $this->markTestSkipped('vlucas/phpdotenv is not installed.');
         }
@@ -151,6 +167,27 @@ final class ConfigTest extends TestCase {
         unlink($dir.'/.env.local');
         rmdir($dir);
 
-        $this->assertSame('local', $env_value);
+        $this->assertSame('base', $env_value); // .env.local and the rest are no longer read.
+    }
+
+    public function testRealEnvWinsOverDotenv(): void {
+        if (!class_exists(Dotenv::class)) {
+            $this->markTestSkipped('vlucas/phpdotenv is not installed.');
+        }
+
+        $dir = sys_get_temp_dir().'/pca_dotenv_'.uniqid('', true);
+        mkdir($dir);
+        file_put_contents($dir.'/.env', "PCA_DOTENV_PRECEDENCE=from_file\n");
+
+        putenv('PCA_DOTENV_PRECEDENCE=from_real_env');
+        Config::loadDotenv($dir);
+
+        $env_value = getenv('PCA_DOTENV_PRECEDENCE');
+
+        putenv('PCA_DOTENV_PRECEDENCE');
+        unlink($dir.'/.env');
+        rmdir($dir);
+
+        $this->assertSame('from_real_env', $env_value);
     }
 }

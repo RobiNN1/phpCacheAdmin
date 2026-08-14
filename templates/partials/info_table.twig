@@ -16,10 +16,10 @@
                 <div class="text-sm font-semibold text-gray-900 break-all dark:text-white">{{ name }}</div>
                 <div class="ml-auto text-sm font-semibold text-right text-gray-700 break-all dark:text-gray-300">
                     {% if value is not iterable %}
-                        {{ value|raw }}
+                        {{ value }}
                     {% else %}
                         {% for node, node_value in value %}
-                            Node {{ node }}: {{ node_value|raw }}<br>
+                            Node {{ node }}: {{ node_value }}<br>
                         {% endfor %}
                     {% endif %}
                 </div>
@@ -76,7 +76,7 @@
 </div>
 
 {% if sections is not empty %}
-    <script>
+    <script nonce="{{ nonce }}">
         (() => {
             const spy = document.querySelector('[data-scrollspy]');
 

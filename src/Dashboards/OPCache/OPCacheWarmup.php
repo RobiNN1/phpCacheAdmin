@@ -113,7 +113,7 @@ trait OPCacheWarmup {
      * @return array<int, string>
      */
     private function warmupRoots(): array {
-        $configured = array_filter((array) Config::getOption('opcache', 'warmuppaths', []), is_string(...));
+        $configured = array_filter((array) Config::get('opcache.warmuppaths', []), is_string(...));
 
         if ($configured === []) {
             $configured = [$_SERVER['DOCUMENT_ROOT'] ?? ''];

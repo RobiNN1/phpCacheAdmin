@@ -24,8 +24,8 @@ trait RedisKeysList {
         $this->template->addGlobal('search_value', $search);
 
         $filter = $this->searchPattern($search);
-        $scansize = Config::getOption('redisoptions', 'scansize');
-        $scan_threshold = Config::getOption('redisoptions', 'scanthreshold', 100_000);
+        $scansize = Config::get('redisoptions.scansize');
+        $scan_threshold = Config::get('redisoptions.scanthreshold', 100_000);
 
         if ($scansize !== null || $this->redis->databaseSize() > $scan_threshold || !$this->isCommandSupported('KEYS')) {
             return $this->redis->scanKeys($filter, (int) ($scansize ?? 1000));

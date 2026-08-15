@@ -19,6 +19,8 @@ final class ConfigTest extends TestCase {
      */
     private array $env_backup = [];
 
+    private ?string $config_file = null;
+
     protected function tearDown(): void {
         parent::tearDown();
 
@@ -27,6 +29,11 @@ final class ConfigTest extends TestCase {
         }
 
         $this->env_backup = [];
+
+        if ($this->config_file !== null && is_file($this->config_file)) {
+            unlink($this->config_file);
+            $this->config_file = null;
+        }
 
         Config::reset();
     }
@@ -39,11 +46,48 @@ final class ConfigTest extends TestCase {
         putenv($name.'='.$value);
     }
 
+    private function setConfig(string $php_array): void {
+        $this->config_file = tempnam(sys_get_temp_dir(), 'pca_cfg');
+        file_put_contents($this->config_file, '<?php return '.$php_array.';');
+        Config::reset();
+        Config::setConfigPath($this->config_file);
+    }
+
     public function testGetter(): void {
         $this->assertTrue(Config::get('true', true));
         $this->assertSame([], Config::get('array', []));
         $this->assertSame(88, Config::get('int', 88));
         $this->assertSame('d. m. Y H:i:s', Config::get('timeformat', ''));
+    }
+
+    public function testDotNotation(): void {
+        $this->assertSame(':', Config::get('apcu.separator'));
+        $this->assertSame(5, Config::get('redisoptions.pubsubwindow'));
+    }
+
+    public function testDotNotationDeeperThanOneLevel(): void {
+        $this->assertSame('127.0.0.1', Config::get('redis.0.host'));
+    }
+
+    public function testDotNotationFallsBackToDefault(): void {
+        $this->assertSame('fallback', Config::get('redisoptions.nonexistent', 'fallback')); // Missing option.
+        $this->assertSame('fallback', Config::get('nonexistent.option', 'fallback')); // Missing group.
+        $this->assertSame('fallback', Config::get('timeformat.option', 'fallback')); // The group is a scalar.
+    }
+
+    public function testKeyWithADotWinsOverTraversal(): void {
+        $this->setConfig("['apcu.separator' => 'top-level', 'apcu' => ['separator' => '#']]");
+
+        $this->assertSame('top-level', Config::get('apcu.separator'));
+        $this->assertSame('#', Config::get('apcu', [])['separator'] ?? null); // The group itself is untouched.
+    }
+
+    public function testDotNotationReadsEnvValues(): void {
+        $this->setEnv('PCA_APCU_SEPARATOR', '#');
+        $this->setEnv('PCA_REDIS_0_PORT', '6380');
+
+        $this->assertSame('#', Config::get('apcu.separator'));
+        $this->assertSame(6380, Config::get('redis.0.port'));
     }
 
     /**
@@ -105,10 +149,10 @@ final class ConfigTest extends TestCase {
     }
 
     public function testGroupNameWithoutUnderscoreStaysTopLevel(): void {
-        // "redisclient" starts with a group name but has nothing to nest, it must not end up in the server list.
-        $this->setEnv('PCA_REDISCLIENT', 'predis');
+        // "redisoptions" starts with the "redis" group name but has nothing to nest, it must not end up in the server list.
+        $this->setEnv('PCA_REDISOPTIONS', '{"client":"predis"}');
 
-        $this->assertSame('predis', Config::get('redisclient'));
+        $this->assertSame('predis', Config::get('redisoptions.client'));
         $this->assertArrayNotHasKey('client', Config::get('redis', []));
     }
 

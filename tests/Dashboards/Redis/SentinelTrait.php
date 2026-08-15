@@ -25,7 +25,7 @@ trait SentinelTrait {
      * @return array<int, string>
      */
     private function sentinels(): array {
-        return Config::get('redis')[0]['sentinels'];
+        return Config::get('redis.0.sentinels');
     }
 
     /**
@@ -34,7 +34,7 @@ trait SentinelTrait {
      * @return array<string, mixed>
      */
     private function sentinelServer(array $extra = []): array {
-        $server = Config::get('redis')[0];
+        $server = Config::get('redis.0');
 
         return array_merge([
             'sentinels'      => $server['sentinels'],

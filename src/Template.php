@@ -133,7 +133,6 @@ class Template {
         $twig->addFunction(new TwigFunction('link', Http::queryString(...), ['is_safe' => ['html']]));
         $twig->addFunction(new TwigFunction('get', Http::get(...)));
         $twig->addFunction(new TwigFunction('config', Config::get(...)));
-        $twig->addFunction(new TwigFunction('config_option', Config::getOption(...)));
         $twig->addFunction(new TwigFunction('is_numeric', is_numeric(...)));
         $twig->addFunction(new TwigFunction('cronjob_url', Helpers::cronjobUrl(...)));
 

@@ -43,7 +43,7 @@ trait ConsoleTrait {
      * @return array<int, string>
      */
     private function configuredBlockedCommands(string $group): array {
-        $commands = array_filter((array) Config::getOption($group, 'blockedcommands', []), is_string(...));
+        $commands = array_filter((array) Config::get($group.'.blockedcommands', []), is_string(...));
 
         return array_map(static fn (string $command): string => strtoupper(trim($command)), array_values($commands));
     }

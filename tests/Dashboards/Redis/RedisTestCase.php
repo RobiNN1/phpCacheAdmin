@@ -48,13 +48,13 @@ abstract class RedisTestCase extends TestCase {
     public static function setUpBeforeClass(): void {
         parent::setUpBeforeClass();
 
-        self::$is_cluster = !empty(Config::get('redis')[0]['nodes']);
-        self::$is_sentinel = !empty(Config::get('redis')[0]['sentinels']);
+        self::$is_cluster = !empty(Config::get('redis.0.nodes'));
+        self::$is_sentinel = !empty(Config::get('redis.0.sentinels'));
 
         if (self::$is_sentinel) {
-            self::skipWithoutServer((string) Config::get('redis')[0]['sentinels'][0], 'Sentinel');
+            self::skipWithoutServer((string) Config::get('redis.0.sentinels.0'), 'Sentinel');
         } elseif (self::$is_cluster) {
-            self::skipWithoutServer((string) Config::get('redis')[0]['nodes'][0], 'Cluster node');
+            self::skipWithoutServer((string) Config::get('redis.0.nodes.0'), 'Cluster node');
         }
     }
 
@@ -65,17 +65,17 @@ abstract class RedisTestCase extends TestCase {
         $this->dashboard = new RedisDashboard(new Template(), $this->client);
 
         if (self::$is_cluster) {
-            $config = ['nodes' => Config::get('redis')[0]['nodes']];
+            $config = ['nodes' => Config::get('redis.0.nodes')];
         } elseif (self::$is_sentinel) {
             $config = [
-                'sentinels'      => Config::get('redis')[0]['sentinels'],
-                'sentinelmaster' => Config::get('redis')[0]['sentinelmaster'] ?? 'mymaster',
+                'sentinels'      => Config::get('redis.0.sentinels'),
+                'sentinelmaster' => Config::get('redis.0.sentinelmaster', 'mymaster'),
                 'database'       => 10,
             ];
         } else {
             $config = [
-                'host'     => Config::get('redis')[0]['host'],
-                'port'     => Config::get('redis')[0]['port'],
+                'host'     => Config::get('redis.0.host'),
+                'port'     => Config::get('redis.0.port'),
                 'database' => 10,
             ];
         }
@@ -92,7 +92,7 @@ abstract class RedisTestCase extends TestCase {
         $_POST = [];
         $_FILES = [];
         putenv('PCA_CONSOLE');
-        putenv('PCA_REDISBLOCKEDCOMMANDS');
+        putenv('PCA_REDISOPTIONS_BLOCKEDCOMMANDS');
         Config::reset();
 
         @unlink($this->consoleHistoryFile());
@@ -114,7 +114,7 @@ abstract class RedisTestCase extends TestCase {
     }
 
     private function consoleHistoryFile(): string {
-        $name = 'redis_history_'.md5(Helpers::getServerTitle(Config::get('redis')[0]).Config::get('hash', 'pca')).'.json';
+        $name = 'redis_history_'.md5(Helpers::getServerTitle(Config::get('redis.0')).Config::get('hash', 'pca')).'.json';
 
         return Config::get('tmpdir', dirname(__DIR__, 3).'/tmp').'/console/'.$name;
     }
@@ -1413,7 +1413,7 @@ abstract class RedisTestCase extends TestCase {
     }
 
     private function backgroundNoise(string $php): void {
-        $server = Config::get('redis')[0];
+        $server = Config::get('redis.0');
 
         if (self::$is_cluster) {
             $client = sprintf('$r = new Predis\Client(%s, ["cluster" => "redis"]);', var_export(array_values((array) $server['nodes']), true));
@@ -1804,7 +1804,7 @@ abstract class RedisTestCase extends TestCase {
      * @return array{0: string, 1: int}
      */
     private function pubSubAddress(): array {
-        $server = Config::get('redis')[0];
+        $server = Config::get('redis.0');
 
         if (self::$is_cluster) {
             [$host, $port] = explode(':', (string) $server['nodes'][0]) + [1 => '6379'];
@@ -2179,6 +2179,43 @@ abstract class RedisTestCase extends TestCase {
         yield 'looking for a script' => ['SCRIPT EXISTS e0e1f9fabfc9d4800c877a703b823ac0578ff831', '2.6'];
         yield 'listing modules' => ['MODULE LIST', '4.0'];
         yield 'listing functions' => ['FUNCTION LIST', '7.0'];
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testConsoleBlocksExtraCommandsFromTheConfig(): void {
+        putenv('PCA_REDISOPTIONS_BLOCKEDCOMMANDS=["CONFIG SET"]');
+        Config::reset();
+
+        $this->setCsrfToken();
+
+        $this->assertStringContainsString('not allowed', (string) $this->consoleAjax('CONFIG SET maxmemory 0')['error']);
+        $this->assertArrayHasKey('output', $this->consoleAjax('CONFIG GET maxmemory')); // Only the subcommand is refused.
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testConfiguredBlockedCommandsIgnoreCaseAndPadding(): void {
+        putenv('PCA_REDISOPTIONS_BLOCKEDCOMMANDS=["  config set  "]');
+        Config::reset();
+
+        $this->setCsrfToken();
+
+        $this->assertStringContainsString('not allowed', (string) $this->consoleAjax('CONFIG SET maxmemory 0')['error']);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testConfiguredBlockedCommandsSkipNonStringEntries(): void {
+        putenv('PCA_REDISOPTIONS_BLOCKEDCOMMANDS=["CONFIG SET",123,null]'); // Without the filter these would be a TypeError.
+        Config::reset();
+
+        $this->setCsrfToken();
+
+        $this->assertStringContainsString('not allowed', (string) $this->consoleAjax('CONFIG SET maxmemory 0')['error']);
     }
 
     /**

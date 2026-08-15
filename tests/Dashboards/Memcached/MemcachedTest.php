@@ -34,8 +34,8 @@ final class MemcachedTest extends TestCase {
     protected function setUp(): void {
         $this->dashboard = new MemcachedDashboard(new Template());
         $this->memcached = $this->dashboard->connect([
-            'host' => Config::get('memcached')[0]['host'],
-            'port' => Config::get('memcached')[0]['port'],
+            'host' => Config::get('memcached.0.host'),
+            'port' => Config::get('memcached.0.port'),
         ]);
         $this->dashboard->memcached = $this->memcached;
     }
@@ -45,13 +45,14 @@ final class MemcachedTest extends TestCase {
         $_POST = [];
         $_FILES = [];
         putenv('PCA_CONSOLE');
+        putenv('PCA_MEMCACHEDOPTIONS_BLOCKEDCOMMANDS');
         Config::reset();
 
         @unlink($this->consoleHistoryFile());
     }
 
     private function consoleHistoryFile(): string {
-        $name = 'memcached_history_'.md5(Helpers::getServerTitle(Config::get('memcached')[0]).Config::get('hash', 'pca')).'.json';
+        $name = 'memcached_history_'.md5(Helpers::getServerTitle(Config::get('memcached.0')).Config::get('hash', 'pca')).'.json';
 
         return Config::get('tmpdir', dirname(__DIR__, 3).'/tmp').'/console/'.$name;
     }
@@ -479,6 +480,19 @@ final class MemcachedTest extends TestCase {
     /**
      * @throws JsonException
      */
+    public function testConsoleBlocksExtraCommandsFromTheConfig(): void {
+        putenv('PCA_MEMCACHEDOPTIONS_BLOCKEDCOMMANDS=["stats reset"]');
+        Config::reset();
+
+        $this->setCsrfToken();
+
+        $this->assertStringContainsString('not allowed', (string) $this->consoleAjax('stats reset')['error']);
+        $this->assertArrayHasKey('output', $this->consoleAjax('stats')); // Only the subcommand is refused.
+    }
+
+    /**
+     * @throws JsonException
+     */
     public function testConsoleAjaxCommandWithoutATab(): void {
         $this->setCsrfToken();
 
@@ -900,7 +914,7 @@ final class MemcachedTest extends TestCase {
         $script = sprintf(
             'require %s; usleep(300000); $m = new PHPMem(%s); $m->set(%s, "watched"); $m->get(%s); $m->delete(%s);',
             var_export(dirname(__DIR__, 3).'/vendor/autoload.php', true),
-            var_export(['host' => Config::get('memcached')[0]['host'], 'port' => Config::get('memcached')[0]['port']], true),
+            var_export(['host' => Config::get('memcached.0.host'), 'port' => Config::get('memcached.0.port')], true),
             var_export($key, true),
             var_export($key, true),
             var_export($key, true)
@@ -931,7 +945,7 @@ final class MemcachedTest extends TestCase {
         $script = sprintf(
             'require %s; usleep(300000); $m = new PHPMem(%s); for ($i = 0; $i < 200; $i++) { $m->set("pu-watcher-flood-".$i, "v"); }',
             var_export(dirname(__DIR__, 3).'/vendor/autoload.php', true),
-            var_export(['host' => Config::get('memcached')[0]['host'], 'port' => Config::get('memcached')[0]['port']], true)
+            var_export(['host' => Config::get('memcached.0.host'), 'port' => Config::get('memcached.0.port')], true)
         );
 
         exec(sprintf('%s -r %s > /dev/null 2>&1 &', escapeshellarg(PHP_BINARY), escapeshellarg('use '.PHPMem::class.'; '.$script)));

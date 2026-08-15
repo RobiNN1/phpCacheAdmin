@@ -77,14 +77,14 @@ class Admin {
         }
 
         return $this->template->render('layout', [
-            'colors'     => $colors,
-            'site_title' => $info['title'],
-            'nav'        => $nav,
-            'logout_url' => Auth::isEnabled() ? Http::queryString() : null,
+            'colors'      => $colors,
+            'site_title'  => $info['title'],
+            'nav'         => $nav,
+            'logout_url'  => Auth::isEnabled() ? Http::queryString() : null,
             'logout_user' => Auth::user(),
-            'version'    => self::VERSION,
-            'repo'       => 'https://github.com/RobiNN1/phpCacheAdmin',
-            'dashboard'  => $dashboard->dashboard(),
+            'version'     => self::VERSION,
+            'repo'        => 'https://github.com/RobiNN1/phpCacheAdmin',
+            'dashboard'   => $dashboard->dashboard(),
         ]);
     }
 }

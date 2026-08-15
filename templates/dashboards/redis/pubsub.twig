@@ -1,5 +1,5 @@
-{% set pubsub_window = min(max(config_option('redisoptions', 'pubsubwindow', 5), 1), 10) %}
-{% set pubsub_refresh = config_option('redisoptions', 'pubsubrefresh', 5) %}
+{% set pubsub_window = min(max(config('redisoptions.pubsubwindow', 5), 1), 10) %}
+{% set pubsub_refresh = config('redisoptions.pubsubrefresh', 5) %}
 
 <div class="gap-4 lg:grid lg:grid-cols-2">
     {% if not readonly %}

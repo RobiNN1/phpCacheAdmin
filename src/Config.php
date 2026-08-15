@@ -55,6 +55,11 @@ class Config {
     }
 
     /**
+     * Get a config value.
+     *
+     * An option of one of the grouped keys is addressed with a dot, e.g., get('apcu.separator').
+     * A key that exists as-is always wins, so a top-level key containing a dot is still reachable.
+     *
      * @template Default
      *
      * @param Default $default
@@ -62,10 +67,33 @@ class Config {
      * @return mixed|Default
      */
     public static function get(string $key, $default = null): mixed {
-        if (self::$config !== null) {
-            return self::$config[$key] ?? $default;
+        $config = self::$config ?? self::load();
+
+        if (isset($config[$key])) {
+            return $config[$key];
         }
 
+        if (str_contains($key, '.')) {
+            $value = $config;
+
+            foreach (explode('.', $key) as $segment) {
+                if (!is_array($value) || !isset($value[$segment])) {
+                    return $default;
+                }
+
+                $value = $value[$segment];
+            }
+
+            return $value;
+        }
+
+        return $default;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private static function load(): array {
         if (self::$config_path !== null && is_file(self::$config_path)) {
             $config = (array) require self::$config_path;
         } elseif (is_file(__DIR__.'/../config.php')) {
@@ -78,28 +106,9 @@ class Config {
 
         $config = self::getEnvConfig($config);
 
-        if ($key === 'converters' && !isset($config['converters'])) {
-            $key = 'encoding';
-        }
-
         self::$config = $config;
 
-        return self::$config[$key] ?? $default;
-    }
-
-    /**
-     * Get a single option out of one of the grouped keys, e.g., getOption('apcu', 'separator').
-     *
-     * @template Default
-     *
-     * @param Default $default
-     *
-     * @return mixed|Default
-     */
-    public static function getOption(string $group, string $option, mixed $default = null): mixed {
-        $options = (array) self::get($group, []);
-
-        return $options[$option] ?? $default;
+        return $config;
     }
 
     /**
@@ -155,7 +164,7 @@ class Config {
         }
 
         // Options grouped per dashboard: PCA_REDIS_1_HOST $config['redis'][1]['host'], PCA_APCU_SEPARATOR $config['apcu']['separator'].
-        // A name with no underscore after the group (PCA_REDISCLIENT) stays at the top level, there is nothing to nest it in.
+        // A name with no underscore after the group (PCA_REDISOPTIONS) stays at the top level, there is nothing to nest it in.
         if (self::startsWithAny($lower_var)) {
             $keys = explode('_', $lower_var);
             $final_key = array_pop($keys);

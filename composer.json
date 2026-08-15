@@ -45,9 +45,6 @@
   },
   "minimum-stability": "dev",
   "prefer-stable": true,
-  "config": {
-    "optimize-autoloader": true
-  },
   "autoload": {
     "psr-4": {
       "RobiNN\\Pca\\": "src/"
@@ -61,13 +58,16 @@
       "Tests\\": "tests/"
     }
   },
+  "config": {
+    "optimize-autoloader": true
+  },
   "scripts": {
     "phar:predis": "phar-composer build predis/predis",
     "phar:twig": "phar-composer build twig/twig",
     "phpstan": "phpstan --ansi",
+    "redis-commands": "php bin/generate-redis-commands.php",
     "test": "phpunit",
     "test-cluster": "PCA_REDIS_0_NODES='[\"127.0.0.1:6380\",\"127.0.0.1:6381\",\"127.0.0.1:6382\"]' phpunit tests/Dashboards/Redis",
-    "test-sentinel": "PCA_REDIS_0_SENTINELS='[\"127.0.0.1:26379\",\"127.0.0.1:26380\",\"127.0.0.1:26381\"]' phpunit tests/Dashboards/Redis",
-    "redis-commands": "php bin/generate-redis-commands.php"
+    "test-sentinel": "PCA_REDIS_0_SENTINELS='[\"127.0.0.1:26379\",\"127.0.0.1:26380\",\"127.0.0.1:26381\"]' phpunit tests/Dashboards/Redis"
   }
 }

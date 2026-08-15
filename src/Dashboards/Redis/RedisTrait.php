@@ -158,7 +158,7 @@ trait RedisTrait {
             }
         }
 
-        $keys = $this->getAllKeys();
+        $keys = Helpers::sortBeforePaginate($this->getAllKeys(), ['link_title' => true]);
 
         if (isset($_GET['export_btn'])) {
             Helpers::export($this->keysTableView($keys), 'redis_backup', fn (string $key): string => bin2hex($this->redis->dump($key)));

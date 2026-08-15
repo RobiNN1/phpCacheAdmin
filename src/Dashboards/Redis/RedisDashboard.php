@@ -187,7 +187,15 @@ class RedisDashboard implements DashboardInterface {
                 });
             }
         } catch (DashboardException|Exception $e) {
-            return $e->getMessage();
+            if (isset($_GET['panels']) || isset($_GET['metrics'])) {
+                if (!headers_sent()) {
+                    header('Content-Type: application/json');
+                }
+
+                return Helpers::ajaxJson(['error' => $e->getMessage()]);
+            }
+
+            return Helpers::alert($e->getMessage(), 'error');
         }
 
         return '';
@@ -218,7 +226,7 @@ class RedisDashboard implements DashboardInterface {
 
             return $tabs.$this->mainDashboard();
         } catch (DashboardException|Exception $e) {
-            return $e->getMessage();
+            return $this->template->render('components/alert', ['message' => htmlspecialchars($e->getMessage()), 'alert_color' => 'error', 'inline' => true]);
         }
     }
 }

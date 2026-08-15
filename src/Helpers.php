@@ -274,16 +274,66 @@ class Helpers {
     }
 
     /**
+     * The column and direction picked in the table header, and the globals the header needs to render itself.
+     *
+     * @return array{0: string, 1: string}
+     */
+    private static function sortState(): array {
+        $dir = (string) Http::get('sortdir', 'none');
+        $column = (string) Http::get('sortcol', 'none');
+
+        Template::get()->addGlobal('sortdir', $dir);
+        Template::get()->addGlobal('sortcol', $column);
+
+        return [$column, $dir];
+    }
+
+    /**
+     * Sort the whole list before it is paginated.
+     * Only for values that are already in memory.
+     *
+     * @param array<int, mixed>                          $items
+     * @param array<string, callable(mixed): mixed|true> $columns
+     *
+     * @return array<int, mixed>
+     */
+    public static function sortBeforePaginate(array $items, array $columns): array {
+        [$column, $dir] = self::sortState();
+        $dir = strtolower($dir);
+
+        if (!isset($columns[$column]) || !in_array($dir, ['asc', 'desc'], true)) {
+            return $items;
+        }
+
+        $threshold = (int) Config::get('sortthreshold', 100_000);
+
+        if ($threshold > 0 && count($items) > $threshold) {
+            Template::get()->addGlobal('page_sort_only', true);
+
+            return $items;
+        }
+
+        $getter = $columns[$column];
+
+        if ($getter === true) {
+            $dir === 'desc' ? rsort($items, SORT_NATURAL) : sort($items, SORT_NATURAL);
+
+            return $items;
+        }
+
+        $values = array_map($getter, $items);
+        array_multisort($values, $dir === 'desc' ? SORT_DESC : SORT_ASC, SORT_NATURAL, $items);
+
+        return $items;
+    }
+
+    /**
      * @param array<int, array<string, mixed>> $keys
      *
      * @return array<int, array<string, mixed>>
      */
     public static function sortKeys(array $keys): array {
-        $dir = Http::get('sortdir', 'none');
-        $column = Http::get('sortcol', 'none');
-
-        Template::get()->addGlobal('sortdir', $dir);
-        Template::get()->addGlobal('sortcol', $column);
+        [$column, $dir] = self::sortState();
 
         if (strtolower($dir) === 'none' || strtolower($column) === 'none') {
             return $keys;

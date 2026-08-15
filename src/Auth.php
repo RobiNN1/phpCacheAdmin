@@ -12,8 +12,11 @@ use JsonException;
 
 class Auth {
     private const MAX_ATTEMPTS = 5;
+
     private const LOCKOUT = 300;
+
     private const ATTEMPT_WINDOW = 900;
+
     private const THROTTLE_ENTRIES = 1000;
 
     /**

@@ -111,6 +111,17 @@ trait MemcachedTrait {
             });
         }
 
+        $field = static function (string $line, string $name): string {
+            return preg_match('/(?:^| )'.$name.'=(\S+)/', $line, $found) === 1 ? $found[1] : '';
+        };
+
+        $raw_key_lines = Helpers::sortBeforePaginate($raw_key_lines, [
+            'link_title'           => static fn (string $line): string => urldecode($field($line, 'key')),
+            'bytes_size'           => static fn (string $line): int => (int) $field($line, 'size'),
+            'timediff_last_access' => static fn (string $line): int => (int) $field($line, 'la'),
+            'ttl'                  => static fn (string $line): int => (int) $field($line, 'exp'),
+        ]);
+
         $paginator = new Paginator($raw_key_lines);
         $paginated_raw_lines = $paginator->getPaginated();
 

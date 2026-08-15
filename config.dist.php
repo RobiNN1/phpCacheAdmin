@@ -27,6 +27,8 @@ return [
         //'blockedcommands' => ['CONFIG SET', 'CONFIG REWRITE', 'REPLICAOF', 'SLAVEOF', 'MIGRATE', 'RESTORE', 'SAVE'], // Extra commands to refuse in the console.
         'pubsubrefresh' => 5, // In seconds, refresh interval for the Pub/Sub active channels list - default 5
         'pubsubwindow' => 5, // In seconds, how long one Pub/Sub monitor request captures messages (1-10) - default 5
+        'scanthreshold' => 100_000, // Use SCAN automatically instead of KEYS when the database has more keys than this, 1000 keys are retrieved - default 100_000
+        //'scansize' => 1000, // Always use SCAN and retrieve at most this many keys, regardless of 'scanthreshold' (optional).
     ],
     'redis' => [
         [
@@ -59,8 +61,6 @@ return [
             //'authfile' => '/run/secrets/file_name', // File with a password, e.g., Docker secrets (optional).
             //'path' => '/var/run/redis/redis-server.sock', // Unix domain socket (optional).
             //'databases' => 16, // Number of databases, use this if the CONFIG command is disabled (optional).
-            //'scanthreshold' => 100_000, // Use SCAN automatically instead of KEYS when the database has more keys than this, 1000 keys are retrieved (optional). Default 100_000.
-            //'scansize' => 1000, // Always use SCAN and retrieve at most this many keys, regardless of 'scanthreshold' (optional).
             //'separator' => ':', // Separator for tree view (optional).
         ],
     ],
@@ -144,6 +144,7 @@ return [
     'thousandssep' => ' ',
     'listview' => 'table', // table/tree - default key list view
     'keymodal' => false, // Open the key view in a modal instead of a separate page - default false
+    'sortthreshold' => 100_000, // Above this many keys a column sort only orders the page on screen, sorting them all would need too much memory. 0 disables the limit - default 100_000
     'panelrefresh' => 30, // In seconds, refresh interval for panels - default 30
     'metricsrefresh' => 60, // In seconds, refresh interval for metrics - default 60
     'metricstab' => '1d', // Default tab in metrics, 1h - Last hour, 1d - Last day, 1w - Last week, 1m - Last month - default 1d

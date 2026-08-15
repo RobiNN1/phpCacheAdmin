@@ -131,7 +131,15 @@ class MemcachedDashboard implements DashboardInterface {
                 return Helpers::deleteKey(fn (string $key): bool => $this->memcached->delete(urldecode($key)));
             }
         } catch (DashboardException|MemcachedException $e) {
-            return $e->getMessage();
+            if (isset($_GET['panels']) || isset($_GET['metrics'])) {
+                if (!headers_sent()) {
+                    header('Content-Type: application/json');
+                }
+
+                return Helpers::ajaxJson(['error' => $e->getMessage()]);
+            }
+
+            return Helpers::alert($e->getMessage(), 'error');
         }
 
         return '';
@@ -161,7 +169,7 @@ class MemcachedDashboard implements DashboardInterface {
 
             return $tabs.$this->mainDashboard();
         } catch (DashboardException|MemcachedException $e) {
-            return $e->getMessage();
+            return $this->template->render('components/alert', ['message' => htmlspecialchars($e->getMessage()), 'alert_color' => 'error', 'inline' => true]);
         }
     }
 }

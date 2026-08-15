@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace RobiNN\Pca\Dashboards\Redis;
 
 use Exception;
+use RobiNN\Pca\Config;
 use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
 
@@ -19,17 +20,28 @@ trait RedisKeysList {
      * @throws Exception
      */
     public function getAllKeys(): array {
-        $filter = Http::get('s', '*');
-        $this->template->addGlobal('search_value', $filter);
+        $search = (string) Http::get('s', '');
+        $this->template->addGlobal('search_value', $search);
 
-        $scansize = $this->servers[$this->current_server]['scansize'] ?? null;
-        $scan_threshold = $this->servers[$this->current_server]['scanthreshold'] ?? 100_000;
+        $filter = $this->searchPattern($search);
+        $scansize = Config::getOption('redisoptions', 'scansize');
+        $scan_threshold = Config::getOption('redisoptions', 'scanthreshold', 100_000);
 
         if ($scansize !== null || $this->redis->databaseSize() > $scan_threshold || !$this->isCommandSupported('KEYS')) {
             return $this->redis->scanKeys($filter, (int) ($scansize ?? 1000));
         }
 
         return $this->redis->keys($filter);
+    }
+
+    private function searchPattern(string $search): string {
+        $search = trim($search);
+
+        if ($search === '') {
+            return '*';
+        }
+
+        return preg_match('/[*?\[\]]/', $search) === 1 ? $search : '*'.$search.'*';
     }
 
     public function isCommandSupported(string $command): bool {

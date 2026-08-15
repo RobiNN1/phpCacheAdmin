@@ -13,7 +13,12 @@
 
                 <th class="px-3 py-2 text-xs font-bold uppercase whitespace-nowrap{{ item.class|space }}">
                     {% if item.sort %}
-                        <button type="button" class="inline-flex gap-1 items-center text-xs font-bold uppercase appearance-none cursor-pointer" {{ data_sort|raw }}>
+                        {% set page_only = item.page_sort|default(false) or page_sort_only %}
+                        {% set sort_title = page_sort_only
+                            ? 'There are too many keys to sort them all, so only the keys on this page are ordered. The limit is the sortthreshold option.'
+                            : (item.page_sort|default(false) ? 'Sorts the keys on this page.' : '') %}
+                        <button type="button" class="inline-flex gap-1 items-center text-xs font-bold uppercase appearance-none cursor-pointer"
+                                {{ sort_title ? 'title="%s"'|format(sort_title|e('html_attr'))|raw : '' }} {{ data_sort|raw }}>
                             {{ item.title }}
                             {{ svg('down', 10, (is_active ? '' : 'opacity-30') ~ (is_active and sortdir == 'asc' ? ' rotate-180' : '')) }}
                         </button>

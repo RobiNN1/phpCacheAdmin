@@ -39,6 +39,7 @@ class Template {
         'separator'    => '',
         'sortdir'      => '',
         'sortcol'      => '',
+        'page_sort_only' => false,
     ];
 
     /**

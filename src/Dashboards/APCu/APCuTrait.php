@@ -84,6 +84,15 @@ trait APCuTrait {
             Helpers::export($export_keys, 'apcu_backup', static fn (string $key): string => base64_encode(serialize(apcu_fetch($key))));
         }
 
+        $keys = Helpers::sortBeforePaginate($keys, [
+            'link_title'         => static fn (array $item): string => (string) ($item['key'] ?? ''),
+            'bytes_size'         => static fn (array $item): int => (int) ($item['mem_size'] ?? 0),
+            'number_hits'        => static fn (array $item): int => (int) ($item['num_hits'] ?? 0),
+            'timediff_last_used' => static fn (array $item): int => (int) ($item['access_time'] ?? 0),
+            'time_created'       => static fn (array $item): int => (int) ($item['creation_time'] ?? 0),
+            'ttl'                => static fn (array $item): int => (int) ($item['ttl'] ?? 0),
+        ]);
+
         $paginator = new Paginator($keys);
         $paginated_keys = $paginator->getPaginated();
 

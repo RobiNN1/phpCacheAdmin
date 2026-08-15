@@ -179,6 +179,13 @@ final class HelpersTest extends TestCase {
         $this->assertStringContainsString('&lt;script&gt;', $alert);
     }
 
+    public function testPanelsEscapesHtmlInError(): void {
+        $panels = Helpers::panels(['error' => 'Connection to <script>alert(1)</script> failed.']);
+
+        $this->assertStringNotContainsString('<script>', $panels);
+        $this->assertStringContainsString('&lt;script&gt;', $panels);
+    }
+
     public function testSortKeysWithUnknownColumnKeepsOrder(): void {
         $_GET['sortdir'] = 'asc';
         $_GET['sortcol'] = 'missing';

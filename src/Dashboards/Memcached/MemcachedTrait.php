@@ -226,6 +226,10 @@ trait MemcachedTrait {
         $tpl = $tab_data['tpl'] ?? 'dashboards/memcached/'.$tab;
         $data = $tab_data['data'] ?? $tab_data;
 
-        return $data['tab_error'] ?? $this->template->render($tpl, $data);
+        if (isset($data['tab_error'])) {
+            return htmlspecialchars((string) $data['tab_error']);
+        }
+
+        return $this->template->render($tpl, $data);
     }
 }

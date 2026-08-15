@@ -1,17 +1,16 @@
 <IfModule mod_alias.c>
+    RedirectMatch 404 "(^|/)\.(?!well-known/)"
     RedirectMatch 404 "(^|/)tmp/"
     RedirectMatch 404 "(^|/)(composer\.(json|lock)|config(\.dist)?\.php)$"
     RedirectMatch 404 "\.(twig|neon|dist)$"
 </IfModule>
 
-<IfModule !mod_alias.c>
-    <FilesMatch "(^\.|^composer\.(json|lock)$|^config(\.dist)?\.php$|\.(twig|neon|dist)$)">
-        <IfModule mod_authz_core.c>
-            Require all denied
-        </IfModule>
-        <IfModule !mod_authz_core.c>
-            Order allow,deny
-            Deny from all
-        </IfModule>
-    </FilesMatch>
-</IfModule>
+<FilesMatch "(^\.|^composer\.(json|lock)$|^config(\.dist)?\.php$|\.(twig|neon|dist)$)">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>

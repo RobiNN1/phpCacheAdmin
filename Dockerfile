@@ -19,6 +19,9 @@ RUN printf 'server {\n\
     location / {\n\
         try_files $uri $uri/ /index.php$is_args$args;\n\
     }\n\
+    location ~ /\\. {\n\
+        return 404;\n\
+    }\n\
     location ~ ^/tmp/ {\n\
         return 404;\n\
     }\n\

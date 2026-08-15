@@ -33,7 +33,7 @@ trait RedisKeyView {
         try {
             $type = $this->redis->getKeyType($key);
         } catch (DashboardException $e) {
-            return $e->getMessage();
+            return htmlspecialchars($e->getMessage());
         }
 
         $this->deleteSubKeyAction($type, $key);

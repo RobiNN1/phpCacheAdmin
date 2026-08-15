@@ -237,7 +237,7 @@ class Helpers {
      */
     public static function panels(array $panels): string {
         if (isset($panels['error']) && is_string($panels['error'])) {
-            return $panels['error'];
+            return htmlspecialchars($panels['error']);
         }
 
         $html = '';

@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace RobiNN\Pca\Dashboards\Redis;
 
 use Exception;
+use RobiNN\Pca\Csrf;
 use RobiNN\Pca\Dashboards\DashboardException;
 use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
@@ -47,7 +48,11 @@ trait RedisProfiler {
     private function profilerAjax(): string {
         header('Content-Type: application/json');
 
-        $window = min(max((int) Http::get('window', $this->profiler_window), 1), 10);
+        if (!Csrf::validateToken(Http::post('csrf_token', ''))) {
+            return Helpers::ajaxJson(['error' => 'Invalid CSRF token.']);
+        }
+
+        $window = min(max(Http::post('window', $this->profiler_window), 1), 10);
 
         // Release the session lock, the capture blocks for the whole window.
         if (session_status() === PHP_SESSION_ACTIVE) {

@@ -1950,11 +1950,35 @@ abstract class RedisTestCase extends TestCase {
     public function testPubSubAjaxStats(): void {
         $_GET['db'] = 10;
         $_GET['pubsub'] = '';
+        $this->setCsrfToken();
 
         $stats = $this->ajaxJson();
 
         $this->assertArrayHasKey('channels', $stats);
         $this->assertArrayHasKey('patterns', $stats);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testPubSubAjaxSubscribeWithInvalidCsrf(): void {
+        $_GET['db'] = 10;
+        $_GET['pubsub'] = '';
+        $_GET['subscribe'] = '';
+        $this->setCsrfToken(false);
+
+        $this->assertSame('Invalid CSRF token.', $this->ajaxJson()['error']);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testProfilerAjaxWithInvalidCsrf(): void {
+        $_GET['db'] = 10;
+        $_GET['profiler'] = '';
+        $this->setCsrfToken(false);
+
+        $this->assertSame('Invalid CSRF token.', $this->ajaxJson()['error']);
     }
 
     /**
@@ -2189,6 +2213,18 @@ abstract class RedisTestCase extends TestCase {
         $_GET['history'] = '';
 
         $this->assertSame(['PING', 'DBSIZE'], $this->ajaxJson()['history']);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testConsoleHistoryWithInvalidCsrf(): void {
+        $_GET['db'] = 10;
+        $_GET['console'] = '';
+        $_GET['history'] = '';
+        $this->setCsrfToken(false);
+
+        $this->assertSame('Invalid CSRF token.', $this->ajaxJson()['error']);
     }
 
     /**

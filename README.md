@@ -115,8 +115,9 @@ Memcached `https://example.com/phpCacheAdmin/?dashboard=memcached&server=0&ajax&
 
 Metrics are collected whenever this link is refreshed, so you can set any time in the cronjob.
 
-If you have authentication enabled, set `authtoken` in `config.php` and append `&token=your-secret-token`
-to the cronjob URL so it can collect metrics without a login session.
+If you have authentication enabled, set `authtoken` in `config.php`
+and append `&token=your-secret-token`to the cronjob URL so it can collect metrics without a login session.
+It bypasses the login page, so create a long random one (`php -r 'echo bin2hex(random_bytes(32));'`) rather than picking something short.
 The same token is also read from an `X-Pca-Token` header, which keeps it out of the access log:
 
 ```bash

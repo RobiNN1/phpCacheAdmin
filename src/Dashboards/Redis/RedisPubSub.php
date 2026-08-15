@@ -21,6 +21,10 @@ trait RedisPubSub {
     private function pubSubAjax(): string {
         header('Content-Type: application/json');
 
+        if (!Csrf::validateToken(Http::post('csrf_token', ''))) {
+            return Helpers::ajaxJson(['error' => 'Invalid CSRF token.']);
+        }
+
         if (isset($_POST['publish'])) {
             return $this->pubSubPublish();
         }
@@ -39,10 +43,6 @@ trait RedisPubSub {
      * @throws Exception
      */
     private function pubSubPublish(): string {
-        if (!Csrf::validateToken(Http::post('csrf_token', ''))) {
-            return Helpers::ajaxJson(['error' => 'Invalid CSRF token.']);
-        }
-
         $channel = Http::post('channel', '');
 
         if ($channel === '') {
@@ -58,8 +58,8 @@ trait RedisPubSub {
      * @throws Exception
      */
     private function pubSubSubscribe(): string {
-        $pattern = (string) Http::get('subscribe', '*');
-        $window = min(max((int) Http::get('window', Config::getOption('redisoptions', 'pubsubwindow', 5)), 1), 10);
+        $pattern = (string) Http::post('pattern', '*');
+        $window = min(max(Http::post('window', (int) Config::getOption('redisoptions', 'pubsubwindow', 5)), 1), 10);
 
         // Release the session lock, capturing messages blocks for the whole window.
         if (session_status() === PHP_SESSION_ACTIVE) {

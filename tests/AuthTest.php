@@ -125,6 +125,24 @@ final class AuthTest extends TestCase {
         $this->assertArrayHasKey('ajax', $_GET);
     }
 
+    public function testCronjobPlaceholderTokenIsRejected(): void {
+        $this->setConfig("['authusers' => ['admin' => 'secret'], 'authtoken' => 'your-secret-token']");
+        $_GET['ajax'] = '';
+        $_GET['metrics'] = '';
+        $_GET['token'] = 'your-secret-token';
+        $_GET['panels'] = '';
+
+        if (session_status() === PHP_SESSION_NONE) {
+            @session_start();
+        }
+
+        $_SESSION['pca_auth_user'] = 'admin';
+
+        Auth::check();
+
+        $this->assertArrayHasKey('panels', $_GET);
+    }
+
     public function testLoggedInSessionDoesNotBlock(): void {
         $this->setConfig("['authusers' => ['admin' => 'secret']]");
 

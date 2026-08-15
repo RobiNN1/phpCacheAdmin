@@ -20,6 +20,11 @@ class Auth {
     private const THROTTLE_ENTRIES = 1000;
 
     /**
+     * The placeholder shipped in config.dist.php and .env.example. It is public knowledge, so it can never be a valid token.
+     */
+    private const TOKEN_PLACEHOLDER = 'your-secret-token';
+
+    /**
      * A password hash to verify against when the user does not exist, so a wrong name costs the same as a wrong password.
      * Without it, the response time tells the two apart.
      */
@@ -120,15 +125,13 @@ class Auth {
     /**
      * @return array<string, array{n: int, t: int}>
      */
-    private static function readAttempts(): array {
-        $file = self::throttleFile();
-
-        if (!is_file($file)) {
+    private static function decodeAttempts(string $json): array {
+        if ($json === '') {
             return [];
         }
 
         try {
-            $data = json_decode((string) file_get_contents($file), true, 512, JSON_THROW_ON_ERROR);
+            $data = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
         } catch (JsonException) {
             return [];
         }
@@ -137,9 +140,82 @@ class Auth {
     }
 
     /**
-     * @param array<string, array{n: int, t: int}> $attempts
+     * @return array<string, array{n: int, t: int}>
      */
-    private static function writeAttempts(array $attempts): void {
+    private static function readAttempts(): array {
+        $file = self::throttleFile();
+
+        if (!is_file($file)) {
+            return [];
+        }
+
+        $handle = @fopen($file, 'rb');
+
+        if ($handle === false) {
+            return [];
+        }
+
+        try {
+            if (!flock($handle, LOCK_SH)) {
+                return [];
+            }
+
+            $attempts = self::decodeAttempts((string) stream_get_contents($handle));
+            flock($handle, LOCK_UN);
+
+            return $attempts;
+        } finally {
+            fclose($handle);
+        }
+    }
+
+    /**
+     * Read, change, and write the counters back while holding one exclusive lock.
+     *
+     * @param callable(array<string, array{n: int, t: int}>): array<string, array{n: int, t: int}> $change
+     */
+    private static function updateAttempts(callable $change): void {
+        $file = self::throttleFile();
+
+        if (!Helpers::makeDir(dirname($file))) {
+            return;
+        }
+
+        $handle = @fopen($file, 'cb+');
+
+        if ($handle === false) {
+            return;
+        }
+
+        try {
+            if (!flock($handle, LOCK_EX)) {
+                return;
+            }
+
+            $attempts = self::trimAttempts($change(self::decodeAttempts((string) stream_get_contents($handle))));
+
+            try {
+                $json = json_encode($attempts, JSON_THROW_ON_ERROR);
+            } catch (JsonException) {
+                return;
+            }
+
+            ftruncate($handle, 0);
+            rewind($handle);
+            fwrite($handle, $json);
+            fflush($handle);
+            flock($handle, LOCK_UN);
+        } finally {
+            fclose($handle);
+        }
+    }
+
+    /**
+     * @param array<string, array{n: int, t: int}> $attempts
+     *
+     * @return array<string, array{n: int, t: int}>
+     */
+    private static function trimAttempts(array $attempts): array {
         // Drop what has expired first, only trim by age when that is still not enough.
         $attempts = array_filter($attempts, static fn (array $entry): bool => time() - (int) $entry['t'] < self::ATTEMPT_WINDOW);
 
@@ -148,17 +224,7 @@ class Auth {
             $attempts = array_slice($attempts, 0, self::THROTTLE_ENTRIES, true);
         }
 
-        $file = self::throttleFile();
-
-        if (!Helpers::makeDir(dirname($file))) {
-            return;
-        }
-
-        try {
-            file_put_contents($file, json_encode($attempts, JSON_THROW_ON_ERROR), LOCK_EX);
-        } catch (JsonException) {
-            //
-        }
+        return $attempts;
     }
 
     /**
@@ -177,23 +243,26 @@ class Auth {
     }
 
     private static function registerFailure(): void {
-        $attempts = self::readAttempts();
         $key = self::throttleKey();
-        $entry = $attempts[$key] ?? null;
 
-        $expired = $entry === null || time() - (int) $entry['t'] > self::ATTEMPT_WINDOW;
-        $attempts[$key] = ['n' => $expired ? 1 : (int) $entry['n'] + 1, 't' => time()];
+        self::updateAttempts(static function (array $attempts) use ($key): array {
+            $entry = $attempts[$key] ?? null;
 
-        self::writeAttempts($attempts);
+            $expired = $entry === null || time() - (int) $entry['t'] > self::ATTEMPT_WINDOW;
+            $attempts[$key] = ['n' => $expired ? 1 : (int) $entry['n'] + 1, 't' => time()];
+
+            return $attempts;
+        });
     }
 
     private static function clearAttempts(): void {
-        $attempts = self::readAttempts();
+        $key = self::throttleKey();
 
-        if (isset($attempts[self::throttleKey()])) {
-            unset($attempts[self::throttleKey()]);
-            self::writeAttempts($attempts);
-        }
+        self::updateAttempts(static function (array $attempts) use ($key): array {
+            unset($attempts[$key]);
+
+            return $attempts;
+        });
     }
 
     /**
@@ -222,9 +291,9 @@ class Auth {
      * A token lets the metrics cronjob bypass the login while auth is enabled.
      */
     private static function validToken(): bool {
-        $token = (string) Config::get('authtoken', '');
+        $token = trim((string) Config::get('authtoken', ''));
 
-        if ($token === '' || !isset($_GET['ajax'], $_GET['metrics'])) {
+        if ($token === '' || $token === self::TOKEN_PLACEHOLDER || !isset($_GET['ajax'], $_GET['metrics'])) {
             return false;
         }
 

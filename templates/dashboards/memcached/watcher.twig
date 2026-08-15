@@ -142,7 +142,7 @@
             status.textContent = 'Capturing…';
             const started = Date.now();
 
-            ajax(`watcher&window=${capture_window}&modes=${modes.join(',')}`, (request) => {
+            ajax('watcher', (request) => {
                 if (!running) {
                     return;
                 }
@@ -164,7 +164,7 @@
                 counter.textContent = captured.toLocaleString() + (skipped > 0 ? ` (${skipped.toLocaleString()} dropped by the server)` : '');
                 // A busy server fills the line limit in milliseconds, polling again right away would just hammer both servers with requests.
                 setTimeout(poll, Math.max(0, 1000 - (Date.now() - started)));
-            });
+            }, {window: capture_window, modes: modes.join(',')}, false);
         };
 
         toggle_btn.addEventListener('click', () => {

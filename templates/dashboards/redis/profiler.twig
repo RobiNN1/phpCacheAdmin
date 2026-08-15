@@ -121,7 +121,7 @@
             status.textContent = 'Capturing…';
             const started = Date.now();
 
-            ajax(`profiler&window=${capture_window}`, (request) => {
+            ajax('profiler', (request) => {
                 if (!running) {
                     return;
                 }
@@ -142,7 +142,7 @@
                 counter.textContent = captured.toLocaleString();
                 // A busy server fills the command limit in milliseconds, polling again right away would just hammer both servers with requests.
                 setTimeout(poll, Math.max(0, 1000 - (Date.now() - started)));
-            });
+            }, {window: capture_window}, false);
         };
 
         toggle_btn.addEventListener('click', () => {

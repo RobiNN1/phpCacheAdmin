@@ -58,12 +58,12 @@ trait MemcachedConsole {
         }
 
         try {
-            if (isset($_GET['history'])) {
-                return Helpers::ajaxJson(['history' => $this->getConsoleHistory()]);
-            }
-
             if (!Csrf::validateToken(Http::post('csrf_token', ''))) {
                 return Helpers::ajaxJson(['error' => 'Invalid CSRF token.']);
+            }
+
+            if (isset($_GET['history'])) {
+                return Helpers::ajaxJson(['history' => $this->getConsoleHistory()]);
             }
 
             $line = trim(Http::post('command', ''));

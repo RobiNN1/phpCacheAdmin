@@ -175,7 +175,7 @@ class Http {
                 header('Location: '.$location);
             }
 
-            echo '<script>window.location.replace("'.$location.'");</script>';
+            echo '<script nonce="'.self::nonce().'">window.location.replace("'.$location.'");</script>';
 
             exit;
         }

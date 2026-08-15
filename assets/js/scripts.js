@@ -1233,7 +1233,7 @@ class Console {
                 this.history.push(...data.history);
                 this.history_index = this.history.length;
             }
-        });
+        }, {});
     }
 
     #load_commands(url) {

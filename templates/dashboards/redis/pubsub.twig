@@ -214,7 +214,7 @@
                     subs_cell.textContent = subscribers;
                     channels_tbody.appendChild(row);
                 });
-            });
+            }, {});
         };
 
         channels_tbody.addEventListener('click', (e) => {
@@ -264,7 +264,7 @@
 
             const pattern = pattern_input.value.trim() || '*';
 
-            ajax(`pubsub&subscribe=${encodeURIComponent(pattern)}&window=${capture_window}`, (request) => {
+            ajax('pubsub&subscribe', (request) => {
                 if (!subscribed) {
                     return;
                 }
@@ -297,7 +297,7 @@
                 }
 
                 poll_messages();
-            });
+            }, {pattern: pattern, window: capture_window}, false);
         };
 
         subscribe_btn.addEventListener('click', () => {

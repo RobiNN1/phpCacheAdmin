@@ -552,6 +552,17 @@ final class MemcachedTest extends TestCase {
     }
 
     /**
+     * @throws JsonException
+     */
+    public function testConsoleHistoryWithInvalidCsrf(): void {
+        $_GET['console'] = '';
+        $_GET['history'] = '';
+        $this->setCsrfToken(false);
+
+        $this->assertSame('Invalid CSRF token.', $this->ajaxJson()['error']);
+    }
+
+    /**
      * @param array<int, array<string, mixed>> $rows
      *
      * @return array<string, mixed>
@@ -956,8 +967,20 @@ final class MemcachedTest extends TestCase {
      */
     public function testWatcherAjaxWithoutModes(): void {
         $_GET['watcher'] = '';
+        $this->setCsrfToken();
 
         $this->assertSame('Pick at least one thing to watch.', $this->ajaxJson()['error']);
+    }
+
+    /**
+     * @throws JsonException
+     */
+    public function testWatcherAjaxWithInvalidCsrf(): void {
+        $_GET['watcher'] = '';
+        $_POST['modes'] = 'mutations';
+        $this->setCsrfToken(false);
+
+        $this->assertSame('Invalid CSRF token.', $this->ajaxJson()['error']);
     }
 
     /**
@@ -968,8 +991,9 @@ final class MemcachedTest extends TestCase {
 
         $_GET['watcher'] = '';
         // Only known names are watched, the rest is dropped.
-        $_GET['modes'] = 'mutations,rm -rf';
-        $_GET['window'] = 1;
+        $_POST['modes'] = 'mutations,rm -rf';
+        $_POST['window'] = 1;
+        $this->setCsrfToken();
 
         $data = $this->ajaxJson();
 

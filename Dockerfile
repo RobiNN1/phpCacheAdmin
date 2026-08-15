@@ -20,10 +20,7 @@ RUN printf 'server {\n\
         try_files $uri $uri/ /index.php$is_args$args;\n\
     }\n\
     location ~ ^/tmp/ {\n\
-        deny all;\n\
-    }\n\
-    location ~ /\\. {\n\
-        deny all;\n\
+        return 404;\n\
     }\n\
     location = /ping {\n\
         allow 127.0.0.1;\n\

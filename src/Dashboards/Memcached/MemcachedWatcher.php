@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace RobiNN\Pca\Dashboards\Memcached;
 
+use RobiNN\Pca\Csrf;
 use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
 
@@ -74,9 +75,13 @@ trait MemcachedWatcher {
     private function watcherAjax(): string {
         header('Content-Type: application/json');
 
-        $window = min(max((int) Http::get('window', $this->watcher_window), 1), 10);
+        if (!Csrf::validateToken(Http::post('csrf_token', ''))) {
+            return Helpers::ajaxJson(['error' => 'Invalid CSRF token.']);
+        }
+
+        $window = min(max(Http::post('window', $this->watcher_window), 1), 10);
         $supported = array_keys($this->watcherModes($this->version()));
-        $modes = array_values(array_intersect(explode(',', (string) Http::get('modes', '')), $supported));
+        $modes = array_values(array_intersect(explode(',', (string) Http::post('modes', '')), $supported));
 
         if ($modes === []) {
             return Helpers::ajaxJson(['error' => 'Pick at least one thing to watch.']);

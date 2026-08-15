@@ -30,14 +30,15 @@ class Helpers {
 
         $size_attr = $size !== null ? ' width="'.$size.'" height="'.$size.'"' : '';
         $class_attr = $class !== null ? ' class="'.$class.'"' : '';
-        $svg = preg_replace('~<svg([^<>]*)>~', '<svg'.($attributes[1] ?? '').$size_attr.$class_attr.'>', $content);
+        $tag = '<svg'.($attributes[1] ?? '').$size_attr.$class_attr.'>';
+        $svg = preg_replace('~<svg([^<>]*)>~', str_replace(['\\', '$'], ['\\\\', '\\$'], $tag), $content);
         $svg = preg_replace('/\s+/', ' ', $svg);
 
         return $cache[$cache_key] = str_replace("\n", '', $svg);
     }
 
     public static function makeDir(string $dir): bool {
-        if (!is_dir($dir) && !mkdir($dir, 0777, true) && !is_dir($dir)) {
+        if (!is_dir($dir) && !mkdir($dir, 0755, true) && !is_dir($dir)) {
             return false;
         }
 
@@ -452,8 +453,8 @@ class Helpers {
     public static function ajaxJson(array $data, int $flags = 0): string {
         try {
             return json_encode($data, JSON_THROW_ON_ERROR | JSON_INVALID_UTF8_SUBSTITUTE | $flags);
-        } catch (JsonException $e) {
-            return (string) json_encode(['error' => 'JSON error. '.$e->getMessage()]);
+        } catch (JsonException) {
+            return '{"error":"JSON encoding failed"}';
         }
     }
 

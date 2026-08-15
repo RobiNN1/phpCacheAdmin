@@ -511,6 +511,44 @@ final class MemcachedTest extends TestCase {
     /**
      * @throws JsonException
      */
+    #[DataProvider('smuggledCommandProvider')]
+    public function testConsoleRefusesASecondCommandOnItsOwnLine(string $command): void {
+        putenv('PCA_MEMCACHEDOPTIONS_BLOCKEDCOMMANDS=["flush_all"]');
+        Config::reset();
+
+        $this->setCsrfToken();
+
+        $response = $this->consoleAjax($command);
+
+        $this->assertStringContainsString('Only a storage command can be followed by a value', (string) $response['error']);
+        $this->assertArrayNotHasKey('output', $response);
+    }
+
+    /**
+     * @return Iterator<string, array{0: string}>
+     */
+    public static function smuggledCommandProvider(): Iterator {
+        yield 'escaped newline' => ['version\nflush_all'];
+        yield 'escaped crlf' => ['version\r\nflush_all'];
+        yield 'literal newline' => ["version\nflush_all"];
+        yield 'literal crlf' => ["version\r\nflush_all"];
+    }
+
+    /**
+     * @throws JsonException
+     */
+    public function testConsoleRefusesAValueThatIsNotTheDeclaredLength(): void {
+        $this->setCsrfToken();
+
+        $response = $this->consoleAjax('set pu-smuggle 0 0 1\na\r\nflush_all');
+
+        $this->assertStringContainsString('exactly the number of bytes it declares', (string) $response['error']);
+        $this->assertArrayNotHasKey('output', $response);
+    }
+
+    /**
+     * @throws JsonException
+     */
     #[DataProvider('serverTuningCommandProvider')]
     public function testConsoleBlocksServerTuning(string $command): void {
         $this->setCsrfToken();

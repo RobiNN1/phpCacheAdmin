@@ -79,7 +79,7 @@ class Auth {
         Http::startSession();
 
         if (isset($_POST['pca_logout']) && Csrf::validateToken(Http::post('csrf_token', ''))) {
-            unset($_SESSION['pca_auth_user']);
+            unset($_SESSION['pca_auth_user'], $_SESSION['csrf_token']);
             session_regenerate_id(true);
             Http::redirect();
         }
@@ -105,6 +105,7 @@ class Auth {
                     self::validate($users, $username, (string) Http::post('password', ''))
                 ) {
                     self::clearAttempts();
+                    unset($_SESSION['csrf_token']);
                     session_regenerate_id(true);
                     $_SESSION['pca_auth_user'] = $username;
                     Http::redirect();

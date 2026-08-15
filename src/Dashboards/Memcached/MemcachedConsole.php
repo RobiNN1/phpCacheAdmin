@@ -50,6 +50,15 @@ trait MemcachedConsole {
         'LRU_CRAWLER MGDUMP'   => 'keys',
     ];
 
+    /**
+     * Commands whose value follows on a second line, and the argument that declares how many bytes it is.
+     *
+     * @var array<string, int>
+     */
+    private array $console_data_commands = [
+        'SET' => 4, 'ADD' => 4, 'REPLACE' => 4, 'APPEND' => 4, 'PREPEND' => 4, 'CAS' => 4, 'MS' => 2,
+    ];
+
     private function consoleAjax(): string {
         header('Content-Type: application/json');
 
@@ -74,7 +83,9 @@ trait MemcachedConsole {
 
             $this->storeConsoleCommand($line);
 
-            $args = preg_split('/\s+/', $line) ?: [];
+            // Storage commands need their value on a second line. Let users type it as a "\n" escape.
+            $payload = $this->consolePayload($line);
+            $args = preg_split('/\s+/', trim(explode("\r\n", $payload, 2)[0])) ?: [];
 
             $blocked = $this->blockedCommand([...$this->console_blocked, ...$this->configuredBlockedCommands('memcachedoptions')], $args);
 
@@ -85,8 +96,13 @@ trait MemcachedConsole {
                 ]);
             }
 
-            // Storage commands need their value on a second line. Let users type it as a "\n" escape.
-            $reply = $this->memcached->runCommand(strtr($line, ['\r\n' => "\r\n", '\n' => "\r\n"]));
+            $invalid = $this->dataBlockError($payload, $args);
+
+            if ($invalid !== null) {
+                return Helpers::ajaxJson(['error' => $invalid]);
+            }
+
+            $reply = $this->memcached->runCommand($payload);
 
             if (preg_match('/^(ERROR|CLIENT_ERROR|SERVER_ERROR)\b/', $reply) === 1) {
                 return Helpers::ajaxJson(['error' => $reply]);
@@ -99,5 +115,37 @@ trait MemcachedConsole {
         } catch (Throwable $e) {
             return Helpers::ajaxJson(['error' => $e->getMessage()]);
         }
+    }
+
+    private function consolePayload(string $line): string {
+        return preg_replace('/\r\n|\r|\n/', "\r\n", strtr($line, ['\r\n' => "\r\n", '\n' => "\r\n"]));
+    }
+
+    /**
+     * Only a storage command may span two lines, and only for exactly the number of bytes it declares.
+     *
+     * @param array<int, string> $args The first line, split into tokens.
+     */
+    private function dataBlockError(string $payload, array $args): ?string {
+        $newline = strpos($payload, "\r\n");
+
+        if ($newline === false) {
+            return null;
+        }
+
+        $command = strtoupper($args[0] ?? '');
+        $position = $this->console_data_commands[$command] ?? null;
+
+        if ($position === null) {
+            return sprintf('Only a storage command can be followed by a value, "%s" cannot.', $args[0] ?? '');
+        }
+
+        $bytes = $args[$position] ?? '';
+
+        if (!ctype_digit($bytes) || strlen(substr($payload, $newline + 2)) !== (int) $bytes) {
+            return sprintf('%s must be followed by exactly the number of bytes it declares.', $command);
+        }
+
+        return null;
     }
 }

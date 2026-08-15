@@ -19,9 +19,20 @@ VPN, an SSH tunnel, or a private network - and forcing a second login on top of 
 Whether the dashboard is reachable by anyone else is therefore a deployment decision. Options that ship with it:
 
 - `authusers` - the built-in login page. Passwords can be `password_hash()` hashes.
-- `readonly` - blocks every destructive action and removes the consoles.
+- `readonly` - blocks every destructive action and removes the consoles. See below for what it covers.
 - `console` - set it to `false` to remove the Redis and Memcached consoles on their own.
 - `redisoptions.blockedcommands` / `memcachedoptions.blockedcommands` - extra commands to refuse in the console.
+
+### What read-only mode covers
+
+`readonly` protects stored data – the keys and values in Redis, Memcached and APCu. Nothing that would write, edit,
+delete or import a key gets through, and the consoles are removed with it.
+
+It deliberately does not apply to the OPcache and Realpath dashboards. There is nothing to lose there: both hold a
+cache of what PHP already derived from files on disk, so clearing it only costs the recompiling or the stat call that
+fills it again on the next request.
+
+So "read-only mode did not stop me from resetting OPcache" is the documented behaviour, not a bypass.
 
 ### The consoles
 
@@ -38,7 +49,7 @@ discuss it privately first. Include the version, the configuration it happens wi
 
 ### In scope
 
-- Bypassing the login page while `authusers` is set, or an action that escapes `readonly`.
+- Bypassing the login page while `authusers` is set, or an action that changes cached data while `readonly` is on.
 - CSRF, XSS (including from a value stored in the cache), or anything that lets one dashboard user act as another.
 - Path traversal, arbitrary file read or write, code execution that does not require console access.
 - Leaking the configured server credentials to someone who cannot already read them.
@@ -46,6 +57,7 @@ discuss it privately first. Include the version, the configuration it happens wi
 ### Not in scope
 
 - No authentication in the default configuration, or a dashboard exposed to a network without it. See above.
+- Clearing the OPcache or Realpath cache, or resetting a slow log or latency monitor, while `readonly` is on. See above.
 - Commands run in the console, or the data the dashboard can reach on servers it is configured for. Use `readonly`,
   `console => false` or `blockedcommands` if the people with access should not have that.
 - Weaknesses of the cache server itself, e.g., a Redis that allows `CONFIG SET dir`, runs as root, or has

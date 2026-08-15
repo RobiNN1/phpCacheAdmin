@@ -34,7 +34,7 @@ trait MemcachedKeyView {
             Helpers::export(
                 [['key' => $key, 'ttl' => $ttl]],
                 $key,
-                fn (string $key): string => base64_encode($this->memcached->get($key))
+                fn (string $key): string => base64_encode((string) $this->memcached->get($key))
             );
         }
 
@@ -47,7 +47,7 @@ trait MemcachedKeyView {
             }
         }
 
-        $value = $this->memcached->get($key);
+        $value = (string) $this->memcached->get($key);
 
         $mode = Http::get('value_mode', Value::MODE_FORMATTED);
         $mode = Value::isMode($mode) ? $mode : Value::MODE_FORMATTED;
@@ -100,7 +100,7 @@ trait MemcachedKeyView {
         $value = Http::post('value', '');
 
         if (isset($_GET['key']) && $this->memcached->exists($key)) {
-            $value = $this->memcached->get($key);
+            $value = (string) $this->memcached->get($key);
         }
 
         if (isset($_POST['submit'])) {

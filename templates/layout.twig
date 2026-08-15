@@ -34,8 +34,8 @@
         const metrics_refresh_interval = {{ config('metricsrefresh', 30) * 1000 }};
         const live_refresh_interval = {{ min(max(config('liverefresh', 2), 1), 60) * 1000 }};
         let metrics_active_filter = '{{ config('metricstab', '1d') in ['1h', '1d', '1w', '1m'] ? config('metricstab', '1d') : '1d' }}';
-        const decimalsep = '{{ config('decimalsep', ',') }}';
-        const thousandssep = '{{ config('thousandssep', ' ') }}';
+        const decimalsep = '{{ config('decimalsep', ',')|e('js') }}';
+        const thousandssep = '{{ config('thousandssep', ' ')|e('js') }}';
     </script>
 </head>
 <body class="flex flex-col min-h-screen text-gray-900 bg-gray-100 dark:text-gray-200 dark:bg-gray-900" data-dashboard="{{ current }}">

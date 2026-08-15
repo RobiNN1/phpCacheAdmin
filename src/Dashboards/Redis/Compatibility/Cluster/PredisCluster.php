@@ -11,12 +11,9 @@ namespace RobiNN\Pca\Dashboards\Redis\Compatibility\Cluster;
 use Exception;
 use InvalidArgumentException;
 use Predis\Client as PredisClient;
-use Predis\Cluster\ClusterStrategy;
 use Predis\Cluster\RedisStrategy;
 use Predis\Collection\Iterator\Keyspace;
-use Predis\Command\CommandInterface;
 use Predis\Command\RawCommand;
-use Predis\Connection\Cluster\RedisCluster as ClusterConnection;
 use Predis\NotSupportedException;
 use Predis\Response\Status;
 use RobiNN\Pca\Dashboards\DashboardException;
@@ -31,18 +28,6 @@ use Throwable;
  */
 class PredisCluster extends PredisClient implements RedisCompatibilityInterface {
     use RedisExtra;
-
-    /**
-     * Commands whose key is the first argument.
-     */
-    private const KEY_FIRST_COMMANDS = [
-        'HEXPIRE', 'HPERSIST', 'HTTL', 'VADD', 'VEMB', 'VGETATTR', 'VINFO', 'VRANDMEMBER', 'VREM', 'XPENDING',
-    ];
-
-    /**
-     * Commands whose key follows a subcommand, e.g., OBJECT ENCODING or XINFO GROUPS.
-     */
-    private const SUBCOMMAND_KEY_COMMANDS = ['OBJECT', 'XGROUP', 'XINFO'];
 
     /**
      * @var array<int, PredisClient>
@@ -83,7 +68,6 @@ class PredisCluster extends PredisClient implements RedisCompatibilityInterface 
         try {
             parent::__construct($this->server['nodes'], $cluster_options);
             $this->connect();
-            $this->routeMissingCommands();
 
             foreach ($this->server['nodes'] as $node) {
                 $this->nodes[] = new PredisClient('tcp://'.$node, $cluster_options);
@@ -91,44 +75,6 @@ class PredisCluster extends PredisClient implements RedisCompatibilityInterface 
         } catch (Exception $e) {
             throw new DashboardException($e->getMessage().' ['.implode(', ', $this->server['nodes']).']', $e->getCode(), $e);
         }
-    }
-
-    private function routeMissingCommands(): void {
-        $connection = $this->getConnection();
-
-        if (!$connection instanceof ClusterConnection) {
-            return;
-        }
-
-        $strategy = $connection->getClusterStrategy();
-
-        if (!$strategy instanceof ClusterStrategy) {
-            return;
-        }
-
-        $handlers = array_fill_keys(self::SUBCOMMAND_KEY_COMMANDS, static fn (CommandInterface $command): ?string => $command->getArguments()[1] ?? null);
-        $handlers += array_fill_keys(self::KEY_FIRST_COMMANDS, static fn (CommandInterface $command): ?string => $command->getArguments()[0] ?? null);
-        $handlers['XREADGROUP'] = $this->streamReadKey(...);
-
-        $supported = $strategy->getSupportedCommands();
-
-        foreach ($handlers as $command_id => $handler) {
-            if (!in_array($command_id, $supported, true)) {
-                $strategy->setCommandHandler($command_id, $handler);
-            }
-        }
-    }
-
-    private function streamReadKey(CommandInterface $command): ?string {
-        $arguments = $command->getArguments();
-
-        for ($index = 3, $count = count($arguments); $index < $count; ++$index) {
-            if (is_string($arguments[$index]) && strtoupper($arguments[$index]) === 'STREAMS') {
-                return $arguments[$index + 1] ?? null;
-            }
-        }
-
-        return null;
     }
 
     public function getType(string|int $type): string {

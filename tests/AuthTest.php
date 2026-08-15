@@ -85,6 +85,23 @@ final class AuthTest extends TestCase {
         $this->assertFalse(Auth::isEnabled());
     }
 
+    public function testLoggedInUser(): void {
+        $this->setConfig("['authusers' => ['admin' => 'secret']]");
+
+        if (session_status() === PHP_SESSION_NONE) {
+            @session_start();
+        }
+
+        $this->assertNull(Auth::user());
+
+        $_SESSION['pca_auth_user'] = 'admin';
+        $this->assertSame('admin', Auth::user());
+
+        // A session naming a user that is no longer configured is not logged in.
+        $_SESSION['pca_auth_user'] = 'removed';
+        $this->assertNull(Auth::user());
+    }
+
     public function testIsDisabledWhenNotConfigured(): void {
         $this->setConfig('[]');
         $this->assertFalse(Auth::isEnabled());

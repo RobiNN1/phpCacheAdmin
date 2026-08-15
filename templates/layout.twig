@@ -41,7 +41,14 @@
 <body class="flex flex-col min-h-screen text-gray-900 bg-gray-100 dark:text-gray-200 dark:bg-gray-900" data-dashboard="{{ current }}">
 <div id="alerts">{{ alerts|raw }}</div>
 <header class="flex flex-wrap gap-4 items-center p-4 bg-white border-b border-gray-200 lg:grid lg:grid-cols-3 dark:bg-gray-800 dark:border-gray-700">
-    <a class="block w-48 shrink-0 lg:w-72" href="{{ config('url', '/') }}" aria-label="Go to homepage">{{ svg('logo', null) }}</a>
+    <div class="flex flex-wrap gap-2 items-center min-w-0">
+        <a class="block shrink-0 w-52 lg:w-80" href="{{ config('url', '/') }}" aria-label="Go to homepage">{{ svg('logo', null) }}</a>
+
+        {% if config('readonly') %}
+            <span class="py-1 px-2 font-bold text-[11px] whitespace-nowrap rounded-full bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200"
+                  title="Nothing can be changed or deleted.">Read-only</span>
+        {% endif %}
+    </div>
 
     <div class="flex flex-wrap gap-3 items-center lg:gap-4 lg:justify-center">
         {% for link, item in nav %}
@@ -54,11 +61,6 @@
     </div>
 
     <div class="flex flex-wrap gap-3 justify-end items-center sm:ms-auto lg:gap-4 lg:ms-0">
-        {% if config('readonly') %}
-            <span class="py-2 px-3 font-bold text-xs rounded-full bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200"
-                  title="Nothing can be changed or deleted.">Read-only</span>
-        {% endif %}
-
         {% if servers|default %}
             <div class="w-full sm:w-60">{{ servers|raw }}</div>
         {% endif %}
@@ -67,8 +69,11 @@
             {% if logout_url is not null %}
                 <form method="post" action="{{ logout_url }}" class="flex">
                     <input type="hidden" name="csrf_token" value="{{ csrf }}">
-                    <button type="submit" name="pca_logout" value="1" title="Logout"
-                            class="text-gray-700 cursor-pointer dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">{{ svg('logout', 28) }}</button>
+                    <button type="submit" name="pca_logout" value="1" title="Log out"
+                            class="flex gap-2 items-center py-2 px-3 text-sm leading-none text-gray-500 rounded-sm border border-gray-300 cursor-pointer dark:text-gray-400 dark:border-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:hover:text-gray-100 dark:hover:bg-gray-950">
+                        {% if logout_user %}<span class="hidden font-semibold sm:inline">{{ logout_user }}</span>{% endif %}
+                        {{ svg('logout', 18) }}
+                    </button>
                 </form>
             {% endif %}
 

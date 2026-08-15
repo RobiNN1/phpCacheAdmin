@@ -55,6 +55,15 @@ class Auth {
     }
 
     /**
+     * The name the current session is logged in with, so the header can show whose session it is.
+     */
+    public static function user(): ?string {
+        $user = $_SESSION['pca_auth_user'] ?? null;
+
+        return is_string($user) && isset(self::users()[$user]) ? $user : null;
+    }
+
+    /**
      * Configured users as `username => password`, defined via the `authusers` config option.
      *
      * @return array<array-key, scalar>

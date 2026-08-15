@@ -370,6 +370,9 @@
   .w-48 {
     width: calc(0.25rem * 48);
   }
+  .w-52 {
+    width: calc(0.25rem * 52);
+  }
   .w-56 {
     width: calc(0.25rem * 56);
   }
@@ -777,6 +780,13 @@
     font-size: 0.75rem;
     line-height: var(--tw-leading, calc(1 / 0.75));
   }
+  .text-\[11px\] {
+    font-size: 11px;
+  }
+  .leading-none {
+    --tw-leading: 1;
+    line-height: 1;
+  }
   .leading-relaxed {
     --tw-leading: 1.625;
     line-height: 1.625;
@@ -1153,6 +1163,9 @@
     .sm\:grid {
       display: grid;
     }
+    .sm\:inline {
+      display: inline;
+    }
     .sm\:w-32 {
       width: calc(0.25rem * 32);
     }
@@ -1262,8 +1275,8 @@
     .lg\:table-cell {
       display: table-cell;
     }
-    .lg\:w-72 {
-      width: calc(0.25rem * 72);
+    .lg\:w-80 {
+      width: calc(0.25rem * 80);
     }
     .lg\:w-\[20\%\] {
       width: 20%;
@@ -1461,6 +1474,9 @@
     }
     .dark\:hover\:bg-gray-700:where(.dark, .dark *):hover {
       background-color: oklch(37.3% 0.034 259.733);
+    }
+    .dark\:hover\:bg-gray-950:where(.dark, .dark *):hover {
+      background-color: oklch(13% 0.028 261.692);
     }
     .dark\:hover\:bg-green-800:where(.dark, .dark *):hover {
       background-color: oklch(44.8% 0.119 151.328);

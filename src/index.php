@@ -41,7 +41,7 @@ require_once __DIR__.'/_header.php';
 
         <?php $previews = ['redis' => 'Redis', 'memcached' => 'Memcached', 'opcache' => 'OPCache']; ?>
         <div class="overflow-hidden mt-16 text-left rounded-card border border-line shadow-lift dark:border-ink-line dark:shadow-none">
-            <div class="flex flex-wrap gap-3 justify-between items-center py-3 px-4 border-b bg-surface border-line-soft dark:bg-white/[0.03] dark:border-ink-line">
+            <div class="flex flex-wrap gap-3 justify-between items-center py-3 px-4 border-b bg-surface border-line-soft dark:bg-white/3 dark:border-ink-line">
                 <div class="flex gap-1.5 items-center">
                     <span class="w-2.5 h-2.5 rounded-full bg-line dark:bg-white/10"></span>
                     <span class="w-2.5 h-2.5 rounded-full bg-line dark:bg-white/10"></span>
@@ -86,7 +86,7 @@ require_once __DIR__.'/_header.php';
         </div>
     </section>
 
-    <div class="bg-surface border-y border-line-soft dark:bg-white/[0.02] dark:border-ink-line">
+    <div class="bg-surface border-y border-line-soft dark:bg-white/2 dark:border-ink-line">
         <section class="px-4 py-16 mx-auto max-w-7xl md:py-24" id="features">
             <div class="mb-8 text-center">
                 <h2 class="mb-4 text-3xl font-semibold tracking-tight sm:text-4xl">Supported Cache Systems</h2>
@@ -327,7 +327,7 @@ require_once __DIR__.'/_header.php';
                 </div>
 
                 <p class="mt-8 text-sm text-center text-body dark:text-gray-400">
-                    Every install also includes a
+                    Every installation also includes a
                     <strong class="font-semibold text-ink dark:text-white">Server</strong> dashboard &mdash; PHP version and configuration, loaded extensions,
                     <code>phpinfo()</code>, plus CPU, RAM and disk usage of the machine phpCacheAdmin runs on.
                 </p>
@@ -367,7 +367,7 @@ require_once __DIR__.'/_header.php';
                 <div id="manual" class="space-y-6 tab-content">
                     <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                         <div class="p-6 bg-surface rounded-box border border-line-soft dark:bg-white/5 dark:border-ink-line">
-                            <div class="mb-3 font-mono text-xs font-medium tracking-widest text-gray-400 select-none dark:text-gray-500">STEP 1</div>
+                            <div class="mb-3 font-mono text-xs font-medium tracking-widest text-gray5400 select-none dark:text-gray-500">STEP 1</div>
                             <h3 class="mb-2 text-base font-semibold dark:text-white text-ink">Download</h3>
                             <p class="mb-5 text-sm text-body dark:text-gray-400">Get the latest release zip file directly from GitHub.</p>
                             <a href="https://github.com/RobiNN1/phpCacheAdmin/releases" target="_blank" rel="noopener noreferrer" class="inline-flex items-center py-2.5 px-4.5 text-sm font-semibold text-white bg-blue-700 rounded-btn shadow-btn transition-colors hover:bg-blue-800 dark:hover:bg-blue-600">
@@ -376,7 +376,7 @@ require_once __DIR__.'/_header.php';
                         </div>
 
                         <div class="p-6 bg-surface rounded-box border border-line-soft dark:bg-white/5 dark:border-ink-line">
-                            <div class="mb-3 font-mono text-xs font-medium tracking-widest text-gray-400 select-none dark:text-gray-500">STEP 2</div>
+                            <div class="mb-3 font-mono text-xs font-medium tracking-widest text-gray-500 select-none dark:text-gray-500">STEP 2</div>
                             <h3 class="mb-2 text-base font-semibold dark:text-white text-ink">Unzip & Config</h3>
                             <p class="text-sm text-body dark:text-gray-400">
                                 Unzip the folder to your web directory. Optionally copy
@@ -389,7 +389,7 @@ require_once __DIR__.'/_header.php';
 
                     <p class="text-sm text-muted dark:text-gray-400">
                         <strong class="font-semibold text-gray-700 dark:text-gray-300">Updating?</strong>
-                        Just replace the files &mdash; the template cache is cleared automatically when a new version is detected.
+                        Replace the files &mdash; the template cache is cleared automatically when a new version is detected.
                     </p>
                 </div>
 
@@ -459,7 +459,7 @@ require_once __DIR__.'/_header.php';
         </div>
     </section>
 
-    <div class="bg-surface border-y border-line-soft dark:bg-white/[0.02] dark:border-ink-line">
+    <div class="bg-surface border-y border-line-soft dark:bg-white/2 dark:border-ink-line">
         <section class="px-4 py-16 mx-auto max-w-4xl md:py-24" id="faq">
             <div class="mb-10 text-center">
                 <h2 class="text-3xl font-semibold tracking-tight sm:text-4xl dark:text-white text-ink">Frequently Asked Questions</h2>
@@ -496,18 +496,14 @@ require_once __DIR__.'/_header.php';
                     <code>authusers</code> option (username =&gt; password) in your config to enable a login screen. Alternatively, secure the dashboard behind your own security layer (such as a reverse proxy or an authenticated route). Additionally, it supports Redis ACL, a read-only mode and configurable SCAN limits to prevent blocking the main Redis thread on large databases.',
                 ],
                 [
-                    'How do I fix "Fatal error: Allowed memory size exhausted"?',
-                    'This typically happens when you have millions of keys in Redis and limited PHP RAM, because the tool uses the
-                    <code>KEYS</code> command by default. To resolve this, open your configuration file and enable the
-                    <code>SCAN</code> command (e.g., set <code>PCA_REDIS_0_SCANSIZE</code> or uncomment
-                    <code>scansize</code> in <code>config.php</code>).',
-                ],
-                [
                     'Can I collect metrics in the background?',
                     'Yes, you can collect historical data even when the dashboard is not open in your browser by setting up a cronjob. Trigger the metrics endpoint for your desired cache periodically, for example:
                     <code class="py-0.5 px-1.5 text-xs bg-fill rounded-[5px] dark:bg-white/10">curl -s "https://example.com/?dashboard=redis&amp;server=0&amp;ajax&amp;metrics" &gt; /dev/null</code>.
-                    If authentication is enabled, set the <code>authtoken</code> option in your config and append
-                    <code class="py-0.5 px-1.5 text-xs bg-fill rounded-[5px] dark:bg-white/10">&amp;token=your-secret-token</code> to the URL so the cronjob can run without a login session.',
+                    If authentication is enabled, set the <code>authtoken</code> option in your config and send it with the request. Prefer the
+                    <code class="py-0.5 px-1.5 text-xs bg-fill rounded-[5px] dark:bg-white/10">X-Pca-Token</code> header, which keeps the token out of your access log:
+                    <code class="py-0.5 px-1.5 text-xs bg-fill rounded-[5px] dark:bg-white/10">curl -s -H "X-Pca-Token: your-secret-token" "https://example.com/?dashboard=redis&amp;server=0&amp;ajax&amp;metrics" &gt; /dev/null</code>.
+                    The token is also accepted as an
+                    <code class="py-0.5 px-1.5 text-xs bg-fill rounded-[5px] dark:bg-white/10">&amp;token=your-secret-token</code> query parameter for cronjobs that cannot set headers. Either way it only unlocks the metrics endpoint, nothing else.',
                 ],
             ];
 

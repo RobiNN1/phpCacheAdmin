@@ -5,16 +5,16 @@
   :root, :host {
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Arial, sans-serif;
     --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    --color-redis: #ee5145;
+    --color-redis: #ce463c;
     --color-memcached: #2b8e84;
-    --color-opcache: #0ea5e9;
+    --color-opcache: #0b7db0;
     --color-apcu: #3b82f6;
     --color-realpath: #748abd;
     --color-ink: #0d1424;
     --color-ink-soft: #131b2e;
     --color-ink-line: #24304a;
     --color-body: #5b6577;
-    --color-muted: #8a93a6;
+    --color-muted: #4c515c;
     --color-line: #e8eaef;
     --color-line-soft: #eceef3;
     --color-surface: #fbfbfc;
@@ -193,6 +193,9 @@
   }
   .relative {
     position: relative;
+  }
+  .static {
+    position: static;
   }
   .top-0 {
     top: 0px;
@@ -522,7 +525,7 @@
     }
   }
   .bg-opcache\/10 {
-    background-color: color-mix(in srgb, #0ea5e9 10%, transparent);
+    background-color: color-mix(in srgb, #0b7db0 10%, transparent);
     @supports (color: color-mix(in lab, red, red)) {
       background-color: color-mix(in oklab, var(--color-opcache) 10%, transparent);
     }
@@ -537,7 +540,7 @@
     }
   }
   .bg-redis\/10 {
-    background-color: color-mix(in srgb, #ee5145 10%, transparent);
+    background-color: color-mix(in srgb, #ce463c 10%, transparent);
     @supports (color: color-mix(in lab, red, red)) {
       background-color: color-mix(in oklab, var(--color-redis) 10%, transparent);
     }
@@ -757,8 +760,8 @@
   .text-gray-300 {
     color: oklch(87.2% 0.01 258.338);
   }
-  .text-gray-400 {
-    color: oklch(70.7% 0.022 261.325);
+  .text-gray-500 {
+    color: oklch(55.1% 0.027 264.364);
   }
   .text-gray-700 {
     color: oklch(37.3% 0.034 259.733);
@@ -986,17 +989,17 @@
   .dark\:bg-white:where(.dark, .dark *) {
     background-color: #fff;
   }
+  .dark\:bg-white\/2:where(.dark, .dark *) {
+    background-color: color-mix(in oklab, #fff 2%, transparent);
+  }
+  .dark\:bg-white\/3:where(.dark, .dark *) {
+    background-color: color-mix(in oklab, #fff 3%, transparent);
+  }
   .dark\:bg-white\/5:where(.dark, .dark *) {
     background-color: color-mix(in oklab, #fff 5%, transparent);
   }
   .dark\:bg-white\/10:where(.dark, .dark *) {
     background-color: color-mix(in oklab, #fff 10%, transparent);
-  }
-  .dark\:bg-white\/\[0\.02\]:where(.dark, .dark *) {
-    background-color: color-mix(in oklab, #fff 2%, transparent);
-  }
-  .dark\:bg-white\/\[0\.03\]:where(.dark, .dark *) {
-    background-color: color-mix(in oklab, #fff 3%, transparent);
   }
   .dark\:text-blue-400:where(.dark, .dark *) {
     color: oklch(70.7% 0.165 254.624);

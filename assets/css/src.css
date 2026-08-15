@@ -8,9 +8,9 @@
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Arial, sans-serif;
     --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
-    --color-redis: #ee5145;
+    --color-redis: #ce463c;
     --color-memcached: #2b8e84;
-    --color-opcache: #0ea5e9;
+    --color-opcache: #0b7db0;
     --color-apcu: #3b82f6;
     --color-realpath: #748abd;
 
@@ -18,7 +18,7 @@
     --color-ink-soft: #131b2e;
     --color-ink-line: #24304a;
     --color-body: #5b6577;
-    --color-muted: #8a93a6;
+    --color-muted: #4c515c;
     --color-line: #e8eaef;
     --color-line-soft: #eceef3;
     --color-surface: #fbfbfc;

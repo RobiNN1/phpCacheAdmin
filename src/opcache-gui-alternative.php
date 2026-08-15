@@ -73,7 +73,7 @@ echo ld_json(breadcrumb_schema('opcache-gui Alternative', $canonical_url));
         </div>
 
         <div class="overflow-hidden mt-16 mx-auto max-w-5xl rounded-card border border-line shadow-lift dark:border-ink-line dark:shadow-none">
-            <div class="flex gap-1.5 items-center py-3 px-4 border-b bg-surface border-line-soft dark:bg-white/[0.03] dark:border-ink-line">
+            <div class="flex gap-1.5 items-center py-3 px-4 border-b bg-surface border-line-soft dark:bg-white/3 dark:border-ink-line">
                 <span class="w-2.5 h-2.5 rounded-full bg-line dark:bg-white/10"></span>
                 <span class="w-2.5 h-2.5 rounded-full bg-line dark:bg-white/10"></span>
                 <span class="w-2.5 h-2.5 rounded-full bg-line dark:bg-white/10"></span>
@@ -84,10 +84,10 @@ echo ld_json(breadcrumb_schema('opcache-gui Alternative', $canonical_url));
         </div>
     </section>
 
-    <div class="bg-surface border-y border-line-soft dark:bg-white/[0.02] dark:border-ink-line">
+    <div class="bg-surface border-y border-line-soft dark:bg-white/2 dark:border-ink-line">
         <section class="px-4 py-16 mx-auto max-w-5xl md:py-20" id="comparison">
             <div class="mb-10 text-center">
-                <h2 class="mb-4 text-3xl font-semibold tracking-tight sm:text-4xl dark:text-white text-ink">opcache-gui vs phpCacheAdmin</h2>
+                <h2 class="mb-4 text-3xl font-semibold tracking-tight sm:text-4xl dark:text-white text-ink">opcache-gui vs. phpCacheAdmin</h2>
                 <p class="mx-auto max-w-2xl text-lg text-body dark:text-gray-400">
                     A side-by-side look at what you get when you switch.
                 </p>
@@ -135,7 +135,7 @@ echo ld_json(breadcrumb_schema('opcache-gui Alternative', $canonical_url));
 
                 <div>
                     <h3 class="text-lg font-semibold text-opcache mb-2">3. Deployment Warmup</h3>
-                    <p class="text-body dark:text-gray-400">After a deployment OPcache starts cold and your first visitors pay the compilation cost. The warmup feature compiles a whole directory into the cache on demand, so the cache is hot before real traffic hits it.</p>
+                    <p class="text-body dark:text-gray-400">After a deployment OPcache starts cold, and your first visitors pay the compilation cost. The warmup feature compiles a whole directory into the cache on demand, so the cache is hot before real traffic hits it.</p>
                 </div>
 
                 <div>
@@ -157,7 +157,7 @@ echo ld_json(breadcrumb_schema('opcache-gui Alternative', $canonical_url));
         </div>
     </section>
 
-    <div class="bg-surface border-y border-line-soft dark:bg-white/[0.02] dark:border-ink-line">
+    <div class="bg-surface border-y border-line-soft dark:bg-white/2 dark:border-ink-line">
         <section class="px-4 py-16 mx-auto max-w-4xl md:py-20" id="faq">
             <div class="mb-10 text-center">
                 <h2 class="text-3xl font-semibold tracking-tight sm:text-4xl dark:text-white text-ink">Frequently Asked Questions</h2>

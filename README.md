@@ -3,8 +3,8 @@
 <p align="center"><strong><a href="https://phpcacheadmin.com/">phpcacheadmin.com</a></strong></p>
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset=".github/img/redis-dark.png">
-    <img alt="Preview" src=".github/img/redis-light.png" width="500px">
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/RobiNN1/phpCacheAdmin/refs/heads/docs/assets/img/preview/redis-dark.webp">
+    <img alt="Preview" src="https://raw.githubusercontent.com/RobiNN1/phpCacheAdmin/refs/heads/docs/assets/img/preview/redis-light.webp" width="500px">
   </picture>
 </p>
 

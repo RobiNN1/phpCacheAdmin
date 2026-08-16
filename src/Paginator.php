@@ -83,7 +83,14 @@ readonly class Paginator {
 
     public function render(): string {
         $on_page = $this->paginated !== [] ? 1 : 0;
+
+        /** @var array<int, int> $select */
         $select = [50, 100, 200, 300, 400, 500, 1000];
+
+        if (!in_array($this->per_page, $select, true)) {
+            $select[] = $this->per_page;
+            sort($select);
+        }
 
         return Template::get()->render('components/paginator', [
             'first_on_page' => Format::number((int) array_key_first($this->paginated) + $on_page),

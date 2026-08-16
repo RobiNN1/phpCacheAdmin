@@ -65,14 +65,20 @@ class Http {
      * Sent before any output. The CSP is what keeps a value stored in the cache from becoming a script.
      */
     public static function securityHeaders(): void {
-        if (headers_sent() || !Config::get('securityheaders', true)) {
+        if (headers_sent()) {
+            return;
+        }
+
+        header('X-Robots-Tag: noindex, nofollow, noarchive, nosnippet, noimageindex');
+
+        if (!Config::get('securityheaders', true)) {
             return;
         }
 
         $csp = [
             "default-src 'self'",
             "script-src 'self' 'nonce-".self::nonce()."'",
-            "style-src 'self' 'unsafe-inline'", // Progress bars and dashboard colors are inline styles.
+            "style-src 'self' 'unsafe-inline'",
             "img-src 'self' data:",
             "connect-src 'self'",
             "object-src 'none'",
@@ -84,7 +90,6 @@ class Http {
         header('Content-Security-Policy: '.implode('; ', $csp));
         header('X-Content-Type-Options: nosniff');
         header('X-Frame-Options: SAMEORIGIN');
-        // Keeps the metrics token out of the referrer of any link that leaves the dashboard.
         header('Referrer-Policy: same-origin');
     }
 

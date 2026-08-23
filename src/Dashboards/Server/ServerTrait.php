@@ -69,7 +69,7 @@ trait ServerTrait {
 
         if ($memory_limit > 0) {
             $usage = round(($memory_used / $memory_limit) * 100, 2);
-            $data[] = ['PHP memory usage', Format::bytes($memory_used).' / '.Format::bytes($memory_limit, 0).' ('.$usage.'%)', $usage];
+            $data[] = ['PHP memory usage', Format::bytes($memory_used).' / '.Format::bytes($memory_limit, 1).' ('.$usage.'%)', $usage];
         } else {
             $data['PHP memory usage'] = Format::bytes($memory_used);
         }

@@ -50,7 +50,7 @@ trait RealpathTrait {
             [
                 'title' => 'Realpath info',
                 'data'  => [
-                    'Total' => Format::bytes($total_memory, 0),
+                    'Total' => Format::bytes($total_memory, 1),
                     ['Used', Format::bytes($memory_used).' ('.$memory_usage.'%)', $memory_usage],
                 ],
             ],

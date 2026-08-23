@@ -107,7 +107,7 @@ trait OPCachePanels {
         return [
             'title' => 'Memory',
             'data'  => [
-                'Total' => Format::bytes($total_memory, 0),
+                'Total' => Format::bytes($total_memory, 1),
                 ['Used', Format::bytes($memory['used_memory']).' ('.$usage.'%)', $usage],
                 'Free'  => Format::bytes($memory['free_memory']),
                 ['Wasted', Format::bytes($memory['wasted_memory']).' ('.$wasted.'%)', $wasted],

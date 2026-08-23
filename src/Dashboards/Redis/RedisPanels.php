@@ -166,7 +166,7 @@ trait RedisPanels {
         return [
             'title' => 'Memory',
             'data'  => [
-                'Total'               => $max_memory > 0 ? Format::bytes($max_memory, 0) : '∞',
+                'Total'               => $max_memory > 0 ? Format::bytes($max_memory, 1) : '∞',
                 $used_memory_formatted,
                 'Free'                => $max_memory > 0 ? Format::bytes($max_memory - $used_memory) : '∞',
                 'Peak memory usage'   => Format::bytes((int) ($memory_info['used_memory_peak'] ?? 0)),

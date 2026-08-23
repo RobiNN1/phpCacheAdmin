@@ -105,7 +105,7 @@ trait MemcachedPanels {
         return [
             'title' => 'Memory',
             'data'  => [
-                'Total' => Format::bytes($limit_maxbytes, 0),
+                'Total' => Format::bytes($limit_maxbytes, 1),
                 ['Used', Format::bytes($bytes).' ('.$memory_usage.'%)', $memory_usage],
                 'Free'  => Format::bytes($limit_maxbytes - $bytes),
             ],

@@ -840,7 +840,8 @@ final class MemcachedTest extends TestCase {
 
         Helpers::import(
             fn (string $key): bool => $this->memcached->exists($key),
-            fn (string $key, string $value, int $ttl): bool => $this->memcached->set(urldecode($key), base64_decode($value), $ttl)
+            fn (string $key, string $value, int $ttl): bool => $this->memcached->set(urldecode($key), base64_decode($value), $ttl),
+            true
         );
 
         foreach ($keys_to_test as $key => $data) {

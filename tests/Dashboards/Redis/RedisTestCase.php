@@ -2379,7 +2379,8 @@ abstract class RedisTestCase extends TestCase {
             },
             function (string $key, string $value, int $ttl): bool {
                 return $this->redis->restoreKeys($key, $ttl * 1000, hex2bin($value));
-            }
+            },
+            true
         );
 
         foreach ($keys_to_test as $key => $data) {

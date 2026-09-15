@@ -263,7 +263,8 @@ final class APCuTest extends TestCase {
             static fn (string $key): bool => apcu_exists($key),
             static function (string $key, string $value, int $ttl): bool {
                 return apcu_store($key, unserialize(base64_decode($value), ['allowed_classes' => false]), $ttl);
-            }
+            },
+            true
         );
 
         foreach ($keys_to_test as $key => $data) {

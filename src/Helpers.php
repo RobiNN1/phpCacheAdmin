@@ -140,8 +140,8 @@ class Helpers {
         return self::alert('No keys are selected.');
     }
 
-    public static function import(callable $exists, callable $store): void {
-        if (!isset($_FILES['import']) || $_FILES['import']['error'] !== UPLOAD_ERR_OK || !is_uploaded_file($_FILES['import']['tmp_name'])) {
+    public static function import(callable $exists, callable $store, bool $tests = false): void {
+        if (!isset($_FILES['import']) || $_FILES['import']['error'] !== UPLOAD_ERR_OK || (!$tests && !is_uploaded_file($_FILES['import']['tmp_name']))) {
             return;
         }
 

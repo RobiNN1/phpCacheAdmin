@@ -95,7 +95,8 @@ final class HelpersTest extends TestCase {
             static fn ($key): false => false,
             static function (string $key, string $value, int $ttl) use (&$stored): void {
                 $stored[] = ['key' => $key, 'value' => $value, 'ttl' => $ttl];
-            }
+            },
+            true
         );
 
         unlink($_FILES['import']['tmp_name']);

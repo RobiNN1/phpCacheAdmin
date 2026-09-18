@@ -56,13 +56,14 @@ trait MemcachedKeysList {
 
         foreach ($raw_lines as $line) {
             $key_data = $this->memcached->parseLine($line);
+            $key = urldecode($key_data['key']);
             $ttl = $key_data['exp'] ?? -1;
             $ttl_display = $ttl === -1 ? 'Doesn\'t expire' : $ttl - $time;
 
             $formatted_keys[] = [
-                'key'  => $key_data['key'],
+                'key'  => $key,
                 'info' => [
-                    'link_title'           => urldecode($key_data['key']),
+                    'link_title'           => $key,
                     'bytes_size'           => $key_data['size'] ?? 0,
                     'timediff_last_access' => $key_data['la'] ?? 0,
                     'ttl'                  => $ttl_display,
@@ -81,9 +82,8 @@ trait MemcachedKeysList {
      */
     public function keysTreeView(array $raw_lines): array {
         $separator = $this->servers[$this->current_server]['separator'] ?? ':';
-        $separator = urlencode($separator);
 
-        $this->template->addGlobal('separator', urldecode($separator));
+        $this->template->addGlobal('separator', $separator);
 
         $time = time();
 
@@ -99,7 +99,7 @@ trait MemcachedKeysList {
             $ttl = $key_data['exp'] ?? -1;
 
             $keys[] = [
-                'key'  => $key_data['key'],
+                'key'  => urldecode($key_data['key']),
                 'info' => [
                     'bytes_size'           => $key_data['size'] ?? 0,
                     'timediff_last_access' => $key_data['la'] ?? 0,
@@ -108,6 +108,6 @@ trait MemcachedKeysList {
             ];
         }
 
-        return Helpers::keysTree($keys, $separator, urldecode(...));
+        return Helpers::keysTree($keys, $separator);
     }
 }

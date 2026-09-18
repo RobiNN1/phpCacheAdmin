@@ -128,7 +128,7 @@ class MemcachedDashboard implements DashboardInterface {
                     return Helpers::alert('Invalid CSRF token.', 'error');
                 }
 
-                return Helpers::deleteKey(fn (string $key): bool => $this->memcached->delete(urldecode($key)));
+                return Helpers::deleteKey(fn (string $key): bool => $this->memcached->delete($key));
             }
         } catch (DashboardException|MemcachedException $e) {
             if (isset($_GET['panels']) || isset($_GET['metrics'])) {

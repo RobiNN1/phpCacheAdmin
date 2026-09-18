@@ -115,7 +115,7 @@ final class MemcachedTest extends TestCase {
         $this->memcached->set($key, 'data');
 
         $_GET['delete'] = '';
-        $_POST['delete'] = json_encode(base64_encode(urlencode($key)), JSON_THROW_ON_ERROR);
+        $_POST['delete'] = json_encode(base64_encode($key), JSON_THROW_ON_ERROR);
         $this->setCsrfToken(false);
 
         $this->assertSame(Helpers::alert('Invalid CSRF token.', 'error'), $this->dashboard->ajax());
@@ -131,13 +131,12 @@ final class MemcachedTest extends TestCase {
         $key = 'pu:test:ajax';
         $this->memcached->set($key, 'data');
 
-        $encoded_key = urlencode($key);
         $_GET['delete'] = '';
-        $_POST['delete'] = json_encode(base64_encode($encoded_key), JSON_THROW_ON_ERROR);
+        $_POST['delete'] = json_encode(base64_encode($key), JSON_THROW_ON_ERROR);
         $this->setCsrfToken();
 
         $this->assertSame(
-            Helpers::alert(sprintf('Key "%s" has been deleted.', $encoded_key), 'success'),
+            Helpers::alert(sprintf('Key "%s" has been deleted.', $key), 'success'),
             $this->dashboard->ajax()
         );
         $this->assertFalse($this->memcached->exists($key));
@@ -754,6 +753,24 @@ final class MemcachedTest extends TestCase {
     /**
      * @throws MemcachedException
      */
+    public function testKeysTableViewDecodesKeys(): void {
+        $key = 'pu-test-decode:a&b%c+d/é';
+        $this->memcached->set($key, 'value');
+        $_GET['s'] = 'pu-test-decode';
+
+        $result = $this->dashboard->keysTableView($this->dashboard->getAllKeys());
+
+        $this->assertCount(1, $result);
+        $this->assertSame($key, $result[0]['key']);
+        $this->assertSame($key, $result[0]['info']['link_title']);
+        $this->assertTrue($this->memcached->exists($result[0]['key']));
+
+        $this->memcached->flush();
+    }
+
+    /**
+     * @throws MemcachedException
+     */
     public function testGetAllKeysTreeView(): void {
         $this->memcached->set('pu-test-tree1:sub1', 'value1');
         $this->memcached->set('pu-test-tree1:sub2', 'value2');
@@ -774,8 +791,8 @@ final class MemcachedTest extends TestCase {
                 'name'     => 'pu-test-tree1',
                 'path'     => 'pu-test-tree1',
                 'children' => [
-                    ['type' => 'key', 'name' => 'sub1', 'key' => 'pu-test-tree1%3Asub1', 'info' => $info,],
-                    ['type' => 'key', 'name' => 'sub2', 'key' => 'pu-test-tree1%3Asub2', 'info' => $info,],
+                    ['type' => 'key', 'name' => 'sub1', 'key' => 'pu-test-tree1:sub1', 'info' => $info,],
+                    ['type' => 'key', 'name' => 'sub2', 'key' => 'pu-test-tree1:sub2', 'info' => $info,],
                 ],
                 'expanded' => false,
                 'count'    => 2,

@@ -324,8 +324,14 @@ class PHPMem {
             }
 
             $raw = preg_replace('/^ME\s+\S+\s+/', '', $raw); // Remove `ME keyname`
+            $data = $this->parseLine($raw);
 
-            return $this->parseLine($raw);
+            // Before 1.6.24 `me` returned the remaining TTL negated (exp=-120 for 120 s left).
+            if (isset($data['exp']) && $data['exp'] < -1 && version_compare($this->version(), '1.6.24', '<')) {
+                $data['exp'] = -$data['exp'];
+            }
+
+            return $data;
         }
 
         foreach ($this->getKeys() as $line) {

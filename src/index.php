@@ -39,7 +39,7 @@ require_once __DIR__.'/_header.php';
             </div>
         </div>
 
-        <?php $previews = ['redis' => 'Redis', 'memcached' => 'Memcached', 'opcache' => 'OPCache']; ?>
+        <?php $previews = ['redis' => 'Redis', 'memcached' => 'Memcached', 'opcache' => 'OPCache', 'apcu' => 'APCu', 'realpath' => 'Realpath']; ?>
         <div class="overflow-hidden mt-16 text-left rounded-card border border-line shadow-lift dark:border-ink-line dark:shadow-none">
             <div class="flex flex-wrap gap-3 justify-between items-center py-3 px-4 border-b bg-surface border-line-soft dark:bg-white/3 dark:border-ink-line">
                 <div class="flex gap-1.5 items-center">
@@ -49,11 +49,11 @@ require_once __DIR__.'/_header.php';
                     <span id="preview-url" class="ml-3 font-mono text-xs text-muted">localhost/?dashboard=redis</span>
                 </div>
 
-                <div class="flex gap-1 p-1 rounded-full bg-fill dark:bg-white/5">
+                <div class="flex flex-wrap gap-1 justify-center p-1 rounded-2xl sm:rounded-full bg-fill dark:bg-white/5">
                     <?php
                     foreach ($previews as $slug => $label) {
                         $is_active = $slug === 'redis' ? ' active' : '';
-                        $base = 'tab-link cursor-pointer py-1 px-3 text-xs font-semibold rounded-full transition-colors text-muted hover:text-ink dark:hover:text-white [&.active]:bg-white [&.active]:text-ink [&.active]:shadow-btn dark:[&.active]:bg-ink-soft dark:[&.active]:text-white';
+                        $base = 'tab-link cursor-pointer py-1 px-2.5 sm:px-3 text-xs font-semibold rounded-full transition-colors text-muted hover:text-ink dark:hover:text-white [&.active]:bg-white [&.active]:text-ink [&.active]:shadow-btn dark:[&.active]:bg-ink-soft dark:[&.active]:text-white';
                         echo '<button type="button" data-group="preview" data-target="preview-'.$slug.'" data-url="localhost/?dashboard='.$slug.'" class="'.$base.$is_active.'">'.$label.'</button>';
                     }
                     ?>

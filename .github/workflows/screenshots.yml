@@ -1,0 +1,88 @@
+name: Screenshots
+
+on:
+  workflow_dispatch:
+    inputs:
+      app_ref:
+        description: 'phpCacheAdmin branch or tag to screenshot'
+        default: 'master'
+      commit:
+        description: 'Commit the regenerated screenshots'
+        type: boolean
+        default: true
+  push:
+    branches:
+      - '**'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: "screenshots"
+  cancel-in-progress: false
+
+jobs:
+  screenshots:
+    if: github.event_name != 'push' || contains(join(github.event.commits.*.message), '[screenshot]')
+    runs-on: ubuntu-latest
+    services:
+      memcached:
+        image: memcached:alpine
+        ports:
+          - 11211:11211
+      redis:
+        image: redis:8
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout site
+        uses: actions/checkout@v6
+
+      - name: Checkout phpCacheAdmin
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.app_ref || 'master' }}
+          path: screenshots/.app
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: apcu, opcache, redis
+          ini-values: apc.enable_cli=1, opcache.enable_cli=1
+          coverage: none
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+
+      - name: Install capture dependencies
+        working-directory: screenshots
+        run: |
+          npm install --no-audit --no-fund
+          npx playwright install --with-deps chromium
+
+      - name: Generate screenshots
+        run: ./screenshots/run.sh
+
+      - name: Upload screenshots
+        uses: actions/upload-artifact@v7
+        with:
+          name: screenshots
+          path: assets/img/preview
+
+      - name: Commit screenshots
+        if: github.event_name == 'push' || inputs.commit
+        run: |
+          git config user.name 'RobiNN1'
+          git config user.email 'RobiNN1@users.noreply.github.com'
+          git add assets/img/preview
+          if git diff --staged --quiet; then
+              echo "Nothing changed."
+          else
+              git commit -m "Update screenshots"
+              git pull --rebase origin "$GITHUB_REF_NAME"
+              git push origin "HEAD:$GITHUB_REF_NAME"
+          fi

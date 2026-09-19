@@ -194,9 +194,6 @@
   .relative {
     position: relative;
   }
-  .static {
-    position: static;
-  }
   .top-0 {
     top: 0px;
   }
@@ -438,6 +435,9 @@
   .overflow-x-hidden {
     overflow-x: hidden;
   }
+  .rounded-2xl {
+    border-radius: 1rem;
+  }
   .rounded-\[5px\] {
     border-radius: 5px;
   }
@@ -575,8 +575,8 @@
   .px-1\.5 {
     padding-inline: calc(0.25rem * 1.5);
   }
-  .px-3 {
-    padding-inline: calc(0.25rem * 3);
+  .px-2\.5 {
+    padding-inline: calc(0.25rem * 2.5);
   }
   .px-3\.5 {
     padding-inline: calc(0.25rem * 3.5);
@@ -886,8 +886,14 @@
     .sm\:gap-6 {
       gap: calc(0.25rem * 6);
     }
+    .sm\:rounded-full {
+      border-radius: calc(infinity * 1px);
+    }
     .sm\:p-10 {
       padding: calc(0.25rem * 10);
+    }
+    .sm\:px-3 {
+      padding-inline: calc(0.25rem * 3);
     }
     .sm\:text-4xl {
       font-size: 2.25rem;

@@ -114,9 +114,13 @@
                 <a class="font-semibold text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-500" href="https://github.com/RobiNN1">RobiNN1</a>.
                 All Rights Reserved.
             </div>
-            <div>
-                v{{ version }}
+            <div class="flex flex-wrap gap-x-2 justify-center items-center">
+                <span>v{{ version }}</span>
                 <a class="font-semibold text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-500" href="{{ repo }}/issues" target="_blank" rel="noopener">Report Issue</a>
+                <a class="flex gap-1 items-center font-semibold text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-500"
+                   href="{{ repo }}" target="_blank" rel="noopener" title="Star phpCacheAdmin on GitHub">
+                    {{ svg('star', 14, 'text-amber-400 shrink-0') }} Star on GitHub
+                </a>
             </div>
         </footer>
     </div>

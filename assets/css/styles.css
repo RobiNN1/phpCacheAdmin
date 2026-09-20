@@ -485,6 +485,9 @@
     margin-block-start: calc(0.25rem * var(--tw-space-y-reverse));
     margin-block-end: calc(0.25rem * calc(1 - var(--tw-space-y-reverse)));
   }
+  .gap-x-2 {
+    column-gap: calc(0.25rem * 2);
+  }
   .gap-x-3 {
     column-gap: calc(0.25rem * 3);
   }
@@ -817,6 +820,9 @@
   }
   .whitespace-pre-wrap {
     white-space: pre-wrap;
+  }
+  .text-amber-400 {
+    color: oklch(82.8% 0.189 84.429);
   }
   .text-blue-800 {
     color: oklch(42.4% 0.199 265.638);

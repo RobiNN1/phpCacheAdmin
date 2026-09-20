@@ -388,6 +388,9 @@
   .max-w-sm {
     max-width: 24rem;
   }
+  .max-w-xl {
+    max-width: 36rem;
+  }
   .max-w-xs {
     max-width: 20rem;
   }
@@ -744,6 +747,9 @@
   }
   .pe-5 {
     padding-inline-end: calc(0.25rem * 5);
+  }
+  .pt-4 {
+    padding-top: calc(0.25rem * 4);
   }
   .pb-3 {
     padding-bottom: calc(0.25rem * 3);

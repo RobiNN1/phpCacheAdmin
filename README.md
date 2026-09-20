@@ -103,6 +103,10 @@ so anyone who can open the page can also read, change and delete everything in t
 Keep it on a trusted network, or turn the login page on, or put your web server's own authentication in front of it.
 Setting `readonly` on top of that leaves only the read-only parts of the dashboards.
 
+Until users are defined, a notice about it opens on the dashboard. The first user can be set straight from it
+when the web server can write to `config.php`, the password is stored as a `password_hash()` hash and that
+session is logged in right away. Closing the notice hides it for a month, `authwarning => false` turns it off for good.
+
 ## Cronjob
 
 You can add these links to your cronjob to collect metrics when the dashboard is not open:

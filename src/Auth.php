@@ -54,6 +54,10 @@ class Auth {
         return self::users() !== [];
     }
 
+    public static function showWarning(): bool {
+        return !self::isEnabled() && (bool) Config::get('authwarning', true);
+    }
+
     /**
      * The name the current session is logged in with, so the header can show whose session it is.
      */

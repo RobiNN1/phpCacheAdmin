@@ -55,6 +55,13 @@ class Config {
     }
 
     /**
+     * The file the configuration is written to, never the dist file that is only a fallback.
+     */
+    public static function file(): string {
+        return self::$config_path ?? __DIR__.'/../config.php';
+    }
+
+    /**
      * Get a config value.
      *
      * An option of one of the grouped keys is addressed with a dot, e.g., get('apcu.separator').

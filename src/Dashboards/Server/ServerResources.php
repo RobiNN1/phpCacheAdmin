@@ -274,9 +274,7 @@ trait ServerResources {
     private function windowsStats(): array {
         static $stats = null;
 
-        if ($stats === null) {
-            $stats = $this->windowsStatsCom() ?? $this->windowsStatsPowershell();
-        }
+        $stats ??= $this->windowsStatsCom() ?? $this->windowsStatsPowershell();
 
         return $stats;
     }

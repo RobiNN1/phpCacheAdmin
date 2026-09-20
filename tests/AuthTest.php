@@ -102,6 +102,21 @@ final class AuthTest extends TestCase {
         $this->assertNull(Auth::user());
     }
 
+    public function testWarningWithoutUsers(): void {
+        $this->setConfig("['authusers' => []]");
+        $this->assertTrue(Auth::showWarning());
+    }
+
+    public function testNoWarningWithUsers(): void {
+        $this->setConfig("['authusers' => ['admin' => 'secret']]");
+        $this->assertFalse(Auth::showWarning());
+    }
+
+    public function testWarningCanBeTurnedOff(): void {
+        $this->setConfig("['authusers' => [], 'authwarning' => false]");
+        $this->assertFalse(Auth::showWarning());
+    }
+
     public function testIsDisabledWhenNotConfigured(): void {
         $this->setConfig('[]');
         $this->assertFalse(Auth::isEnabled());

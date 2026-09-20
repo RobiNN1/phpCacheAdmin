@@ -90,6 +90,7 @@ return [
         // Auth is enabled when at least one user is defined. Passwords can be `password_hash()` hashes.
         //'admin' => 'your-password',
     ],
+    'authwarning' => true, // Show a notice when no user is defined in 'authusers', it can also set the first one. Closing it hides the notice for a month - default true.
     // Security
     //'authtoken' => '', // Token for the metrics cronjob, only used when auth is enabled. Generate a long random one, e.g. `php -r "echo bin2hex(random_bytes(32));"`.
     'securityheaders' => true, // Send CSP, X-Frame-Options, X-Content-Type-Options and Referrer-Policy - default true.

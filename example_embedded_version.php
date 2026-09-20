@@ -26,6 +26,7 @@ Config::loadDotenv(__DIR__); // Only needed for the .env option (requires vlucas
 /*
  * Authentication is optional - you'll usually place the dashboard behind your website's own secured route.
  * If you don't, enable the built-in auth by uncommenting the line below and setting `authusers` in the config.
+ * When your own route protects it, set `authwarning` to false so the notice about the missing authentication stays hidden.
  */
 //RobiNN\Pca\Auth::check();
 

@@ -125,6 +125,7 @@
         </footer>
     </div>
 </main>
+{% if auth_warning|default(false) %}{{ include('partials/auth_warning.twig') }}{% endif %}
 {{ modals|raw }}
 <script src="{{ asset('assets/js/scripts.js') }}"></script>
 </body>

@@ -65,6 +65,10 @@ class Admin {
         }
 
         if (isset($_GET['ajax'])) {
+            if (isset($_GET['authsetup'])) { // Not a dashboard action, the notice is a part of the layout.
+                return AuthSetup::handle();
+            }
+
             return $dashboard->ajax();
         }
 
@@ -77,14 +81,16 @@ class Admin {
         }
 
         return $this->template->render('layout', [
-            'colors'      => $colors,
-            'site_title'  => $info['title'],
-            'nav'         => $nav,
-            'logout_url'  => Auth::isEnabled() ? Http::queryString() : null,
-            'logout_user' => Auth::user(),
-            'version'     => self::VERSION,
-            'repo'        => 'https://github.com/RobiNN1/phpCacheAdmin',
-            'dashboard'   => $dashboard->dashboard(),
+            'colors'       => $colors,
+            'site_title'   => $info['title'],
+            'nav'          => $nav,
+            'logout_url'   => Auth::isEnabled() ? Http::queryString() : null,
+            'logout_user'  => Auth::user(),
+            'auth_warning' => Auth::showWarning(),
+            'auth_setup'   => AuthSetup::isAllowed(),
+            'version'      => self::VERSION,
+            'repo'         => 'https://github.com/RobiNN1/phpCacheAdmin',
+            'dashboard'    => $dashboard->dashboard(),
         ]);
     }
 }

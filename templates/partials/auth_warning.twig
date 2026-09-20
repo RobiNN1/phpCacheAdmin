@@ -1,0 +1,104 @@
+{% import 'components/modal.twig' as modal_component %}
+
+{% set code_class = 'overflow-x-auto p-3 mb-4 text-xs text-gray-700 whitespace-pre-wrap bg-gray-50 rounded border border-gray-200 dark:text-gray-300 dark:bg-white/5 dark:border-gray-700' %}
+{% set text_class = 'mb-2 text-sm text-gray-700 dark:text-gray-300' %}
+
+{% macro content(code_class, text_class, auth_setup) %}
+    {% set min_password = constant('RobiNN\\Pca\\AuthSetup::MIN_PASSWORD') %}
+    {% set max_password = constant('RobiNN\\Pca\\AuthSetup::MAX_PASSWORD') %}
+
+    <p class="{{ text_class }}">
+        No users are defined, so anyone who can open this page can read, change and delete everything in the configured
+        servers. Keep it on a trusted network, or set a password below, or put your web server's own authentication in front of it.
+    </p>
+
+    {% if auth_setup %}
+        <form id="auth_setup_form" class="p-4 mb-4 rounded border border-gray-200 dark:border-gray-600" autocomplete="off">
+            {{ include('components/input.twig', {
+                id: 'authuser',
+                label: 'Username',
+                value: 'admin',
+                required: true,
+                attr: 'autocomplete="username" maxlength="64" pattern="[A-Za-z0-9_.@\\-]{1,64}"',
+                wrapper_class: 'mb-3',
+            }) }}
+
+            <div class="grid gap-3 mb-3">
+                {{ include('components/input.twig', {
+                    id: 'authpassword',
+                    label: 'Password',
+                    type: 'password',
+                    required: true,
+                    attr: 'autocomplete="new-password" minlength="' ~ min_password ~ '" maxlength="' ~ max_password ~ '"',
+                    wrapper_class: '',
+                }) }}
+
+                {{ include('components/input.twig', {
+                    id: 'authpassword2',
+                    label: 'Repeat password',
+                    type: 'password',
+                    required: true,
+                    attr: 'autocomplete="new-password" minlength="' ~ min_password ~ '" maxlength="' ~ max_password ~ '"',
+                    wrapper_class: '',
+                }) }}
+            </div>
+
+            <div class="flex flex-wrap gap-3 justify-between items-center">
+                <p class="text-xs text-gray-500 dark:text-gray-400">
+                    Saved as a <code>password_hash()</code> hash in
+                    <code>config.php</code>, which the web server has to be able to write to.
+                </p>
+
+                {{ include('components/button.twig', {
+                    text: 'Save password',
+                    icon: 'save',
+                    id: 'save_auth_user',
+                    color: 'green',
+                    submit: true,
+                }) }}
+            </div>
+
+            <div id="auth_setup_result" class="hidden mt-3 text-sm"></div>
+        </form>
+    {% endif %}
+
+    <details class="mb-4 text-sm text-gray-700 dark:text-gray-300"{{ auth_setup ? '' : ' open' }}>
+        <summary class="font-semibold cursor-pointer">Set it by hand instead</summary>
+
+        <p class="mt-3 {{ text_class }}">Add at least one user to <code>authusers</code> in <code>config.php</code>:</p>
+
+        <pre class="{{ code_class }}">'authusers' => [
+    'admin' => '$2y$12$...',
+],</pre>
+
+        <p class="{{ text_class }}">A plain password works too, a <code>password_hash()</code> hash is better:</p>
+
+        <pre class="{{ code_class }}">php -r 'echo password_hash("your-password", PASSWORD_DEFAULT);'</pre>
+
+        <p class="{{ text_class }}">
+            The same option is <code>PCA_AUTHUSERS</code> as an environment variable. Setting
+            <code>readonly</code> on top
+            of it leaves only the read-only parts of the dashboards.
+        </p>
+    </details>
+
+    <div class="flex flex-wrap gap-3 justify-between items-center pt-4 border-t border-gray-200 dark:border-gray-600">
+        <p class="text-xs text-gray-500 dark:text-gray-400">
+            Closing this hides it for a month, <code>'authwarning' => false</code> turns it off for good.
+        </p>
+
+        {{ include('components/button.twig', {
+            text: 'Got it',
+            id: 'close_auth_warning',
+            attributes: {'data-modal-dismiss': ''},
+        }) }}
+    </div>
+{% endmacro %}
+
+{{ modal_component.modal(
+    'auth-warning-modal',
+    'Authentication is not enabled',
+    _self.content(code_class, text_class, auth_setup|default(false)),
+    false,
+    'mx-4 w-full max-w-xl max-h-[85vh]',
+) }}

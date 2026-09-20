@@ -662,12 +662,87 @@ class Modal {
         if (this.previously_focused instanceof HTMLElement) {
             this.previously_focused.focus();
         }
+
+        this.element.dispatchEvent(new CustomEvent('modal:close'));
     }
 
     escapeHandler = (event) => {
         if (event.key === 'Escape') this.close();
     };
 }
+
+/**
+ * Notice that no authentication is configured, closing it hides the modal for a month.
+ */
+const auth_warning = (modal) => {
+    const storage_key = 'pca_auth_warning_hidden_until';
+    const hide_for = 30 * 24 * 60 * 60 * 1000;
+
+    if (Number(localStorage.getItem(storage_key)) > Date.now()) {
+        return;
+    }
+
+    modal.open();
+    modal.element.addEventListener('modal:close', () => {
+        localStorage.setItem(storage_key, String(Date.now() + hide_for));
+    }, {once: true});
+};
+
+/**
+ * Sets the first user from the notice. The server logs this session in, so the page is reloaded once it answers.
+ */
+const auth_setup = () => {
+    const form = document.getElementById('auth_setup_form');
+
+    if (form === null) {
+        return;
+    }
+
+    const result = document.getElementById('auth_setup_result');
+    const button = document.getElementById('save_auth_user');
+
+    const show = (message, snippet = null, error = true) => {
+        result.textContent = message;
+        result.className = `mt-3 text-sm ${error ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`;
+
+        if (snippet) {
+            const pre = document.createElement('pre');
+            pre.className = 'overflow-x-auto p-3 mt-2 text-xs text-gray-700 whitespace-pre-wrap bg-gray-50 rounded border border-gray-200 dark:text-gray-300 dark:bg-white/5 dark:border-gray-700';
+            pre.textContent = snippet;
+            result.append(pre);
+        }
+    };
+
+    form.addEventListener('submit', (event) => {
+        event.preventDefault();
+        button.disabled = true;
+        result.textContent = '';
+        result.className = 'hidden';
+
+        ajax('authsetup', request => {
+            const data = ajax_ok(request) ? parse_json(request) : null;
+
+            if (data === null) {
+                button.disabled = false;
+                show(`Server responded with status ${request.status}`);
+                return;
+            }
+
+            if (data.error) {
+                button.disabled = false;
+                show(data.error, data.snippet);
+                return;
+            }
+
+            show(data.message, null, false);
+            setTimeout(() => window.location.reload(), 1500);
+        }, {
+            authuser: form.authuser.value,
+            authpassword: form.authpassword.value,
+            authpassword2: form.authpassword2.value,
+        }, false);
+    });
+};
 
 /**
  * View key in a modal: loads the key detail over ajax and handles navigation inside the modal.
@@ -1275,5 +1350,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (modals['view-key-modal'] && document.getElementById('view-key-modal-content')) {
         new ViewKeyModal(modals['view-key-modal']);
+    }
+
+    if (modals['auth-warning-modal']) {
+        auth_warning(modals['auth-warning-modal']);
+        auth_setup();
     }
 });

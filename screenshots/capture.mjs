@@ -20,6 +20,7 @@ const dashboards = [
     {slug: 'opcache', query: 'dashboard=opcache&pp=15'},
     {slug: 'apcu', query: 'dashboard=apcu', expect: 'test-gzencode'},
     {slug: 'realpath', query: 'dashboard=realpath&pp=15'},
+    {slug: 'server', query: 'dashboard=server', rows: false, expect: 'Loaded PHP extensions'},
 ];
 
 const themes = ['light', 'dark'];
@@ -54,13 +55,13 @@ for (const theme of themes) {
         await page.waitForSelector(`body[data-dashboard="${dashboard.slug}"]`);
         await page.evaluate(() => document.fonts.ready);
 
-        if (await page.locator('tbody tr[data-key]').count() === 0) {
+        if (dashboard.rows !== false && await page.locator('tbody tr[data-key]').count() === 0) {
             failures.push(`${url} rendered an empty list`);
             continue;
         }
 
         if (dashboard.expect && !(await page.textContent('body')).includes(dashboard.expect)) {
-            failures.push(`${url} does not mention "${dashboard.expect}", the demo data is missing`);
+            failures.push(`${url} does not mention "${dashboard.expect}", it did not render what it should`);
             continue;
         }
 

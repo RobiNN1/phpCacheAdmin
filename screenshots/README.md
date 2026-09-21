@@ -1,6 +1,6 @@
 # Preview screenshots
 
-Generates `assets/img/preview/{redis,memcached,opcache,apcu,realpath}-{light,dark}.webp`, 1920px wide
+Generates `assets/img/preview/{redis,memcached,opcache,apcu,realpath,server}-{light,dark}.webp`, 1920px wide
 and at least 1040px tall, from a real phpCacheAdmin instance.
 
 - `run.sh` copies the app to `/tmp/phpCacheAdmin`, serves it with `php -S`, seeds it and captures it.
@@ -10,7 +10,8 @@ and at least 1040px tall, from a real phpCacheAdmin instance.
 
 The dashboards default to the `system` theme, so light and dark come from Chromium's
 `prefers-color-scheme`, no clicking needed. The lists that grow with the environment (OPCache scripts,
-realpath entries) are requested with `pp=15`, everything else fits on one default page.
+realpath entries) are requested with `pp=15`, everything else fits on one default page. The server
+dashboard has no key list, so it is captured with `rows: false` and is checked by its text instead.
 
 ## CI
 

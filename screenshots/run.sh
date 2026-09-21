@@ -7,7 +7,7 @@ app_dir="${PCA_APP_DIR:-$script_dir/.app}"
 docroot="${PCA_DOCROOT:-/tmp/phpCacheAdmin}"
 port="${PCA_PORT:-8123}"
 url="http://127.0.0.1:$port"
-dashboards=(redis memcached opcache apcu realpath)
+dashboards=(redis memcached opcache apcu realpath server)
 
 if [ ! -f "$app_dir/index.php" ]; then
     echo "No phpCacheAdmin in $app_dir." >&2

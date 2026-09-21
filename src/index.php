@@ -39,7 +39,7 @@ require_once __DIR__.'/_header.php';
             </div>
         </div>
 
-        <?php $previews = ['redis' => 'Redis', 'memcached' => 'Memcached', 'opcache' => 'OPCache', 'apcu' => 'APCu', 'realpath' => 'Realpath']; ?>
+        <?php $previews = ['server' => 'Server', 'redis' => 'Redis', 'memcached' => 'Memcached', 'opcache' => 'OPCache', 'apcu' => 'APCu', 'realpath' => 'Realpath']; ?>
         <div class="overflow-hidden mt-16 text-left rounded-card border border-line shadow-lift dark:border-ink-line dark:shadow-none">
             <div class="flex flex-wrap gap-3 justify-between items-center py-3 px-4 border-b bg-surface border-line-soft dark:bg-white/3 dark:border-ink-line">
                 <div class="flex gap-1.5 items-center">

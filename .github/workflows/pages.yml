@@ -5,6 +5,7 @@ on:
     branches:
       - docs
   workflow_dispatch:
+  workflow_call:
 
 permissions:
   contents: read
@@ -24,6 +25,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          ref: ${{ github.ref_name }}
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:

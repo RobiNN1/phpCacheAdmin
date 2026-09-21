@@ -55,6 +55,11 @@ for (const theme of themes) {
         await page.waitForSelector(`body[data-dashboard="${dashboard.slug}"]`);
         await page.evaluate(() => document.fonts.ready);
 
+        if (await page.locator('#auth-warning-modal').count() > 0) {
+            failures.push(`${url} opened the authentication modal, PCA_AUTHWARNING=false did not reach the app`);
+            continue;
+        }
+
         if (dashboard.rows !== false && await page.locator('tbody tr[data-key]').count() === 0) {
             failures.push(`${url} rendered an empty list`);
             continue;

@@ -43,6 +43,8 @@ cp "$script_dir/seed.php" "$docroot/seed.php"
 
 echo "==> Serving $app_dir on $url"
 
+export PCA_AUTHWARNING=false
+
 php -S "127.0.0.1:$port" -t "$docroot" \
     -d opcache.enable=1 \
     -d opcache.enable_cli=1 \

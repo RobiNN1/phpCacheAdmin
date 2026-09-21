@@ -25,6 +25,8 @@ jobs:
   screenshots:
     if: github.event_name != 'push' || contains(join(github.event.commits.*.message), '[screenshot]')
     runs-on: ubuntu-latest
+    outputs:
+      committed: ${{ steps.commit.outputs.committed }}
     services:
       memcached:
         image: memcached:alpine
@@ -74,6 +76,7 @@ jobs:
           path: assets/img/preview
 
       - name: Commit screenshots
+        id: commit
         if: github.event_name == 'push' || inputs.commit
         run: |
           git config user.name 'RobiNN1'
@@ -85,4 +88,14 @@ jobs:
               git commit -m "Update screenshots"
               git pull --rebase origin "$GITHUB_REF_NAME"
               git push origin "HEAD:$GITHUB_REF_NAME"
+              echo 'committed=true' >> "$GITHUB_OUTPUT"
           fi
+
+  deploy:
+    needs: screenshots
+    if: github.ref_name == 'docs' && needs.screenshots.outputs.committed == 'true'
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/pages.yml

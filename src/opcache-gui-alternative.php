@@ -15,6 +15,7 @@ $comparison = [
     ['Treemap memory map of cached scripts', true, false],
     ['Directory warmup after deployment', true, false],
     ['Health checks', true, false],
+    ['Monitor OPcache of other servers', true, false],
     ['Historical metrics & charts', 'SQLite-backed history', 'Live polling only'],
     ['APCu user cache editor', true, false],
     ['Realpath cache viewer', true, false],

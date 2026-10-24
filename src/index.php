@@ -248,6 +248,7 @@ require_once __DIR__.'/_header.php';
                                 'Compiler optimization suggestions',
                                 'Visual hit/miss execution metrics',
                                 'Automatic health checks',
+                                'Read-only monitoring of other servers',
                             ];
                             foreach ($features as $feature) {
                                 echo '<li class="flex gap-2.5 items-start text-sm font-medium leading-tight text-slate-700 dark:text-slate-300">';
@@ -281,6 +282,7 @@ require_once __DIR__.'/_header.php';
                                 'Namespace and expiry breakdown of cached entries',
                                 'Backup cache entries',
                                 'Memory fragmentation diagnostics',
+                                'Read-only monitoring of other servers',
                             ];
                             foreach ($features as $feature) {
                                 echo '<li class="flex gap-2.5 items-start text-sm font-medium leading-tight text-slate-700 dark:text-slate-300">';
@@ -313,6 +315,7 @@ require_once __DIR__.'/_header.php';
                                 'Directory and file type indicators',
                                 'Health checks for cache size, expired entries and TTL',
                                 'Warns when open_basedir turns the cache off entirely',
+                                'Read-only monitoring of other servers',
                             ];
                             foreach ($features as $feature) {
                                 echo '<li class="flex gap-2.5 items-start text-sm font-medium leading-tight text-slate-700 dark:text-slate-300">';

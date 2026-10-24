@@ -19,13 +19,13 @@ trait OPCacheHealth {
      * @return array<int, array<string, mixed>>
      */
     public function getHealthChecks(?array $status = null, ?array $directives = null): array {
-        $status ??= @opcache_get_status(false) ?: null;
+        $status ??= $this->status() ?: null;
 
         if ($status === null || !isset($status['memory_usage'], $status['opcache_statistics'])) {
             return [];
         }
 
-        $directives ??= opcache_get_configuration()['directives'];
+        $directives ??= $this->directives();
         $memory = $status['memory_usage'];
         $stats = $status['opcache_statistics'];
 
@@ -259,7 +259,7 @@ trait OPCacheHealth {
      * @return array<string, mixed>
      */
     private function healthTab(): array {
-        $status = @opcache_get_status(false);
+        $status = $this->status();
 
         if ($status === false) {
             return ['tab_error' => self::NOT_AVAILABLE];

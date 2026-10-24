@@ -83,6 +83,16 @@ return [
     'opcache' => [
         //'warmuppaths' => ['/var/www'], // Directories the warmup may compile from. Defaults to the document root.
     ],
+    'remoteservers' => [
+        // Other PHP servers whose OPcache, APCu and Realpath cache to monitor (read-only), each one runs pca-remote.php.
+        /*[
+            'name' => 'Web 2', // The server name (optional).
+            'url' => 'https://web2.example.com/pca-remote.php',
+            'token' => '', // The same token as in pca-remote.php on that server.
+            //'timeout' => 3, // In seconds (optional). Default 3.
+            //'ssl' => ['cafile' => 'ca.pem', 'verify_peer' => true], // SSL options https://www.php.net/manual/en/context.ssl.php (optional).
+        ],*/
+    ],
     // Access
     //'readonly' => true, // Block all destructive actions (deleting, editing, consoles, ...) - default false.
     'console' => true, // Remove the consoles - default true.

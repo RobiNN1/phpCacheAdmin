@@ -15,7 +15,7 @@ trait OPCachePanels {
      * @return array<int|string, mixed>
      */
     private function getPanelsData(): array {
-        $status = @opcache_get_status(false);
+        $status = $this->status();
 
         if ($status === false) {
             return ['error' => self::NOT_AVAILABLE];
@@ -25,7 +25,7 @@ trait OPCachePanels {
             return ['error' => self::NO_SHARED_MEMORY];
         }
 
-        $directives = opcache_get_configuration()['directives'];
+        $directives = $this->directives();
         $stats = $status['opcache_statistics'];
         $memory = $status['memory_usage'];
 
@@ -82,7 +82,7 @@ trait OPCachePanels {
      */
     private function extensionPanel(array $status, array $stats): array {
         return [
-            'title' => 'OPCache extension v'.phpversion('Zend OPcache'),
+            'title' => 'OPCache extension v'.$this->opcacheVersion(),
             'data'  => [
                 'JIT'                 => $this->jitEnabled($status) ? 'Enabled' : 'Disabled',
                 'Start time'          => Format::time($stats['start_time']),
@@ -122,7 +122,7 @@ trait OPCachePanels {
      * @return array{title: string, data: array<int|string, mixed>}
      */
     private function statsPanel(array $stats, array $directives): array {
-        $max_scripts = (int) ini_get('opcache.max_accelerated_files');
+        $max_scripts = (int) ($directives['opcache.max_accelerated_files'] ?? 0);
         $max_keys = (int) $stats['max_cached_keys'];
 
         $used_scripts = $max_scripts > 0 ? round(($stats['num_cached_scripts'] / $max_scripts) * 100) : 0;

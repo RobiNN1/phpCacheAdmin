@@ -24,7 +24,7 @@ trait OPCacheWarmup {
      * @return array<string, mixed>
      */
     private function warmupTab(): array {
-        $status = @opcache_get_status(false);
+        $status = $this->status();
 
         if ($status === false) {
             return ['tab_error' => self::NOT_AVAILABLE];

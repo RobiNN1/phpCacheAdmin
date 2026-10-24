@@ -13,7 +13,7 @@ trait OPCachePreload {
      * @return array<string, mixed>
      */
     private function preloadTab(): array {
-        $status = @opcache_get_status(false);
+        $status = $this->status();
 
         if ($status === false) {
             return ['tab_error' => self::NOT_AVAILABLE];
@@ -31,7 +31,9 @@ trait OPCachePreload {
                 'functions' => count((array) ($preload['functions'] ?? [])),
                 'classes'   => count((array) ($preload['classes'] ?? [])),
             ],
-            'blacklist' => $this->blacklist((string) ($directives['opcache.blacklist_filename'] ?? '')),
+            'blacklist' => $this->remote !== null
+                ? (array) ($this->remote->fetched('opcache')['blacklist'] ?? []) // The file is on the remote server.
+                : $this->blacklist((string) ($directives['opcache.blacklist_filename'] ?? '')),
         ];
     }
 
@@ -92,16 +94,5 @@ trait OPCachePreload {
         $directives = $this->directives();
 
         return ($directives['opcache.preload'] ?? '') !== '' || ($directives['opcache.blacklist_filename'] ?? '') !== '';
-    }
-
-    /**
-     * Empty when OPcache is disabled or restricted (opcache.restrict_api).
-     *
-     * @return array<string, mixed>
-     */
-    private function directives(): array {
-        $configuration = self::check() ? @opcache_get_configuration() : false;
-
-        return is_array($configuration) ? $configuration['directives'] : [];
     }
 }

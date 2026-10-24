@@ -24,6 +24,32 @@ trait RealpathTrait {
         'health' => 'Health',
     ];
 
+    /**
+     * @return array{used: int, total: int, ttl: int, open_basedir: string, entries: array<string, mixed>}
+     */
+    private function cacheInfo(): array {
+        if ($this->remote === null) {
+            return [
+                'used'         => realpath_cache_size(),
+                'total'        => Format::iniSizeToBytes((string) ini_get('realpath_cache_size')),
+                'ttl'          => (int) ini_get('realpath_cache_ttl'),
+                'open_basedir' => (string) ini_get('open_basedir'),
+                'entries'      => realpath_cache_get(),
+            ];
+        }
+
+        $data = $this->remote->fetched('realpath');
+        $ini = (array) ($data['ini'] ?? []);
+
+        return [
+            'used'         => (int) ($data['size'] ?? 0),
+            'total'        => Format::iniSizeToBytes((string) ($ini['realpath_cache_size'] ?? '')),
+            'ttl'          => (int) ($ini['realpath_cache_ttl'] ?? 0),
+            'open_basedir' => (string) ($ini['open_basedir'] ?? ''),
+            'entries'      => (array) ($data['entries'] ?? []),
+        ];
+    }
+
     private function mainDashboard(): string {
         $tab = Http::get('tab', '');
         $tab = array_key_exists($tab, $this->tabs) ? $tab : array_key_first($this->tabs);
@@ -42,8 +68,9 @@ trait RealpathTrait {
     }
 
     private function panels(): string {
-        $total_memory = Format::iniSizeToBytes((string) ini_get('realpath_cache_size'));
-        $memory_used = realpath_cache_size();
+        $info = $this->cacheInfo();
+        $total_memory = $info['total'];
+        $memory_used = $info['used'];
         $memory_usage = $total_memory > 0 ? round(($memory_used / $total_memory) * 100, 2) : 0;
 
         $panels = [
@@ -57,7 +84,7 @@ trait RealpathTrait {
             [
                 'title' => 'Keys',
                 'data'  => [
-                    'TTL'    => ini_get('realpath_cache_ttl'),
+                    'TTL'    => $info['ttl'],
                     'Cached' => Format::number(count($this->all_keys)),
                 ],
             ],

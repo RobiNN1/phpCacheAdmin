@@ -8,7 +8,6 @@ declare(strict_types=1);
 
 namespace RobiNN\Pca\Dashboards\APCu;
 
-use APCUIterator;
 use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
 
@@ -22,10 +21,7 @@ trait APCuKeysList {
 
         $keys = [];
 
-        $fields = APC_ITER_KEY | APC_ITER_TTL | APC_ITER_MEM_SIZE | APC_ITER_NUM_HITS | APC_ITER_ATIME | APC_ITER_CTIME;
-        $iterator = new APCUIterator(null, $fields, 0, APC_LIST_ACTIVE);
-
-        foreach ($iterator as $item) {
+        foreach ($this->entries() as $item) {
             if ($search !== '' && stripos($item['key'], $search) === false) {
                 continue;
             }

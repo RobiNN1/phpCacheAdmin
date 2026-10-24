@@ -1,5 +1,5 @@
 {{ include('partials/keys_list.twig', {
-    custom_buttons: [
+    custom_buttons: is_remote ? [] : [
         include('components/button.twig', {
             text: (is_ignored ? 'Show' : 'Ignore') ~ ' scripts from this tool',
             link: link(['pp', 'p'], {ignore: (is_ignored ? 'no' : 'yes')}),

@@ -14,7 +14,8 @@ use RobiNN\Pca\Paginator;
 
 trait OPCacheScripts {
     private function ignorePcaScripts(): bool {
-        return isset($_GET['ignore']) && $_GET['ignore'] === 'yes';
+        // The paths of this tool only mean something on this server.
+        return !$this->isRemote() && isset($_GET['ignore']) && $_GET['ignore'] === 'yes';
     }
 
     private function isPcaScript(string $full_path): bool {
@@ -32,7 +33,7 @@ trait OPCacheScripts {
 
         $this->template->addGlobal('search_value', $search);
 
-        $status = @opcache_get_status();
+        $status = $this->status(true);
 
         if (isset($status['scripts'])) {
             $ignore_pca = $this->ignorePcaScripts();
@@ -68,7 +69,7 @@ trait OPCacheScripts {
      * @return array<string, mixed>
      */
     private function scriptsTab(): array {
-        $status = @opcache_get_status(false);
+        $status = $this->status();
 
         if ($status === false) {
             return ['tab_error' => self::NOT_AVAILABLE];
@@ -82,6 +83,7 @@ trait OPCacheScripts {
             'all_keys'       => $status['opcache_statistics']['num_cached_scripts'] ?? 0,
             'paginator'      => $paginator->render(),
             'is_ignored'     => $this->ignorePcaScripts(),
+            'is_remote'      => $this->isRemote(),
         ];
     }
 
@@ -89,7 +91,7 @@ trait OPCacheScripts {
      * @return array<int, array<string, mixed>>
      */
     private function getScriptsMap(): array {
-        $status = @opcache_get_status();
+        $status = $this->status(true);
         $ignore_pca = $this->ignorePcaScripts();
         $tree = [];
 
@@ -157,7 +159,7 @@ trait OPCacheScripts {
      * @return array<string, mixed>
      */
     private function treemapTab(): array {
-        $status = @opcache_get_status(false);
+        $status = $this->status();
 
         if ($status === false) {
             return ['tab_error' => self::NOT_AVAILABLE];
@@ -166,6 +168,7 @@ trait OPCacheScripts {
         return [
             'treemap'    => $this->getScriptsMap(),
             'is_ignored' => $this->ignorePcaScripts(),
+            'is_remote'  => $this->isRemote(),
         ];
     }
 }

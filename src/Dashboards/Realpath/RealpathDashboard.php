@@ -9,13 +9,16 @@ declare(strict_types=1);
 namespace RobiNN\Pca\Dashboards\Realpath;
 
 use RobiNN\Pca\Csrf;
+use RobiNN\Pca\Dashboards\DashboardException;
 use RobiNN\Pca\Dashboards\DashboardInterface;
+use RobiNN\Pca\Dashboards\RemoteServersTrait;
 use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
 use RobiNN\Pca\Template;
 
 class RealpathDashboard implements DashboardInterface {
     use RealpathTrait;
+    use RemoteServersTrait;
 
     /**
      * @var array<string, mixed>
@@ -23,6 +26,7 @@ class RealpathDashboard implements DashboardInterface {
     private array $all_keys = [];
 
     public function __construct(private readonly Template $template) {
+        $this->initServers(true);
     }
 
     public static function check(): bool {
@@ -54,6 +58,10 @@ class RealpathDashboard implements DashboardInterface {
     }
 
     public function ajax(): string {
+        if (isset($_GET['deleteall']) && $this->isRemote()) {
+            return $this->remoteActionError();
+        }
+
         if (isset($_GET['deleteall'])) {
             if (!Csrf::validateToken(Http::post('csrf_token', ''))) {
                 return Helpers::alert('Invalid CSRF token.', 'error');
@@ -68,7 +76,15 @@ class RealpathDashboard implements DashboardInterface {
     }
 
     public function dashboard(): string {
-        $this->all_keys = realpath_cache_get();
+        $this->serversGlobals();
+
+        try {
+            $this->loadRemote('realpath');
+        } catch (DashboardException $e) {
+            return $this->errorAlert($e);
+        }
+
+        $this->all_keys = $this->cacheInfo()['entries'];
 
         $this->template->addGlobal('side', $this->panels());
 

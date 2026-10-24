@@ -19,8 +19,8 @@ trait APCuHealth {
      * @return array<int, array<string, mixed>>
      */
     public function getHealthChecks(?array $info = null, ?array $sma = null): array {
-        $info ??= (array) apcu_cache_info(true);
-        $sma ??= apcu_sma_info();
+        $info ??= $this->cacheInfo();
+        $sma ??= $this->smaInfo();
 
         return [
             $this->memoryCheck($sma),

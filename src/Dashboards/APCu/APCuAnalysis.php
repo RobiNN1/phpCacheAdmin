@@ -8,7 +8,6 @@ declare(strict_types=1);
 
 namespace RobiNN\Pca\Dashboards\APCu;
 
-use APCUIterator;
 use RobiNN\Pca\Dashboards\AnalysisTrait;
 use RobiNN\Pca\Format;
 
@@ -45,14 +44,13 @@ trait APCuAnalysis {
      * @return array<string, mixed>
      */
     private function analysisTab(): array {
-        $fields = APC_ITER_KEY | APC_ITER_TTL | APC_ITER_MEM_SIZE | APC_ITER_NUM_HITS | APC_ITER_ATIME | APC_ITER_CTIME;
         $entries = [];
 
-        foreach (new APCUIterator(null, $fields, 0, APC_LIST_ACTIVE) as $item) {
+        foreach ($this->entries() as $item) {
             $entries[] = $item;
         }
 
-        $data = ['memory_map' => $this->memoryMap(apcu_sma_info())];
+        $data = ['memory_map' => $this->memoryMap($this->smaInfo())];
 
         if ($entries === []) {
             return $data + ['analysis' => null, 'tab_message' => 'There are no keys to analyze.'];

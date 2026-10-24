@@ -4,6 +4,7 @@ parameters:
     paths:
         - src
         - tests
+        - pca-remote.php
     ignoreErrors:
         -
             message: '#Call to an undefined method COM::ExecQuery\(\)\.#'

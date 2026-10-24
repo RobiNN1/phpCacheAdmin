@@ -17,7 +17,7 @@ class Config {
      *
      * @var array<int, string>
      */
-    private const GROUPED = ['redis', 'memcached', 'apcu', 'opcache'];
+    private const GROUPED = ['redis', 'memcached', 'apcu', 'opcache', 'remoteservers'];
 
     /**
      * @var array<string, mixed>|null
@@ -101,9 +101,10 @@ class Config {
      * @return array<string, mixed>
      */
     private static function load(): array {
+        // A custom path that does not exist yet falls back to the defaults, never to another config.php, that is not the file AuthSetup writes to.
         if (self::$config_path !== null && is_file(self::$config_path)) {
             $config = (array) require self::$config_path;
-        } elseif (is_file(__DIR__.'/../config.php')) {
+        } elseif (self::$config_path === null && is_file(__DIR__.'/../config.php')) {
             $config = (array) require __DIR__.'/../config.php';
         } elseif (is_file(__DIR__.'/../config.dist.php')) {
             $config = (array) require __DIR__.'/../config.dist.php';

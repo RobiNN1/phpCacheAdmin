@@ -9,22 +9,23 @@ declare(strict_types=1);
 namespace RobiNN\Pca\Dashboards\OPCache;
 
 use RobiNN\Pca\Csrf;
+use RobiNN\Pca\Dashboards\DashboardException;
 use RobiNN\Pca\Dashboards\DashboardInterface;
+use RobiNN\Pca\Dashboards\RemoteServersTrait;
 use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
 use RobiNN\Pca\Template;
 
 class OPCacheDashboard implements DashboardInterface {
     use OPCacheTrait;
+    use RemoteServersTrait;
 
     public function __construct(private readonly Template $template) {
-        if (!$this->preloadIsConfigured()) {
-            unset($this->tabs['preload']);
-        }
+        $this->initServers(extension_loaded('Zend OPcache'));
     }
 
     public static function check(): bool {
-        return extension_loaded('Zend OPcache');
+        return extension_loaded('Zend OPcache') || self::remoteServers() !== [];
     }
 
     /**
@@ -53,7 +54,17 @@ class OPCacheDashboard implements DashboardInterface {
 
     public function ajax(): string {
         if (isset($_GET['panels'])) {
+            try {
+                $this->loadRemote('opcache');
+            } catch (DashboardException $e) {
+                return Helpers::getPanelsJson(['error' => $e->getMessage()]);
+            }
+
             return Helpers::getPanelsJson($this->getPanelsData());
+        }
+
+        if ((isset($_GET['deleteall']) || isset($_GET['delete'])) && $this->isRemote()) {
+            return $this->remoteActionError();
         }
 
         if (isset($_GET['deleteall'])) {
@@ -78,6 +89,26 @@ class OPCacheDashboard implements DashboardInterface {
     }
 
     public function dashboard(): string {
+        $this->serversGlobals();
+
+        try {
+            $this->loadRemote('opcache', $this->scriptsFlag());
+
+            // Not in the constructor, all dashboards are constructed on every page, and this may be a request to another server.
+            if (!$this->preloadIsConfigured()) {
+                unset($this->tabs['preload']);
+            }
+
+            if ($this->isRemote()) {
+                unset($this->tabs['warmup']); // It compiles files of this server.
+            }
+
+            // A second request only when a removed tab made the scripts the current one.
+            $this->loadRemote('opcache', $this->scriptsFlag());
+        } catch (DashboardException $e) {
+            return $this->errorAlert($e);
+        }
+
         $this->template->addGlobal('ajax_panels', true);
         $this->template->addGlobal('side', Helpers::panels($this->getPanelsData()));
 

@@ -82,6 +82,8 @@
     - View and clear PHP's realpath cache entries, with their TTL and memory usage.
     - **Health** checks for the cache size, expired entries and the TTL, including a warning that `open_basedir` turns the cache off entirely.
 
+APCu, OPcache and the Realpath cache of [other servers](#remote-servers) can be monitored too.
+
 There is also a **Server** dashboard for a quick look at the machine phpCacheAdmin runs on - PHP version and
 configuration, loaded extensions, `phpinfo()`, and CPU, RAM and disk usage.
 
@@ -106,6 +108,33 @@ Setting `readonly` on top of that leaves only the read-only parts of the dashboa
 Until users are defined, a notice about it opens on the dashboard. The first user can be set straight from it
 when the web server can write to `config.php`, the password is stored as a `password_hash()` hash and that
 session is logged in right away. Closing the notice hides it for a month, `authwarning => false` turns it off for good.
+
+### Remote servers
+
+APCu, OPcache and the Realpath cache live in the memory of PHP, so they can only be read by PHP on the same server.
+To monitor another server, copy [pca-remote.php](pca-remote.php) to it, somewhere its web server runs PHP, the same PHP
+as the application whose caches you want to see. Set a token of at least 32 characters in the file or in the
+`PCA_REMOTE_TOKEN` environment variable, e.g. `php -r "echo bin2hex(random_bytes(32));"`.
+
+Then add the server to `remoteservers` in the [config](https://github.com/RobiNN1/phpCacheAdmin/blob/master/config.dist.php):
+
+```php
+'remoteservers' => [
+    [
+        'name'  => 'Web 2',
+        'url'   => 'https://web2.example.com/pca-remote.php',
+        'token' => 'the-same-token',
+    ],
+],
+```
+
+It shows up in the server selector of the APCu, OPcache and Realpath dashboards. These dashboards also appear
+when the extension is not installed where phpCacheAdmin runs, e.g., in Docker, as long as a remote server is set.
+
+A remote server can only be monitored. pca-remote.php does not change or delete anything, and it never sends the cached values,
+only the statistics and the key names. Still, those include file paths and key names, so use HTTPS.
+The token goes in a header, it does not end up in the access logs.
+The realpath cache belongs to one PHP process, so it is the one of the worker that answered the request, the same as the local one.
 
 ## Cronjob
 
@@ -169,6 +198,15 @@ APCu and OPcache:
 
 - `PCA_APCU_SEPARATOR` Separator for the tree view (optional).
 - `PCA_OPCACHE_WARMUPPATHS` Directories the warmup may compile from, as JSON `["/var/www"]`. Defaults to the document root.
+
+Remote servers, see [Remote servers](#remote-servers):
+
+- `PCA_REMOTESERVERS_0_NAME` The server name (optional).
+- `PCA_REMOTESERVERS_0_URL` URL of pca-remote.php on that server.
+- `PCA_REMOTESERVERS_0_TOKEN` The same token as in pca-remote.php on that server.
+- `PCA_REMOTESERVERS_0_TIMEOUT` In seconds (optional). Default 3.
+- `PCA_REMOTESERVERS_0_SSL` [SSL options](https://www.php.net/manual/en/context.ssl.php) (optional). You can set a value as JSON `{"cafile":"ca.pem","verify_peer":true}`.
+- `PCA_REMOTE_TOKEN` The token, read by pca-remote.php on the remote server.
 
 Other:
 

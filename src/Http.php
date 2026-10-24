@@ -133,7 +133,7 @@ class Http {
      *
      * @param Type $default
      *
-     * @return Type
+     * @return (Type is int ? int : string|Type)
      */
     public static function get(string $key, mixed $default = null, bool $raw = false): mixed {
         if (!isset($_GET[$key]) || is_array($_GET[$key])) {
@@ -154,7 +154,7 @@ class Http {
      *
      * @param Type $default
      *
-     * @return Type
+     * @return (Type is int ? int : string|Type)
      */
     public static function post(string $key, mixed $default = null): mixed {
         if (!isset($_POST[$key]) || is_array($_POST[$key])) {

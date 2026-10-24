@@ -8,7 +8,9 @@ declare(strict_types=1);
 
 namespace Tests;
 
+use JsonException;
 use PHPUnit\Framework\TestCase;
+use Random\RandomException;
 use RobiNN\Pca\Auth;
 use RobiNN\Pca\AuthSetup;
 use RobiNN\Pca\Config;
@@ -18,6 +20,9 @@ final class AuthSetupTest extends TestCase {
 
     private string $file;
 
+    /**
+     * @throws RandomException
+     */
     protected function setUp(): void {
         parent::setUp();
 
@@ -56,6 +61,8 @@ final class AuthSetupTest extends TestCase {
 
     /**
      * @return array<string, string>
+     *
+     * @throws JsonException
      */
     private function save(string $user = 'admin', string $password = 'test-pass-123', ?string $repeat = null): array {
         $_POST['authuser'] = $user;
@@ -72,6 +79,9 @@ final class AuthSetupTest extends TestCase {
         return (array) include $this->file;
     }
 
+    /**
+     * @throws JsonException
+     */
     public function testWritesTheUserIntoTheConfig(): void {
         $this->config('');
 
@@ -82,6 +92,9 @@ final class AuthSetupTest extends TestCase {
         $this->assertTrue(Auth::validate($users, 'admin', 'test-pass-123'));
     }
 
+    /**
+     * @throws JsonException
+     */
     public function testPasswordIsStoredAsHash(): void {
         $this->config('');
         $this->save();
@@ -92,6 +105,9 @@ final class AuthSetupTest extends TestCase {
         $this->assertNotNull(password_get_info($stored)['algo']);
     }
 
+    /**
+     * @throws JsonException
+     */
     public function testRestOfTheConfigIsUntouched(): void {
         $this->config("\n        //'admin' => 'your-password',\n    ");
         $this->save();
@@ -102,6 +118,9 @@ final class AuthSetupTest extends TestCase {
         $this->assertSame('table', $config['listview']);
     }
 
+    /**
+     * @throws JsonException
+     */
     public function testConfigIsCreatedFromTheDistFile(): void {
         $this->assertFileDoesNotExist($this->file);
         $this->assertArrayHasKey('message', $this->save());
@@ -110,6 +129,9 @@ final class AuthSetupTest extends TestCase {
         $this->assertTrue(Auth::validate($this->written()['authusers'], 'admin', 'test-pass-123'));
     }
 
+    /**
+     * @throws JsonException
+     */
     public function testSessionIsLoggedInAsTheNewUser(): void {
         $this->config('');
         $this->save();
@@ -117,6 +139,9 @@ final class AuthSetupTest extends TestCase {
         $this->assertSame('admin', $_SESSION['pca_auth_user'] ?? null);
     }
 
+    /**
+     * @throws JsonException
+     */
     public function testShortPasswordIsRejected(): void {
         $this->config('');
 
@@ -124,18 +149,27 @@ final class AuthSetupTest extends TestCase {
         $this->assertSame([], $this->written()['authusers']);
     }
 
+    /**
+     * @throws JsonException
+     */
     public function testMismatchedPasswordsAreRejected(): void {
         $this->config('');
 
         $this->assertSame('The passwords do not match.', $this->save('admin', 'test-pass-123', 'test-pass-456')['error']);
     }
 
+    /**
+     * @throws JsonException
+     */
     public function testPasswordLongerThanBcryptHashesIsRejected(): void {
         $this->config('');
 
         $this->assertArrayHasKey('error', $this->save('admin', str_repeat('a', 73)));
     }
 
+    /**
+     * @throws JsonException
+     */
     public function testInvalidUsernameIsRejected(): void {
         $this->config('');
 
@@ -143,6 +177,9 @@ final class AuthSetupTest extends TestCase {
         $this->assertSame([], $this->written()['authusers']);
     }
 
+    /**
+     * @throws JsonException
+     */
     public function testInvalidCsrfTokenIsRejected(): void {
         $this->config('');
         $_POST['csrf_token'] = 'wrong';
@@ -150,6 +187,9 @@ final class AuthSetupTest extends TestCase {
         $this->assertSame('Invalid CSRF token.', $this->save()['error']);
     }
 
+    /**
+     * @throws JsonException
+     */
     public function testRefusedWhenUsersAlreadyExist(): void {
         $this->config("'admin' => 'secret'");
 
@@ -157,6 +197,9 @@ final class AuthSetupTest extends TestCase {
         $this->assertFalse(AuthSetup::isAllowed());
     }
 
+    /**
+     * @throws JsonException
+     */
     public function testRefusedWhenTheNoticeIsTurnedOff(): void {
         file_put_contents($this->file, "<?php return ['authusers' => [], 'authwarning' => false];\n");
 
@@ -164,6 +207,9 @@ final class AuthSetupTest extends TestCase {
         $this->assertFalse(AuthSetup::isAllowed());
     }
 
+    /**
+     * @throws JsonException
+     */
     public function testConfigWithoutTheOptionGetsASnippet(): void {
         file_put_contents($this->file, "<?php return ['console' => true];\n");
 
@@ -174,6 +220,9 @@ final class AuthSetupTest extends TestCase {
         $this->assertStringContainsString("'admin' =>", (string) $result['snippet']);
     }
 
+    /**
+     * @throws JsonException
+     */
     public function testNothingIsWrittenBesidesTheConfig(): void {
         $this->config('');
         $this->save();

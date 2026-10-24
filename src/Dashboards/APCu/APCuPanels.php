@@ -15,8 +15,8 @@ trait APCuPanels {
      * @return array<int|string, mixed>
      */
     private function getPanelsData(): array {
-        $info = apcu_cache_info(true);
-        $memory_info = apcu_sma_info();
+        $info = $this->cacheInfo();
+        $memory_info = $this->smaInfo();
 
         $total_memory = $memory_info['num_seg'] * $memory_info['seg_size'];
         $memory_used = $total_memory - $memory_info['avail_mem'];
@@ -29,7 +29,7 @@ trait APCuPanels {
 
         return [
             [
-                'title' => 'APCu extension v'.phpversion('apcu'),
+                'title' => 'APCu extension v'.$this->apcuVersion(),
                 'data'  => [
                     'Start time'       => Format::time($info['start_time']),
                     'Uptime'           => Format::seconds(time() - $info['start_time'], false),

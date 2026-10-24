@@ -20,13 +20,7 @@ trait RealpathHealth {
      * @return array<int, array<string, mixed>>
      */
     public function getHealthChecks(?array $info = null): array {
-        $info ??= [
-            'used'         => realpath_cache_size(),
-            'total'        => Format::iniSizeToBytes((string) ini_get('realpath_cache_size')),
-            'ttl'          => (int) ini_get('realpath_cache_ttl'),
-            'open_basedir' => (string) ini_get('open_basedir'),
-            'entries'      => realpath_cache_get(),
-        ];
+        $info ??= $this->cacheInfo();
 
         return [
             $this->memoryCheck($info),

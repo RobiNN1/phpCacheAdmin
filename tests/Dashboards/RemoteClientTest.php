@@ -146,7 +146,7 @@ final class RemoteClientTest extends TestCase {
         $client = new RemoteClient(['name' => 'Web', 'url' => 'http://127.0.0.1:1/pca-remote.php', 'token' => self::TOKEN, 'timeout' => 1]);
 
         $this->expectException(DashboardException::class);
-        $this->expectExceptionMessageIsOrContains('Could not reach Web.');
+        $this->expectExceptionMessageMatches('/^Could not reach Web\./');
 
         $client->fetch('realpath');
     }

@@ -180,9 +180,10 @@ final class RemoteServersTest extends TestCase {
      */
     public function testResponseWithMoreFlagsAnswersFewer(): void {
         $client = $this->client(['name' => 'Remote', 'url' => 'http://remote.test/pca-remote.php']);
+        $client->response = ['protocol' => RemoteClient::PROTOCOL, 'loaded' => true]; // Only the cache is tested, no extension needed.
 
-        $client->fetch('apcu', ['keys']);
-        $client->fetch('apcu');
+        $client->fetch('opcache', ['scripts']);
+        $client->fetch('opcache');
 
         $this->assertSame(1, $client->requests);
     }
@@ -192,9 +193,10 @@ final class RemoteServersTest extends TestCase {
      */
     public function testResponseWithFewerFlagsDoesNotAnswerMore(): void {
         $client = $this->client(['name' => 'Remote', 'url' => 'http://remote.test/pca-remote.php']);
+        $client->response = ['protocol' => RemoteClient::PROTOCOL, 'loaded' => true]; // Only the cache is tested, no extension needed.
 
-        $client->fetch('apcu');
-        $client->fetch('apcu', ['keys']);
+        $client->fetch('opcache');
+        $client->fetch('opcache', ['scripts']);
 
         $this->assertSame(2, $client->requests);
     }

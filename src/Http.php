@@ -62,6 +62,29 @@ class Http {
     }
 
     /**
+     * Whether the Host (and Origin, when sent) of the request is listed in 'allowedhosts', an empty list allows all.
+     *
+     * Without it, a dashboard without authentication on localhost can be read by any website through DNS rebinding.
+     */
+    public static function isAllowedHost(): bool {
+        $allowed = array_map(static fn (mixed $host): string => strtolower((string) $host), (array) Config::get('allowedhosts', []));
+
+        if ($allowed === []) {
+            return true;
+        }
+
+        $host = strtolower((string) parse_url('http://'.($_SERVER['HTTP_HOST'] ?? ''), PHP_URL_HOST));
+
+        if (!in_array($host, $allowed, true)) {
+            return false;
+        }
+
+        $origin = ($_SERVER['HTTP_ORIGIN'] ?? '');
+
+        return $origin === '' || in_array(strtolower((string) parse_url($origin, PHP_URL_HOST)), $allowed, true);
+    }
+
+    /**
      * Sent before any output. The CSP is what keeps a value stored in the cache from becoming a script.
      */
     public static function securityHeaders(): void {

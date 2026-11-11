@@ -20,6 +20,17 @@ class Config {
     private const GROUPED = ['redis', 'memcached', 'apcu', 'opcache', 'remoteservers'];
 
     /**
+     * Options that are always strings, so a value like "123456", "1e5", "null" or "true" is not decoded as JSON.
+     *
+     * @var array<int, string>
+     */
+    private const STRING_KEYS = [
+        'password', 'username', 'sentinelpassword', 'token', 'authtoken', 'hash', 'name', 'host', 'path', 'authfile',
+        'sentinelmaster', 'scheme', 'url', 'separator', 'timeformat', 'timezone', 'decimalsep', 'thousandssep',
+        'tmpdir', 'twigcache', 'metricsdir', 'pcapath',
+    ];
+
+    /**
      * @var array<string, mixed>|null
      */
     private static ?array $config = null;
@@ -162,8 +173,10 @@ class Config {
      */
     private static function envVarToArray(array &$array, string $var, string $value): void {
         $lower_var = strtolower(substr($var, 4));
+        $segments = explode('_', $lower_var);
+        $last_key = end($segments);
 
-        if (json_validate($value)) {
+        if (!in_array($last_key, self::STRING_KEYS, true) && json_validate($value)) {
             try {
                 $value = json_decode($value, true, 512, JSON_THROW_ON_ERROR);
             } catch (JsonException) {

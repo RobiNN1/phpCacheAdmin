@@ -9,7 +9,9 @@ declare(strict_types=1);
 namespace Tests;
 
 use Dotenv\Dotenv;
+use Iterator;
 use JsonException;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use RobiNN\Pca\Config;
 
@@ -233,5 +235,38 @@ final class ConfigTest extends TestCase {
         rmdir($dir);
 
         $this->assertSame('from_real_env', $env_value);
+    }
+
+    /**
+     * @return Iterator<string, array{0: string}>
+     */
+    public static function jsonLikeStringProvider(): Iterator {
+        yield 'digits' => ['123456'];
+        yield 'exponent' => ['1e5'];
+        yield 'null' => ['null'];
+        yield 'bool' => ['true'];
+        yield 'json string' => ['"quoted"'];
+        yield 'array' => ['[1,2]'];
+    }
+
+    #[DataProvider('jsonLikeStringProvider')]
+    public function testEnvStringOptionsAreNotDecoded(string $value): void {
+        $this->setEnv('PCA_REDIS_0_PASSWORD', $value);
+        $this->setEnv('PCA_REDIS_0_USERNAME', $value);
+        $this->setEnv('PCA_AUTHTOKEN', $value);
+
+        $this->assertSame($value, Config::get('redis')[0]['password']);
+        $this->assertSame($value, Config::get('redis')[0]['username']);
+        $this->assertSame($value, Config::get('authtoken'));
+    }
+
+    public function testEnvOtherOptionsAreStillDecoded(): void {
+        $this->setEnv('PCA_REDIS_0_PORT', '6380');
+        $this->setEnv('PCA_REDIS_0_SENTINELS', '["127.0.0.1:26379"]');
+        $this->setEnv('PCA_DEBUG', 'true');
+
+        $this->assertSame(6380, Config::get('redis')[0]['port']);
+        $this->assertSame(['127.0.0.1:26379'], Config::get('redis')[0]['sentinels']);
+        $this->assertTrue(Config::get('debug'));
     }
 }

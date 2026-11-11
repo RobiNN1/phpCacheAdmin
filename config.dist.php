@@ -104,6 +104,7 @@ return [
     // Security
     //'authtoken' => '', // Token for the metrics cronjob, only used when auth is enabled. Generate a long random one, e.g. `php -r "echo bin2hex(random_bytes(32));"`.
     'securityheaders' => true, // Send CSP, X-Frame-Options, X-Content-Type-Options and Referrer-Policy - default true.
+    //'allowedhosts' => ['127.0.0.1', 'localhost'], // Refuse requests with any other Host or Origin (port is ignored). Recommended without auth, it protects against DNS rebinding - default [] (any host).
     // Decoding / Encoding functions
     'converters' => [
         'gzcompress' => [

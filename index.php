@@ -37,6 +37,11 @@ if (RobiNN\Pca\Config::get('debug', false)) {
     ini_set('display_startup_errors', 'On');
 }
 
+if (!RobiNN\Pca\Http::isAllowedHost()) {
+    http_response_code(403);
+    exit('Forbidden.');
+}
+
 RobiNN\Pca\Auth::check();
 
 echo (new RobiNN\Pca\Admin())->render();

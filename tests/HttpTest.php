@@ -8,7 +8,10 @@ declare(strict_types=1);
 
 namespace Tests;
 
+use Iterator;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use RobiNN\Pca\Config;
 use RobiNN\Pca\Http;
 
 final class HttpTest extends TestCase {
@@ -95,5 +98,45 @@ final class HttpTest extends TestCase {
 
         $_POST['test-int-empty'] = '';
         $this->assertSame(0, Http::post('test-int-empty', 0));
+    }
+
+    /**
+     * @return Iterator<string, array{0: bool, 1: string, 2: ?string, 3: ?string}>
+     */
+    public static function allowedHostProvider(): Iterator {
+        yield 'no list allows any host' => [true, '', 'evil.example', 'http://evil.example'];
+        yield 'listed host with port' => [true, '["127.0.0.1"]', '127.0.0.1:51234', null];
+        yield 'listed host, same origin' => [true, '["127.0.0.1"]', '127.0.0.1:51234', 'http://127.0.0.1:51234'];
+        yield 'case insensitive' => [true, '["LocalHost"]', 'localhost:8080', null];
+        yield 'dns rebinding host' => [false, '["127.0.0.1","localhost"]', 'evil.example:51234', null];
+        yield 'foreign origin' => [false, '["127.0.0.1"]', '127.0.0.1:51234', 'http://evil.example'];
+        yield 'null origin' => [false, '["127.0.0.1"]', '127.0.0.1:51234', 'null'];
+        yield 'missing host' => [false, '["127.0.0.1"]', null, null];
+    }
+
+    #[DataProvider('allowedHostProvider')]
+    public function testIsAllowedHost(bool $expected, string $allowed, ?string $host, ?string $origin): void {
+        $server = $_SERVER;
+
+        putenv($allowed === '' ? 'PCA_ALLOWEDHOSTS' : 'PCA_ALLOWEDHOSTS='.$allowed);
+        Config::reset();
+
+        unset($_SERVER['HTTP_HOST'], $_SERVER['HTTP_ORIGIN']);
+
+        if ($host !== null) {
+            $_SERVER['HTTP_HOST'] = $host;
+        }
+
+        if ($origin !== null) {
+            $_SERVER['HTTP_ORIGIN'] = $origin;
+        }
+
+        try {
+            $this->assertSame($expected, Http::isAllowedHost());
+        } finally {
+            putenv('PCA_ALLOWEDHOSTS');
+            Config::reset();
+            $_SERVER = $server;
+        }
     }
 }

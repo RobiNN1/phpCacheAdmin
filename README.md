@@ -161,6 +161,7 @@ curl -s -o /dev/null -H "X-Pca-Token: your-secret-token" "https://example.com/ph
 
 All keys from the [config](https://github.com/RobiNN1/phpCacheAdmin/blob/master/config.dist.php) file are supported ENV variables, they just must start with `PCA_` prefix.
 Array options use "_" e.g., PCA_REDIS_0_HOST, and values may also be JSON.
+Passwords, usernames, names, hosts, paths and tokens are always read as plain strings, so e.g. `PCA_REDIS_0_PASSWORD=123456` stays `"123456"`.
 
 Redis:
 
@@ -212,6 +213,7 @@ Other:
 
 - `PCA_AUTHUSERS` Users for the login page as JSON, e.g. `{"admin":"your-password"}`. Auth is off while it is empty. Passwords can be `password_hash()` hashes.
 - `PCA_AUTHTOKEN` Token for the metrics cronjob, see [Cronjob](#cronjob).
+- `PCA_ALLOWEDHOSTS` Accept only these hosts as JSON, e.g. `["127.0.0.1","localhost"]`. Recommended when running locally without auth, it protects against DNS rebinding (optional).
 - `PCA_CONSOLE` Set it to `false` to remove the consoles (optional).
 - `PCA_READONLY` Set it to `true` to block every destructive action (optional).
 - `PCA_SECURITYHEADERS` Set it to `false` to stop sending CSP and the other protection headers (optional).

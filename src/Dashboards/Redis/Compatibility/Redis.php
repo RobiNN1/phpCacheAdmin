@@ -130,7 +130,8 @@ class Redis extends \Redis implements RedisCompatibilityInterface {
      *
      * @throws RedisException
      */
-    public function scanKeys(string $pattern, int $count): array {
+    public function scanKeys(string $pattern, int $count, ?int $limit = null): array {
+        $limit ??= $count;
         $keys = [];
 
         $iterator = null;
@@ -139,7 +140,7 @@ class Redis extends \Redis implements RedisCompatibilityInterface {
             foreach ($scan as $key) {
                 $keys[] = $key;
 
-                if (count($keys) >= $count) {
+                if (count($keys) >= $limit) {
                     return $keys;
                 }
             }

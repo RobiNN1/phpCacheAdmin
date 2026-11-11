@@ -33,9 +33,12 @@ interface RedisCompatibilityInterface {
     /**
      * Alias to a scan().
      *
+     * @param int      $count SCAN COUNT hint.
+     * @param int|null $limit Max number of returned keys, defaults to $count.
+     *
      * @return array<int, string>
      */
-    public function scanKeys(string $pattern, int $count): array;
+    public function scanKeys(string $pattern, int $count, ?int $limit = null): array;
 
     /**
      * Alias to a lRem().

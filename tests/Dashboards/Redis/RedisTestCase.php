@@ -368,6 +368,10 @@ abstract class RedisTestCase extends TestCase {
         $all = $this->redis->scanKeys('pu-scan:*', 1000);
         $this->assertCount(50, $all);
         $this->assertContains('pu-scan:25', $all);
+
+        // A small COUNT hint with a higher limit keeps scanning past the first batch.
+        $this->assertCount(30, $this->redis->scanKeys('pu-scan:*', 10, 30));
+        $this->assertCount(50, $this->redis->scanKeys('pu-scan:*', 10, PHP_INT_MAX));
     }
 
     /**

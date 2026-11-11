@@ -15,11 +15,13 @@ use RobiNN\Pca\Http;
 
 trait RedisKeysList {
     /**
+     * @param bool $all Ignore the scan limit (export must not be truncated).
+     *
      * @return array<int, string>
      *
      * @throws Exception
      */
-    public function getAllKeys(): array {
+    public function getAllKeys(bool $all = false): array {
         $search = (string) Http::get('s', '');
         $this->template->addGlobal('search_value', $search);
 
@@ -28,7 +30,7 @@ trait RedisKeysList {
         $scan_threshold = Config::get('redisoptions.scanthreshold', 100_000);
 
         if ($scansize !== null || $this->redis->databaseSize() > $scan_threshold || !$this->isCommandSupported('KEYS')) {
-            return $this->redis->scanKeys($filter, (int) ($scansize ?? 1000));
+            return $this->redis->scanKeys($filter, (int) ($scansize ?? 1000), $all ? PHP_INT_MAX : null);
         }
 
         return $this->redis->keys($filter);

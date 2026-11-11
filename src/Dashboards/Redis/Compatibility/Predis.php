@@ -99,13 +99,14 @@ class Predis extends Client implements RedisCompatibilityInterface {
     /**
      * @return array<int, string>
      */
-    public function scanKeys(string $pattern, int $count): array {
+    public function scanKeys(string $pattern, int $count, ?int $limit = null): array {
+        $limit ??= $count;
         $keys = [];
 
         foreach (new Keyspace($this, $pattern, $count) as $item) {
             $keys[] = $item;
 
-            if (count($keys) >= $count) {
+            if (count($keys) >= $limit) {
                 break;
             }
         }

@@ -125,7 +125,8 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
      *
      * @throws RedisClusterException
      */
-    public function scanKeys(string $pattern, int $count): array {
+    public function scanKeys(string $pattern, int $count, ?int $limit = null): array {
+        $limit ??= $count;
         $keys = [];
 
         foreach ($this->nodes as $node) {
@@ -135,7 +136,7 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
                 foreach ($scan as $key) {
                     $keys[] = $key;
 
-                    if (count($keys) >= $count) {
+                    if (count($keys) >= $limit) {
                         return $keys;
                     }
                 }

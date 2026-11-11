@@ -101,6 +101,12 @@ trait MemcachedKeyView {
 
         if (isset($_GET['key']) && $this->memcached->exists($key)) {
             $value = (string) $this->memcached->get($key);
+
+            // Without the remaining TTL, saving an edit would make an expiring key permanent.
+            if (!isset($_GET['ttl'])) {
+                $remaining = (int) ($this->memcached->getKeyMeta($key)['exp'] ?? 0);
+                $expire = max(0, $remaining);
+            }
         }
 
         if (isset($_POST['submit'])) {

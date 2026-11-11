@@ -84,4 +84,9 @@ final class FormatTest extends TestCase {
 
         $this->assertSame($expected, Format::timeDiff($now - $seconds_ago, $now));
     }
+
+    public function testTimeDiffNever(): void {
+        $this->assertSame('Never', Format::timeDiff(0));
+        $this->assertSame('Never', Format::timeDiff(-1));
+    }
 }

@@ -150,7 +150,8 @@ trait RedisTrait {
                             return false;
                         }
 
-                        return $this->redis->restoreKeys($key, ($ttl === -1 ? 0 : $ttl), (string) hex2bin($value));
+                        // The export stores TTL in seconds, RESTORE expects milliseconds.
+                        return $this->redis->restoreKeys($key, $ttl > 0 ? $ttl * 1000 : 0, (string) hex2bin($value));
                     }
                 );
             } else {
@@ -158,7 +159,9 @@ trait RedisTrait {
             }
         }
 
-        $keys = Helpers::sortBeforePaginate($this->getAllKeys(), ['link_title' => true]);
+        Helpers::importResultAlert();
+
+        $keys = Helpers::sortBeforePaginate($this->getAllKeys(isset($_GET['export_btn'])), ['link_title' => true]);
 
         if (isset($_GET['export_btn'])) {
             Helpers::export($this->keysTableView($keys), 'redis_backup', fn (string $key): string => bin2hex($this->redis->dump($key)));

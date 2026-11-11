@@ -90,6 +90,8 @@ trait MemcachedTrait {
             }
         }
 
+        Helpers::importResultAlert();
+
         $raw_key_lines = $this->getAllKeys();
 
         if (isset($_GET['export_btn'])) {

@@ -91,10 +91,12 @@ final class HelpersTest extends TestCase {
 
         Http::stopRedirect();
 
-        Helpers::import(
+        $result = Helpers::import(
             static fn ($key): false => false,
-            static function (string $key, string $value, int $ttl) use (&$stored): void {
+            static function (string $key, string $value, int $ttl) use (&$stored): bool {
                 $stored[] = ['key' => $key, 'value' => $value, 'ttl' => $ttl];
+
+                return true;
             },
             true
         );
@@ -104,6 +106,62 @@ final class HelpersTest extends TestCase {
         $this->assertSame('testkey1', $stored[0]['key']);
         $this->assertSame('value1', $stored[0]['value']);
         $this->assertSame(3600, $stored[0]['ttl']);
+        $this->assertSame(['imported' => 2, 'skipped' => 0, 'failed' => 0, 'error' => null], $result);
+    }
+
+    /**
+     * @throws JsonException
+     */
+    public function testImportCounts(): void {
+        $_FILES['import'] = ['name' => 'test.json', 'type' => 'application/json', 'tmp_name' => __DIR__.'/test.json', 'error' => 0, 'size' => 1];
+
+        file_put_contents($_FILES['import']['tmp_name'], json_encode([
+            ['key' => 'existing', 'value' => 'v', 'ttl' => 0],
+            ['key' => 'new', 'value' => 'v', 'ttl' => 0],
+            ['key' => 'broken', 'value' => 'v', 'ttl' => 0],
+            ['key' => 'missing-value', 'ttl' => 0],
+        ], JSON_THROW_ON_ERROR));
+
+        $result = Helpers::import(
+            static fn (string $key): bool => $key === 'existing',
+            static fn (string $key): bool => $key !== 'broken',
+            true
+        );
+
+        unlink($_FILES['import']['tmp_name']);
+
+        $this->assertSame(['imported' => 1, 'skipped' => 1, 'failed' => 2, 'error' => null], $result);
+    }
+
+    /**
+     * @return Iterator<string, array{0: string, 1: string}>
+     */
+    public static function invalidImportProvider(): Iterator {
+        yield 'invalid json' => ['{not json', 'The file is not valid JSON'];
+        yield 'object instead of list' => ['{"key": "a", "value": "b", "ttl": 0}', 'The file does not contain a list of keys.'];
+        yield 'scalar' => ['"text"', 'The file does not contain a list of keys.'];
+    }
+
+    #[DataProvider('invalidImportProvider')]
+    public function testImportInvalidFile(string $content, string $error): void {
+        $_FILES['import'] = ['name' => 'test.json', 'type' => 'application/json', 'tmp_name' => __DIR__.'/test.json', 'error' => 0, 'size' => 1];
+
+        file_put_contents($_FILES['import']['tmp_name'], $content);
+
+        $result = Helpers::import(static fn (): bool => false, static fn (): bool => true, true);
+
+        unlink($_FILES['import']['tmp_name']);
+
+        $this->assertStringStartsWith($error, (string) $result['error']);
+        $this->assertSame(0, $result['imported']);
+    }
+
+    public function testImportWithoutFile(): void {
+        unset($_FILES['import']);
+
+        $result = Helpers::import(static fn (): bool => false, static fn (): bool => true, true);
+
+        $this->assertSame('No file was uploaded.', $result['error']);
     }
 
     /**

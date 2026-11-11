@@ -52,7 +52,7 @@ trait MemcachedPanels {
                 [
                     'title' => 'Connections',
                     'data'  => [
-                        'Current'  => Format::number($info['curr_connections'] ?? 0).' / '.Format::number($info['max_connections'] ?? 0).' max',
+                        'Current'  => Format::number($info['curr_connections'] ?? 0).' / '.(($info['max_connections'] ?? 0) > 0 ? Format::number($info['max_connections']).' max' : 'no limit'),
                         'Total'    => Format::number($info['total_connections'] ?? 0),
                         'Rejected' => Format::number($info['rejected_connections'] ?? 0),
                     ],

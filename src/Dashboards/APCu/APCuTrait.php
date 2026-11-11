@@ -132,6 +132,8 @@ trait APCuTrait {
             }
         }
 
+        Helpers::importResultAlert();
+
         $keys = $this->getAllKeys();
 
         if (isset($_GET['export_btn']) && !$this->isRemote()) {

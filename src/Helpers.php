@@ -140,26 +140,113 @@ class Helpers {
         return self::alert('No keys are selected.');
     }
 
-    public static function import(callable $exists, callable $store, bool $tests = false): void {
+    /**
+     * @param callable(string): bool              $exists
+     * @param callable(string, string, int): bool $store
+     *
+     * @return array{imported: int, skipped: int, failed: int, error: ?string}
+     */
+    public static function import(callable $exists, callable $store, bool $tests = false): array {
+        $result = ['imported' => 0, 'skipped' => 0, 'failed' => 0, 'error' => null];
+
         if (!isset($_FILES['import']) || $_FILES['import']['error'] !== UPLOAD_ERR_OK || (!$tests && !is_uploaded_file($_FILES['import']['tmp_name']))) {
-            return;
+            $result['error'] = 'No file was uploaded.';
+
+            return self::finishImport($result, $tests);
         }
 
         $file = (string) file_get_contents($_FILES['import']['tmp_name']);
 
         try {
             $json = json_decode($file, true, 512, JSON_THROW_ON_ERROR);
+        } catch (JsonException $e) {
+            $result['error'] = 'The file is not valid JSON: '.$e->getMessage();
 
-            foreach ((array) $json as $data) {
-                if (is_array($data) && isset($data['key'], $data['value'], $data['ttl']) && !$exists($data['key'])) {
-                    $store($data['key'], $data['value'], (int) $data['ttl']);
-                }
-            }
-        } catch (JsonException) {
-            //
+            return self::finishImport($result, $tests);
         }
 
+        if (!is_array($json) || ($json !== [] && !array_is_list($json))) {
+            $result['error'] = 'The file does not contain a list of keys.';
+
+            return self::finishImport($result, $tests);
+        }
+
+        foreach ($json as $data) {
+            if (!is_array($data) || !isset($data['key'], $data['value'], $data['ttl'])) {
+                $result['failed']++;
+                continue;
+            }
+
+            // Existing keys are left untouched so that a backup never overwrites newer data.
+            if ($exists((string) $data['key'])) {
+                $result['skipped']++;
+                continue;
+            }
+
+            if ($store((string) $data['key'], (string) $data['value'], (int) $data['ttl'])) {
+                $result['imported']++;
+            } else {
+                $result['failed']++;
+            }
+        }
+
+        return self::finishImport($result, $tests);
+    }
+
+    /**
+     * @param array{imported: int, skipped: int, failed: int, error: ?string} $result
+     *
+     * @return array{imported: int, skipped: int, failed: int, error: ?string}
+     */
+    private static function finishImport(array $result, bool $tests): array {
+        if ($tests) {
+            return $result;
+        }
+
+        Http::startSession();
+        $_SESSION['pca_import_result'] = $result;
+
         Http::redirect(['view']);
+
+        return $result;
+    }
+
+    /**
+     * Alert with the result of the last import (shown once, after the redirect).
+     */
+    public static function importResultAlert(): string {
+        Http::startSession();
+
+        $result = $_SESSION['pca_import_result'] ?? null;
+        unset($_SESSION['pca_import_result']);
+
+        if (!is_array($result)) {
+            return '';
+        }
+
+        if (($result['error'] ?? null) !== null) {
+            return self::alert((string) $result['error'], 'error');
+        }
+
+        $parts = [];
+
+        if ($result['imported'] > 0) {
+            $parts[] = $result['imported'].' imported';
+        }
+
+        if ($result['skipped'] > 0) {
+            $parts[] = $result['skipped'].' skipped (already exist)';
+        }
+
+        if ($result['failed'] > 0) {
+            $parts[] = $result['failed'].' failed';
+        }
+
+        if ($parts === []) {
+            return self::alert('The file contained no keys to import.', 'error');
+        }
+
+        return self::alert('Import finished: '.implode(', ', $parts).'.', $result['failed'] > 0 ? 'error' : 'success');
     }
 
     /**

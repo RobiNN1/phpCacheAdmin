@@ -1069,7 +1069,7 @@ class Metrics {
             }
         });
 
-        // Echarts cannot change its theme in place, so the instances are recreated.
+        // ECharts cannot change its theme in place, so the instances are recreated.
         const theme_observer = new MutationObserver((mutations_list) => {
             for (const mutation of mutations_list) {
                 if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
@@ -1325,6 +1325,75 @@ class Console {
 }
 
 /**
+ * Main tabs - the tabs that do not fit are moved into the "More" dropdown
+ */
+class TabsOverflow {
+    constructor(nav) {
+        this.nav = nav;
+        this.items = [...nav.querySelectorAll(':scope > [data-tabs-item]')];
+        this.more = nav.querySelector(':scope > [data-tabs-more]');
+        this.toggle = this.more.querySelector('[data-tabs-more-toggle]');
+        this.menu = this.more.querySelector('[data-tabs-more-menu]');
+        this.menu_items = [...this.menu.querySelectorAll('[data-tabs-more-item]')];
+
+        this.nav.style.overflow = 'visible';
+
+        this.toggle.addEventListener('click', () => this.set_open(this.menu.hidden));
+
+        document.addEventListener('click', e => {
+            if (!this.menu.hidden && !this.more.contains(e.target)) {
+                this.set_open(false);
+            }
+        });
+
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape' && !this.menu.hidden) {
+                this.set_open(false);
+                this.toggle.focus();
+            }
+        });
+
+        new ResizeObserver(() => this.layout()).observe(this.nav);
+        document.fonts?.ready.then(() => this.layout());
+    }
+
+    set_open(open) {
+        this.menu.hidden = !open;
+        this.toggle.setAttribute('aria-expanded', String(open));
+    }
+
+    fits() {
+        return this.nav.scrollWidth <= this.nav.clientWidth;
+    }
+
+    layout() {
+        this.items.forEach(item => item.hidden = false);
+        this.more.hidden = true;
+
+        if (!this.fits()) {
+            this.more.hidden = false;
+
+            for (let i = this.items.length - 1; i >= 0 && !this.fits(); i--) {
+                this.items[i].hidden = true;
+            }
+        }
+
+        let active_hidden = false;
+
+        this.menu_items.forEach((link, i) => {
+            link.hidden = !this.items[i].hidden;
+            active_hidden ||= link.hidden === false && link.classList.contains('active');
+        });
+
+        this.toggle.classList.toggle('active', active_hidden);
+
+        if (this.more.hidden) {
+            this.set_open(false);
+        }
+    }
+}
+
+/**
  * Bootstrap
  */
 new ThemeSwitcher();
@@ -1334,6 +1403,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const tree_view = treeview_element ? new TreeView(treeview_element) : null;
 
     new KeyList(tree_view);
+
+    document.querySelectorAll('[data-tabs-overflow]').forEach(nav => new TabsOverflow(nav));
 
     select_and_redirect('per_page', 'pp');
     select_and_redirect('server_select', 'server');

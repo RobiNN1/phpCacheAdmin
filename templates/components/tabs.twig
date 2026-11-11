@@ -6,14 +6,14 @@
 {% else %}
     {% set item_class = 'cursor-pointer text-sm font-semibold inline-flex whitespace-nowrap py-3 px-4 border-b-2 border-transparent hover:text-gray-600 hover:border-gray-600 dark:hover:text-gray-300 dark:hover:border-gray-300 [&.active]:border-primary-500 [&.active]:text-primary-500' %}
 {% endif %}
-<ul class="flex overflow-x-auto mb-4{{ pills ? ' gap-3' : '' }}{{ class|space }}">
+<ul class="flex overflow-x-auto mb-4{{ pills ? ' gap-3' : '' }}{{ class|space }}"{{ main ? ' data-tabs-overflow' : '' }}>
     {% for link, title in links %}
         {% if tabs %}
             {% set is_active = selected is defined ? (selected == link) : (links|keys|first == link) %}
         {% else %}
             {% set is_active = get('tab', links|keys|first) == link %}
         {% endif %}
-        <li class="shrink-0">
+        <li class="shrink-0"{{ main ? ' data-tabs-item' : '' }}>
             {% if tabs %}
                 <button data-tab="{{ link }}" class="{{ item_class }}{{ is_active ? ' active' : '' }}">{{ title }}</button>
             {% else %}
@@ -21,6 +21,20 @@
             {% endif %}
         </li>
     {% endfor %}
+    {% if main %}
+        {% set active_tab = get('tab', links|keys|first) %}
+        <li class="relative shrink-0" data-tabs-more hidden>
+            <button type="button" class="{{ item_class }} gap-1 items-center" aria-haspopup="true" aria-expanded="false" data-tabs-more-toggle>
+                More {{ svg('down', 10) }}
+            </button>
+            <div class="absolute top-full right-0 z-20 py-1 min-w-40 bg-white rounded-md border border-gray-200 shadow-lg dark:bg-gray-800 dark:border-gray-700" data-tabs-more-menu hidden>
+                {% for link, title in links %}
+                    <a href="{{ link([], {tab: link}) }}" data-tabs-more-item hidden
+                       class="block py-2 px-4 text-sm whitespace-nowrap hover:bg-gray-100 dark:hover:bg-gray-700{{ active_tab == link ? ' font-semibold text-primary-500 active' : '' }}">{{ title }}</a>
+                {% endfor %}
+            </div>
+        </li>
+    {% endif %}
     {% if toggle is defined %}
         <li class="flex shrink-0 items-center ms-auto">
             <button type="button" id="{{ toggle.id }}" role="switch" aria-checked="false"

@@ -1394,6 +1394,134 @@ class TabsOverflow {
 }
 
 /**
+ * Settings modal: tabs, server rows and saving over ajax. Untouched passwords are sent as null, so the server keeps them.
+ */
+class SettingsForm {
+    constructor(form) {
+        this.form = form;
+        this.result = document.getElementById('settings_result');
+        this.save_button = document.getElementById('settings_save');
+        this.new_rows = 0;
+
+        form.addEventListener('click', e => {
+            const tab = e.target.closest('[data-settings-tab]');
+            const add = e.target.closest('[data-server-add]');
+            const remove = e.target.closest('[data-server-remove]');
+
+            if (tab) {
+                this.show_tab(tab.dataset.settingsTab);
+            } else if (add) {
+                this.add_server(add.dataset.serverAdd);
+            } else if (remove) {
+                remove.closest('[data-server]').remove();
+            }
+        });
+
+        form.addEventListener('input', e => {
+            if (e.target.matches('[data-secret]')) {
+                e.target.dataset.dirty = '1';
+            }
+
+            if (e.target.matches('[data-field="name"], [data-field="host"], [data-field="url"], [data-field="path"]')) {
+                this.update_title(e.target.closest('[data-server]'));
+            }
+        });
+
+        form.addEventListener('submit', e => {
+            e.preventDefault();
+
+            if (this.save_button) {
+                this.save();
+            }
+        });
+    }
+
+    show_tab(name) {
+        this.form.querySelectorAll('[data-settings-tab]').forEach(tab => tab.classList.toggle('active', tab.dataset.settingsTab === name));
+        this.form.querySelectorAll('[data-settings-panel]').forEach(panel => panel.hidden = panel.dataset.settingsPanel !== name);
+    }
+
+    add_server(list) {
+        const template = this.form.querySelector(`[data-server-template="${list}"]`);
+        const id = `new${this.new_rows++}`;
+        const html = template.innerHTML.replaceAll('__new__', id);
+        const container = this.form.querySelector(`[data-server-list="${list}"]`);
+
+        container.insertAdjacentHTML('beforeend', html);
+
+        const row = container.lastElementChild;
+        row.dataset.index = '';
+        row.querySelector('[data-field]')?.focus();
+    }
+
+    update_title(row) {
+        const value = field => row.querySelector(`[data-field="${field}"]`)?.value.trim() ?? '';
+        row.querySelector('[data-server-title]').textContent = value('name') || value('host') || value('url') || value('path') || 'New server';
+    }
+
+    collect() {
+        const value = el => el.type === 'checkbox' ? el.checked : el.value;
+        const data = {lists: {}};
+
+        this.form.querySelectorAll('[data-group]').forEach(el => {
+            if (!el.disabled) {
+                (data[el.dataset.group] ??= {})[el.dataset.key] = value(el);
+            }
+        });
+
+        this.form.querySelectorAll('[data-server-list]').forEach(list => {
+            if (list.dataset.locked !== undefined) {
+                return;
+            }
+
+            data.lists[list.dataset.serverList] = [...list.querySelectorAll(':scope > [data-server]')].map(row => {
+                const server = {_index: row.dataset.index === '' ? null : Number(row.dataset.index)};
+
+                row.querySelectorAll('[data-field]').forEach(el => {
+                    server[el.dataset.field] = el.dataset.secret !== undefined && el.dataset.dirty !== '1' ? null : value(el);
+                });
+
+                return server;
+            });
+        });
+
+        return data;
+    }
+
+    show(messages, error) {
+        this.result.replaceChildren(...messages.map(message => {
+            const line = document.createElement('p');
+            line.textContent = message;
+            return line;
+        }));
+        this.result.className = `w-full text-sm ${error ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`;
+    }
+
+    save() {
+        this.save_button.disabled = true;
+
+        ajax('settings', request => {
+            const data = ajax_ok(request) ? parse_json(request) : null;
+
+            if (data === null) {
+                this.save_button.disabled = false;
+                this.show([`Server responded with status ${request.status}`], true);
+                return;
+            }
+
+            if (data.errors) {
+                this.save_button.disabled = false;
+                this.show(data.errors, true);
+                return;
+            }
+
+            this.show([data.message], false);
+            setTimeout(() => window.location.reload(), 800);
+        }, this.collect());
+    }
+}
+
+/**
  * Bootstrap
  */
 new ThemeSwitcher();
@@ -1421,6 +1549,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (modals['view-key-modal'] && document.getElementById('view-key-modal-content')) {
         new ViewKeyModal(modals['view-key-modal']);
+    }
+
+    const settings_form = document.getElementById('settings_form');
+
+    if (settings_form) {
+        new SettingsForm(settings_form);
     }
 
     if (modals['auth-warning-modal']) {

@@ -213,6 +213,7 @@ Other:
 
 - `PCA_AUTHUSERS` Users for the login page as JSON, e.g. `{"admin":"your-password"}`. Auth is off while it is empty. Passwords can be `password_hash()` hashes.
 - `PCA_AUTHTOKEN` Token for the metrics cronjob, see [Cronjob](#cronjob).
+- `PCA_SETTINGS` Set it to `true` to show the settings modal, servers and options can then be changed in the UI. They are saved to `PCA_SETTINGSFILE` (default `tmp/settings.php`) and loaded over config.php, ENV variables still win (optional).
 - `PCA_ALLOWEDHOSTS` Accept only these hosts as JSON, e.g. `["127.0.0.1","localhost"]`. Recommended when running locally without auth, it protects against DNS rebinding (optional).
 - `PCA_CONSOLE` Set it to `false` to remove the consoles (optional).
 - `PCA_READONLY` Set it to `true` to block every destructive action (optional).

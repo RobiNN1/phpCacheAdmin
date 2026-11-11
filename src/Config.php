@@ -27,7 +27,7 @@ class Config {
     private const STRING_KEYS = [
         'password', 'username', 'sentinelpassword', 'token', 'authtoken', 'hash', 'name', 'host', 'path', 'authfile',
         'sentinelmaster', 'scheme', 'url', 'separator', 'timeformat', 'timezone', 'decimalsep', 'thousandssep',
-        'tmpdir', 'twigcache', 'metricsdir', 'pcapath',
+        'tmpdir', 'twigcache', 'metricsdir', 'pcapath', 'settingsfile',
     ];
 
     /**
@@ -35,11 +35,19 @@ class Config {
      */
     private static ?array $config = null;
 
+    /**
+     * The config without the settings saved in the UI.
+     *
+     * @var array<string, mixed>|null
+     */
+    private static ?array $base = null;
+
     private static ?string $config_path = null;
 
     public static function setConfigPath(string $path): void {
         self::$config_path = $path;
         self::$config = null;
+        self::$base = null;
     }
 
     /**
@@ -47,7 +55,21 @@ class Config {
      */
     public static function reset(): void {
         self::$config = null;
+        self::$base = null;
         self::$config_path = null;
+    }
+
+    /**
+     * The config file with ENV variables, without the settings saved in the UI.
+     *
+     * @return array<string, mixed>
+     */
+    public static function base(): array {
+        if (self::$base === null) {
+            self::load();
+        }
+
+        return (array) self::$base;
     }
 
     /**
@@ -123,11 +145,18 @@ class Config {
             exit('The configuration file is missing.');
         }
 
-        $config = self::getEnvConfig($config);
+        $base = self::getEnvConfig($config);
+        self::$base = $base;
 
-        self::$config = $config;
+        // Saved settings go over the config file, ENV variables are applied again so they still win.
+        if (($base['settings'] ?? false) === true) {
+            $saved = Settings::read(Settings::file($base));
+            $base = $saved === [] ? $base : self::getEnvConfig(Settings::merge($config, $saved));
+        }
 
-        return $config;
+        self::$config = $base;
+
+        return $base;
     }
 
     /**

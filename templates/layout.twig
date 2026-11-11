@@ -78,6 +78,13 @@
                 </form>
             {% endif %}
 
+            {% if settings %}
+                <button type="button" data-modal-target="#settings-modal" title="Settings" aria-label="Settings"
+                        class="flex justify-center items-center py-2 px-3 text-gray-500 rounded-sm border border-gray-300 cursor-pointer dark:text-gray-400 dark:border-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:hover:text-gray-100 dark:hover:bg-gray-950">
+                    {{ svg('settings', 18) }}
+                </button>
+            {% endif %}
+
             <div class="flex border rounded-sm overflow-hidden border-gray-300 dark:border-gray-600 [&>.active]:text-gray-600 dark:[&>.active]:text-gray-300 [&>.active]:bg-gray-200 dark:[&>.active]:bg-gray-950">
                 <button class="flex justify-center items-center py-2 px-3 text-gray-400 cursor-pointer dark:text-gray-500" type="button" data-theme="light" title="Light">
                     {{ svg('sun', 18) }}
@@ -126,6 +133,7 @@
     </div>
 </main>
 {% if auth_warning|default(false) %}{{ include('partials/auth_warning.twig') }}{% endif %}
+{% if settings %}{{ include('partials/settings.twig') }}{% endif %}
 {{ modals|raw }}
 <script src="{{ asset('assets/js/scripts.js') }}"></script>
 </body>

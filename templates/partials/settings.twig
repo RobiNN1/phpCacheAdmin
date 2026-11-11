@@ -1,0 +1,181 @@
+{% import 'components/modal.twig' as modal_component %}
+
+{% set basic_fields = {
+    redis: ['name', 'host', 'port', 'database', 'username', 'password'],
+    memcached: ['name', 'host', 'port'],
+    remoteservers: ['name', 'url', 'token'],
+} %}
+
+{% macro field(id, field, value, attrs, disabled, locked = null) %}
+    {% set input_class = 'py-1.5 px-3 w-full text-sm bg-white rounded border border-gray-300 focus:outline-hidden focus:ring-3 focus:ring-primary-200 focus:border-primary-300 disabled:opacity-60 dark:text-white dark:bg-gray-800 dark:border-gray-600 dark:focus:ring-primary-500 dark:focus:border-primary-400' %}
+    {% set state = (disabled or locked) ? ' disabled' : '' %}
+
+    {% if field.type == 'bool' %}
+        <label for="{{ id }}" class="flex gap-2 items-center text-sm font-semibold">
+            <input type="checkbox" id="{{ id }}"{{ value ? ' checked' : '' }}{{ attrs|raw }}{{ state }}
+                   class="checkbox h-4 w-4 shrink-0 appearance-none rounded border border-gray-300 bg-white checked:border-primary-200 checked:bg-primary-500 focus:outline-hidden focus:ring-3 focus:ring-primary-200 disabled:opacity-60 dark:bg-gray-900 dark:border-gray-600 dark:checked:bg-primary-500 dark:focus:ring-primary-400">
+            {{ field.label }}
+        </label>
+    {% else %}
+        <label for="{{ id }}" class="block mb-1 text-sm font-semibold">{{ field.label }}</label>
+
+        {% if field.type == 'select' %}
+            <select id="{{ id }}"{{ attrs|raw }}{{ state }} class="select appearance-none pe-8 {{ input_class }}">
+                {% for option_value, option_name in field.options %}
+                    <option value="{{ option_value }}"{{ option_value ~ '' == value ~ '' ? ' selected' : '' }}>{{ option_name }}</option>
+                {% endfor %}
+            </select>
+        {% elseif field.type in ['list', 'json'] %}
+            <textarea id="{{ id }}" rows="3" spellcheck="false"{{ attrs|raw }}{{ state }} class="font-mono {{ input_class }}"
+                      {{- field.placeholder is defined ? ' placeholder="%s"'|format(field.placeholder|e)|raw : '' }}>{{ value }}</textarea>
+        {% else %}
+            {% set type = {int: 'number', secret: 'password', url: 'url'}[field.type] ?? 'text' %}
+            {% set placeholder = field.type == 'secret' ? (value ? 'Unchanged' : '') : (field.placeholder ?? '') %}
+            <input type="{{ type }}" id="{{ id }}" value="{{ field.type == 'secret' ? '' : value }}"{{ attrs|raw }}{{ state }} class="{{ input_class }}"
+                   autocomplete="{{ field.type == 'secret' ? 'new-password' : 'off' }}"
+                   {{- placeholder != '' ? ' placeholder="%s"'|format(placeholder|e)|raw : '' -}}
+                   {{- field.min is defined ? ' min="%s"'|format(field.min)|raw : '' -}}
+                   {{- field.max is defined and field.type == 'int' ? ' max="%s"'|format(field.max)|raw : '' -}}
+                   {{- field.max is defined and field.type != 'int' ? ' maxlength="%s"'|format(field.max)|raw : '' -}}
+                   {{- field.type == 'timezone' ? ' list="settings-timezones"'|raw : '' -}}>
+        {% endif %}
+    {% endif %}
+
+    {% if locked %}
+        <small class="block mt-1 text-xs text-amber-700 dark:text-amber-400">Set by the {{ locked }} environment variable.</small>
+    {% elseif field.help is defined %}
+        <small class="block mt-1 text-xs text-gray-500 dark:text-gray-400">{{ field.help }}</small>
+    {% endif %}
+{% endmacro %}
+
+{% macro server(list_key, list, server, index, basic, disabled) %}
+    {% set title = server.name|default(server.host|default(server.url|default(server.path|default('New server')))) %}
+    <div class="p-3 mb-3 rounded-md border border-gray-200 dark:border-gray-600" data-server data-index="{{ index }}">
+        <div class="flex gap-2 justify-between items-center mb-3">
+            <span class="text-sm font-semibold break-all" data-server-title>{{ title }}</span>
+            {% if not disabled %}
+                <button type="button" data-server-remove class="inline-flex shrink-0 gap-1 items-center text-sm text-red-600 cursor-pointer hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">
+                    {{ svg('trash', 12) }} Remove
+                </button>
+            {% endif %}
+        </div>
+
+        <div class="grid gap-3 sm:grid-cols-2">
+            {% for key in basic %}
+                <div>
+                    {{ _self.field('settings-' ~ list_key ~ '-' ~ index ~ '-' ~ key, list.fields[key], server[key] ?? '', ' data-field="' ~ key ~ '"' ~ (list.fields[key].type == 'secret' ? ' data-secret' : ''), disabled) }}
+                </div>
+            {% endfor %}
+        </div>
+
+        <details class="mt-3 group">
+            <summary class="text-sm font-semibold cursor-pointer select-none text-primary-500">Advanced</summary>
+            <div class="grid gap-3 mt-3 sm:grid-cols-2">
+                {% for key, field in list.fields %}
+                    {% if key not in basic %}
+                        <div class="{{ field.type in ['list', 'json'] ? 'sm:col-span-2' : '' }}">
+                            {{ _self.field('settings-' ~ list_key ~ '-' ~ index ~ '-' ~ key, field, server[key] ?? '', ' data-field="' ~ key ~ '"' ~ (field.type == 'secret' ? ' data-secret' : ''), disabled) }}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </details>
+    </div>
+{% endmacro %}
+
+{% macro options(group, fields, disabled) %}
+    <div class="grid gap-4 mb-4 sm:grid-cols-2">
+        {% for key, field in fields %}
+            <div class="{{ field.type in ['list', 'json'] ? 'sm:col-span-2' : (field.type == 'bool' ? 'self-end' : '') }}">
+                {{ _self.field('settings-' ~ group ~ '-' ~ key, field, field.value, ' data-group="' ~ group ~ '" data-key="' ~ key ~ '"', disabled, field.locked) }}
+            </div>
+        {% endfor %}
+    </div>
+{% endmacro %}
+
+{% macro content(settings, basic_fields) %}
+    {% set disabled = settings.blocked is not null %}
+    {% set tab_class = 'cursor-pointer text-sm font-semibold inline-flex whitespace-nowrap py-2 px-3 border-b-2 border-transparent hover:text-gray-600 hover:border-gray-600 dark:hover:text-gray-300 dark:hover:border-gray-300 [&.active]:border-primary-500 [&.active]:text-primary-500' %}
+
+    <form id="settings_form" novalidate>
+        {% if disabled %}
+            <p class="p-3 mb-4 text-sm text-amber-800 bg-amber-50 rounded dark:text-amber-200 dark:bg-amber-900/40">{{ settings.blocked }}</p>
+        {% endif %}
+
+        <ul class="flex flex-wrap -mt-1 mb-4 border-b border-gray-200 dark:border-gray-600" role="tablist">
+            {% for tab_key, tab in settings.tabs %}
+                <li class="shrink-0"><button type="button" class="{{ tab_class }}{{ loop.first ? ' active' : '' }}" data-settings-tab="{{ tab_key }}">{{ tab.title }}</button></li>
+            {% endfor %}
+        </ul>
+
+        {% for tab_key, tab in settings.tabs %}
+            <div data-settings-panel="{{ tab_key }}"{{ loop.first ? '' : ' hidden' }}>
+                {% if tab.options %}
+                    {{ _self.options(tab.options, settings.options[tab.options], disabled) }}
+                {% endif %}
+
+                {% if tab.list %}
+                    {% set list_key = tab.list %}
+                    {% set list = settings.lists[list_key] %}
+
+                    {% if tab.options %}
+                        <h4 class="mb-3 text-sm font-bold">Servers</h4>
+                    {% endif %}
+
+                    {% if list.locked %}
+                        <p class="p-3 mb-3 text-sm text-amber-800 bg-amber-50 rounded dark:text-amber-200 dark:bg-amber-900/40">
+                            These servers are set by environment variables ({{ list.locked }}), change them there.
+                        </p>
+                    {% endif %}
+
+                    <div data-server-list="{{ list_key }}"{{ list.locked ? ' data-locked' : '' }}>
+                        {% for index, server in list.servers %}
+                            {{ _self.server(list_key, list, server, index, basic_fields[list_key], disabled or list.locked) }}
+                        {% endfor %}
+                    </div>
+
+                    {% if not disabled and not list.locked %}
+                        <template data-server-template="{{ list_key }}">
+                            {{ _self.server(list_key, list, {}, '__new__', basic_fields[list_key], false) }}
+                        </template>
+
+                        {{ include('components/button.twig', {
+                            text: 'Add server',
+                            icon: 'plus',
+                            class: 'mb-2',
+                            attributes: {'data-server-add': list_key},
+                        }) }}
+                    {% endif %}
+                {% endif %}
+            </div>
+        {% endfor %}
+
+        <datalist id="settings-timezones">
+            {% for timezone in settings.timezones %}
+                <option value="{{ timezone }}"></option>
+            {% endfor %}
+        </datalist>
+
+        <div class="flex sticky -bottom-4 flex-wrap gap-x-3 gap-y-2 items-center pt-3 mt-4 -mx-4 -mb-4 px-4 pb-4 bg-white border-t border-gray-200 dark:bg-gray-700 dark:border-gray-600">
+            <p class="flex-1 min-w-0 text-xs text-gray-500 break-all dark:text-gray-400" title="Environment variables still win.">Saved to {{ settings.file }}</p>
+            {% if not disabled %}
+                {{ include('components/button.twig', {
+                    text: 'Save',
+                    icon: 'save',
+                    submit: true,
+                    id: 'settings_save',
+                    class: 'shrink-0',
+                }) }}
+            {% endif %}
+            <div id="settings_result" class="hidden w-full" role="status"></div>
+        </div>
+    </form>
+{% endmacro %}
+
+{{ modal_component.modal(
+    'settings-modal',
+    'Settings',
+    _self.content(settings, basic_fields),
+    false,
+    'mx-4 w-full min-w-0 max-w-3xl max-h-[85vh] overflow-hidden',
+) }}

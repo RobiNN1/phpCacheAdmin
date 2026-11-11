@@ -69,6 +69,10 @@ class Admin {
                 return AuthSetup::handle();
             }
 
+            if (isset($_GET['settings']) && Settings::isEnabled()) {
+                return Settings::handle();
+            }
+
             return $dashboard->ajax();
         }
 
@@ -88,6 +92,7 @@ class Admin {
             'logout_user'  => Auth::user(),
             'auth_warning' => Auth::showWarning(),
             'auth_setup'   => AuthSetup::isAllowed(),
+            'settings'     => Settings::isEnabled() ? Settings::view() : null,
             'version'      => self::VERSION,
             'repo'         => 'https://github.com/RobiNN1/phpCacheAdmin',
             'dashboard'    => $dashboard->dashboard(),

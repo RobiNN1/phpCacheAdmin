@@ -4,4 +4,7 @@
             <directory>tests</directory>
         </testsuite>
     </testsuites>
+    <php>
+        <env name="PCA_SETTINGS" value="false" force="true"/>
+    </php>
 </phpunit>

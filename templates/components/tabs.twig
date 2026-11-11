@@ -24,10 +24,10 @@
     {% if main %}
         {% set active_tab = get('tab', links|keys|first) %}
         <li class="relative shrink-0" data-tabs-more hidden>
-            <button type="button" class="{{ item_class }} gap-1 items-center" aria-haspopup="true" aria-expanded="false" data-tabs-more-toggle>
-                More {{ svg('down', 10) }}
+            <button type="button" class="group/more {{ item_class }} gap-1 items-center" aria-haspopup="true" aria-expanded="false" data-tabs-more-toggle>
+                More {{ svg('down', 10, 'transition-transform group-aria-expanded/more:rotate-180') }}
             </button>
-            <div class="absolute top-full right-0 z-20 py-1 min-w-40 bg-white rounded-md border border-gray-200 shadow-lg dark:bg-gray-800 dark:border-gray-700" data-tabs-more-menu hidden>
+            <div class="absolute top-full right-0 z-20 py-1 min-w-40 bg-white rounded-md border border-gray-200 shadow-lg transition-[opacity,translate] duration-150 ease-out starting:opacity-0 motion-safe:starting:-translate-y-1 dark:bg-gray-800 dark:border-gray-700" data-tabs-more-menu hidden>
                 {% for link, title in links %}
                     <a href="{{ link([], {tab: link}) }}" data-tabs-more-item hidden
                        class="block py-2 px-4 text-sm whitespace-nowrap hover:bg-gray-100 dark:hover:bg-gray-700{{ active_tab == link ? ' font-semibold text-primary-500 active' : '' }}">{{ title }}</a>

@@ -69,7 +69,9 @@
         </div>
 
         <details class="mt-3 group">
-            <summary class="text-sm font-semibold cursor-pointer select-none text-primary-500">Advanced</summary>
+            <summary class="inline-flex gap-1 items-center text-sm font-semibold cursor-pointer select-none list-none text-primary-500 [&::-webkit-details-marker]:hidden">
+                {{ svg('down', 10, '-rotate-90 transition-transform group-open:rotate-0') }} Advanced
+            </summary>
             <div class="grid gap-3 mt-3 sm:grid-cols-2">
                 {% for key, field in list.fields %}
                     {% if key not in basic %}

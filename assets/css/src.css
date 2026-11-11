@@ -3,6 +3,12 @@
 @source '../../templates/';
 @variant dark (&:where(.dark, .dark *));
 
+@media (prefers-reduced-motion: no-preference) {
+    @view-transition {
+        navigation: auto;
+    }
+}
+
 @layer base {
     *,
     ::after,
@@ -11,6 +17,19 @@
     ::file-selector-button {
         border-color: var(--color-gray-200, currentColor);
     }
+
+    :where(a, button, summary, input, select, textarea, label, [class*='hover:'], [class*='focus:']) {
+        transition-property: color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, opacity, box-shadow;
+        transition-timing-function: var(--ease-in-out);
+        transition-duration: 150ms;
+    }
+}
+
+.no-transitions,
+.no-transitions *,
+.no-transitions ::before,
+.no-transitions ::after {
+    transition: none !important;
 }
 
 @theme {

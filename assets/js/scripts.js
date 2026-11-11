@@ -41,7 +41,9 @@ document.addEventListener('click', (e) => {
     const dismiss = e.target.closest('[data-alert-dismiss]');
 
     if (dismiss) {
-        dismiss.parentElement.remove();
+        const alert = dismiss.parentElement;
+        alert.classList.add('opacity-0');
+        setTimeout(() => alert.remove(), 200);
         return;
     }
 
@@ -549,6 +551,9 @@ class ThemeSwitcher {
     update() {
         const theme = localStorage.getItem('theme');
         let current_theme = theme;
+
+        document.documentElement.classList.add('no-transitions');
+        requestAnimationFrame(() => requestAnimationFrame(() => document.documentElement.classList.remove('no-transitions')));
 
         if (theme === 'system') {
             current_theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';

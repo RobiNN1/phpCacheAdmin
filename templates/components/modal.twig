@@ -3,11 +3,11 @@
 {% endif %}
 
 {% macro modal(modal_id, title, content, wide = false, modal_class = '') %}
-    <div id="{{ modal_id }}" class="modal flex fixed inset-0 z-50 justify-center items-center opacity-0 transition-opacity duration-300 pointer-events-none"
+    <div id="{{ modal_id }}" class="modal group/modal flex fixed inset-0 z-50 justify-center items-center opacity-0 transition-opacity duration-300 pointer-events-none"
          role="dialog" aria-modal="true" aria-labelledby="{{ modal_id }}-title" aria-hidden="true" tabindex="-1" inert>
         <div class="fixed inset-0 modal-backdrop bg-gray-500/75 dark:bg-gray-900/75"></div>
 
-        <div class="flex relative flex-col bg-white rounded-md shadow-sm dark:bg-gray-700{{ wide ? ' mx-4 w-full max-w-6xl max-h-[85vh]' : '' }}{{ modal_class|space|raw }}">
+        <div class="flex relative flex-col bg-white rounded-md shadow-sm transition-[scale] duration-300 ease-out motion-safe:group-[.opacity-0]/modal:scale-95 dark:bg-gray-700{{ wide ? ' mx-4 w-full max-w-6xl max-h-[85vh]' : '' }}{{ modal_class|space|raw }}">
             <div class="flex gap-4 justify-between items-center p-4 border-b border-gray-200 dark:border-gray-600{{ wide ? '' : ' md:min-w-[35rem]' }}">
                 <h3 id="{{ modal_id }}-title" class="text-lg font-semibold break-all text-gray-900 dark:text-white">{{ title }}</h3>
 

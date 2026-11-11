@@ -10,7 +10,7 @@
                         <div class="pe-1" title="Check all">{{ macros.checkbox('check-all') }}</div>
                     {% endif %}
                     <button class="flex gap-1 items-center tree-toggle" data-path="{{ item.path }}">
-                        {{ svg('down', 10, '-rotate-90') }}
+                        {{ svg('down', 10, '-rotate-90 transition-transform') }}
                         <span class="tree">{{ item.name }}{{ separator }}*</span>
                     </button>
                     <span class="text-xs text-gray-600 dark:text-gray-300 items-count">({{ item.count }} items)</span>

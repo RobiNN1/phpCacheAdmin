@@ -1412,6 +1412,7 @@ class SettingsForm {
             const tab = e.target.closest('[data-settings-tab]');
             const add = e.target.closest('[data-server-add]');
             const remove = e.target.closest('[data-server-remove]');
+            const test = e.target.closest('[data-server-test]');
 
             if (tab) {
                 this.show_tab(tab.dataset.settingsTab);
@@ -1419,12 +1420,20 @@ class SettingsForm {
                 this.add_server(add.dataset.serverAdd);
             } else if (remove) {
                 remove.closest('[data-server]').remove();
+            } else if (test) {
+                this.test_server(test.closest('[data-server]'));
             }
         });
 
         form.addEventListener('input', e => {
             if (e.target.matches('[data-secret]')) {
                 e.target.dataset.dirty = '1';
+            }
+
+            const test_result = e.target.closest('[data-server]')?.querySelector('[data-server-test-result]');
+
+            if (test_result) {
+                test_result.hidden = true;
             }
 
             if (e.target.matches('[data-field="name"], [data-field="host"], [data-field="url"], [data-field="path"]')) {
@@ -1479,27 +1488,68 @@ class SettingsForm {
                 return;
             }
 
-            data.lists[list.dataset.serverList] = [...list.querySelectorAll(':scope > [data-server]')].map(row => {
-                const server = {_index: row.dataset.index === '' ? null : Number(row.dataset.index)};
-
-                row.querySelectorAll('[data-field]').forEach(el => {
-                    server[el.dataset.field] = el.dataset.secret !== undefined && el.dataset.dirty !== '1' ? null : value(el);
-                });
-
-                return server;
-            });
+            data.lists[list.dataset.serverList] = [...list.querySelectorAll(':scope > [data-server]')].map(row => this.server_data(row));
         });
 
         return data;
     }
 
+    server_data(row) {
+        const server = {_index: row.dataset.index === '' ? null : Number(row.dataset.index)};
+
+        row.querySelectorAll('[data-field]').forEach(el => {
+            const value = el.type === 'checkbox' ? el.checked : el.value;
+            server[el.dataset.field] = el.dataset.secret !== undefined && el.dataset.dirty !== '1' ? null : value;
+        });
+
+        return server;
+    }
+
     show(messages, error) {
-        this.result.replaceChildren(...messages.map(message => {
+        SettingsForm.messages(this.result, messages, error ? 'error' : 'ok', 'w-full text-sm');
+    }
+
+    static messages(element, messages, state, base = 'mb-3 text-sm wrap-break-word') {
+        const colors = {
+            ok: 'text-green-600 dark:text-green-400',
+            error: 'text-red-600 dark:text-red-400',
+            pending: 'text-gray-500 dark:text-gray-400',
+        };
+
+        element.replaceChildren(...messages.map(message => {
             const line = document.createElement('p');
             line.textContent = message;
             return line;
         }));
-        this.result.className = `w-full text-sm ${error ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`;
+        element.className = `${base} ${colors[state]}`;
+        element.hidden = false;
+    }
+
+    test_server(row) {
+        const button = row.querySelector('[data-server-test]');
+        const result = row.querySelector('[data-server-test-result]');
+        const list = row.closest('[data-server-list]').dataset.serverList;
+
+        button.disabled = true;
+        SettingsForm.messages(result, ['Connecting…'], 'pending');
+
+        ajax('settings&test', request => {
+            button.disabled = false;
+
+            if (!row.isConnected) {
+                return;
+            }
+
+            const data = ajax_ok(request) ? parse_json(request) : null;
+
+            if (data === null) {
+                SettingsForm.messages(result, [`Server responded with status ${request.status}`], 'error');
+            } else if (data.errors) {
+                SettingsForm.messages(result, data.errors, 'error');
+            } else {
+                SettingsForm.messages(result, [data.message], 'ok');
+            }
+        }, {settings: JSON.stringify({list, server: this.server_data(row)})}, false);
     }
 
     save() {

@@ -1223,6 +1223,9 @@
     content: var(--tw-content);
     --tw-ring-color: var(--color-primary-200);
   }
+  .disabled\:cursor-wait:disabled {
+    cursor: wait;
+  }
   .disabled\:bg-green-300:disabled {
     background-color: oklch(87.1% 0.15 154.449);
   }

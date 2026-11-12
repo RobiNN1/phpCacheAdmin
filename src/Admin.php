@@ -70,7 +70,7 @@ class Admin {
             }
 
             if (isset($_GET['settings']) && Settings::isEnabled()) {
-                return Settings::handle();
+                return Settings::handle($this->dashboards);
             }
 
             return $dashboard->ajax();

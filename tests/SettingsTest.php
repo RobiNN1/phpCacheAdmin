@@ -16,6 +16,7 @@ use RobiNN\Pca\Dashboards\APCu\APCuDashboard;
 use RobiNN\Pca\Dashboards\Memcached\MemcachedDashboard;
 use RobiNN\Pca\Dashboards\Redis\RedisDashboard;
 use RobiNN\Pca\Settings;
+use RobiNN\Pca\Template;
 
 final class SettingsTest extends TestCase {
     private string $dir;
@@ -399,5 +400,87 @@ final class SettingsTest extends TestCase {
         $this->handle($input);
 
         $this->assertSame([], Settings::read($this->settings_file));
+    }
+
+    /**
+     * @param array<string, mixed> $server
+     *
+     * @return array<string, mixed>
+     *
+     * @throws JsonException
+     */
+    private function testConnection(string $list, array $server): array {
+        $_GET['test'] = '';
+        $_POST['settings'] = json_encode(['list' => $list, 'server' => $server], JSON_THROW_ON_ERROR);
+        $template = new Template();
+
+        try {
+            $response = Settings::handle(['redis' => new RedisDashboard($template), 'memcached' => new MemcachedDashboard($template)]);
+        } finally {
+            unset($_GET['test']);
+        }
+
+        return (array) json_decode($response, true, 512, JSON_THROW_ON_ERROR);
+    }
+
+    /**
+     * @throws JsonException
+     */
+    public function testConnectionToRedis(): void {
+        $result = $this->testConnection('redis', ['_index' => null, 'host' => '127.0.0.1', 'port' => '6379']);
+
+        $this->assertStringStartsWith('Connected, Redis ', $result['message'] ?? '', implode(' ', $result['errors'] ?? []));
+        $this->assertSame([], Settings::read($this->settings_file));
+    }
+
+    /**
+     * @throws JsonException
+     */
+    public function testConnectionUsesTheSavedPasswordOfAnUntouchedField(): void {
+        // The local Redis has no password, so only the one from the config makes AUTH fail.
+        $result = $this->testConnection('redis', ['_index' => 0, 'host' => '127.0.0.1', 'port' => '6379', 'password' => null]);
+        $this->assertStringContainsString('AUTH', implode(' ', $result['errors'] ?? []));
+
+        $result = $this->testConnection('redis', ['_index' => null, 'host' => '127.0.0.1', 'port' => '6379', 'password' => null]);
+        $this->assertArrayHasKey('message', $result);
+    }
+
+    /**
+     * @throws JsonException
+     */
+    public function testConnectionToMemcached(): void {
+        $result = $this->testConnection('memcached', ['_index' => null, 'host' => '127.0.0.1', 'port' => '11211']);
+        $this->assertStringStartsWith('Connected, Memcached ', $result['message'] ?? '', implode(' ', $result['errors'] ?? []));
+
+        $result = $this->testConnection('memcached', ['_index' => null, 'host' => '127.0.0.1', 'port' => '1']);
+        $this->assertStringContainsString('Failed to connect', implode(' ', $result['errors'] ?? []));
+    }
+
+    /**
+     * @throws JsonException
+     */
+    public function testConnectionToAnUnreachableRemoteServer(): void {
+        $this->config(true, false, [APCuDashboard::class]);
+
+        $result = $this->testConnection('remoteservers', ['_index' => null, 'url' => 'http://127.0.0.1:1/pca-remote.php', 'token' => 'x', 'timeout' => '1']);
+
+        $this->assertStringContainsString('Could not reach', implode(' ', $result['errors'] ?? []));
+    }
+
+    /**
+     * @throws JsonException
+     */
+    public function testConnectionValidatesTheRequest(): void {
+        $result = $this->testConnection('memcached', ['_index' => null, 'port' => '99999']);
+        $this->assertSame([
+            'Memcached server: Port must be between 1 and 65535.',
+            'Memcached server: set a host or a socket path.',
+        ], $result['errors'] ?? null);
+
+        $this->assertSame(['errors' => ['Invalid request.']], $this->testConnection('remoteservers', ['url' => 'https://example.com']));
+        $this->assertSame(['errors' => ['Invalid request.']], $this->testConnection('apcu', []));
+
+        $this->config(true, true);
+        $this->assertSame(['errors' => ['Read-only mode is enabled in the configuration.']], $this->testConnection('redis', ['host' => '127.0.0.1']));
     }
 }

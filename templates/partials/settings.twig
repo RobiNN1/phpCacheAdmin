@@ -48,17 +48,26 @@
     {% endif %}
 {% endmacro %}
 
-{% macro server(list_key, list, server, index, basic, disabled) %}
+{% macro server(list_key, list, server, index, basic, disabled, testable) %}
     {% set title = server.name|default(server.host|default(server.url|default(server.path|default('New server')))) %}
     <div class="p-3 mb-3 rounded-md border border-gray-200 dark:border-gray-600" data-server data-index="{{ index }}">
         <div class="flex gap-2 justify-between items-center mb-3">
             <span class="text-sm font-semibold break-all" data-server-title>{{ title }}</span>
-            {% if not disabled %}
-                <button type="button" data-server-remove class="inline-flex shrink-0 gap-1 items-center text-sm text-red-600 cursor-pointer hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">
-                    {{ svg('trash', 12) }} Remove
-                </button>
-            {% endif %}
+            <div class="flex shrink-0 gap-3 items-center">
+                {% if testable %}
+                    <button type="button" data-server-test class="text-sm text-gray-600 cursor-pointer hover:text-gray-900 disabled:opacity-60 disabled:cursor-wait dark:text-gray-300 dark:hover:text-white">
+                        Test connection
+                    </button>
+                {% endif %}
+                {% if not disabled %}
+                    <button type="button" data-server-remove class="inline-flex gap-1 items-center text-sm text-red-600 cursor-pointer hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">
+                        {{ svg('trash', 12) }} Remove
+                    </button>
+                {% endif %}
+            </div>
         </div>
+
+        <div class="mb-3 text-sm wrap-break-word" data-server-test-result role="status" hidden></div>
 
         <div class="grid gap-3 sm:grid-cols-2">
             {% for key in basic %}
@@ -132,13 +141,13 @@
 
                     <div data-server-list="{{ list_key }}"{{ list.locked ? ' data-locked' : '' }}>
                         {% for index, server in list.servers %}
-                            {{ _self.server(list_key, list, server, index, basic_fields[list_key], disabled or list.locked) }}
+                            {{ _self.server(list_key, list, server, index, basic_fields[list_key], disabled or list.locked, not disabled) }}
                         {% endfor %}
                     </div>
 
                     {% if not disabled and not list.locked %}
                         <template data-server-template="{{ list_key }}">
-                            {{ _self.server(list_key, list, {}, '__new__', basic_fields[list_key], false) }}
+                            {{ _self.server(list_key, list, {}, '__new__', basic_fields[list_key], false, true) }}
                         </template>
 
                         {{ include('components/button.twig', {

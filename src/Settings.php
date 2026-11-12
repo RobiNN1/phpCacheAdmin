@@ -11,10 +11,13 @@ namespace RobiNN\Pca;
 use JsonException;
 use Random\RandomException;
 use RobiNN\Pca\Dashboards\APCu\APCuDashboard;
+use RobiNN\Pca\Dashboards\DashboardException;
+use RobiNN\Pca\Dashboards\DashboardInterface;
 use RobiNN\Pca\Dashboards\Memcached\MemcachedDashboard;
 use RobiNN\Pca\Dashboards\OPCache\OPCacheDashboard;
 use RobiNN\Pca\Dashboards\Realpath\RealpathDashboard;
 use RobiNN\Pca\Dashboards\Redis\RedisDashboard;
+use RobiNN\Pca\Dashboards\RemoteClient;
 use Throwable;
 
 /**
@@ -262,7 +265,10 @@ class Settings {
         ];
     }
 
-    public static function handle(): string {
+    /**
+     * @param array<string, DashboardInterface> $dashboards The enabled dashboards by key, used to test a connection.
+     */
+    public static function handle(array $dashboards = []): string {
         if (!headers_sent()) {
             header('Content-Type: application/json');
         }
@@ -285,6 +291,10 @@ class Settings {
 
         if (!is_array($input)) {
             return Helpers::ajaxJson(['errors' => ['Invalid request.']]);
+        }
+
+        if (isset($_GET['test'])) {
+            return Helpers::ajaxJson(self::test($input, $dashboards));
         }
 
         $file = self::file(Config::base());
@@ -401,12 +411,83 @@ class Settings {
                 continue;
             }
 
-            $index = $row['_index'] ?? null;
-            $previous = is_int($index) && is_array($existing[$index] ?? null) ? $existing[$index] : [];
-            $servers[] = self::server($list, $row, $previous, $label, $errors);
+            $servers[] = self::server($list, $row, self::previous($existing, $row['_index'] ?? null), $label, $errors);
         }
 
         return $servers;
+    }
+
+    /**
+     * Connect to one server from the modal without saving it.
+     *
+     * @param array<string, mixed>              $input ['list' => 'redis', 'server' => the row as the modal sends it]
+     * @param array<string, DashboardInterface> $dashboards
+     *
+     * @return array{message?: string, errors?: array<int, string>}
+     */
+    public static function test(array $input, array $dashboards): array {
+        $list = $input['list'] ?? null;
+        $row = $input['server'] ?? null;
+
+        if (!is_string($list) || !is_array($row) || !in_array($list, array_column(self::enabledTabs(), 'list'), true)) {
+            return ['errors' => ['Invalid request.']];
+        }
+
+        $errors = [];
+        $existing = array_values((array) Config::get($list, []));
+        $server = self::server($list, $row, self::previous($existing, $row['_index'] ?? null), self::TABS[$list]['title'].' server', $errors);
+
+        if ($errors !== []) {
+            return ['errors' => $errors];
+        }
+
+        try {
+            return ['message' => self::connect($list, $server, $dashboards)];
+        } catch (Throwable $e) {
+            return ['errors' => [$e->getMessage() !== '' ? $e->getMessage() : 'Could not connect.']];
+        }
+    }
+
+    /**
+     * @param array<string, mixed>              $server
+     * @param array<string, DashboardInterface> $dashboards
+     *
+     * @throws Throwable
+     */
+    private static function connect(string $list, array $server, array $dashboards): string {
+        if ($list === 'remoteservers') {
+            $php = (new RemoteClient($server))->fetch('realpath')['php'] ?? null;
+
+            return 'Connected'.(is_scalar($php) ? ', PHP '.$php : '').'.';
+        }
+
+        $dashboard = $dashboards[$list] ?? null;
+
+        if ($dashboard instanceof RedisDashboard) {
+            unset($_GET['db']); // The database of the server, not the one selected on the page the modal is open on.
+            $redis = $dashboard->connect($server);
+            $redis->consoleCommand(['PING']); // Predis connects lazily and INFO hides errors.
+            $version = $redis->getInfo('server')['redis_version'] ?? null;
+
+            return 'Connected'.(is_scalar($version) ? ', Redis '.$version : '').'.';
+        }
+
+        if ($dashboard instanceof MemcachedDashboard) {
+            return 'Connected, Memcached '.$dashboard->connect($server)->version().'.';
+        }
+
+        throw new DashboardException('The '.self::TABS[$list]['title'].' dashboard is not available.');
+    }
+
+    /**
+     * The server the row was before the change, for the secrets left untouched and the options that the modal does not show.
+     *
+     * @param array<int, mixed> $existing
+     *
+     * @return array<string, mixed>
+     */
+    private static function previous(array $existing, mixed $index): array {
+        return is_int($index) && is_array($existing[$index] ?? null) ? $existing[$index] : [];
     }
 
     /**

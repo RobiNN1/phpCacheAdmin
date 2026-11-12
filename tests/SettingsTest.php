@@ -437,12 +437,16 @@ final class SettingsTest extends TestCase {
      * @throws JsonException
      */
     public function testConnectionUsesTheSavedPasswordOfAnUntouchedField(): void {
-        // The local Redis has no password, so only the one from the config makes AUTH fail.
-        $result = $this->testConnection('redis', ['_index' => 0, 'host' => '127.0.0.1', 'port' => '6379', 'password' => null]);
-        $this->assertStringContainsString('AUTH', implode(' ', $result['errors'] ?? []));
+        // How a server without a password answers AUTH differs between versions, so the untouched field is compared with the password typed in.
+        $server = ['_index' => 0, 'host' => '127.0.0.1', 'port' => '6379'];
 
-        $result = $this->testConnection('redis', ['_index' => null, 'host' => '127.0.0.1', 'port' => '6379', 'password' => null]);
-        $this->assertArrayHasKey('message', $result);
+        $this->assertSame(
+            $this->testConnection('redis', $server + ['password' => 'pu-secret-password']),
+            $this->testConnection('redis', $server + ['password' => null]),
+        );
+
+        $result = $this->testConnection('redis', $server + ['password' => '']);
+        $this->assertArrayHasKey('message', $result, implode(' ', $result['errors'] ?? []));
     }
 
     /**

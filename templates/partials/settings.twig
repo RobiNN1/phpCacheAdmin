@@ -33,11 +33,11 @@
             {% set placeholder = field.type == 'secret' ? (value ? 'Unchanged' : '') : (field.placeholder ?? '') %}
             <input type="{{ type }}" id="{{ id }}" value="{{ field.type == 'secret' ? '' : value }}"{{ attrs|raw }}{{ state }} class="{{ input_class }}"
                    autocomplete="{{ field.type == 'secret' ? 'new-password' : 'off' }}"
-                   {{- placeholder != '' ? ' placeholder="%s"'|format(placeholder|e)|raw : '' -}}
-                   {{- field.min is defined ? ' min="%s"'|format(field.min)|raw : '' -}}
-                   {{- field.max is defined and field.type == 'int' ? ' max="%s"'|format(field.max)|raw : '' -}}
-                   {{- field.max is defined and field.type != 'int' ? ' maxlength="%s"'|format(field.max)|raw : '' -}}
-                   {{- field.type == 'timezone' ? ' list="settings-timezones"'|raw : '' -}}>
+                    {{- placeholder != '' ? ' placeholder="%s"'|format(placeholder|e)|raw : '' -}}
+                    {{- field.min is defined ? ' min="%s"'|format(field.min)|raw : '' -}}
+                    {{- field.max is defined and field.type == 'int' ? ' max="%s"'|format(field.max)|raw : '' -}}
+                    {{- field.max is defined and field.type != 'int' ? ' maxlength="%s"'|format(field.max)|raw : '' -}}
+                    {{- field.type == 'timezone' ? ' list="settings-timezones"'|raw : '' -}}>
         {% endif %}
     {% endif %}
 
@@ -115,7 +115,9 @@
 
         <ul class="flex flex-wrap -mt-1 mb-4 border-b border-gray-200 dark:border-gray-600" role="tablist">
             {% for tab_key, tab in settings.tabs %}
-                <li class="shrink-0"><button type="button" class="{{ tab_class }}{{ loop.first ? ' active' : '' }}" data-settings-tab="{{ tab_key }}">{{ tab.title }}</button></li>
+                <li class="shrink-0">
+                    <button type="button" class="{{ tab_class }}{{ loop.first ? ' active' : '' }}" data-settings-tab="{{ tab_key }}">{{ tab.title }}</button>
+                </li>
             {% endfor %}
         </ul>
 
@@ -152,6 +154,7 @@
 
                         {{ include('components/button.twig', {
                             text: 'Add server',
+                            color: 'green',
                             icon: 'plus',
                             class: 'mb-2',
                             attributes: {'data-server-add': list_key},
@@ -172,6 +175,7 @@
             {% if not disabled %}
                 {{ include('components/button.twig', {
                     text: 'Save',
+                    color: 'green',
                     icon: 'save',
                     submit: true,
                     id: 'settings_save',

@@ -19,17 +19,9 @@ trait APCuKeysList {
         $search = Http::get('s', '');
         $this->template->addGlobal('search_value', $search);
 
-        $keys = [];
+        $entries = $this->entries($search);
 
-        foreach ($this->entries() as $item) {
-            if ($search !== '' && stripos($item['key'], $search) === false) {
-                continue;
-            }
-
-            $keys[] = $item;
-        }
-
-        return $keys;
+        return is_array($entries) ? $entries : iterator_to_array($entries, false);
     }
 
     /**

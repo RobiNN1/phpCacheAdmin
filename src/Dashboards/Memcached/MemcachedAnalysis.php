@@ -181,7 +181,9 @@ trait MemcachedAnalysis {
                 $idle[$this->bucket(max(0, $time - $last_access), $this->idle_buckets)]++;
             }
 
-            $this->collectTop($by_memory, ['key' => $key, 'size' => $size], 'size');
+            if ($this->canMakeTop('size', $size)) {
+                $this->collectTop($by_memory, ['key' => $key, 'size' => $size], 'size');
+            }
         }
 
         if ($analyzed === 0) {

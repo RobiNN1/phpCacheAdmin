@@ -44,11 +44,8 @@ trait APCuAnalysis {
      * @return array<string, mixed>
      */
     private function analysisTab(): array {
-        $entries = [];
-
-        foreach ($this->entries() as $item) {
-            $entries[] = $item;
-        }
+        $entries = $this->entries();
+        $entries = is_array($entries) ? $entries : iterator_to_array($entries, false);
 
         $data = ['memory_map' => $this->memoryMap($this->smaInfo())];
 
@@ -212,8 +209,15 @@ trait APCuAnalysis {
                 $idle[$this->bucket(max(0, $time - $last_access), $this->idle_buckets)]++;
             }
 
-            $this->collectTop($by_memory, ['key' => $key, 'size' => $size], 'size');
-            $this->collectTop($by_hits, ['key' => $key, 'hits' => (int) ($item['num_hits'] ?? 0), 'size' => $size], 'hits');
+            if ($this->canMakeTop('size', $size)) {
+                $this->collectTop($by_memory, ['key' => $key, 'size' => $size], 'size');
+            }
+
+            $hits = (int) ($item['num_hits'] ?? 0);
+
+            if ($this->canMakeTop('hits', $hits)) {
+                $this->collectTop($by_hits, ['key' => $key, 'hits' => $hits, 'size' => $size], 'hits');
+            }
         }
 
         if ($analyzed === 0) {

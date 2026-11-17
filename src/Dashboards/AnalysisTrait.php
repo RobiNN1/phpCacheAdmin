@@ -27,6 +27,7 @@ trait AnalysisTrait {
 
     /**
      * Collect a row only if it can still make the top list.
+     * With many keys, check canMakeTop() first, so the row is not built for every key.
      *
      * @param array<int, array<string, mixed>> $buffer
      * @param array<string, mixed>             $row
@@ -44,6 +45,10 @@ trait AnalysisTrait {
         }
     }
 
+    private function canMakeTop(string $column, int $value): bool {
+        return !isset($this->top_thresholds[$column]) || $value > $this->top_thresholds[$column];
+    }
+
     /**
      * Group a key under its namespace, e.g. 'app:cache:user:1' with a depth of 2 becomes 'app:cache'.
      */
@@ -52,13 +57,24 @@ trait AnalysisTrait {
             return $key;
         }
 
-        $parts = explode($separator, $key);
+        // The same as exploding the key and joining the first parts back, without building the arrays for every key.
+        $end = strpos($key, $separator);
 
-        if (count($parts) === 1) {
+        if ($end === false) {
             return '(no namespace)';
         }
 
-        return implode($separator, array_slice($parts, 0, min($depth, count($parts) - 1)));
+        for ($i = 1; $i < $depth; $i++) {
+            $next = strpos($key, $separator, $end + strlen($separator));
+
+            if ($next === false) {
+                break;
+            }
+
+            $end = $next;
+        }
+
+        return substr($key, 0, $end);
     }
 
     /**

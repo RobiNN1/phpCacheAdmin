@@ -114,14 +114,11 @@ function apcu(bool $keys): array {
     ];
 
     if ($keys && $enabled) {
-        $data['keys'] = [];
-
         // The values stay here, only what the key list shows.
         $fields = APC_ITER_KEY | APC_ITER_TTL | APC_ITER_MEM_SIZE | APC_ITER_NUM_HITS | APC_ITER_ATIME | APC_ITER_CTIME;
 
-        foreach (new APCUIterator(null, $fields, 0, APC_LIST_ACTIVE) as $item) {
-            $data['keys'][] = $item;
-        }
+        // The default chunk of 100 entries locks the cache and copies the entries much more often.
+        $data['keys'] = iterator_to_array(new APCUIterator(null, $fields, 1000, APC_LIST_ACTIVE), false);
     }
 
     return $data;
@@ -183,7 +180,7 @@ function run(): never {
     }
 
     // A header rather than the query string, so the token does not end up in access logs.
-    if (!authorized((string) ($_SERVER['HTTP_X_PCA_TOKEN'] ?? ''))) {
+    if (!authorized(($_SERVER['HTTP_X_PCA_TOKEN'] ?? ''))) {
         respond(403, ['error' => 'Invalid token.']);
     }
 

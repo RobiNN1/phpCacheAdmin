@@ -79,16 +79,26 @@ trait APCuTrait {
     /**
      * The same fields on both, the iterator does not have to hold every entry at once.
      *
+     * @param string $search Case-insensitive substring of the key, filtered by APCu itself on this server.
+     *
      * @return APCUIterator|array<int, array<string, mixed>>
      */
-    public function entries(): APCUIterator|array {
+    public function entries(string $search = ''): APCUIterator|array {
         if ($this->remote === null) {
             $fields = APC_ITER_KEY | APC_ITER_TTL | APC_ITER_MEM_SIZE | APC_ITER_NUM_HITS | APC_ITER_ATIME | APC_ITER_CTIME;
+            $pattern = $search === '' ? null : '/'.preg_quote($search, '/').'/i';
 
-            return new APCUIterator(null, $fields, 0, APC_LIST_ACTIVE);
+            // The default chunk of 100 entries locks the cache and copies the entries much more often.
+            return new APCUIterator($pattern, $fields, 1000, APC_LIST_ACTIVE);
         }
 
-        return (array) ($this->remote->fetched('apcu')['keys'] ?? []);
+        $entries = (array) ($this->remote->fetched('apcu')['keys'] ?? []);
+
+        if ($search === '') {
+            return $entries;
+        }
+
+        return array_values(array_filter($entries, static fn (array $item): bool => stripos((string) ($item['key'] ?? ''), $search) !== false));
     }
 
     public function apcuVersion(): string {

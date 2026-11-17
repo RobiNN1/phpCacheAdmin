@@ -27,6 +27,15 @@ trait MemcachedKeysList {
             return $all_key_lines;
         }
 
+        // Key names are urlencoded in the lines, but these characters never are, so a line without the search cannot contain a matching key.
+        if (preg_match('/^[A-Za-z0-9._~-]+$/', $search) === 1) {
+            $candidates = preg_grep('/'.preg_quote($search, '/').'/i', $all_key_lines);
+
+            if ($candidates !== false) {
+                $all_key_lines = $candidates;
+            }
+        }
+
         $filtered_lines = [];
 
         foreach ($all_key_lines as $line) {

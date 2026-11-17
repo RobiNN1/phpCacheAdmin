@@ -410,9 +410,16 @@ class Helpers {
         }
 
         $values = array_map($getter, $items);
-        array_multisort($values, $dir === 'desc' ? SORT_DESC : SORT_ASC, SORT_NATURAL, $items);
+        $flags = array_filter($values, is_int(...)) === $values ? SORT_NUMERIC : SORT_NATURAL;
+        $dir === 'desc' ? arsort($values, $flags) : asort($values, $flags);
 
-        return $items;
+        $sorted = [];
+
+        foreach ($values as $index => $value) {
+            $sorted[] = $items[$index];
+        }
+
+        return $sorted;
     }
 
     /**

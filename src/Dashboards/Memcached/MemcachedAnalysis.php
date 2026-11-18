@@ -15,7 +15,7 @@ trait MemcachedAnalysis {
     use AnalysisTrait;
 
     /**
-     * Time left before a key expires, in seconds. The last bucket catches everything above.
+     * Time left before a key expires, in seconds.
      *
      * @var array<string, int>
      */
@@ -57,7 +57,7 @@ trait MemcachedAnalysis {
     }
 
     /**
-     * The server counts items per size class on its own, but only when it is started with -o track_sizes.
+     * Item counts per size class, only with -o track_sizes.
      *
      * @return array<string, mixed>|null
      *

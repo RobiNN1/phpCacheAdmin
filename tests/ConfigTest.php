@@ -151,7 +151,7 @@ final class ConfigTest extends TestCase {
     }
 
     public function testGroupNameWithoutUnderscoreStaysTopLevel(): void {
-        // "redisoptions" starts with the "redis" group name but has nothing to nest, it must not end up in the server list.
+        // "redisoptions" starts with "redis" but must not end up in the server list.
         $this->setEnv('PCA_REDISOPTIONS', '{"client":"predis"}');
 
         $this->assertSame('predis', Config::get('redisoptions.client'));

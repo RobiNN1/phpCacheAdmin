@@ -158,7 +158,7 @@ trait RedisAnalysis {
     }
 
     /**
-     * Redis 8 keeps a base-2 histogram of string sizes and collection lengths per database and updates it as the keys change.
+     * Redis 8 KEYSIZES histogram of string sizes and collection lengths per database.
      *
      * @param array<int|string, mixed> $section
      *

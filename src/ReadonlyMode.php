@@ -17,7 +17,7 @@ class ReadonlyMode {
     private const GET_ACTIONS = ['delete', 'deleteall', 'form'];
 
     /**
-     * Slowlog and latency reset/config and OPcache warmup are deliberately not blocked, they only touch diagnostics.
+     * Slowlog and latency reset/config and OPcache warmup are not blocked, they only touch diagnostics.
      *
      * @var array<int, string>
      */
@@ -30,9 +30,7 @@ class ReadonlyMode {
     }
 
     /**
-     * Whether the actions of the current dashboard have to be blocked.
-     *
-     * A dashboard opts out with 'readonly' => false in dashboardInfo().
+     * Whether the actions of the current dashboard are blocked, a dashboard opts out with 'readonly' => false.
      */
     public static function blocks(bool $applies = true): bool {
         return self::enabled() && $applies;

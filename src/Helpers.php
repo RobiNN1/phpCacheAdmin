@@ -362,7 +362,7 @@ class Helpers {
     }
 
     /**
-     * The column and direction picked in the table header, and the globals the header needs to render itself.
+     * The sort column and direction, also set as template globals.
      *
      * @return array{0: string, 1: string}
      */
@@ -378,7 +378,6 @@ class Helpers {
 
     /**
      * Sort the whole list before it is paginated.
-     * Only for values that are already in memory.
      *
      * @param array<int, mixed>                          $items
      * @param array<string, callable(mixed): mixed|true> $columns
@@ -446,9 +445,7 @@ class Helpers {
     }
 
     /**
-     * Build a folder tree for the tree view from a flat list of keys.
-     *
-     * Each item must contain the full key name under 'key'. Everything else ('info', 'items', ...) is copied to the leaf node as is.
+     * Build a folder tree from a flat list of keys, each item needs a 'key', the rest is copied to the leaf.
      *
      * @param array<int, array<string, mixed>> $keys
      * @param callable|null                    $leaf_name Optional formatter for the displayed leaf name.

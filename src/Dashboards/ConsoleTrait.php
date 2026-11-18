@@ -37,8 +37,7 @@ trait ConsoleTrait {
     }
 
     /**
-     * Extra commands to refuse, from the "blockedcommands" option of the given config group.
-     * A "COMMAND SUBCOMMAND" entry blocks only that subcommand.
+     * Extra commands to refuse from the "blockedcommands" option, "COMMAND SUBCOMMAND" blocks only the subcommand.
      *
      * @return array<int, string>
      */

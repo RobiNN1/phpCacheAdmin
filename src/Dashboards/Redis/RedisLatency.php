@@ -100,7 +100,7 @@ trait RedisLatency {
     }
 
     /**
-     * Percentiles come from the INFO latencystats section, which the server tracks on its own (latency-tracking, on by default).
+     * Percentiles from INFO latencystats (latency-tracking, on by default).
      *
      * @param array<int|string, mixed> $latencystats
      *

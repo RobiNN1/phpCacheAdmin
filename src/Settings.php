@@ -21,9 +21,7 @@ use RobiNN\Pca\Dashboards\RemoteClient;
 use Throwable;
 
 /**
- * Settings changed in the UI, saved to a file that is loaded over config.php. ENV variables still win.
- *
- * Off unless 'settings' => true (PCA_SETTINGS=true).
+ * Settings saved from the UI over config.php, ENV variables still win, enabled with 'settings' => true.
  */
 class Settings {
     /**
@@ -106,7 +104,7 @@ class Settings {
     ];
 
     /**
-     * Tabs of the modal with their option group and server list, shown when one of the dashboards is enabled (none = always).
+     * Modal tabs with their option group and server list, shown when one of the dashboards is enabled.
      *
      * @var array<string, array{title: string, dashboards: array<int, class-string>, options: ?string, list: ?string}>
      */
@@ -362,7 +360,7 @@ class Settings {
     }
 
     /**
-     * Options of one group that differ from config.php (set, a null removes the value) and the ones that match it (drop).
+     * Options of one group that differ from config.php (set) and the ones that match it (drop).
      *
      * @param array<string, mixed> $values
      * @param array<int, string>   $errors
@@ -480,7 +478,7 @@ class Settings {
     }
 
     /**
-     * The server the row was before the change, for the secrets left untouched and the options that the modal does not show.
+     * The server before the change, for untouched secrets and options the modal does not show.
      *
      * @param array<int, mixed> $existing
      *

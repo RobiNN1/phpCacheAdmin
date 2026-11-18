@@ -94,7 +94,7 @@ class OPCacheDashboard implements DashboardInterface {
         try {
             $this->loadRemote('opcache', $this->scriptsFlag());
 
-            // Not in the constructor, all dashboards are constructed on every page, and this may be a request to another server.
+            // Not in the constructor, every dashboard is constructed on every page.
             if (!$this->preloadIsConfigured()) {
                 unset($this->tabs['preload']);
             }

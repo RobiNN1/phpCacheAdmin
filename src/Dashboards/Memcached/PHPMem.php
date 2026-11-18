@@ -206,14 +206,7 @@ class PHPMem {
     }
 
     /**
-     * Get all the keys.
-     *
-     * Note: `getAllKeys()` or `stats cachedump` based functions do not work
-     * properly, and this is currently the best way to retrieve all keys.
-     *
-     * This command requires Memcached server >= 1.4.31
-     *
-     * @link https://github.com/memcached/memcached/wiki/ReleaseNotes1431
+     * Get all keys.
      *
      * @return array<int, mixed>
      *
@@ -303,9 +296,7 @@ class PHPMem {
     }
 
     /**
-     * Get key metadata.
-     *
-     * This command requires Memcached server >= 1.5.19
+     * Get key metadata, requires Memcached >= 1.5.19.
      *
      * @link https://github.com/memcached/memcached/wiki/ReleaseNotes1519
      *
@@ -411,7 +402,7 @@ class PHPMem {
     }
 
     /**
-     * Run command.
+     * Run a raw command, \r\n is appended automatically.
      *
      * These commands should work but are not guaranteed to work on any server:
      *
@@ -446,8 +437,6 @@ class PHPMem {
      * version\r\n
      * verbosity <level>\r\n
      * quit\r\n
-     *
-     * Note: \r\n is added automatically to the end.
      *
      * @link https://github.com/memcached/memcached/blob/master/doc/protocol.txt
      *
@@ -565,8 +554,7 @@ class PHPMem {
     }
 
     /**
-     * Read a data block of an exact byte length.
-     * Data can contain anything (\r\n, "END", ...), so it cannot be read line by line.
+     * Read a data block of an exact byte length, it can contain \r\n or END.
      *
      * @throws MemcachedException
      */
@@ -581,10 +569,7 @@ class PHPMem {
     }
 
     /**
-     * Read a multi-line response (stats, metadump) until its terminating status line (END, EN, or an error reply such as BUSY).
-     *
-     * Reads in bulk and only examines the last complete line, checking line by
-     * line would be noticeably slower for large responses such as 'lru_crawler metadump all'.
+     * Read a multi-line response until its terminating status line (END, EN or an error such as BUSY).
      *
      * @throws MemcachedException
      */
@@ -599,11 +584,7 @@ class PHPMem {
     }
 
     /**
-     * Read a multi-line response as individual lines.
-     * The terminating status line (END, EN, or an error reply such as BUSY) is the last element.
-     *
-     * Unlike readUntilEndLine(), the whole response is never held in memory as one string,
-     * which matters for large outputs such as 'lru_crawler metadump all'.
+     * Read a multi-line response as lines, the terminating status line is the last element.
      *
      * @return list<string>
      *
@@ -632,7 +613,6 @@ class PHPMem {
 
     /**
      * Check whether the last complete line is a terminating status line.
-     * List responses contain no data blocks, so the terminator can only ever be the last line.
      */
     private function endsWithStatusLine(string $buffer, bool $ok_terminates = true): bool {
         if (!str_ends_with($buffer, "\n")) {

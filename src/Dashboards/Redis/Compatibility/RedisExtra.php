@@ -148,8 +148,7 @@ trait RedisExtra {
     }
 
     /**
-     * Parse the raw INFO output into sections.
-     * A single 'INFO all' call is a lot faster than requesting every section individually.
+     * Parse the raw INFO output into sections, one 'INFO all' is faster than every section separately.
      *
      * @return array<string, array<string, string>>
      */

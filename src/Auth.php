@@ -25,8 +25,7 @@ class Auth {
     private const TOKEN_PLACEHOLDER = 'your-secret-token';
 
     /**
-     * A password hash to verify against when the user does not exist, so a wrong name costs the same as a wrong password.
-     * Without it, the response time tells the two apart.
+     * Verified for unknown users, so a wrong name takes as long as a wrong password.
      */
     private const DUMMY_HASH = '$2y$12$q2ryraE6O/s5PROCABktIuO2TE5Dwk8SlYI3EY6xy6kha1uv0Od4K';
 
@@ -55,11 +54,11 @@ class Auth {
     }
 
     public static function showWarning(): bool {
-        return !self::isEnabled() && (bool) Config::get('authwarning', true);
+        return !self::isEnabled() && Config::get('authwarning', true);
     }
 
     /**
-     * The name the current session is logged in with, so the header can show whose session it is.
+     * The username of the current session.
      */
     public static function user(): ?string {
         $user = $_SESSION['pca_auth_user'] ?? null;

@@ -55,7 +55,7 @@ trait OPCacheWarmup {
     }
 
     /**
-     * Compile files into an OPcache. opcache_compile_file() caches the bytecode without executing the file.
+     * Compile files into OPcache without executing them.
      *
      * @return array<string, mixed>
      */

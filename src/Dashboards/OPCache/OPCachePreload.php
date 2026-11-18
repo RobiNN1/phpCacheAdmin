@@ -38,7 +38,7 @@ trait OPCachePreload {
     }
 
     /**
-     * Preloading keeps the compiled files for the whole life of the server, so nothing here can be invalidated.
+     * Preloaded files stay for the whole life of the server and cannot be invalidated.
      *
      * @param array<string, mixed> $preload
      *
@@ -53,8 +53,7 @@ trait OPCachePreload {
     }
 
     /**
-     * The blacklist names the files OPcache never caches. It is only read at startup, so the file can hold
-     * patterns that no longer match anything, and OPcache does not report which files it skipped because of it.
+     * Patterns from opcache.blacklist_filename, read only at startup.
      *
      * @return array<string, mixed>
      */

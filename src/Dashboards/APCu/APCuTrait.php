@@ -44,7 +44,7 @@ trait APCuTrait {
     }
 
     /**
-     * The keys are the largest part of the response, so they are only requested for the tabs that show them.
+     * Request the keys only for the tabs that show them.
      *
      * @return array<int, string>
      */
@@ -64,7 +64,7 @@ trait APCuTrait {
     }
 
     /**
-     * With the blocklists, the fragmentation and the memory map are computed from them.
+     * Including the block lists, for the fragmentation and the memory map.
      *
      * @return array<string, mixed>
      */
@@ -77,7 +77,7 @@ trait APCuTrait {
     }
 
     /**
-     * The same fields on both, the iterator does not have to hold every entry at once.
+     * Entries with the fields of the key list, local or from the remote server.
      *
      * @param string $search Case-insensitive substring of the key, filtered by APCu itself on this server.
      *
@@ -88,7 +88,7 @@ trait APCuTrait {
             $fields = APC_ITER_KEY | APC_ITER_TTL | APC_ITER_MEM_SIZE | APC_ITER_NUM_HITS | APC_ITER_ATIME | APC_ITER_CTIME;
             $pattern = $search === '' ? null : '/'.preg_quote($search, '/').'/i';
 
-            // The default chunk of 100 entries locks the cache and copies the entries much more often.
+            // Larger chunks than the default 100 lock the cache less often.
             return new APCUIterator($pattern, $fields, 1000, APC_LIST_ACTIVE);
         }
 

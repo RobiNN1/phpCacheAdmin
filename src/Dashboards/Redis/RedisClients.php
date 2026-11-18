@@ -75,7 +75,7 @@ trait RedisClients {
     }
 
     /**
-     * The fields differ between Redis versions, so anything missing is left out rather than guessed.
+     * Fields differ between Redis versions, missing ones are left out.
      *
      * @param array<string, mixed> $client
      *
@@ -103,7 +103,7 @@ trait RedisClients {
     }
 
     /**
-     * Name the flags that mean something. A plain connection reports "N", which is worth no space at all.
+     * Flags worth showing, a plain connection ("N") shows nothing.
      *
      * @return array<int, string>
      */

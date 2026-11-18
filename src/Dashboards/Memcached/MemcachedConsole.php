@@ -25,7 +25,7 @@ trait MemcachedConsole {
     private array $console_blocked = ['WATCH', 'SHUTDOWN', 'CACHE_MEMLIMIT', 'SLABS', 'LRU', 'VERBOSITY'];
 
     /**
-     * Blocked commands the dashboard covers with a tab, so the error can point there instead of being a dead end.
+     * Blocked commands covered by a tab, the error points there.
      *
      * @var array<string, string>
      */
@@ -34,7 +34,7 @@ trait MemcachedConsole {
     ];
 
     /**
-     * Allowed commands whose raw reply the dashboard also renders as a formatted tab, offered after the output.
+     * Allowed commands that also have a formatted tab, linked after the output.
      *
      * @var array<string, string>
      */
@@ -83,7 +83,7 @@ trait MemcachedConsole {
 
             $this->storeConsoleCommand($line);
 
-            // Storage commands need their value on a second line. Let users type it as a "\n" escape.
+            // Storage commands take their value on a second line, typed as a "\n" escape.
             $payload = $this->consolePayload($line);
             $args = preg_split('/\s+/', trim(explode("\r\n", $payload, 2)[0])) ?: [];
 

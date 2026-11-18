@@ -43,8 +43,7 @@ trait OPCachePanels {
      * @param array<string, mixed> $directives
      */
     private function totalMemory(array $memory, array $directives): int {
-        // Some builds report the directive as 0 even though it is configured, so it falls back to the status.
-        // FrankenPHP with PHP 8.5 https://github.com/php/frankenphp/issues/2354
+        // Some builds report 0 here, fall back to the status https://github.com/php/frankenphp/issues/2354
         $total = (int) ($directives['opcache.memory_consumption'] ?? 0);
 
         if ($total > 0) {

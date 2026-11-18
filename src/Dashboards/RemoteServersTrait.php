@@ -13,9 +13,7 @@ use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
 
 /**
- * OPcache, APCu, and the Realpath cache of other servers, read from their pca-remote.php.
- * Server 0 is the PHP running this dashboard. The remote servers follow in the order of the "remoteservers" option.
- * Remote servers are only monitored, every action that would change them is hidden and refused.
+ * OPcache, APCu and Realpath cache of remote servers (read-only), server 0 is this PHP.
  */
 trait RemoteServersTrait {
     private ?RemoteClient $remote = null;
@@ -67,8 +65,7 @@ trait RemoteServersTrait {
     }
 
     /**
-     * The only place a remote server is requested, the dashboards call it where they show the error.
-     * Everything else reads the response with $this->remote->fetched(), so it cannot fail halfway through a page.
+     * The only place a remote server is requested, the rest reads it with $this->remote->fetched().
      *
      * @param array<int, string> $flags
      *

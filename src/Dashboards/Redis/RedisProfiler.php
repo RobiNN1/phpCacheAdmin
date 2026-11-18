@@ -26,8 +26,7 @@ trait RedisProfiler {
     private int $profiler_limit = 1_000;
 
     /**
-     * Bytes of a single argument the response keeps, a screen line has no use for a whole serialized object,
-     * and a capture full of them would not fit in the memory limit either.
+     * Bytes kept per argument, so large values cannot exceed the memory limit.
      */
     private int $profiler_arg_max = 512;
 
@@ -110,7 +109,7 @@ trait RedisProfiler {
     }
 
     /**
-     * MONITOR takes the connection over for as long as it runs, so it cannot share the one the rest of the dashboard uses.
+     * MONITOR takes over the connection, so it needs its own.
      *
      * @param array<string, mixed> $server
      *
@@ -176,7 +175,7 @@ trait RedisProfiler {
             }
 
             $streams[] = $stream;
-            // stream_select() renumbers the array it is given, so the node has to be found by the stream itself.
+            // stream_select() renumbers the array, so find the node by its stream.
             $nodes[(int) $stream] = $node;
         }
 
@@ -201,7 +200,7 @@ trait RedisProfiler {
             foreach ($read as $stream) {
                 $chunk = (string) fread($stream, 65_536);
 
-                // A dropped connection stays "readable" forever, keeping it would spin the loop at full CPU until the deadline.
+                // A dropped connection stays readable forever and would spin the loop until the deadline.
                 if ($chunk === '' && feof($stream)) {
                     fclose($stream);
                     $streams = array_filter($streams, static fn ($open): bool => $open !== $stream);
@@ -216,8 +215,7 @@ trait RedisProfiler {
                 $lines = explode("\r\n", $buffers[$node]);
                 $buffers[$node] = (string) array_pop($lines);
 
-                // A fragment this big is one giant value, showing it is not worth risking the memory limit.
-                // The rest of the line will fail to parse, and the capture recovers on the next complete one.
+                // A fragment this big is one huge value, drop it, the capture recovers on the next complete line.
                 if (strlen($buffers[$node]) > 4_194_304) {
                     $buffers[$node] = '';
                 }

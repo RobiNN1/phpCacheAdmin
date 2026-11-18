@@ -180,7 +180,7 @@ class AuthSetup {
     }
 
     /**
-     * Next to the config file so the rename over it is atomic, with a .php suffix so it can never be served as text.
+     * Next to the config for an atomic rename, .php so it is never served as text.
      */
     private static function tmpFile(string $file): ?string {
         if (!is_dir(dirname($file))) {

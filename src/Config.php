@@ -13,7 +13,7 @@ use JsonException;
 
 class Config {
     /**
-     * Config keys that hold the options of one dashboard, so an ENV variable can address them by name.
+     * Config keys grouped per dashboard, addressable by ENV variables.
      *
      * @var array<int, string>
      */
@@ -73,11 +73,7 @@ class Config {
     }
 
     /**
-     * Load environment variables from an .env file.
-     *
-     * Requires vlucas/phpdotenv.
-     *
-     * Real environment variables (e.g., set by Docker) always take precedence over the values defined in the file.
+     * Load an .env file (requires vlucas/phpdotenv), real environment variables take precedence.
      */
     public static function loadDotenv(?string $path = null): void {
         if (!class_exists(Dotenv::class)) {
@@ -95,10 +91,7 @@ class Config {
     }
 
     /**
-     * Get a config value.
-     *
-     * An option of one of the grouped keys is addressed with a dot, e.g., get('apcu.separator').
-     * A key that exists as-is always wins, so a top-level key containing a dot is still reachable.
+     * Get a config value, grouped options use a dot, e.g. get('apcu.separator').
      *
      * @template Default
      *
@@ -134,7 +127,7 @@ class Config {
      * @return array<string, mixed>
      */
     private static function load(): array {
-        // A custom path that does not exist yet falls back to the defaults, never to another config.php, that is not the file AuthSetup writes to.
+        // A missing custom path falls back to the defaults, not to another config.php.
         if (self::$config_path !== null && is_file(self::$config_path)) {
             $config = (array) require self::$config_path;
         } elseif (self::$config_path === null && is_file(__DIR__.'/../config.php')) {
@@ -160,14 +153,7 @@ class Config {
     }
 
     /**
-     * Get config from ENV.
-     *
-     * All keys from the config file are supported ENV variables, they just must start with PCA_ prefix.
-     *
-     * E.g.:
-     * PCA_TIMEFORMAT
-     * PCA_REDIS_1_HOST = 1 is server id
-     * PCA_MEMCACHED_0_HOST ...
+     * Get config from ENV variables with the PCA_ prefix, e.g. PCA_TIMEFORMAT or PCA_REDIS_1_HOST.
      *
      * @param array<string, mixed> $config The default config that will be merged with ENV.
      *
@@ -194,9 +180,7 @@ class Config {
     }
 
     /**
-     * Convert an ENV variable to an array.
-     *
-     * It allows the app to use ENV variables and config.php together.
+     * Convert ENV variables to a config array.
      *
      * @param array<string, mixed> $array
      */
@@ -213,8 +197,7 @@ class Config {
             }
         }
 
-        // Options grouped per dashboard: PCA_REDIS_1_HOST $config['redis'][1]['host'], PCA_APCU_SEPARATOR $config['apcu']['separator'].
-        // A name with no underscore after the group (PCA_REDISOPTIONS) stays at the top level, there is nothing to nest it in.
+        // Grouped options, e.g. PCA_REDIS_1_HOST is $config['redis'][1]['host'], a name without a group stays at the top level.
         if (self::startsWithAny($lower_var)) {
             $keys = explode('_', $lower_var);
             $final_key = array_pop($keys);

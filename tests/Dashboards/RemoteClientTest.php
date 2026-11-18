@@ -14,7 +14,7 @@ use RobiNN\Pca\Dashboards\DashboardException;
 use RobiNN\Pca\Dashboards\RemoteClient;
 
 /**
- * Against pca-remote.php served by the PHP built-in server, the client is the only part that speaks HTTP.
+ * Against pca-remote.php served by the PHP built-in server.
  */
 final class RemoteClientTest extends TestCase {
     private const TOKEN = 'pu-test-token-0123456789abcdef0123456789';

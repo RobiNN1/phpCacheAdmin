@@ -15,7 +15,7 @@ trait APCuAnalysis {
     use AnalysisTrait;
 
     /**
-     * Time left before an entry expires, in seconds. The last bucket catches everything above.
+     * Time left before an entry expires, in seconds.
      *
      * @var array<string, int>
      */

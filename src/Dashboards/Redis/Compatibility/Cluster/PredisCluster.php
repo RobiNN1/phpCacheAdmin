@@ -540,7 +540,7 @@ class PredisCluster extends PredisClient implements RedisCompatibilityInterface 
     }
 
     /**
-     * Predis cannot route JSON.* commands on its own, so the slot is computed from the key and set on the (native) command explicitly.
+     * Predis cannot route JSON.* commands, so the slot is set on the command from the key.
      *
      * @param array<int, mixed> $arguments
      *

@@ -62,9 +62,7 @@ class Http {
     }
 
     /**
-     * Whether the Host (and Origin, when sent) of the request is listed in 'allowedhosts', an empty list allows all.
-     *
-     * Without it, a dashboard without authentication on localhost can be read by any website through DNS rebinding.
+     * Whether the Host (and Origin) is in 'allowedhosts', an empty list allows all, protects against DNS rebinding.
      */
     public static function isAllowedHost(): bool {
         $allowed = array_map(static fn (mixed $host): string => strtolower((string) $host), (array) Config::get('allowedhosts', []));
@@ -85,7 +83,7 @@ class Http {
     }
 
     /**
-     * Sent before any output. The CSP is what keeps a value stored in the cache from becoming a script.
+     * Sent before any output, the CSP keeps a cached value from becoming a script.
      */
     public static function securityHeaders(): void {
         if (headers_sent()) {
@@ -149,8 +147,7 @@ class Http {
     }
 
     /**
-     * Get query parameter.
-     * Set $raw to true for values that are data rather than markup (e.g., cache keys, which may legitimately contain <, >, etc.)
+     * Get query parameter, use $raw for data such as cache keys that may contain <, > etc.
      *
      * @template Type
      *

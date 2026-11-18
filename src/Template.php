@@ -24,7 +24,7 @@ class Template {
     private ?Environment $twig = null;
 
     /**
-     * All global names must be registered before the first render, Twig doesn't allow adding new globals to an initialized environment.
+     * All global names must be registered before the first render, Twig cannot add them later.
      *
      * @var array<string, bool|int|string>
      */

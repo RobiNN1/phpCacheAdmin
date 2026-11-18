@@ -48,7 +48,7 @@ class RemoteClient {
     }
 
     /**
-     * Makes the request, call it where the error can be shown. The dashboards read the response with fetched().
+     * Make the request, the dashboards read the response with fetched().
      *
      * @param array<int, string> $flags E.g. 'scripts' for OPcache, 'keys' for APCu.
      *

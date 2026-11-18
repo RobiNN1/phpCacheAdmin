@@ -14,8 +14,7 @@ use RobiNN\Pca\Http;
 
 trait MemcachedWatcher {
     /**
-     * What the server can stream, and the version that learned to.
-     * Asking for a mode an older server does not know makes it refuse the whole watch.
+     * Watch modes with the version that added them, an unknown mode makes the server refuse the whole watch.
      *
      * @link https://github.com/memcached/memcached/blob/master/doc/protocol.txt
      *

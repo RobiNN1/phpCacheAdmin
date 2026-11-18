@@ -437,7 +437,7 @@ final class SettingsTest extends TestCase {
      * @throws JsonException
      */
     public function testConnectionUsesTheSavedPasswordOfAnUntouchedField(): void {
-        // How a server without a password answers AUTH differs between versions, so the untouched field is compared with the password typed in.
+        // AUTH replies differ between versions, so the untouched field is compared with the typed password.
         $server = ['_index' => 0, 'host' => '127.0.0.1', 'port' => '6379'];
 
         $this->assertSame(

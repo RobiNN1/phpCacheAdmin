@@ -18,7 +18,7 @@ if (!defined('PCA_REMOTE_NO_RUN')) {
 require_once __DIR__.'/../../pca-remote.php';
 
 /**
- * Answers from pca-remote.php in this process, so a remote server shows the same caches as the local one.
+ * Answers from pca-remote.php in this process, so a remote server shows the local caches.
  */
 final class InProcessRemoteClient extends RemoteClient {
     public int $requests = 0;

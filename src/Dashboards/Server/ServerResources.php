@@ -190,8 +190,7 @@ trait ServerResources {
                 $pagesize = (int) ($sizes[1] ?? 0) ?: $this->intShell('pagesize');
                 $vm_stat = (string) $this->shell('vm_stat');
 
-                // Match Activity Monitor's "Memory Used" = App + Wired + Compressed. Free/inactive/file-backed
-                // pages are reclaimable cache and must not be counted, otherwise usage looks near 100%.
+                // Like Activity Monitor's "Memory Used" (App + Wired + Compressed), the reclaimable cache is not counted.
                 $used_pages = $this->vmStatPages($vm_stat, 'Anonymous pages')
                     - $this->vmStatPages($vm_stat, 'Pages purgeable')
                     + $this->vmStatPages($vm_stat, 'Pages wired down')
@@ -350,7 +349,7 @@ trait ServerResources {
             return null;
         }
 
-        // Prepend the standard system paths so tools like sysctl (/usr/sbin) resolve even under a restricted PATH (some PHP-FPM setups).
+        // Add the system paths, so tools like sysctl work under a restricted PATH (some PHP-FPM setups).
         if (PHP_OS_FAMILY !== 'Windows') {
             $command = 'export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:$PATH"; '.$command;
         }

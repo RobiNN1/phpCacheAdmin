@@ -20,7 +20,7 @@ use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Template;
 
 /**
- * The remote server is this PHP through InProcessRemoteClient, so it has to show exactly what the local one does.
+ * The remote server is this PHP (InProcessRemoteClient), it must show what the local one does.
  */
 final class RemoteServersTest extends TestCase {
     private string|false $env_backup = false;

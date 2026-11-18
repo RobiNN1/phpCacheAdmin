@@ -356,7 +356,7 @@ class KeyList {
         });
     }
 
-    // Check all keys in a table or a tree view group (delegated, the per-folder checkboxes are nested).
+    // Check all keys in a table or a tree view group.
     #init_check_all() {
         document.addEventListener('change', (e) => {
             if (!e.target.matches('input[type="checkbox"].check-all')) {
@@ -694,7 +694,7 @@ const auth_warning = (modal) => {
 };
 
 /**
- * Sets the first user from the notice. The server logs this session in, so the page is reloaded once it answers.
+ * Sets the first user from the notice, then reloads the page.
  */
 const auth_setup = () => {
     const form = document.getElementById('auth_setup_form');
@@ -829,9 +829,7 @@ class ViewKeyModal {
 }
 
 /**
- * Sub-item search (view a key array)
- *
- * Delegated so it also works when the key view is loaded into a modal.
+ * Sub-item search in a key view, delegated so it also works in the modal.
  */
 const submit_subsearch = () => {
     const form = document.getElementById('subsearch_form');
@@ -859,10 +857,7 @@ document.addEventListener('keypress', e => {
 });
 
 /**
- * Charts
- *
- * Updating:
- * https://echarts.apache.org/en/builder/echarts.html?charts=line,treemap&components=gridSimple,title,legendScroll,tooltip&svg=true&api=true
+ * Charts, custom ECharts build: https://echarts.apache.org/en/builder/echarts.html?charts=line,treemap&components=gridSimple,title,legendScroll,tooltip&svg=true&api=true
  */
 const chart_series_names = new WeakMap();
 
@@ -1399,7 +1394,7 @@ class TabsOverflow {
 }
 
 /**
- * Settings modal: tabs, server rows and saving over ajax. Untouched passwords are sent as null, so the server keeps them.
+ * Settings modal: tabs, server rows and saving over ajax, untouched passwords are sent as null.
  */
 class SettingsForm {
     constructor(form) {

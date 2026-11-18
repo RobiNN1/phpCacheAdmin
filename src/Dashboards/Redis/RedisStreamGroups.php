@@ -12,7 +12,7 @@ use Throwable;
 
 trait RedisStreamGroups {
     /**
-     * A stream rarely has more than a handful of groups, but each one costs two extra commands, so the number of them a single key view can trigger is capped.
+     * Caps the groups one key view loads, each costs two extra commands.
      */
     private int $max_groups = 25;
 
@@ -96,8 +96,7 @@ trait RedisStreamGroups {
             $rows[] = [
                 'name'     => (string) ($consumer['name'] ?? ''),
                 'pending'  => (int) ($consumer['pending'] ?? 0),
-                // Both are milliseconds. 'inactive' is Redis 7.2+, it measures the last successful read instead of the last command,
-                // so a consumer polling an empty stream is not counted as active.
+                // Both in milliseconds, 'inactive' (Redis 7.2+) counts only successful reads.
                 'idle'     => (int) ($consumer['idle'] ?? 0),
                 'inactive' => isset($consumer['inactive']) ? (int) $consumer['inactive'] : null,
             ];

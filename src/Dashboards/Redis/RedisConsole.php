@@ -18,8 +18,7 @@ trait RedisConsole {
     use ConsoleTrait;
 
     /**
-     * Commands that would block the PHP request, hijack the connection, crash the server, or run code on it.
-     * Anything else can be blocked with the 'redisblockedcommands' option.
+     * Commands that would block the request, take over the connection, crash the server or run code on it.
      *
      * @var array<int, string>
      */
@@ -33,7 +32,7 @@ trait RedisConsole {
     ];
 
     /**
-     * Blocked commands the dashboard covers with a tab, so the error can point there instead of being a dead end.
+     * Blocked commands covered by a tab, the error points there.
      *
      * @var array<string, string>
      */
@@ -45,7 +44,7 @@ trait RedisConsole {
     ];
 
     /**
-     * Allowed commands whose raw reply the dashboard also renders as a formatted tab, offered after the output.
+     * Allowed commands that also have a formatted tab, linked after the output.
      *
      * @var array<string, string>
      */

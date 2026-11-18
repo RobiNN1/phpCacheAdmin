@@ -12,14 +12,14 @@ trait AnalysisTrait {
     private int $top_items = 15;
 
     /**
-     * The lowest value still worth collecting, per column. Set once a buffer has been trimmed.
+     * The lowest value still worth collecting, per column.
      *
      * @var array<string, int>
      */
     private array $top_thresholds = [];
 
     /**
-     * Cutoffs left over from a previous run would silently drop rows from the next one, so every analysis has to start with this.
+     * Must run before every analysis, old cutoffs would drop rows.
      */
     private function resetTopThresholds(): void {
         $this->top_thresholds = [];
@@ -27,7 +27,6 @@ trait AnalysisTrait {
 
     /**
      * Collect a row only if it can still make the top list.
-     * With many keys, check canMakeTop() first, so the row is not built for every key.
      *
      * @param array<int, array<string, mixed>> $buffer
      * @param array<string, mixed>             $row
@@ -57,7 +56,7 @@ trait AnalysisTrait {
             return $key;
         }
 
-        // The same as exploding the key and joining the first parts back, without building the arrays for every key.
+        // Faster than explode() and implode() for every key.
         $end = strpos($key, $separator);
 
         if ($end === false) {

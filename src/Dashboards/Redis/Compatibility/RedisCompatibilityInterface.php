@@ -133,9 +133,7 @@ interface RedisCompatibilityInterface {
     public function pipelineKeys(array $keys): array;
 
     /**
-     * Get key size.
-     *
-     * Requires Redis >= 4.0.0.
+     * Get key size, requires Redis >= 4.0.0.
      */
     public function size(string $key): int;
 

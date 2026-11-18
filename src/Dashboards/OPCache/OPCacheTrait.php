@@ -42,7 +42,7 @@ trait OPCacheTrait {
     }
 
     /**
-     * The list of scripts is the largest part of the response, so it is only requested for the tabs that show it.
+     * Request the scripts only for the tabs that show them.
      *
      * @return array<int, string>
      */

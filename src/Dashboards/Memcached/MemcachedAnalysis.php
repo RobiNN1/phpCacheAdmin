@@ -53,7 +53,7 @@ trait MemcachedAnalysis {
             return $data + ['analysis' => null, 'tab_message' => 'There are no keys to analyze.'];
         }
 
-        return $data + ['analysis' => $this->analyzeKeys($lines)];
+        return $data + ['analysis' => $this->analyzeKeys($lines, $this->memcached->serverTime())];
     }
 
     /**
@@ -111,7 +111,7 @@ trait MemcachedAnalysis {
             [
                 'label' => 'Keys analyzed',
                 'value' => Format::number($summary['analyzed']),
-                'note'  => 'every key on the server',
+                'note'  => $summary['expired'] > 0 ? 'every live key, '.Format::number($summary['expired']).' expired skipped' : 'every key on the server',
             ],
             [
                 'label' => 'Memory in keys',
@@ -128,23 +128,31 @@ trait MemcachedAnalysis {
                 'value' => Format::number($summary['no_expiry']['count']),
                 'note'  => Format::bytes($summary['no_expiry']['memory']).', evicted only when memory runs out',
             ],
+            [
+                'label' => 'Never read',
+                'value' => Format::number($summary['never_read']['count']),
+                'note'  => Format::bytes($summary['never_read']['memory']).' stored but not fetched since',
+            ],
         ];
     }
 
     /**
      * @param array<int, string> $lines
+     * @param int|null           $time The server clock, metadump times are absolute timestamps of it.
      *
      * @return array<string, mixed>
      */
-    public function analyzeKeys(array $lines): array {
+    public function analyzeKeys(array $lines, ?int $time = null): array {
         $separator = $this->servers[$this->current_server]['separator'] ?? ':';
-        $time = time();
+        $time ??= time();
 
         $this->resetTopThresholds();
 
         $analyzed = 0;
         $total_memory = 0;
         $no_expiry = ['count' => 0, 'memory' => 0];
+        $never_read = ['count' => 0, 'memory' => 0];
+        $expired = 0;
         $namespaces = [];
         $expiry = array_fill_keys(array_keys($this->exp_buckets), 0);
         $idle = array_fill_keys(array_keys($this->idle_buckets), 0);
@@ -162,6 +170,17 @@ trait MemcachedAnalysis {
             $size = (int) ($data['size'] ?? 0);
             $exp = (int) ($data['exp'] ?? -1);
             $last_access = (int) ($data['la'] ?? 0);
+
+            // Still in the dump until the server reclaims it, but no longer in the cache.
+            if ($exp !== -1 && $exp <= $time) {
+                $expired++;
+                continue;
+            }
+
+            if (($data['fetch'] ?? true) === false) {
+                $never_read['count']++;
+                $never_read['memory'] += $size;
+            }
 
             $analyzed++;
             $total_memory += $size;
@@ -195,6 +214,8 @@ trait MemcachedAnalysis {
             'memory'     => $total_memory,
             'avg_memory' => (int) round($total_memory / $analyzed),
             'no_expiry'  => $no_expiry,
+            'never_read' => $never_read,
+            'expired'    => $expired,
             'namespaces' => count($namespaces),
             'separator'  => $separator,
         ];

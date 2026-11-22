@@ -1,0 +1,86 @@
+{% set field_class = 'py-1.5 px-3 text-sm bg-white rounded border border-gray-300 focus:outline-hidden focus:ring-3 focus:ring-primary-200 focus:border-primary-300
+    dark:text-white dark:bg-gray-800 dark:border-gray-600 dark:focus:ring-primary-500 dark:focus:border-primary-400' %}
+{% set label_class = 'block mb-1 text-xs font-semibold text-gray-600 dark:text-gray-300' %}
+
+{% if can_filter %}
+    <details class="border-t border-gray-200 dark:border-gray-700"{{ filters_open or matching is not null ? ' open' : '' }}>
+        <summary class="py-2 px-6 text-sm font-semibold text-gray-600 cursor-pointer select-none dark:text-gray-300">
+            Filters
+            {% if matching is not null %}
+                <span class="font-normal text-gray-500 dark:text-gray-400">· {{ matching|number }} matching</span>
+            {% endif %}
+            {% if expired_keys > 0 %}
+                <span class="font-normal text-gray-500 dark:text-gray-400"
+                      title="They are still in the dump, the server removes expired keys lazily.">· {{ expired_keys|number }} expired not shown</span>
+            {% endif %}
+        </summary>
+
+        <form method="get" class="flex flex-wrap gap-3 items-end px-6 pb-4">
+            {% for name, value in filter_query %}
+                <input type="hidden" name="{{ name }}" value="{{ value }}">
+            {% endfor %}
+
+            <div>
+                <label for="filter_s" class="{{ label_class }}">Key</label>
+                <div class="flex">
+                    <select id="filter_match" name="match" aria-label="Match" class="select py-1.5 px-3 pe-5 text-sm bg-white rounded-l border border-r-0 border-gray-300 appearance-none dark:text-white dark:bg-gray-800 dark:border-gray-600">
+                        {% for value, name in {contains: 'Contains', prefix: 'Starts with', regex: 'Regex'} %}
+                            <option value="{{ value }}"{{ filters.match == value ? ' selected' : '' }}>{{ name }}</option>
+                        {% endfor %}
+                    </select>
+                    <input id="filter_s" name="s" type="text" value="{{ filters.s }}" placeholder="Search..." class="{{ field_class }} rounded-l-none w-56">
+                </div>
+            </div>
+
+            <div>
+                <label for="filter_expin" class="{{ label_class }}">Expires within (s)</label>
+                <input id="filter_expin" name="expin" type="number" min="0" value="{{ filters.expin ?: '' }}" class="{{ field_class }} w-36">
+            </div>
+
+            <div>
+                <label for="filter_idle" class="{{ label_class }}">Unused for over (s)</label>
+                <input id="filter_idle" name="idle" type="number" min="0" value="{{ filters.idle ?: '' }}" class="{{ field_class }} w-36">
+            </div>
+
+            <div>
+                <span class="{{ label_class }}">Size (bytes)</span>
+                <div class="flex gap-1 items-center">
+                    <input name="minsize" type="number" min="0" value="{{ filters.minsize ?: '' }}" placeholder="Min" aria-label="Minimum size" class="{{ field_class }} w-24">
+                    <span class="text-gray-400">–</span>
+                    <input name="maxsize" type="number" min="0" value="{{ filters.maxsize ?: '' }}" placeholder="Max" aria-label="Maximum size" class="{{ field_class }} w-24">
+                </div>
+            </div>
+
+            {# Not macros.checkbox(), its negative margin aligns it in table rows and lifts it above the label here. #}
+            <div class="flex flex-col gap-1.5">
+                {% for name, label in {nf: 'Never read', noexp: 'Without expiry'} %}
+                    <label class="inline-flex gap-2 items-center text-sm leading-none"{{ name == 'nf' ? ' title="Keys that are stored but nobody has read since."'|raw : '' }}>
+                        <input type="checkbox" id="filter_{{ name }}" name="{{ name }}" value="1"{{ filters[name] ? ' checked' : '' }}
+                               class="checkbox shrink-0 h-4 w-4 appearance-none rounded border border-gray-300 bg-white checked:border-primary-200 checked:bg-primary-500
+                               focus:outline-hidden focus:ring-3 focus:ring-primary-200 dark:bg-gray-900 dark:border-gray-600 dark:checked:bg-primary-500 dark:focus:ring-primary-400">
+                        {{ label }}
+                    </label>
+                {% endfor %}
+            </div>
+
+            <div class="flex gap-2">
+                {{ include('components/button.twig', {text: 'Apply', icon: 'search', submit: true}) }}
+                <a href="?{{ filter_query|url_encode }}" class="inline-flex items-center py-1.5 px-3 text-sm font-semibold text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white">Reset</a>
+            </div>
+        </form>
+
+        {% if matching and not readonly %}
+            <form method="post" class="px-6 pb-4">
+                <input type="hidden" name="csrf_token" value="{{ csrf }}">
+                {{ include('components/button.twig', {
+                    text: 'Delete ' ~ matching|number ~ (matching == 1 ? ' matching key' : ' matching keys'),
+                    icon: 'trash',
+                    id: 'delete_matching',
+                    color: 'red',
+                    submit: true,
+                    attributes: {'data-confirm': 'Delete ' ~ matching|number ~ (matching == 1 ? ' key that matches' : ' keys that match') ~ ' the search and filters? This cannot be undone.'},
+                }) }}
+            </form>
+        {% endif %}
+    </details>
+{% endif %}

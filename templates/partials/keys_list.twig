@@ -80,6 +80,10 @@
         </div>
     </div>
 
+    {% if filters_template is defined %}
+        {{ include(filters_template) }}
+    {% endif %}
+
     {% if treeview and get('view', config('listview', 'table')) == 'tree' %}
         {{ include('partials/tree_view.twig') }}
     {% else %}

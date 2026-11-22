@@ -62,6 +62,8 @@ return [
             //'path' => '/var/run/redis/redis-server.sock', // Unix domain socket (optional).
             //'databases' => 16, // Number of databases, use this if the CONFIG command is disabled (optional).
             //'separator' => ':', // Separator for tree view (optional).
+            //'readonly' => true, // Block all destructive actions only on this server (optional).
+            //'color' => 'red', // Mark the server, e.g. production: red, orange, amber, green, teal, blue, violet, pink, gray or a #hex code (optional).
         ],
     ],
     'memcachedoptions' => [
@@ -75,6 +77,8 @@ return [
             //'path' => '/var/run/memcached/memcached.sock', // Unix domain socket (optional).
             //'separator' => ':', // Separator for tree view (optional).
             //'extension' => true, // Enable Memcached extension only for get and set operations (optional).
+            //'readonly' => true, // Block all destructive actions only on this server (optional).
+            //'color' => 'red', // Mark the server, e.g. production: red, orange, amber, green, teal, blue, violet, pink, gray or a #hex code (optional).
         ],
     ],
     'apcu' => [

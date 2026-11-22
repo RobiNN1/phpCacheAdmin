@@ -41,13 +41,16 @@
 </head>
 <body class="flex flex-col min-h-screen text-gray-900 bg-gray-100 dark:text-gray-200 dark:bg-gray-900" data-dashboard="{{ current }}">
 <div id="alerts">{{ alerts|raw }}</div>
+{% if server_color %}
+    <div class="h-1 shrink-0" style="background-color: {{ server_color }};" aria-hidden="true"></div>
+{% endif %}
 <header class="flex flex-wrap gap-4 items-center p-4 bg-white border-b border-gray-200 lg:grid lg:grid-cols-3 dark:bg-gray-800 dark:border-gray-700">
     <div class="flex flex-wrap gap-2 items-center min-w-0">
         <a class="block shrink-0 w-52 lg:w-80" href="{{ config('url', '/') }}" aria-label="Go to homepage">{{ svg('logo', null) }}</a>
 
-        {% if config('readonly') %}
+        {% if config('readonly') or server_readonly %}
             <span class="py-1 px-2 font-bold text-[11px] whitespace-nowrap rounded-full bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200"
-                  title="Nothing can be changed or deleted.">Read-only</span>
+                  title="{{ config('readonly') ? 'Nothing can be changed or deleted.' : 'Nothing can be changed or deleted on this server.' }}">Read-only</span>
         {% endif %}
     </div>
 
@@ -72,7 +75,9 @@
                     <input type="hidden" name="csrf_token" value="{{ csrf }}">
                     <button type="submit" name="pca_logout" value="1" title="Log out"
                             class="flex gap-2 items-center py-2 px-3 text-sm leading-none text-gray-500 rounded-sm border border-gray-300 cursor-pointer dark:text-gray-400 dark:border-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:hover:text-gray-100 dark:hover:bg-gray-950">
-                        {% if logout_user %}<span class="hidden font-semibold sm:inline">{{ logout_user }}</span>{% endif %}
+                        {% if logout_user %}
+                            <span class="hidden font-semibold sm:inline">{{ logout_user }}</span>
+                        {% endif %}
                         {{ svg('logout', 18) }}
                     </button>
                 </form>

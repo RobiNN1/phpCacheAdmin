@@ -566,6 +566,8 @@ final class MemcachedTest extends TestCase {
         yield 'slab rebalancing' => ['slabs automove 1'];
         yield 'lru tuning' => ['lru mode flat'];
         yield 'log verbosity' => ['verbosity 2'];
+        yield 'crawler off' => ['lru_crawler disable'];
+        yield 'crawler sleep' => ['lru_crawler sleep 0'];
     }
 
     /**
@@ -660,7 +662,44 @@ final class MemcachedTest extends TestCase {
         $this->assertSame(203, $analysis['summary']['analyzed']);
         $this->assertSame(2, $analysis['summary']['namespaces']);
         $this->assertSame(202, $analysis['summary']['no_expiry']['count']);
-        $this->assertCount(4, $analysis['tiles']);
+        $this->assertCount(5, $analysis['tiles']);
+
+        $this->memcached->flush();
+    }
+
+    /**
+     * @throws MemcachedException
+     */
+    public function testAnalysisNeverReadKeys(): void {
+        $this->skipBelowMemcached('1.6.0', 'The fetched flag');
+
+        $analysis = $this->runAnalysis();
+
+        // Nothing has read the keys, and the analysis itself must not either.
+        $this->assertSame(203, $analysis['summary']['never_read']['count']);
+
+        $this->memcached->set('pu-analysis:read', 'value');
+        $this->memcached->runCommand('get pu-analysis:read');
+
+        $analysis = $this->dashboard->analyzeKeys($this->memcached->getKeys());
+
+        $this->assertSame(203, $analysis['summary']['never_read']['count']);
+        $this->assertSame(204, $analysis['summary']['analyzed']);
+
+        $this->memcached->flush();
+    }
+
+    /**
+     * @throws MemcachedException
+     */
+    public function testAnalysisSkipsExpiredKeys(): void {
+        $this->runAnalysis();
+
+        // On a later server clock the key with a 300 s TTL is gone.
+        $analysis = $this->dashboard->analyzeKeys($this->memcached->getKeys(), $this->memcached->serverTime() + 400);
+
+        $this->assertSame(202, $analysis['summary']['analyzed']);
+        $this->assertSame(1, $analysis['summary']['expired']);
 
         $this->memcached->flush();
     }
@@ -868,6 +907,293 @@ final class MemcachedTest extends TestCase {
         }
 
         unlink($tmp_file_path);
+    }
+
+    /**
+     * @throws MemcachedException
+     */
+    public function testExportAndImportKeepFlags(): void {
+        $key = 'pu:mem:flags';
+        $this->memcached->set($key, 'a:0:{}', 0, 4);
+        $_GET['s'] = 'pu:mem:flags';
+        $_GET['export_btn'] = '1';
+
+        $exported = Helpers::export(
+            [['key' => urlencode($key), 'ttl' => -1]],
+            'memcached_backup',
+            fn (string $key): ?array => $this->callPrivate('exportValue', urldecode($key)),
+            true
+        );
+
+        $this->assertStringContainsString('"flags":4', (string) $exported);
+
+        $this->memcached->delete($key);
+
+        $tmp_file_path = (string) tempnam(sys_get_temp_dir(), 'pu-');
+        file_put_contents($tmp_file_path, (string) $exported);
+        $_FILES['import'] = ['name' => 'i.json', 'type' => 'application/json', 'tmp_name' => $tmp_file_path, 'error' => UPLOAD_ERR_OK, 'size' => filesize($tmp_file_path)];
+
+        Helpers::import(
+            fn (string $key): bool => $this->memcached->exists($key),
+            fn (string $key, string $value, int $ttl, array $data = []): bool => $this->memcached->set(urldecode($key), base64_decode($value), $ttl, (int) ($data['flags'] ?? 0)),
+            true
+        );
+
+        $this->assertSame(4, $this->memcached->getItem($key)['flags'] ?? null);
+
+        $this->memcached->delete($key);
+        unlink($tmp_file_path);
+    }
+
+    private function callPrivate(string $method, mixed ...$args): mixed {
+        return (fn () => $this->{$method}(...$args))->call($this->dashboard);
+    }
+
+    /**
+     * @param array<string, string> $filters
+     *
+     * @return array<int, string> Matching keys.
+     *
+     * @throws MemcachedException
+     */
+    private function filteredKeys(array $filters): array {
+        $_GET = $filters;
+
+        $keys = array_map(fn (string $line): string => urldecode((string) $this->memcached->parseLine($line)['key']), $this->dashboard->getAllKeys());
+        sort($keys);
+
+        return $keys;
+    }
+
+    /**
+     * @throws MemcachedException
+     */
+    public function testKeyFilters(): void {
+        $this->skipBelowMemcached('1.5.19', 'Key filters');
+
+        $this->memcached->set('pu-filter:small', 'x');
+        $this->memcached->set('pu-filter:big', str_repeat('x', 5000));
+        $this->memcached->set('pu-filter:ttl', 'x', 60);
+        $this->memcached->set('pu-filter:read', 'x');
+        $this->memcached->runCommand('get pu-filter:read');
+        $this->memcached->set('other:pu-filter', 'x');
+
+        $this->assertSame(['other:pu-filter', 'pu-filter:big', 'pu-filter:read', 'pu-filter:small', 'pu-filter:ttl'], $this->filteredKeys(['s' => 'pu-filter']));
+        $this->assertSame(['pu-filter:big', 'pu-filter:read', 'pu-filter:small', 'pu-filter:ttl'], $this->filteredKeys(['s' => 'pu-filter:', 'match' => 'prefix']));
+        $this->assertSame(['pu-filter:big', 'pu-filter:small'], $this->filteredKeys(['s' => '^pu-filter:(big|small)$', 'match' => 'regex']));
+        $this->assertSame(['pu-filter:big'], $this->filteredKeys(['s' => 'pu-filter', 'minsize' => '1000']));
+        $this->assertSame(['pu-filter:ttl'], $this->filteredKeys(['s' => 'pu-filter', 'expin' => '120']));
+        $this->assertSame(['other:pu-filter', 'pu-filter:big', 'pu-filter:read', 'pu-filter:small'], $this->filteredKeys(['s' => 'pu-filter', 'noexp' => 'on']));
+
+        if (version_compare($this->memcached->version(), '1.6.0', '>=')) {
+            $this->assertNotContains('pu-filter:read', $this->filteredKeys(['s' => 'pu-filter', 'nf' => 'on']));
+            $this->assertContains('pu-filter:small', $this->filteredKeys(['s' => 'pu-filter', 'nf' => 'on']));
+        }
+
+        $this->memcached->flush();
+    }
+
+    /**
+     * @throws MemcachedException
+     */
+    public function testInvalidRegexMatchesNothing(): void {
+        $this->memcached->set('pu-regex', 'x');
+
+        $this->assertSame([], $this->filteredKeys(['s' => '(', 'match' => 'regex']));
+
+        $this->memcached->delete('pu-regex');
+    }
+
+    /**
+     * @throws MemcachedException
+     */
+    public function testDeleteMatchingKeys(): void {
+        $this->skipBelowMemcached('1.5.19', 'Key filters');
+
+        for ($i = 0; $i < 30; $i++) {
+            $this->memcached->set('pu-bulk:'.$i, 'x');
+        }
+
+        $this->memcached->set('pu-keep', 'x');
+
+        $_GET = ['s' => 'pu-bulk:', 'match' => 'prefix'];
+
+        $this->assertStringContainsString('30 matching keys have been deleted', (string) $this->callPrivate('deleteMatchingKeys'));
+        $this->assertFalse($this->memcached->exists('pu-bulk:0'));
+        $this->assertFalse($this->memcached->exists('pu-bulk:29'));
+        $this->assertTrue($this->memcached->exists('pu-keep'));
+
+        $this->memcached->delete('pu-keep');
+    }
+
+    /**
+     * @throws MemcachedException
+     */
+    public function testDeleteMatchingKeysNeedsAFilter(): void {
+        $this->memcached->set('pu-keep', 'x');
+
+        $this->assertStringContainsString('Set a search or a filter first', (string) $this->callPrivate('deleteMatchingKeys'));
+        $this->assertTrue($this->memcached->exists('pu-keep'));
+
+        $this->memcached->delete('pu-keep');
+    }
+
+    /**
+     * @throws MemcachedException
+     */
+    public function testGetItem(): void {
+        $key = 'pu-item';
+        $this->memcached->set($key, "multi\r\nEND\r\nline", 120, 52);
+
+        $item = $this->memcached->getItem($key);
+
+        $this->assertNotNull($item);
+        $this->assertSame("multi\r\nEND\r\nline", $item['value']);
+        $this->assertSame(52, $item['flags']);
+        $this->assertGreaterThan(110, $item['exp']);
+        $this->assertNull($this->memcached->getItem('pu-item-missing'));
+
+        $this->memcached->delete($key);
+    }
+
+    /**
+     * @throws MemcachedException
+     */
+    public function testViewingAKeyDoesNotMarkItAsFetched(): void {
+        $this->skipBelowMemcached('1.6.0', 'Meta commands');
+
+        $key = 'pu-not-fetched';
+        $this->memcached->set($key, 'value');
+
+        $_GET['view'] = 'key';
+        $_GET['key'] = $key;
+        $this->dashboard->ajax();
+        $this->memcached->exists($key);
+        $this->memcached->get($key);
+
+        $this->assertFalse($this->memcached->getKeyMeta($key)['fetch']);
+
+        $this->memcached->runCommand('get '.$key);
+
+        $this->assertTrue($this->memcached->getKeyMeta($key)['fetch']);
+
+        $this->memcached->delete($key);
+    }
+
+    /**
+     * @throws MemcachedException
+     */
+    public function testTouch(): void {
+        $key = 'pu-touch';
+        $this->memcached->set($key, 'value', 60);
+
+        $this->assertTrue($this->memcached->touch($key, 500));
+        $this->assertGreaterThan(400, $this->memcached->getKeyMeta($key)['exp']);
+        $this->assertSame('value', $this->memcached->get($key));
+
+        $this->assertTrue($this->memcached->touch($key, 0));
+        $this->assertSame(-1, $this->memcached->getKeyMeta($key)['exp']);
+        $this->assertFalse($this->memcached->touch('pu-touch-missing', 10));
+
+        $this->memcached->delete($key);
+    }
+
+    /**
+     * @throws MemcachedException
+     */
+    public function testChangeTtlInKeyView(): void {
+        $key = 'pu-change-ttl';
+        $this->memcached->set($key, 'value');
+
+        $_GET['view'] = 'key';
+        $_GET['key'] = $key;
+        $_POST['change_ttl'] = '';
+        $_POST['ttl'] = '300';
+        $this->setCsrfToken();
+        Http::stopRedirect();
+
+        $this->dashboard->ajax();
+
+        $this->assertGreaterThan(200, $this->memcached->getKeyMeta($key)['exp']);
+
+        $this->memcached->delete($key);
+    }
+
+    /**
+     * Memcached reads an expiration over 30 days as a timestamp, a long TTL must not expire the key at once.
+     *
+     * @throws MemcachedException
+     */
+    public function testLongTtl(): void {
+        $key = 'pu-long-ttl';
+        $ttl = 40 * 86400;
+        $this->memcached->set($key, 'value', $ttl);
+
+        $this->assertTrue($this->memcached->exists($key));
+        $this->assertGreaterThan($ttl - 10, $this->memcached->getKeyMeta($key)['exp']);
+
+        $this->memcached->delete($key);
+    }
+
+    /**
+     * @throws MemcachedException
+     */
+    public function testDeleteMany(): void {
+        $keys = [];
+
+        for ($i = 0; $i < 1200; $i++) {
+            $keys[] = 'pu-many:'.$i;
+            $this->memcached->set('pu-many:'.$i, 'x');
+        }
+
+        $this->assertSame(1200, $this->memcached->deleteMany($keys));
+        $this->assertFalse($this->memcached->exists('pu-many:0'));
+        $this->assertFalse($this->memcached->exists('pu-many:1199'));
+        $this->assertTrue($this->memcached->isConnected());
+    }
+
+    /**
+     * @throws MemcachedException
+     */
+    public function testSaveKeyKeepsFlags(): void {
+        $key = 'pu-save-flags';
+
+        $_POST = ['key' => $key, 'value' => 'a:0:{}', 'encoder' => 'none', 'flags' => '4', 'expire' => '0'];
+
+        Http::stopRedirect();
+        $this->dashboard->saveKey();
+
+        $this->assertSame(4, $this->memcached->getItem($key)['flags'] ?? null);
+
+        $this->memcached->delete($key);
+    }
+
+    /**
+     * @throws MemcachedException
+     */
+    public function testEditFormDecompressesAndDropsTheCompressionBits(): void {
+        $key = 'pu-form-compressed';
+        $original = str_repeat('compress me ', 50);
+        $this->memcached->set($key, pack('V', strlen($original)).gzcompress($original), 0, 4 | 16 | 32);
+
+        $_GET['form'] = 'edit';
+        $_GET['key'] = $key;
+
+        $form = (string) $this->callPrivate('form');
+
+        $this->assertStringContainsString(trim($original), $form);
+        $this->assertMatchesRegularExpression('/name="flags"[^>]*value="4"/', $form);
+
+        $this->memcached->delete($key);
+    }
+
+    public function testReadableStats(): void {
+        $stats = $this->dashboard->readableStats(['limit_maxbytes' => 67_108_864, 'uptime' => 90061, 'curr_items' => 5, 'bytes' => 10]);
+
+        $this->assertStringContainsString('67108864 (', (string) $stats['limit_maxbytes']);
+        $this->assertStringContainsString('1 day 1 hour 1 minute 1 second', (string) $stats['uptime']);
+        $this->assertSame(5, $stats['curr_items']);
+        $this->assertSame(10, $stats['bytes']);
     }
 
     public function testParseConnections(): void {

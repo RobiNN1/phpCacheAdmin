@@ -125,4 +125,19 @@ final class ReadonlyModeTest extends TestCase {
         $this->assertNull(ReadonlyMode::guard());
         $this->assertSame('redis', $_GET['dashboard']);
     }
+
+    public function testServerCanBeReadonlyOnItsOwn(): void {
+        $this->setReadonly(false);
+        $_POST['delete_matching'] = '1';
+        $_POST['change_ttl'] = '1';
+
+        $this->assertFalse(ReadonlyMode::enabled(['host' => '127.0.0.1']));
+        $this->assertTrue(ReadonlyMode::enabled(['host' => '127.0.0.1', 'readonly' => true]));
+        $this->assertFalse(ReadonlyMode::blocks(false, ['readonly' => true]));
+
+        ReadonlyMode::guard(true, ['readonly' => true]);
+
+        $this->assertArrayNotHasKey('delete_matching', $_POST);
+        $this->assertArrayNotHasKey('change_ttl', $_POST);
+    }
 }

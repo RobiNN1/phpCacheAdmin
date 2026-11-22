@@ -18,11 +18,14 @@ trait MemcachedConsole {
     use ConsoleTrait;
 
     /**
-     * Commands that would block the PHP request, hijack the connection, or crash the server.
+     * Commands that would block the PHP request, hijack the connection, crash the server, or retune it (memory, slabs, LRU and its crawler).
      *
      * @var array<int, string>
      */
-    private array $console_blocked = ['WATCH', 'SHUTDOWN', 'CACHE_MEMLIMIT', 'SLABS', 'LRU', 'VERBOSITY'];
+    private array $console_blocked = [
+        'WATCH', 'SHUTDOWN', 'CACHE_MEMLIMIT', 'SLABS', 'LRU', 'VERBOSITY',
+        'LRU_CRAWLER ENABLE', 'LRU_CRAWLER DISABLE', 'LRU_CRAWLER SLEEP', 'LRU_CRAWLER TOCRAWL',
+    ];
 
     /**
      * Blocked commands covered by a tab, the error points there.

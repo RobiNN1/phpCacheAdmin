@@ -141,8 +141,8 @@ class Helpers {
     }
 
     /**
-     * @param callable(string): bool              $exists
-     * @param callable(string, string, int): bool $store
+     * @param callable(string): bool                                    $exists
+     * @param callable(string, string, int, array<string, mixed>): bool $store The whole entry is passed last, e.g. for the Memcached flags.
      *
      * @return array{imported: int, skipped: int, failed: int, error: ?string}
      */
@@ -183,7 +183,7 @@ class Helpers {
                 continue;
             }
 
-            if ($store((string) $data['key'], (string) $data['value'], (int) $data['ttl'])) {
+            if ($store((string) $data['key'], (string) $data['value'], (int) $data['ttl'], $data)) {
                 $result['imported']++;
             } else {
                 $result['failed']++;
@@ -251,6 +251,7 @@ class Helpers {
 
     /**
      * @param array<int, mixed> $keys
+     * @param callable          $value Returns the value, or an array with the value and more fields for the entry.
      */
     public static function export(array $keys, string $filename, callable $value, bool $tests = false): ?string {
         $json = [];
@@ -264,11 +265,12 @@ class Helpers {
             $ttl = $key['info']['ttl'] ?? $key['ttl'] ?? 0;
             $ttl = is_int($ttl) ? $ttl : 0;
 
-            $json[] = [
-                'key'   => $key['key'],
-                'ttl'   => $ttl === -1 ? 0 : $ttl,
-                'value' => $val,
+            $entry = [
+                'key' => $key['key'],
+                'ttl' => $ttl === -1 ? 0 : $ttl,
             ];
+
+            $json[] = is_array($val) ? $entry + $val : $entry + ['value' => $val];
         }
 
         try {
@@ -340,6 +342,36 @@ class Helpers {
         }
 
         return $html;
+    }
+
+    /**
+     * Colors a server can be marked with, e.g. red for production.
+     *
+     * @var array<string, string>
+     */
+    public const SERVER_COLORS = [
+        'red'    => '#ef4444',
+        'orange' => '#f97316',
+        'amber'  => '#f59e0b',
+        'green'  => '#22c55e',
+        'teal'   => '#14b8a6',
+        'blue'   => '#3b82f6',
+        'violet' => '#8b5cf6',
+        'pink'   => '#ec4899',
+        'gray'   => '#6b7280',
+    ];
+
+    /**
+     * A named color or a hex code from the server's 'color' option, null when it is not valid.
+     */
+    public static function serverColor(mixed $color): ?string {
+        if (!is_string($color) || $color === '') {
+            return null;
+        }
+
+        $color = strtolower(trim($color));
+
+        return self::SERVER_COLORS[$color] ?? (preg_match('/^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/', $color) === 1 ? $color : null);
     }
 
     /**

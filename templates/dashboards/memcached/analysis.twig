@@ -62,7 +62,7 @@
 {% else %}
     {% set summary = analysis.summary %}
 
-    <div class="grid grid-cols-2 gap-4 mb-4 xl:grid-cols-4">
+    <div class="grid grid-cols-2 gap-4 mb-4 md:grid-cols-3 xl:grid-cols-5">
         {% for tile in analysis.tiles %}
             <div class="p-4 card">
                 <h3 class="text-xs font-bold uppercase text-primary-900 dark:text-primary-400">{{ tile.label }}</h3>

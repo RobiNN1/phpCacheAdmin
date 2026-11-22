@@ -29,17 +29,19 @@ class Template {
      * @var array<string, bool|int|string>
      */
     private array $globals = [
-        'modals'         => '',
-        'current'        => '',
-        'readonly'       => false,
-        'alerts'         => '',
-        'side'           => '',
-        'servers'        => '',
-        'search_value'   => '',
-        'separator'      => '',
-        'sortdir'        => '',
-        'sortcol'        => '',
-        'page_sort_only' => false,
+        'modals'          => '',
+        'current'         => '',
+        'readonly'        => false,
+        'server_readonly' => false,
+        'server_color'    => '',
+        'alerts'          => '',
+        'side'            => '',
+        'servers'         => '',
+        'search_value'    => '',
+        'separator'       => '',
+        'sortdir'         => '',
+        'sortcol'         => '',
+        'page_sort_only'  => false,
     ];
 
     /**

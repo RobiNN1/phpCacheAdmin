@@ -48,13 +48,13 @@ class RedisDashboard implements DashboardInterface {
 
         $this->servers = Config::get('redis', []);
 
-        if (ReadonlyMode::enabled() || !$this->consoleEnabled()) {
-            unset($this->tabs['console']);
-        }
-
         $server = Http::get('server', 0);
 
         $this->current_server = array_key_exists($server, $this->servers) ? $server : 0;
+
+        if (ReadonlyMode::enabled($this->servers[$this->current_server] ?? null) || !$this->consoleEnabled()) {
+            unset($this->tabs['console']);
+        }
     }
 
     public static function check(): bool {

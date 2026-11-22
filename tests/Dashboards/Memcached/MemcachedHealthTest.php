@@ -37,7 +37,7 @@ final class MemcachedHealthTest extends TestCase {
     public function testChecksAndTheirOrder(): void {
         $names = array_column($this->dashboard->getHealthChecks([]), 'name');
 
-        $this->assertSame(['Memory usage', 'Hit rate', 'Evictions', 'Connections'], $names);
+        $this->assertSame(['Memory usage', 'Hit rate', 'Evictions', 'Evicted before read', 'Connections'], $names);
     }
 
     public function testMemoryCheckHealthy(): void {
@@ -65,20 +65,35 @@ final class MemcachedHealthTest extends TestCase {
     public function testHitRateCheckWithoutStats(): void {
         $hit_rate = $this->checks([])['Hit rate'];
 
-        $this->assertSame('critical', $hit_rate['status']);
+        $this->assertSame('info', $hit_rate['status']);
         $this->assertEqualsWithDelta(0.0, $hit_rate['utilization'], PHP_FLOAT_EPSILON);
+        $this->assertStringContainsString('Too few gets', (string) $hit_rate['suggestion']);
+    }
+
+    public function testHitRateCheckWithTooFewGets(): void {
+        $hit_rate = $this->checks(['cmd_get' => 100, 'get_hits' => 10, 'uptime' => 86400])['Hit rate'];
+
+        $this->assertSame('info', $hit_rate['status']);
+        $this->assertEqualsWithDelta(10.0, $hit_rate['utilization'], PHP_FLOAT_EPSILON);
+    }
+
+    public function testHitRateCheckRightAfterRestart(): void {
+        $hit_rate = $this->checks(['cmd_get' => 10000, 'get_hits' => 1000, 'uptime' => 600])['Hit rate'];
+
+        $this->assertSame('info', $hit_rate['status']);
+        $this->assertStringContainsString('warming up', (string) $hit_rate['suggestion']);
     }
 
     public function testHitRateCheckWarning(): void {
-        $hit_rate = $this->checks(['cmd_get' => 100, 'get_hits' => 60])['Hit rate'];
+        $hit_rate = $this->checks(['cmd_get' => 10000, 'get_hits' => 6000, 'uptime' => 86400])['Hit rate'];
 
         $this->assertSame('warning', $hit_rate['status']);
         $this->assertEqualsWithDelta(60.0, $hit_rate['utilization'], PHP_FLOAT_EPSILON);
-        $this->assertStringContainsString('hit rate can be normal', (string) $hit_rate['suggestion']);
+        $this->assertStringContainsString('TTLs', (string) $hit_rate['suggestion']);
     }
 
     public function testHitRateCheckHealthy(): void {
-        $hit_rate = $this->checks(['cmd_get' => 100, 'get_hits' => 90])['Hit rate'];
+        $hit_rate = $this->checks(['cmd_get' => 10000, 'get_hits' => 9000, 'uptime' => 86400])['Hit rate'];
 
         $this->assertSame('healthy', $hit_rate['status']);
         $this->assertEqualsWithDelta(90.0, $hit_rate['utilization'], PHP_FLOAT_EPSILON);
@@ -144,5 +159,27 @@ final class MemcachedHealthTest extends TestCase {
         $this->assertSame('critical', $connections['status']);
         $this->assertEqualsWithDelta(100.0, $connections['utilization'], PHP_FLOAT_EPSILON);
         $this->assertStringContainsString('rejected', (string) $connections['suggestion']);
+    }
+
+    public function testUnreadEvictionsCheckHealthy(): void {
+        $check = $this->checks(['evictions' => 10, 'evicted_unfetched' => 0])['Evicted before read'];
+
+        $this->assertSame('healthy', $check['status']);
+        $this->assertSame('', $check['suggestion']);
+    }
+
+    public function testUnreadEvictionsCheckWarning(): void {
+        $check = $this->checks(['evictions' => 10, 'evicted_unfetched' => 4])['Evicted before read'];
+
+        $this->assertSame('warning', $check['status']);
+        $this->assertEqualsWithDelta(40.0, $check['utilization'], PHP_FLOAT_EPSILON);
+        $this->assertStringContainsString('-m', (string) $check['suggestion']);
+    }
+
+    public function testConnectionsCheckWithDisabledListener(): void {
+        $connections = $this->checks(['curr_connections' => 1, 'max_connections' => 100, 'listen_disabled_num' => 2])['Connections'];
+
+        $this->assertSame('critical', $connections['status']);
+        $this->assertStringContainsString('stopped accepting', (string) $connections['suggestion']);
     }
 }

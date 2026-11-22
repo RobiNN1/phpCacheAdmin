@@ -55,16 +55,21 @@ class PHPMem {
     /**
      * Store an item.
      *
+     * @param int $expiration In seconds, 0 never expires.
+     * @param int $flags      Client flags, ignored with the extension (it sets its own).
+     *
      * @throws MemcachedException
      */
-    public function set(string $key, mixed $value, int $expiration = 0): bool {
+    public function set(string $key, mixed $value, int $expiration = 0, int $flags = 0): bool {
+        $expiration = $this->expiration($expiration);
+
         if ($this->memcached instanceof Memcached) {
             return $this->memcached->set($key, $value, $expiration);
         }
 
-        $key = preg_replace('/[\s\x00-\x1f]+/', '', $key);
+        $key = $this->cleanKey($key);
         $value = is_scalar($value) ? (string) $value : serialize($value);
-        $raw = $this->runCommand('set '.$key.' 0 '.$expiration.' '.strlen($value)."\r\n".$value);
+        $raw = $this->runCommand('set '.$key.' '.max(0, $flags).' '.$expiration.' '.strlen($value)."\r\n".$value);
 
         return str_starts_with($raw, 'STORED');
     }
@@ -85,7 +90,11 @@ class PHPMem {
             return is_scalar($value) ? (string) $value : serialize($value);
         }
 
-        $key = preg_replace('/[\s\x00-\x1f]+/', '', $key);
+        if ($this->hasMetaCommands()) {
+            return $this->getItem($key)['value'] ?? false;
+        }
+
+        $key = $this->cleanKey($key);
         $this->sendCommand('get '.$key."\r\n");
         $header = $this->readLine();
 
@@ -101,6 +110,77 @@ class PHPMem {
         return $value;
     }
 
+    /**
+     * Read an item with its metadata.
+     *
+     * Since 1.6 this is a single "mg" with the "u" flag, so the item is not bumped in the LRU,
+     * and viewing it does not change its last access time or mark it as fetched.
+     *
+     * @return array{value: string, flags: int, size: int, exp: int, la: ?int, fetch: ?bool, cas: ?int}|null
+     *
+     * @throws MemcachedException
+     */
+    public function getItem(string $key): ?array {
+        $key = $this->cleanKey($key);
+
+        if (!$this->hasMetaCommands()) {
+            $raw = $this->runCommand('gets '.$key);
+            $newline = strpos($raw, "\r\n");
+
+            if ($newline === false || !str_starts_with($raw, 'VALUE ')) {
+                return null;
+            }
+
+            // "VALUE <key> <flags> <bytes> <cas>"
+            $header = explode(' ', substr($raw, 0, $newline));
+            $value = substr($raw, $newline + 2, (int) ($header[3] ?? 0));
+            $meta = $this->getKeyMeta($key);
+
+            return [
+                'value' => $value,
+                'flags' => (int) ($header[2] ?? 0),
+                'size'  => strlen($value),
+                'exp'   => (int) ($meta['exp'] ?? -1),
+                'la'    => isset($meta['la']) ? (int) $meta['la'] : null,
+                'fetch' => $meta['fetch'] ?? null,
+                'cas'   => isset($header[4]) ? (int) $header[4] : null,
+            ];
+        }
+
+        $raw = $this->runCommand('mg '.$key.' s t l h f c v u');
+
+        if (!str_starts_with($raw, 'VA ')) {
+            return null;
+        }
+
+        [$header, $value] = explode("\r\n", $raw, 2) + [1 => ''];
+        $meta = $this->parseMetaFlags(array_slice(explode(' ', $header), 2));
+
+        if ($this->memcached instanceof Memcached) {
+            $value = (string) $this->get($key); // the extension decodes the value
+        }
+
+        return ['value' => $value] + $meta;
+    }
+
+    /**
+     * Change the expiration without rewriting the value.
+     *
+     * @param int $expiration In seconds, 0 never expires.
+     *
+     * @throws MemcachedException
+     */
+    public function touch(string $key, int $expiration): bool {
+        $key = $this->cleanKey($key);
+        $expiration = $this->expiration($expiration);
+
+        // "touch" counts as a fetch, "mg" with "u" changes only the TTL.
+        if ($this->hasMetaCommands()) {
+            return $this->runCommand('mg '.$key.' T'.$expiration.' u') === 'HD';
+        }
+
+        return $this->runCommand('touch '.$key.' '.$expiration) === 'TOUCHED';
+    }
 
     /**
      * Delete item from the server.
@@ -108,9 +188,59 @@ class PHPMem {
      * @throws MemcachedException
      */
     public function delete(string $key): bool {
-        $key = preg_replace('/[\s\x00-\x1f]+/', '', $key);
+        return $this->runCommand('delete '.$this->cleanKey($key)) === 'DELETED';
+    }
 
-        return $this->runCommand('delete '.$key) === 'DELETED';
+    /**
+     * Delete many keys, pipelined with "noreply" so that each key does not wait for a round trip.
+     *
+     * @param iterable<string> $keys
+     *
+     * @return int Number of keys sent, a key that was already gone is counted too.
+     *
+     * @throws MemcachedException
+     */
+    public function deleteMany(iterable $keys, int $batch = 500): int {
+        $sent = 0;
+        $buffer = '';
+        $buffered = 0;
+
+        foreach ($keys as $key) {
+            $key = $this->cleanKey($key);
+
+            if ($key === '') {
+                continue;
+            }
+
+            $buffer .= 'delete '.$key." noreply\r\n";
+            $sent++;
+
+            if (++$buffered >= $batch) {
+                $this->syncNoreply($buffer);
+                $buffer = '';
+                $buffered = 0;
+            }
+        }
+
+        if ($buffer !== '') {
+            $this->syncNoreply($buffer);
+        }
+
+        return $sent;
+    }
+
+    /**
+     * Send noreply commands followed by "version", the reply to it means all of them were processed.
+     *
+     * @throws MemcachedException
+     */
+    private function syncNoreply(string $commands): void {
+        $this->sendCommand($commands."version\r\n");
+
+        // A malformed command is answered with an error even with noreply, skip those lines.
+        do {
+            $line = $this->readLine();
+        } while (!str_starts_with($line, 'VERSION') && $line !== '');
     }
 
     /**
@@ -270,12 +400,12 @@ class PHPMem {
     /**
      * Convert a raw key line to an array.
      *
-     * @return array<string, string|int>
+     * @return array<string, string|int|bool>
      */
     public function parseLine(string $line): array {
         $data = [];
 
-        if (preg_match_all('/(key|exp|la|size)=(\S+)/', $line, $matches, PREG_SET_ORDER)) {
+        if (preg_match_all('/(?:^| )(key|exp|la|size|fetch|cls|flags)=(\S+)/', $line, $matches, PREG_SET_ORDER)) {
             foreach ($matches as [, $key, $val]) {
                 switch ($key) {
                     case 'key':
@@ -286,7 +416,12 @@ class PHPMem {
                         break;
                     case 'la':
                     case 'size':
+                    case 'cls':
+                    case 'flags':
                         $data[$key] = (int) $val;
+                        break;
+                    case 'fetch':
+                        $data['fetch'] = $val === 'yes';
                         break;
                 }
             }
@@ -298,19 +433,31 @@ class PHPMem {
     /**
      * Get key metadata, requires Memcached >= 1.5.19.
      *
+     * "exp" is the remaining TTL in seconds (-1 never expires), "la" the seconds since the last access.
+     *
      * @link https://github.com/memcached/memcached/wiki/ReleaseNotes1519
      *
-     * @return array<string, string|int>
+     * @return array<string, string|int|bool|null>
      *
      * @throws MemcachedException
      */
     public function getKeyMeta(string $key): array {
-        $key = preg_replace('/[\s\x00-\x1f]+/', '', $key);
+        $key = $this->cleanKey($key);
+
+        if ($this->hasMetaCommands()) {
+            $raw = $this->runCommand('mg '.$key.' s t l h f c u');
+
+            if (!str_starts_with($raw, 'HD')) {
+                return [];
+            }
+
+            return $this->parseMetaFlags(array_slice(explode(' ', $raw), 1));
+        }
 
         if (version_compare($this->version(), '1.5.19', '>=')) {
             $raw = $this->runCommand('me '.$key);
 
-            if ($raw === 'ERROR') {
+            if (!str_starts_with($raw, 'ME ')) {
                 return [];
             }
 
@@ -333,7 +480,7 @@ class PHPMem {
             }
 
             if (isset($data['exp']) && $data['exp'] !== -1) {
-                $data['exp'] = max(0, (int) $data['exp'] - time());
+                $data['exp'] = max(0, (int) $data['exp'] - $this->serverTime());
             }
 
             return $data;
@@ -343,18 +490,85 @@ class PHPMem {
     }
 
     /**
-     * Check if the key exists.
+     * The flags of a "mg" reply, e.g. ["s5", "t-1", "l12", "h0", "f0", "c3"].
+     *
+     * @param array<int, string> $tokens
+     *
+     * @return array{flags: int, size: int, exp: int, la: ?int, fetch: ?bool, cas: ?int}
+     */
+    private function parseMetaFlags(array $tokens): array {
+        $meta = ['flags' => 0, 'size' => 0, 'exp' => -1, 'la' => null, 'fetch' => null, 'cas' => null];
+
+        foreach ($tokens as $token) {
+            $value = substr($token, 1);
+
+            match ($token[0] ?? '') {
+                's' => $meta['size'] = (int) $value,
+                't' => $meta['exp'] = (int) $value,
+                'l' => $meta['la'] = (int) $value,
+                'h' => $meta['fetch'] = $value === '1',
+                'f' => $meta['flags'] = (int) $value,
+                'c' => $meta['cas'] = (int) $value,
+                default => null,
+            };
+        }
+
+        return $meta;
+    }
+
+    /**
+     * Check if the key exists, it does not count as access.
      *
      * @throws MemcachedException
      */
     public function exists(string $key): bool {
-        if (version_compare($this->version(), '1.5.19', '>=')) {
-            $key = preg_replace('/[\s\x00-\x1f]+/', '', $key);
+        if ($this->hasMetaCommands()) {
+            return str_starts_with($this->runCommand('mg '.$this->cleanKey($key).' u'), 'HD');
+        }
 
-            return str_starts_with($this->runCommand('me '.$key), 'ME ');
+        if (version_compare($this->version(), '1.5.19', '>=')) {
+            return str_starts_with($this->runCommand('me '.$this->cleanKey($key)), 'ME ');
         }
 
         return $this->get($key) !== false;
+    }
+
+    /**
+     * Meta commands (mg, ms, ...) are stable since 1.6.0.
+     *
+     * @throws MemcachedException
+     */
+    public function hasMetaCommands(): bool {
+        return version_compare($this->version(), '1.6.0', '>=');
+    }
+
+    /**
+     * The server's clock, metadump times (exp, la) are absolute timestamps of this clock.
+     *
+     * @throws MemcachedException
+     */
+    public function serverTime(): int {
+        return (int) ($this->getServerStats()['time'] ?? time());
+    }
+
+    /**
+     * Whitespace and control characters are not allowed in keys of the text protocol.
+     */
+    private function cleanKey(string $key): string {
+        return preg_replace('/[\s\x00-\x1f]+/', '', $key);
+    }
+
+    /**
+     * Memcached reads an expiration over 30 days as a unix timestamp, so longer TTLs are converted to one.
+     *
+     * @throws MemcachedException
+     */
+    private function expiration(int $seconds): int {
+        if ($seconds <= 0) {
+            return 0;
+        }
+
+        return $seconds > 2_592_000 ? $this->serverTime() + $seconds : $seconds;
     }
 
     /**

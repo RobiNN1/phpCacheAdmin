@@ -309,4 +309,14 @@ final class HelpersTest extends TestCase {
     public function testSnakeCase(): void {
         $this->assertSame('test_name_22', Helpers::snakeCase('Test name (22)'));
     }
+
+    public function testServerColor(): void {
+        $this->assertSame(Helpers::SERVER_COLORS['red'], Helpers::serverColor('Red'));
+        $this->assertSame('#abc', Helpers::serverColor('#ABC'));
+        $this->assertSame('#112233', Helpers::serverColor('#112233'));
+        $this->assertNull(Helpers::serverColor('#12'));
+        $this->assertNull(Helpers::serverColor('red;background:url(x)'));
+        $this->assertNull(Helpers::serverColor(null));
+        $this->assertNull(Helpers::serverColor(''));
+    }
 }

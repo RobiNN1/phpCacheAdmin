@@ -22,25 +22,34 @@ class ReadonlyMode {
      * @var array<int, string>
      */
     private const POST_ACTIONS = [
-        'delete', 'deletesub', 'submit', 'submit_import_key', 'kill_client', 'publish', 'command',
+        'delete', 'deletesub', 'submit', 'submit_import_key', 'kill_client', 'publish', 'command', 'delete_matching', 'change_ttl',
     ];
 
-    public static function enabled(): bool {
-        return (bool) Config::get('readonly', false);
+    /**
+     * Read-only for every server, or only for the given one with its 'readonly' option.
+     *
+     * @param array<string, mixed>|null $server
+     */
+    public static function enabled(?array $server = null): bool {
+        return Config::get('readonly', false) || ($server['readonly'] ?? false);
     }
 
     /**
      * Whether the actions of the current dashboard are blocked, a dashboard opts out with 'readonly' => false.
+     *
+     * @param array<string, mixed>|null $server
      */
-    public static function blocks(bool $applies = true): bool {
-        return self::enabled() && $applies;
+    public static function blocks(bool $applies = true, ?array $server = null): bool {
+        return self::enabled($server) && $applies;
     }
 
     /**
      * Block everything that would change data. The UI hides all of these actions.
+     *
+     * @param array<string, mixed>|null $server
      */
-    public static function guard(bool $applies = true): ?string {
-        if (!self::blocks($applies)) {
+    public static function guard(bool $applies = true, ?array $server = null): ?string {
+        if (!self::blocks($applies, $server)) {
             return null;
         }
 

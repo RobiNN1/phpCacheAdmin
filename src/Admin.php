@@ -42,6 +42,23 @@ class Admin {
         return array_key_exists($current, $this->dashboards) ? $current : array_key_first($this->dashboards);
     }
 
+    /**
+     * The selected server of a dashboard with a server list, e.g. 'redis' or 'memcached'.
+     *
+     * @return array<string, mixed>|null
+     */
+    private function currentServer(string $dashboard): ?array {
+        $servers = Config::get($dashboard, []);
+
+        if (!is_array($servers) || $servers === [] || !array_is_list($servers)) {
+            return null;
+        }
+
+        $server = $servers[Http::get('server', 0)] ?? $servers[0];
+
+        return is_array($server) ? $server : null;
+    }
+
     public function render(): string {
         Http::securityHeaders();
 
@@ -58,9 +75,12 @@ class Admin {
         $this->template->addGlobal('current', $current);
 
         $applies = (bool) ($info['readonly'] ?? true);
-        $this->template->addGlobal('readonly', ReadonlyMode::blocks($applies));
+        $server = $this->currentServer($current);
+        $this->template->addGlobal('readonly', ReadonlyMode::blocks($applies, $server));
+        $this->template->addGlobal('server_readonly', $applies && ($server['readonly'] ?? false));
+        $this->template->addGlobal('server_color', Helpers::serverColor($server['color'] ?? null) ?? '');
 
-        if (($blocked = ReadonlyMode::guard($applies)) !== null) {
+        if (($blocked = ReadonlyMode::guard($applies, $server)) !== null) {
             return $blocked;
         }
 

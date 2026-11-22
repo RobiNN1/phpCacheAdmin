@@ -11,6 +11,7 @@ namespace RobiNN\Pca\Dashboards\Memcached;
 use PDO;
 use RobiNN\Pca\Config;
 use RobiNN\Pca\Csrf;
+use RobiNN\Pca\Format;
 use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
 use RobiNN\Pca\Paginator;
@@ -59,8 +60,8 @@ trait MemcachedTrait {
      */
     private function moreinfoTab(): array {
         try {
-            $info = $this->memcached->getServerStats();
-            $info += ['settings' => $this->memcached->getServerStats('settings')];
+            $info = $this->readableStats($this->memcached->getServerStats());
+            $info += ['settings' => $this->readableStats($this->memcached->getServerStats('settings'))];
 
             $server = $this->servers[$this->current_server];
             if (isset($server['extension']) && $server['extension'] === true && extension_loaded('memcached')) {
@@ -74,6 +75,40 @@ trait MemcachedTrait {
     }
 
     /**
+     * Raw values with a readable form next to them, e.g. "67108864 (64 MB)".
+     *
+     * @param array<string, mixed> $stats
+     *
+     * @return array<string, mixed>
+     */
+    public function readableStats(array $stats): array {
+        $bytes = [
+            'bytes', 'limit_maxbytes', 'bytes_read', 'bytes_written', 'hash_bytes', 'total_malloced', 'maxbytes', 'item_size_max',
+            'slab_chunk_max', 'read_buf_bytes', 'read_buf_bytes_free', 'response_obj_bytes', 'round_robin_bytes', 'slab_page_size',
+            'extstore_bytes_used', 'extstore_bytes_written', 'extstore_bytes_read', 'extstore_limit_maxbytes', 'ext_item_size',
+        ];
+
+        foreach ($stats as $name => $value) {
+            if (!is_int($value) || $value <= 0) {
+                continue;
+            }
+
+            $readable = match (true) {
+                in_array($name, $bytes, true) && $value >= 1024 => Format::bytes($value),
+                $name === 'uptime' => Format::seconds($value),
+                $name === 'time' => Format::time($value),
+                default => null,
+            };
+
+            if ($readable !== null) {
+                $stats[$name] = $value.' ('.$readable.')';
+            }
+        }
+
+        return $stats;
+    }
+
+    /**
      * @return array<string, mixed>
      *
      * @throws MemcachedException
@@ -83,7 +118,12 @@ trait MemcachedTrait {
             if (Csrf::validateToken(Http::post('csrf_token', ''))) {
                 Helpers::import(
                     fn (string $key): bool => $this->memcached->exists($key),
-                    fn (string $key, string $value, int $ttl): bool => $this->memcached->set(urldecode($key), base64_decode($value), $ttl)
+                    fn (string $key, string $value, int $ttl, array $data = []): bool => $this->memcached->set(
+                        urldecode($key),
+                        base64_decode($value),
+                        $ttl,
+                        $this->usesExtension() ? 0 : (int) ($data['flags'] ?? 0)
+                    )
                 );
             } else {
                 echo Helpers::alert('Invalid CSRF token.', 'error');
@@ -92,25 +132,34 @@ trait MemcachedTrait {
 
         Helpers::importResultAlert();
 
+        if (isset($_POST['delete_matching'])) {
+            if (Csrf::validateToken(Http::post('csrf_token', ''))) {
+                $this->deleteMatchingKeys();
+            } else {
+                Helpers::alert('Invalid CSRF token.', 'error');
+            }
+        }
+
         $raw_key_lines = $this->getAllKeys();
 
+        if ($this->filter_error !== null) {
+            Helpers::alert($this->filter_error, 'error');
+        }
+
         if (isset($_GET['export_btn'])) {
+            $now = $this->memcached->serverTime();
             $keys_to_export = [];
+
             foreach ($raw_key_lines as $line) {
                 $key_data = $this->memcached->parseLine($line);
+
                 if (isset($key_data['key'])) {
-                    $keys_to_export[] = [
-                        'key' => $key_data['key'],
-                        'ttl' => ($key_data['exp'] ?? -1) === -1 ? -1 : ($key_data['exp'] - time()),
-                    ];
+                    $exp = (int) ($key_data['exp'] ?? -1);
+                    $keys_to_export[] = ['key' => $key_data['key'], 'ttl' => $exp === -1 ? -1 : max(1, $exp - $now)];
                 }
             }
 
-            Helpers::export($keys_to_export, 'memcached_backup', function (string $key): ?string {
-                $value = $this->memcached->get(urldecode($key));
-
-                return $value !== false ? base64_encode($value) : null;
-            });
+            Helpers::export($keys_to_export, 'memcached_backup', fn (string $key): ?array => $this->exportValue(urldecode($key)));
         }
 
         $field = static function (string $line, string $name): string {
@@ -124,7 +173,7 @@ trait MemcachedTrait {
             'ttl'                  => static fn (string $line): int => (int) $field($line, 'exp'),
         ]);
 
-        $paginator = new Paginator($raw_key_lines);
+        $paginator = new Paginator($raw_key_lines, [['pp', 's', 'view', ...$this->filter_params], ['p' => '']]);
         $paginated_raw_lines = $paginator->getPaginated();
 
         if (Http::get('view', Config::get('listview', 'table')) === 'tree') {
@@ -138,7 +187,34 @@ trait MemcachedTrait {
             'all_keys'  => $this->memcached->getServerStats()['curr_items'],
             'paginator' => $paginator->render(),
             'view_key'  => Http::queryString([], ['view' => 'key', 'key' => '__key__']),
-        ];
+        ] + $this->keyFiltersData(count($raw_key_lines));
+    }
+
+    /**
+     * The value with its client flags, an import restores both.
+     *
+     * @return array{value: string, flags?: int}|null
+     *
+     * @throws MemcachedException
+     */
+    private function exportValue(string $key): ?array {
+        $item = $this->memcached->getItem($key);
+
+        if ($item === null) {
+            return null;
+        }
+
+        return ['value' => base64_encode($item['value'])] + ($item['flags'] !== 0 && !$this->usesExtension() ? ['flags' => $item['flags']] : []);
+    }
+
+    /**
+     * With the extension, values are decoded and encoded by it, so the flags are its business.
+     */
+    private function usesExtension(): bool {
+        $server = $this->servers[$this->current_server] ?? [];
+
+        // The same check as in PHPMem, without the extension loaded it falls back to the raw protocol.
+        return ($server['extension'] ?? false) === true && extension_loaded('memcached');
     }
 
     /**

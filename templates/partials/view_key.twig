@@ -18,6 +18,12 @@
         <span class="inline-flex gap-1 items-center">Size {{ macros.badge(size, 'sky') }}</span>
     {% endif %}
 
+    {% for item in meta|default([]) %}
+        <span class="inline-flex gap-1 items-center"{{ item.title is defined ? ' title="%s"'|format(item.title|e('html_attr'))|raw : '' }}>
+            {{ item.label }} {{ macros.badge(item.value, item.color ?? 'sky') }}
+        </span>
+    {% endfor %}
+
     {% if total_items %}
         <span class="inline-flex gap-1 items-center">Items {{ macros.badge(total_items|number, 'sky') }}</span>
     {% endif %}
@@ -51,6 +57,20 @@
         </form>
     {% endif %}
 </div>
+
+{% if ttl_form|default(false) and not readonly %}
+    <form method="post" action="{{ view_url|default('') }}" class="flex flex-wrap gap-2 items-center mb-4 text-sm dark:text-gray-300">
+        <input type="hidden" name="csrf_token" value="{{ csrf }}">
+        <label for="ttl" class="font-semibold">Change TTL</label>
+        <input id="ttl" name="ttl" type="number" min="0" required placeholder="seconds" aria-describedby="ttl_help"
+               class="py-1 px-2 w-32 text-sm bg-white rounded border border-gray-300 focus:outline-hidden focus:ring-3 focus:ring-primary-200 focus:border-primary-300
+               dark:text-white dark:bg-gray-800 dark:border-gray-600 dark:focus:ring-primary-500 dark:focus:border-primary-400">
+        <button type="submit" name="change_ttl" class="inline-flex gap-1 items-center font-semibold text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white">
+            {{ svg('save', 16) }} Set
+        </button>
+        <small id="ttl_help" class="text-xs text-gray-500 dark:text-gray-400">0 removes the expiration. The value is not rewritten.</small>
+    </form>
+{% endif %}
 
 {% if stream_groups is defined and stream_groups.groups is defined %}
     {{ include('partials/stream_groups.twig') }}

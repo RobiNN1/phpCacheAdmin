@@ -1,8 +1,8 @@
 {% import 'components/modal.twig' as modal_component %}
 
 {% set basic_fields = {
-    redis: ['name', 'host', 'port', 'database', 'username', 'password'],
-    memcached: ['name', 'host', 'port'],
+    redis: ['name', 'host', 'port', 'database', 'username', 'password', 'color', 'readonly'],
+    memcached: ['name', 'host', 'port', 'color', 'readonly'],
     remoteservers: ['name', 'url', 'token'],
 } %}
 
@@ -44,7 +44,7 @@
     {% if locked %}
         <small class="block mt-1 text-xs text-amber-700 dark:text-amber-400">Set by the {{ locked }} environment variable.</small>
     {% elseif field.help is defined %}
-        <small class="block mt-1 text-xs text-gray-500 dark:text-gray-400">{{ field.help }}</small>
+        <small class="block mt-1 text-xs text-gray-500 dark:text-gray-400{{ field.type == 'bool' ? ' ms-6' : '' }}">{{ field.help }}</small>
     {% endif %}
 {% endmacro %}
 
@@ -71,7 +71,8 @@
 
         <div class="grid gap-3 sm:grid-cols-2">
             {% for key in basic %}
-                <div>
+                {# A checkbox in the second column lines up with the input beside it, below that input's label. #}
+                <div class="{{ list.fields[key].type == 'bool' and loop.index is even ? 'sm:pt-8' : '' }}">
                     {{ _self.field('settings-' ~ list_key ~ '-' ~ index ~ '-' ~ key, list.fields[key], server[key] ?? '', ' data-field="' ~ key ~ '"' ~ (list.fields[key].type == 'secret' ? ' data-secret' : ''), disabled) }}
                 </div>
             {% endfor %}
@@ -82,9 +83,12 @@
                 {{ svg('down', 10, '-rotate-90 transition-transform group-open:rotate-0') }} Advanced
             </summary>
             <div class="grid gap-3 mt-3 sm:grid-cols-2">
+                {% set column = 0 %}
                 {% for key, field in list.fields %}
                     {% if key not in basic %}
-                        <div class="{{ field.type in ['list', 'json'] ? 'sm:col-span-2' : '' }}">
+                        {% set wide = field.type in ['list', 'json'] %}
+                        {% set column = wide ? 0 : column + 1 %}
+                        <div class="{{ wide ? 'sm:col-span-2' : (field.type == 'bool' and column is even ? 'sm:pt-8' : '') }}">
                             {{ _self.field('settings-' ~ list_key ~ '-' ~ index ~ '-' ~ key, field, server[key] ?? '', ' data-field="' ~ key ~ '"' ~ (field.type == 'secret' ? ' data-secret' : ''), disabled) }}
                         </div>
                     {% endif %}
@@ -95,13 +99,43 @@
 {% endmacro %}
 
 {% macro options(group, fields, disabled) %}
-    <div class="grid gap-4 mb-4 sm:grid-cols-2">
-        {% for key, field in fields %}
-            <div class="{{ field.type in ['list', 'json'] ? 'sm:col-span-2' : (field.type == 'bool' ? 'self-end' : '') }}">
-                {{ _self.field('settings-' ~ group ~ '-' ~ key, field, field.value, ' data-group="' ~ group ~ '" data-key="' ~ key ~ '"', disabled, field.locked) }}
-            </div>
-        {% endfor %}
-    </div>
+    {# Fields grouped by their section, in each one the checkboxes come first, then the inputs in two columns. #}
+    {% set sections = {} %}
+    {% for key, field in fields %}
+        {% set name = field.section ?? '' %}
+        {% set sections = sections|merge({(name): (sections[name] ?? {})|merge({(key): field})}) %}
+    {% endfor %}
+
+    {% for name, section_fields in sections %}
+        <section class="mb-5{{ not loop.first ? ' pt-4 border-t border-gray-200 dark:border-gray-600' : '' }}">
+            {% if name %}
+                <h4 class="mb-3 text-xs font-bold tracking-wide text-gray-500 uppercase dark:text-gray-400">{{ name }}</h4>
+            {% endif %}
+
+            {% set checkboxes = section_fields|filter(field => field.type == 'bool') %}
+            {% set inputs = section_fields|filter(field => field.type != 'bool') %}
+
+            {% if checkboxes is not empty %}
+                <div class="grid gap-3 sm:grid-cols-2{{ inputs is not empty ? ' mb-4' : '' }}">
+                    {% for key, field in checkboxes %}
+                        <div>
+                            {{ _self.field('settings-' ~ group ~ '-' ~ key, field, field.value, ' data-group="' ~ group ~ '" data-key="' ~ key ~ '"', disabled, field.locked) }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            {% if inputs is not empty %}
+                <div class="grid gap-4 sm:grid-cols-2">
+                    {% for key, field in inputs %}
+                        <div class="{{ field.type in ['list', 'json'] ? 'sm:col-span-2' : '' }}">
+                            {{ _self.field('settings-' ~ group ~ '-' ~ key, field, field.value, ' data-group="' ~ group ~ '" data-key="' ~ key ~ '"', disabled, field.locked) }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </section>
+    {% endfor %}
 {% endmacro %}
 
 {% macro content(settings, basic_fields) %}

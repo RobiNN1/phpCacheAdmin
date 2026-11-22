@@ -31,20 +31,20 @@ class Settings {
      */
     public const OPTIONS = [
         'general'          => [
-            'readonly'       => ['type' => 'bool', 'label' => 'Read-only', 'default' => false, 'help' => 'Block all destructive actions (deleting, editing, consoles, ...).'],
-            'console'        => ['type' => 'bool', 'label' => 'Consoles', 'default' => true],
-            'keymodal'       => ['type' => 'bool', 'label' => 'Open keys in a modal', 'default' => false],
-            'listview'       => ['type' => 'select', 'label' => 'Key list view', 'default' => 'table', 'options' => ['table' => 'Table', 'tree' => 'Tree']],
-            'timezone'       => ['type' => 'timezone', 'label' => 'Timezone', 'default' => '', 'placeholder' => 'Automatic'],
-            'timeformat'     => ['type' => 'text', 'label' => 'Time format', 'default' => 'd. m. Y H:i:s', 'help' => 'PHP date() format.'],
-            'decimalsep'     => ['type' => 'text', 'label' => 'Decimal separator', 'default' => ',', 'max' => 3, 'raw' => true],
-            'thousandssep'   => ['type' => 'text', 'label' => 'Thousands separator', 'default' => ' ', 'max' => 3, 'raw' => true],
-            'sortthreshold'  => ['type' => 'int', 'label' => 'Sort threshold', 'default' => 100_000, 'min' => 0, 'help' => 'Above this many keys a column sort only orders the current page. 0 disables the limit.'],
-            'panelrefresh'   => ['type' => 'int', 'label' => 'Panels refresh (s)', 'default' => 30, 'min' => 1, 'max' => 3600],
-            'metricsrefresh' => ['type' => 'int', 'label' => 'Metrics refresh (s)', 'default' => 60, 'min' => 1, 'max' => 3600],
-            'metricstab'     => ['type' => 'select', 'label' => 'Default metrics range', 'default' => '1d', 'options' => ['1h' => 'Last hour', '1d' => 'Last day', '1w' => 'Last week', '1m' => 'Last month']],
-            'liverefresh'    => ['type' => 'int', 'label' => 'Live mode interval (s)', 'default' => 2, 'min' => 1, 'max' => 60],
-            'metricsmaxage'  => ['type' => 'int', 'label' => 'Keep metrics (days)', 'default' => 30, 'min' => 0, 'max' => 3650, 'help' => '0 keeps everything.'],
+            'readonly'       => ['type' => 'bool', 'label' => 'Read-only', 'default' => false, 'section' => 'Access', 'help' => 'Block all destructive actions (deleting, editing, consoles, ...).'],
+            'console'        => ['type' => 'bool', 'label' => 'Consoles', 'default' => true, 'section' => 'Access'],
+            'keymodal'       => ['type' => 'bool', 'label' => 'Open keys in a modal', 'default' => false, 'section' => 'Keys'],
+            'listview'       => ['type' => 'select', 'label' => 'Key list view', 'default' => 'table', 'section' => 'Keys', 'options' => ['table' => 'Table', 'tree' => 'Tree']],
+            'sortthreshold'  => ['type' => 'int', 'label' => 'Sort threshold', 'default' => 100_000, 'section' => 'Keys', 'min' => 0, 'help' => 'Above this many keys a column sort only orders the current page. 0 disables the limit.'],
+            'timezone'       => ['type' => 'timezone', 'label' => 'Timezone', 'default' => '', 'section' => 'Formatting', 'placeholder' => 'Automatic'],
+            'timeformat'     => ['type' => 'text', 'label' => 'Time format', 'default' => 'd. m. Y H:i:s', 'section' => 'Formatting', 'help' => 'PHP date() format.'],
+            'decimalsep'     => ['type' => 'text', 'label' => 'Decimal separator', 'default' => ',', 'section' => 'Formatting', 'max' => 3, 'raw' => true],
+            'thousandssep'   => ['type' => 'text', 'label' => 'Thousands separator', 'default' => ' ', 'section' => 'Formatting', 'max' => 3, 'raw' => true],
+            'panelrefresh'   => ['type' => 'int', 'label' => 'Panels refresh (s)', 'default' => 30, 'section' => 'Refresh and metrics', 'min' => 1, 'max' => 3600],
+            'liverefresh'    => ['type' => 'int', 'label' => 'Live mode interval (s)', 'default' => 2, 'section' => 'Refresh and metrics', 'min' => 1, 'max' => 60],
+            'metricsrefresh' => ['type' => 'int', 'label' => 'Metrics refresh (s)', 'default' => 60, 'section' => 'Refresh and metrics', 'min' => 1, 'max' => 3600],
+            'metricstab'     => ['type' => 'select', 'label' => 'Default metrics range', 'default' => '1d', 'section' => 'Refresh and metrics', 'options' => ['1h' => 'Last hour', '1d' => 'Last day', '1w' => 'Last week', '1m' => 'Last month']],
+            'metricsmaxage'  => ['type' => 'int', 'label' => 'Keep metrics (days)', 'default' => 30, 'section' => 'Refresh and metrics', 'min' => 0, 'max' => 3650, 'help' => '0 keeps everything.'],
         ],
         'redisoptions'     => [
             'client'          => ['type' => 'select', 'label' => 'Client', 'default' => '', 'options' => ['' => 'Automatic', 'redis' => 'phpredis', 'predis' => 'Predis']],
@@ -61,6 +61,11 @@ class Settings {
             'separator' => ['type' => 'text', 'label' => 'Tree view separator', 'default' => ':', 'max' => 10, 'raw' => true],
         ],
     ];
+
+    /**
+     * @var array<string, string>
+     */
+    private const COLOR_OPTIONS = ['' => 'None', 'red' => 'Red', 'orange' => 'Orange', 'amber' => 'Amber', 'green' => 'Green', 'teal' => 'Teal', 'blue' => 'Blue', 'violet' => 'Violet', 'pink' => 'Pink', 'gray' => 'Gray'];
 
     /**
      * Fields of one server per list.
@@ -85,6 +90,8 @@ class Settings {
             'separator'        => ['type' => 'text', 'label' => 'Tree view separator', 'placeholder' => ':', 'max' => 10, 'raw' => true],
             'authfile'         => ['type' => 'text', 'label' => 'Password file', 'help' => 'E.g. a Docker secret, used instead of the password.'],
             'ssl'              => ['type' => 'json', 'label' => 'SSL options (JSON)', 'placeholder' => '{"cafile": "ca.pem", "verify_peer": true}'],
+            'color'            => ['type' => 'select', 'label' => 'Color', 'options' => self::COLOR_OPTIONS, 'help' => 'Marks the server, e.g. red for production.'],
+            'readonly'         => ['type' => 'bool', 'label' => 'Read-only server'],
         ],
         'memcached'     => [
             'name'      => ['type' => 'text', 'label' => 'Name', 'placeholder' => 'Localhost'],
@@ -93,6 +100,8 @@ class Settings {
             'path'      => ['type' => 'text', 'label' => 'Unix socket', 'placeholder' => '/var/run/memcached/memcached.sock'],
             'separator' => ['type' => 'text', 'label' => 'Tree view separator', 'placeholder' => ':', 'max' => 10, 'raw' => true],
             'extension' => ['type' => 'bool', 'label' => 'Use the Memcached extension for get/set'],
+            'color'     => ['type' => 'select', 'label' => 'Color', 'options' => self::COLOR_OPTIONS, 'help' => 'Marks the server, e.g. red for production.'],
+            'readonly'  => ['type' => 'bool', 'label' => 'Read-only server'],
         ],
         'remoteservers' => [
             'name'    => ['type' => 'text', 'label' => 'Name'],

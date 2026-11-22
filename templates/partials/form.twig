@@ -20,6 +20,17 @@
         }) }}
     </div>
 
+    {% if flags is defined and flags is not null %}
+        {{ include('components/input.twig', {
+            id: 'flags',
+            label: 'Flags',
+            type: 'number',
+            help: 'Client flags, e.g. the PHP memcached extension stores the value type here. Kept from the edited key.',
+            value: flags,
+            attr: 'min="0" max="4294967295"',
+        }) }}
+    {% endif %}
+
     {% if encoders %}
         {{ include('components/select.twig', {
             id: 'encoder',

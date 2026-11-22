@@ -1,6 +1,6 @@
 FROM alpine:3.23
 
-RUN apk add --no-cache nginx php85-fpm php85-session php85-phar php85-mbstring php85-ctype php85-iconv php85-openssl php85-pdo php85-pdo_sqlite \
+RUN apk add --no-cache nginx php86-fpm php86-session php86-phar php86-mbstring php86-ctype php86-iconv php86-openssl php86-pdo php86-pdo_sqlite \
     && adduser -u 82 -D -S -H -s /sbin/nologin -G www-data www-data \
     && mkdir -p /var/www/html/tmp \
     && chown www-data:www-data /var/www/html/tmp
@@ -10,7 +10,7 @@ user = www-data\n\
 group = www-data\n\
 listen = 127.0.0.1:9000\n\
 clear_env = no\n\
-ping.path = /ping\n' > /etc/php85/php-fpm.d/zzz-pca.conf
+ping.path = /ping\n' > /etc/php86/php-fpm.d/zzz-pca.conf
 
 RUN printf 'server {\n\
     listen ${PCA_NGINX_PORT};\n\

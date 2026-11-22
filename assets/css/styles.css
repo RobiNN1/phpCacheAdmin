@@ -542,6 +542,9 @@
   .gap-x-6 {
     column-gap: calc(0.25rem * 6);
   }
+  .gap-x-8 {
+    column-gap: calc(0.25rem * 8);
+  }
   :where(.-space-x-px > :not(:last-child)) {
     --tw-space-x-reverse: 0;
     margin-inline-start: calc(-1px * var(--tw-space-x-reverse));
@@ -555,6 +558,9 @@
   }
   .gap-y-2 {
     row-gap: calc(0.25rem * 2);
+  }
+  .gap-y-3 {
+    row-gap: calc(0.25rem * 3);
   }
   :where(.divide-y > :not(:last-child)) {
     --tw-divide-y-reverse: 0;

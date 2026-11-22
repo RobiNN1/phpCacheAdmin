@@ -64,6 +64,7 @@ trait APCuKeyView {
             'encode_fn'  => $encode_fn,
             'formatted'  => $is_formatted,
             'value_mode' => $mode,
+            'editable'   => Value::isEditable($value, $encode_fn),
             'edit_url'   => Http::queryString(['ttl'], ['form' => 'edit', 'key' => $key]),
             'view_url'   => Http::queryString(['ttl'], ['view' => 'key', 'key' => $key]),
             'export_url' => Http::queryString(['ttl', 'view', 'p', 'key'], ['export' => 'key']),
@@ -110,6 +111,10 @@ trait APCuKeyView {
         }
 
         $value = Value::converter($value, $encoder, 'view');
+
+        if (!Value::isEditable($value)) {
+            return $this->template->render('components/alert', ['message' => Value::binaryMessage(), 'alert_color' => 'error', 'inline' => true]);
+        }
 
         return $this->template->render('partials/form', [
             'exp_attr' => 'min="0"',

@@ -144,6 +144,23 @@ class Value {
     }
 
     /**
+     * Whether the value can go through the edit form. A textarea holds text only,
+     * bytes that are not valid UTF-8 would be replaced on the way and the saved value corrupted.
+     *
+     * @param string|null $encoder The converter the form decodes the value with, see format().
+     */
+    public static function isEditable(string $value, ?string $encoder = null): bool {
+        return mb_check_encoding(self::converter($value, $encoder ?? 'none', 'view'), 'UTF-8');
+    }
+
+    /**
+     * Shown instead of the edit form for such a value.
+     */
+    public static function binaryMessage(): string {
+        return 'This value is binary data, not text. Editing it in the form would corrupt it, use the Hex view to inspect it.';
+    }
+
+    /**
      * Decode/Encode value.
      *
      * Used in forms.

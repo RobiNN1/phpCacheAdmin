@@ -1423,4 +1423,87 @@ final class MemcachedTest extends TestCase {
     public function testOkTerminatesAShortReply(): void {
         $this->assertTrue($this->memcached->isEndOfResponse('OK'));
     }
+
+    /**
+     * A textarea would replace the bytes that are not text, saving would corrupt the value.
+     *
+     * @throws MemcachedException
+     * @throws ReflectionException
+     */
+    public function testBinaryValueCannotBeEdited(): void {
+        $key = 'pu-binary';
+        $this->memcached->set($key, "\x00\x01\xff\xfe binary \x80");
+
+        $_GET = ['view' => 'key', 'key' => $key];
+        $view = $this->dashboard->ajax();
+
+        $this->assertStringContainsString('Binary value, it cannot be edited as text.', $view);
+        $this->assertStringNotContainsString('form=edit', $view);
+
+        $_GET = ['form' => 'edit', 'key' => $key];
+        $form = (string) $this->callPrivate($this->dashboard, 'form');
+
+        $this->assertStringContainsString('This value is binary data', $form);
+        $this->assertStringNotContainsString('<textarea', $form);
+
+        $this->memcached->delete($key);
+    }
+
+    /**
+     * @throws MemcachedException
+     */
+    public function testAnalysisDistributions(): void {
+        $this->skipBelowMemcached('1.6.0', 'Flags and slab classes in the metadump');
+
+        $this->runAnalysis();
+        $this->memcached->set('pu-analysis:flagged', 'a:0:{}', 0, 4);
+        $analysis = $this->dashboard->analyzeKeys($this->memcached->getKeys());
+
+        $this->assertSame(204, array_sum(array_column($analysis['sizes'], 'count')));
+        $this->assertSame(0, $this->findRow($analysis['sizes'], '1 MB +')['count']); // nothing is that big
+        $this->assertSame(1, $this->findRow($analysis['flags'], '4')['count']);
+        $this->assertStringContainsString('PHP serialized', (string) $this->findRow($analysis['flags'], '4')['meaning']);
+        $this->assertSame(204, array_sum(array_column($analysis['classes'], 'count')));
+        $this->assertSame('pu-analysis', $analysis['namespaces_count'][0]['name']);
+
+        $this->memcached->flush();
+    }
+
+    public function testCommandRates(): void {
+        [$rates, $baseline] = $this->dashboard->ratesSince(['get' => 1000], 100, null, 1000.0);
+        $this->assertNull($rates);
+        $this->assertTrue($baseline);
+        $this->assertStringNotContainsString('now', $this->dashboard->rateLabels(['get' => 1000], 100, $rates)['get']);
+        $this->assertStringStartsWith('10', $this->dashboard->rateLabels(['get' => 1000], 100, $rates)['get']); // the average
+
+        $previous = ['time' => 1000.0, 'uptime' => 100, 'counts' => ['get' => 1000], 'rates' => null];
+        [$rates, $baseline] = $this->dashboard->ratesSince(['get' => 1500], 110, $previous, 1010.0);
+        $this->assertEqualsWithDelta(50.0, $rates['get'] ?? 0, 0.001);
+        $this->assertTrue($baseline);
+        $this->assertStringContainsString('/s now', $this->dashboard->rateLabels(['get' => 1500], 110, $rates)['get']);
+
+        // Too soon after the previous sample, its rates are kept and so is the baseline.
+        [$rates, $baseline] = $this->dashboard->ratesSince(['get' => 1501], 110, ['rates' => ['get' => 50.0]] + $previous, 1000.2);
+        $this->assertEqualsWithDelta(50.0, $rates['get'] ?? 0, 0.001);
+        $this->assertFalse($baseline);
+
+        // After a restart the counters start again, there is nothing to compare with.
+        [$rates] = $this->dashboard->ratesSince(['get' => 5], 3, $previous, 1010.0);
+        $this->assertNull($rates);
+    }
+
+    /**
+     * @throws ReflectionException
+     */
+    public function testConnectionsSummary(): void {
+        $tab = $this->callPrivate($this->dashboard, 'connectionsTab');
+
+        $this->assertIsArray($tab);
+        $this->assertArrayHasKey('states', $tab);
+        $this->assertSame(count($tab['connections']), array_sum($tab['states']));
+        $this->assertLessThanOrEqual(count($tab['connections']), array_sum($tab['hosts'])); // the top 10 hosts
+        $this->assertSame('10.0.0.5', $this->callPrivate($this->dashboard, 'connectionHost', ['addr' => 'tcp:10.0.0.5:51234']));
+        $this->assertSame('::1', $this->callPrivate($this->dashboard, 'connectionHost', ['addr' => 'tcp6:[::1]:51234']));
+        $this->assertSame('unix:/tmp/m.sock', $this->callPrivate($this->dashboard, 'connectionHost', ['addr' => 'unix:/tmp/m.sock']));
+    }
 }

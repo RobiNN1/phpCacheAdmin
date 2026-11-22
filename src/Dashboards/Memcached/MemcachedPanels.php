@@ -9,6 +9,8 @@ declare(strict_types=1);
 namespace RobiNN\Pca\Dashboards\Memcached;
 
 use RobiNN\Pca\Format;
+use RobiNN\Pca\Helpers;
+use RobiNN\Pca\Http;
 
 trait MemcachedPanels {
     /**
@@ -61,13 +63,51 @@ trait MemcachedPanels {
             ];
 
             if ($command_stats) {
-                return array_merge($stats, $this->commandsStatsData($info));
+                return array_merge($stats, $this->commandsStatsData($info, $this->commandRates($info)));
             }
 
             return $stats;
         } catch (MemcachedException $e) {
             return ['error' => $e->getMessage()];
         }
+    }
+
+    /**
+     * Requests per second of each command, since the previous refresh of the tab and on average since the start.
+     *
+     * The previous sample is kept in the session, so every viewer gets the rate over their own refresh interval.
+     *
+     * @param array<int|string, mixed> $info
+     *
+     * @return array<string, string> command => e.g. "12,5/s now, 3,1/s average"
+     */
+    private function commandRates(array $info): array {
+        $counts = [];
+
+        foreach (['get', 'set', 'delete', 'incr', 'decr', 'touch', 'cas', 'flush'] as $command) {
+            $counts[$command] = $this->commandRequests($info, $command);
+        }
+
+        $uptime = (int) ($info['uptime'] ?? 0);
+        $now = microtime(true);
+        $previous = null;
+        $session_key = 'memcached_rates_'.md5(Helpers::getServerTitle($this->servers[$this->current_server] ?? []));
+
+        if (!headers_sent()) {
+            Http::startSession();
+        }
+
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            $previous = is_array($_SESSION[$session_key] ?? null) ? $_SESSION[$session_key] : null;
+        }
+
+        [$rates, $baseline] = $this->ratesSince($counts, $uptime, $previous, $now);
+
+        if ($baseline && session_status() === PHP_SESSION_ACTIVE) {
+            $_SESSION[$session_key] = ['time' => $now, 'uptime' => $uptime, 'counts' => $counts, 'rates' => $rates];
+        }
+
+        return $this->rateLabels($counts, $uptime, $rates);
     }
 
     /**
@@ -110,5 +150,19 @@ trait MemcachedPanels {
                 'Free'  => Format::bytes($limit_maxbytes - $bytes),
             ],
         ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function commandsStatsTab(): array {
+        try {
+            $info = $this->memcached->getServerStats();
+            $commands = $this->commandsStatsData($info, $this->commandRates($info));
+        } catch (MemcachedException $e) {
+            $commands = ['error' => $e->getMessage()];
+        }
+
+        return ['commands' => $commands];
     }
 }

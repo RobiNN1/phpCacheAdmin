@@ -142,4 +142,13 @@ final class ValueTest extends TestCase {
     public function testDecode(string $expected, string $value, string $encoder): void {
         $this->assertSame($expected, Value::converter($value, $encoder, 'view'));
     }
+
+    public function testIsEditable(): void {
+        $this->assertTrue(Value::isEditable('plain text, čšž'));
+        $this->assertTrue(Value::isEditable("tabs\tand\nnew lines"));
+        $this->assertFalse(Value::isEditable("\x00\x01\xff\xfe"));
+        // Compressed bytes are binary, but the form decompresses them with the converter.
+        $this->assertFalse(Value::isEditable((string) gzcompress('text')));
+        $this->assertTrue(Value::isEditable((string) gzcompress('text'), 'gzcompress'));
+    }
 }

@@ -70,6 +70,7 @@ trait MemcachedKeyView {
 
         // Raw and hex show the bytes as stored.
         [$formatted_value, $encode_fn, $is_formatted] = Value::format($mode === Value::MODE_FORMATTED ? ($decompressed ?? $value) : $value, $mode);
+        $editable = Value::isEditable($decompressed ?? $value, $encode_fn);
 
         return $this->template->render('partials/view_key', [
             'key'        => $key,
@@ -86,6 +87,7 @@ trait MemcachedKeyView {
             'encode_fn'  => $encode_fn,
             'formatted'  => $is_formatted,
             'value_mode' => $mode,
+            'editable'   => $editable,
             'edit_url'   => Http::queryString([], ['form' => 'edit', 'key' => $key]),
             'view_url'   => Http::queryString([], ['view' => 'key', 'key' => $key]),
             'export_url' => Http::queryString(['view', 'p', 'key'], ['export' => 'key']),
@@ -195,6 +197,10 @@ trait MemcachedKeyView {
         }
 
         $value = Value::converter($value, $encoder, 'view');
+
+        if (!Value::isEditable($value)) {
+            return $this->template->render('components/alert', ['message' => Value::binaryMessage(), 'alert_color' => 'error', 'inline' => true]);
+        }
 
         return $this->template->render('partials/form', [
             'exp_attr' => 'min="0"',

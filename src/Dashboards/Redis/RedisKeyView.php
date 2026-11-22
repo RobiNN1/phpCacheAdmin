@@ -189,6 +189,7 @@ trait RedisKeyView {
             'value'       => $formatted_value,
             'encode_fn'   => $encode_fn,
             'formatted'   => $is_formatted,
+            'editable'    => Value::isEditable($value, $encode_fn),
             'paginator'   => '',
             'total_items' => 0,
         ];
@@ -227,6 +228,7 @@ trait RedisKeyView {
                 'value'     => $formatted_value,
                 'encode_fn' => $encode_fn,
                 'formatted' => $is_formatted,
+                'editable'  => Value::isEditable((string) $item_value, $encode_fn),
                 'size'      => strlen((string) $item_value),
                 'ttl'       => $field_ttls[$item_key] ?? null,
                 'sub_key'   => $type === 'zset' ? (string) $this->redis->zScore($key, $item_value) : $item_key,
@@ -329,6 +331,11 @@ trait RedisKeyView {
         }
 
         $value = Value::converter($value, $encoder, 'view');
+
+        if (!Value::isEditable($value)) {
+            return $this->template->render('components/alert', ['message' => Value::binaryMessage(), 'alert_color' => 'error', 'inline' => true]);
+        }
+
         $hash_ttl_supported = $this->isCommandSupported('HTTL');
 
         return $this->template->render('dashboards/redis/form', [

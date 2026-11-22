@@ -85,10 +85,12 @@
 {% else %}
     <div class="flex flex-wrap gap-3 justify-between items-center mb-4">
         <span>
-            {% if edit_url and not readonly %}
+            {% if edit_url and not readonly and (editable ?? true) %}
                 <a href="{{ edit_url ~ encode_url }}" class="inline-flex gap-1 items-center font-semibold text-gray-600 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-300">
                     {{ svg('edit', 16) }} Edit
                 </a>
+            {% elseif edit_url and not readonly %}
+                <span class="text-sm text-gray-500 dark:text-gray-400" title="Bytes that are not text would be corrupted by the edit form.">Binary value, it cannot be edited as text.</span>
             {% endif %}
         </span>
         {{ macros.value_modes(value_mode) }}

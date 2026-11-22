@@ -41,6 +41,25 @@ trait MemcachedAnalysis {
     ];
 
     /**
+     * Item size including the key and its overhead, as the metadump reports it.
+     *
+     * @var array<string, int>
+     */
+    private array $size_buckets = [
+        '< 100 B'  => 100,
+        '< 1 KB'   => 1024,
+        '< 10 KB'  => 10_240,
+        '< 100 KB' => 102_400,
+        '< 1 MB'   => 1_048_576,
+        '1 MB +'   => PHP_INT_MAX,
+    ];
+
+    /**
+     * How many distinct flag values are listed, the rest are summed up.
+     */
+    private int $top_flags = 10;
+
+    /**
      * @return array<string, mixed>
      *
      * @throws MemcachedException
@@ -156,6 +175,9 @@ trait MemcachedAnalysis {
         $namespaces = [];
         $expiry = array_fill_keys(array_keys($this->exp_buckets), 0);
         $idle = array_fill_keys(array_keys($this->idle_buckets), 0);
+        $sizes = array_fill_keys(array_keys($this->size_buckets), ['count' => 0, 'memory' => 0]);
+        $flags = [];
+        $classes = [];
         $by_memory = [];
 
         foreach ($lines as $line) {
@@ -200,6 +222,20 @@ trait MemcachedAnalysis {
                 $idle[$this->bucket(max(0, $time - $last_access), $this->idle_buckets)]++;
             }
 
+            $size_bucket = $this->bucket($size, $this->size_buckets);
+            $sizes[$size_bucket]['count']++;
+            $sizes[$size_bucket]['memory'] += $size;
+
+            // Both are in the metadump since 1.6, older servers leave these tables out.
+            if (isset($data['flags'])) {
+                $flags[(int) $data['flags']] = ($flags[(int) $data['flags']] ?? 0) + 1;
+            }
+
+            if (isset($data['cls'])) {
+                $classes[(int) $data['cls']]['count'] = ($classes[(int) $data['cls']]['count'] ?? 0) + 1;
+                $classes[(int) $data['cls']]['memory'] = ($classes[(int) $data['cls']]['memory'] ?? 0) + $size;
+            }
+
             if ($this->canMakeTop('size', $size)) {
                 $this->collectTop($by_memory, ['key' => $key, 'size' => $size], 'size');
             }
@@ -223,10 +259,81 @@ trait MemcachedAnalysis {
         return [
             'summary'    => $summary,
             'tiles'      => $this->summaryTiles($summary),
-            'namespaces' => $this->topGroups($namespaces, 'memory', $total_memory, $this->top_items),
-            'expiry'     => $this->distribution(['No expiry' => $no_expiry['count']] + $expiry, $analyzed),
-            'idle'       => $this->distribution($idle, $analyzed),
-            'top_memory' => $this->topRows($by_memory, 'size', $this->top_items),
+            'namespaces'       => $this->topGroups($namespaces, 'memory', $total_memory, $this->top_items),
+            'namespaces_count' => $this->topGroups($namespaces, 'count', $analyzed, $this->top_items),
+            'expiry'           => $this->distribution(['No expiry' => $no_expiry['count']] + $expiry, $analyzed),
+            'idle'             => $this->distribution($idle, $analyzed),
+            'sizes'            => $this->groupRows($sizes, $analyzed),
+            'flags'            => $this->flagRows($flags, $analyzed),
+            'classes'          => $this->groupRows($this->sortedByKey($classes), $total_memory, 'memory'),
+            'top_memory'       => $this->topRows($by_memory, 'size', $this->top_items),
         ];
+    }
+
+    /**
+     * @param array<int, array<string, int>> $groups
+     *
+     * @return array<int, array<string, int>>
+     */
+    private function sortedByKey(array $groups): array {
+        ksort($groups);
+
+        return $groups;
+    }
+
+    /**
+     * Groups in their own order, with each one's share of the total by a column.
+     *
+     * @param array<int|string, array<string, int>> $groups
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function groupRows(array $groups, int $total, string $column = 'count'): array {
+        $rows = [];
+
+        foreach ($groups as $name => $group) {
+            $rows[] = ['name' => $name] + $group + ['percent' => $this->percent($group[$column], $total)];
+        }
+
+        return $rows;
+    }
+
+    /**
+     * The most common flag values with what the PHP memcached extension means by them, the rest summed up.
+     *
+     * @param array<int, int> $flags flags => keys
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function flagRows(array $flags, int $total): array {
+        arsort($flags);
+
+        $rows = [];
+        $other = 0;
+
+        foreach ($flags as $value => $count) {
+            if (count($rows) >= $this->top_flags) {
+                $other += $count;
+                continue;
+            }
+
+            $notes = MemcachedFlags::describe($value);
+            $rows[] = [
+                'name'    => (string) $value,
+                'meaning' => match (true) {
+                    $value === 0 => 'no flags',
+                    $notes !== [] => implode(', ', $notes),
+                    default => 'set by the client library',
+                },
+                'count'   => $count,
+                'percent' => $this->percent($count, $total),
+            ];
+        }
+
+        if ($other > 0) {
+            $rows[] = ['name' => 'other', 'meaning' => 'the remaining values', 'count' => $other, 'percent' => $this->percent($other, $total)];
+        }
+
+        return $rows;
     }
 }

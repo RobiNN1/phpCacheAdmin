@@ -2501,4 +2501,23 @@ abstract class RedisTestCase extends TestCase {
             Config::reset();
         }
     }
+
+    /**
+     * @throws Exception
+     */
+    public function testBinaryValueCannotBeEdited(): void {
+        $key = 'pu-binary';
+        $this->redis->set($key, "\x00\x01\xff\xfe binary \x80");
+
+        $_GET = ['db' => 10, 'view' => 'key', 'key' => $key];
+        $view = $this->dashboard->ajax();
+
+        $this->assertStringContainsString('Binary value, it cannot be edited as text.', $view);
+
+        $_GET = ['db' => 10, 'form' => 'edit', 'key' => $key];
+        $form = (string) $this->callPrivate($this->dashboard, 'form');
+
+        $this->assertStringContainsString('This value is binary data', $form);
+        $this->assertStringNotContainsString('<textarea', $form);
+    }
 }

@@ -11,6 +11,7 @@ namespace Tests\Dashboards\APCu;
 use APCUIterator;
 use JsonException;
 use PHPUnit\Framework\Attributes\DataProvider;
+use ReflectionException;
 use RobiNN\Pca\Dashboards\APCu\APCuDashboard;
 use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
@@ -424,7 +425,7 @@ final class APCuTest extends TestCase {
     }
 
     /**
-     * @throws \ReflectionException
+     * @throws ReflectionException
      */
     public function testDeleteMatchingKeys(): void {
         for ($i = 0; $i < 5; $i++) {
@@ -439,5 +440,19 @@ final class APCuTest extends TestCase {
         $this->assertStringContainsString('5 matching keys have been deleted', $message);
         $this->assertFalse(apcu_exists('pu-bulk:0'));
         $this->assertTrue(apcu_exists('pu-keep'));
+    }
+
+    /**
+     * @throws ReflectionException
+     */
+    public function testBinaryValueCannotBeEdited(): void {
+        $key = 'pu-binary';
+        apcu_store($key, "\x00\x01\xff\xfe binary \x80");
+
+        $_GET = ['view' => 'key', 'key' => $key];
+        $this->assertStringContainsString('Binary value, it cannot be edited as text.', $this->dashboard->ajax());
+
+        $_GET = ['form' => 'edit', 'key' => $key];
+        $this->assertStringContainsString('This value is binary data', (string) $this->callPrivate($this->dashboard, 'form'));
     }
 }

@@ -1,4 +1,51 @@
 {% import 'components/macros.twig' as macros %}
+{#
+    A card with a table of grouped rows. columns: [{title, field, format: number|bytes|share|text, class}]
+#}
+{% macro table_card(title, description, rows, columns, scroll = false) %}
+    {% import 'components/macros.twig' as macros %}
+    {% set cell = 'py-2 px-4 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700' %}
+    <div class="p-4 card flex flex-col mb-4 xl:mb-0{{ scroll ? ' h-128' : '' }}">
+        <h2 class="mb-1 text-sm font-bold uppercase text-primary-900 dark:text-primary-400">{{ title }}</h2>
+        <p class="mb-3 text-xs text-gray-600 dark:text-gray-300">{{ description }}</p>
+        <div class="overflow-auto grow">
+            <table class="w-full text-left table-auto dark:text-gray-300">
+                <thead class="sticky top-0 z-10 bg-white dark:bg-gray-800">
+                <tr class="border-b border-gray-200 dark:border-gray-700 text-primary-900 dark:text-primary-400">
+                    {% for column in columns %}
+                        <th class="py-2 px-4 text-xs font-bold uppercase whitespace-nowrap {{ column.class|default('') }}">{{ column.title }}</th>
+                    {% endfor %}
+                </tr>
+                </thead>
+                <tbody>
+                {% for row in rows %}
+                    <tr class="hover:bg-gray-50 dark:hover:bg-white/5">
+                        {% for column in columns %}
+                            {% set value = attribute(row, column.field) %}
+                            {% if column.format == 'share' %}
+                                <td class="{{ cell }}">
+                                    <div class="flex gap-2 items-center">
+                                        <div class="grow">{{ macros.progress(value, 'lower', null, 'info') }}</div>
+                                        <span class="shrink-0 text-xs text-gray-600 dark:text-gray-300">{{ value }}%</span>
+                                    </div>
+                                </td>
+                            {% elseif column.format == 'number' %}
+                                <td class="{{ cell }} whitespace-nowrap">{{ value|number }}</td>
+                            {% elseif column.format == 'bytes' %}
+                                <td class="{{ cell }} whitespace-nowrap">{{ value|bytes }}</td>
+                            {% else %}
+                                <td class="{{ cell }} break-all">{{ value }}</td>
+                            {% endif %}
+                        {% endfor %}
+                    </tr>
+                {% else %}
+                    <tr><td colspan="{{ columns|length }}" class="{{ cell }} text-center text-gray-500">No data.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endmacro %}
 
 {% if sizes %}
     <div class="p-4 card mb-4">
@@ -130,6 +177,20 @@
             </div>
         </div>
 
+        {{ _self.table_card('Keys by namespace', 'Top ' ~ analysis.namespaces_count|length ~ ' of ' ~ summary.namespaces|number ~ ' namespaces, by number of keys.', analysis.namespaces_count, [
+            {title: 'Namespace', field: 'name', format: 'text'},
+            {title: 'Keys', field: 'count', format: 'number', class: 'w-20'},
+            {title: 'Memory', field: 'memory', format: 'bytes', class: 'w-24'},
+            {title: 'Share', field: 'percent', format: 'share', class: 'w-40'},
+        ], true) }}
+
+        {{ _self.table_card('Key sizes', 'Every key in the dump by its size, including the key and the item overhead. Unlike the item sizes above, it needs no -o track_sizes.', analysis.sizes, [
+            {title: 'Size', field: 'name', format: 'text'},
+            {title: 'Keys', field: 'count', format: 'number', class: 'w-20'},
+            {title: 'Memory', field: 'memory', format: 'bytes', class: 'w-24'},
+            {title: 'Share', field: 'percent', format: 'share', class: 'w-40'},
+        ]) }}
+
         <div class="p-4 card mb-4 xl:mb-0">
             <h2 class="mb-1 text-sm font-bold uppercase text-primary-900 dark:text-primary-400">Expiration</h2>
             <p class="mb-3 text-xs text-gray-600 dark:text-gray-300">When the keys are due to expire.</p>
@@ -189,5 +250,23 @@
                 </table>
             </div>
         </div>
+
+        {% if analysis.classes is not empty %}
+            {{ _self.table_card('Slab classes', 'Where the keys are stored, the share is of the memory in keys. Compare it with the Slabs tab to see which classes are full.', analysis.classes, [
+                {title: 'Class', field: 'name', format: 'text', class: 'w-20'},
+                {title: 'Keys', field: 'count', format: 'number', class: 'w-20'},
+                {title: 'Memory', field: 'memory', format: 'bytes', class: 'w-24'},
+                {title: 'Share', field: 'percent', format: 'share', class: 'w-40'},
+            ], analysis.classes|length > 10) }}
+        {% endif %}
+
+        {% if analysis.flags is not empty %}
+            {{ _self.table_card('Client flags', 'The flags the client libraries stored the keys with, explained as the PHP memcached extension sets them.', analysis.flags, [
+                {title: 'Flags', field: 'name', format: 'text', class: 'w-20'},
+                {title: 'Meaning', field: 'meaning', format: 'text'},
+                {title: 'Keys', field: 'count', format: 'number', class: 'w-20'},
+                {title: 'Share', field: 'percent', format: 'share', class: 'w-40'},
+            ]) }}
+        {% endif %}
     </div>
 {% endif %}

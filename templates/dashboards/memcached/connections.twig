@@ -1,9 +1,33 @@
+{% import 'components/macros.twig' as macros %}
 <div class="card">
     <h2 class="py-3 px-6 text-sm font-bold uppercase text-primary-900 dark:text-primary-400">Connections</h2>
     <p class="pb-3 px-6 text-xs text-gray-600 dark:text-gray-300">
         Every client the server currently has open, idle first. Memcached cannot close a connection on request,
         so this is a look, not a switch. The dashboard's own connection is in the list too.
     </p>
+    {% if connections is not empty %}
+        <div class="flex flex-wrap gap-x-8 gap-y-3 px-6 pb-4 text-sm dark:text-gray-300">
+            <div>
+                <h3 class="mb-1 text-xs font-bold uppercase text-gray-500 dark:text-gray-400">By state</h3>
+                <div class="flex flex-wrap gap-2">
+                    {% for state, count in states %}
+                        <span class="inline-flex gap-1 items-center"{{ state_names[state] is defined ? ' title="%s"'|format(state_names[state]|e('html_attr'))|raw : '' }}>
+                            <code>{{ state }}</code> {{ macros.badge(count|number, 'sky') }}
+                        </span>
+                    {% endfor %}
+                </div>
+            </div>
+            <div>
+                <h3 class="mb-1 text-xs font-bold uppercase text-gray-500 dark:text-gray-400">By client host</h3>
+                <div class="flex flex-wrap gap-2">
+                    {% for host, count in hosts %}
+                        <span class="inline-flex gap-1 items-center">{{ host }} {{ macros.badge(count|number, 'indigo') }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
     <div class="overflow-hidden overflow-x-auto">
         <table class="w-full text-left table-auto dark:text-gray-300">
             <thead>
@@ -21,8 +45,13 @@
                     <td class="py-2 px-6 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700 whitespace-nowrap">{{ connection.fd }}</td>
                     <td class="py-2 px-6 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700 whitespace-nowrap">{{ connection.addr }}</td>
                     <td class="py-2 px-6 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700 whitespace-nowrap">{{ connection.listen_addr ?: '-' }}</td>
-                    <td class="py-2 px-6 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700 whitespace-nowrap"><code>{{ connection.state }}</code></td>
-                    <td class="py-2 px-6 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700 whitespace-nowrap">{{ connection.idle|seconds }}</td>
+                    <td class="py-2 px-6 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700 whitespace-nowrap"{{ connection.state_title ? ' title="%s"'|format(connection.state_title|e('html_attr'))|raw : '' }}><code>{{ connection.state }}</code></td>
+                    <td class="py-2 px-6 text-sm border-t border-gray-200 dark:text-gray-300 dark:border-gray-700 whitespace-nowrap">
+                        <div class="flex gap-3 items-center" title="On a log scale up to a day.">
+                            <div class="w-24 shrink-0">{{ macros.progress(connection.idle_percent, 'lower', null, 'info') }}</div>
+                            <span>{{ connection.idle|seconds }}</span>
+                        </div>
+                    </td>
                 </tr>
             {% else %}
                 <tr>

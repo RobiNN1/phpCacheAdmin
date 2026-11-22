@@ -60,9 +60,13 @@
 
             {% if not readonly %}
                 <div>
-                    <a href="{{ edit_url }}&{{ types[type].param }}={{ item.key ~ item_encode_url }}" class="inline-flex gap-1 items-center mr-3 font-semibold text-gray-600 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-300">
-                        {{ svg('edit', 16) }} Edit
-                    </a>
+                    {% if item.editable ?? true %}
+                        <a href="{{ edit_url }}&{{ types[type].param }}={{ item.key ~ item_encode_url }}" class="inline-flex gap-1 items-center mr-3 font-semibold text-gray-600 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-300">
+                            {{ svg('edit', 16) }} Edit
+                        </a>
+                    {% else %}
+                        <span class="mr-3 text-sm text-gray-500 dark:text-gray-400" title="Bytes that are not text would be corrupted by the edit form.">Binary, not editable</span>
+                    {% endif %}
 
                     <form method="post" action="{{ view_url|default('') }}" class="inline">
                         <input type="hidden" name="csrf_token" value="{{ csrf }}">

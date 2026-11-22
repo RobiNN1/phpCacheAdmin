@@ -392,4 +392,52 @@ final class APCuTest extends TestCase {
     public function testMemoryMapWithoutSegments(): void {
         $this->assertSame([], $this->dashboard->memoryMap([]));
     }
+
+    /**
+     * @param array<string, string> $filters
+     *
+     * @return array<int, string>
+     */
+    private function filteredKeys(array $filters): array {
+        $_GET = $filters;
+        $keys = array_map(static fn (array $item): string => (string) $item['key'], $this->dashboard->getAllKeys());
+        sort($keys);
+
+        return $keys;
+    }
+
+    public function testKeyFilters(): void {
+        apcu_store('pu-filter:small', 'x');
+        apcu_store('pu-filter:big', str_repeat('x', 5000));
+        apcu_store('pu-filter:ttl', 'x', 60);
+        apcu_store('pu-filter:read', 'x');
+        apcu_fetch('pu-filter:read');
+        apcu_store('other:pu-filter', 'x');
+
+        $this->assertSame(['other:pu-filter', 'pu-filter:big', 'pu-filter:read', 'pu-filter:small', 'pu-filter:ttl'], $this->filteredKeys(['s' => 'pu-filter']));
+        $this->assertSame(['pu-filter:big', 'pu-filter:read', 'pu-filter:small', 'pu-filter:ttl'], $this->filteredKeys(['s' => 'pu-filter:', 'match' => 'prefix']));
+        $this->assertSame(['pu-filter:big', 'pu-filter:small'], $this->filteredKeys(['s' => '^pu-filter:(big|small)$', 'match' => 'regex']));
+        $this->assertSame(['pu-filter:big'], $this->filteredKeys(['s' => 'pu-filter', 'minsize' => '1000']));
+        $this->assertSame(['pu-filter:ttl'], $this->filteredKeys(['s' => 'pu-filter', 'expin' => '120']));
+        $this->assertNotContains('pu-filter:ttl', $this->filteredKeys(['s' => 'pu-filter', 'noexp' => '1']));
+        $this->assertNotContains('pu-filter:read', $this->filteredKeys(['s' => 'pu-filter', 'nf' => '1']));
+    }
+
+    /**
+     * @throws \ReflectionException
+     */
+    public function testDeleteMatchingKeys(): void {
+        for ($i = 0; $i < 5; $i++) {
+            apcu_store('pu-bulk:'.$i, 'x');
+        }
+
+        apcu_store('pu-keep', 'x');
+        $_GET = ['s' => 'pu-bulk:', 'match' => 'prefix'];
+
+        $message = (string) $this->callPrivate($this->dashboard, 'deleteMatchingKeys');
+
+        $this->assertStringContainsString('5 matching keys have been deleted', $message);
+        $this->assertFalse(apcu_exists('pu-bulk:0'));
+        $this->assertTrue(apcu_exists('pu-keep'));
+    }
 }

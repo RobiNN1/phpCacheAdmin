@@ -13,6 +13,7 @@ use Iterator;
 use JsonException;
 use PDO;
 use PHPUnit\Framework\Attributes\DataProvider;
+use ReflectionProperty;
 use RobiNN\Pca\Config;
 use RobiNN\Pca\Dashboards\DashboardException;
 use RobiNN\Pca\Dashboards\Redis\Compatibility\Cluster\PredisCluster;
@@ -2402,5 +2403,102 @@ abstract class RedisTestCase extends TestCase {
         }
 
         unlink($tmp_file_path);
+    }
+
+    /**
+     * @param array<string, string> $filters
+     *
+     * @return array<int, string>
+     *
+     * @throws Exception
+     */
+    private function filteredKeys(array $filters): array {
+        $_GET = $filters;
+        $keys = $this->dashboard->getAllKeys();
+        sort($keys);
+
+        return $keys;
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testKeyFilters(): void {
+        $this->redis->set('pu-filter:small', 'x');
+        $this->redis->set('pu-filter:big', str_repeat('x', 5000));
+        $this->redis->set('pu-filter:ttl', 'x');
+        $this->redis->expire('pu-filter:ttl', 60);
+        $this->redis->rpush('pu-filter:list', 'a', 'b');
+        $this->redis->set('pu-filter*star', 'x');
+        $this->redis->set('other:pu-filter', 'x');
+
+        $this->assertSame(['pu-filter*star', 'pu-filter:big', 'pu-filter:list', 'pu-filter:small', 'pu-filter:ttl'], $this->filteredKeys(['s' => 'pu-filter', 'match' => 'prefix']));
+        // A glob character is matched literally in the prefix mode.
+        $this->assertSame(['pu-filter*star'], $this->filteredKeys(['s' => 'pu-filter*', 'match' => 'prefix']));
+        $this->assertSame(['pu-filter:big', 'pu-filter:small'], $this->filteredKeys(['s' => '^pu-filter:(big|small)$', 'match' => 'regex']));
+        $this->assertSame(['pu-filter:list'], $this->filteredKeys(['s' => 'pu-filter', 'type' => 'list']));
+        $this->assertSame(['pu-filter:ttl'], $this->filteredKeys(['s' => 'pu-filter', 'expin' => '120']));
+        $this->assertNotContains('pu-filter:ttl', $this->filteredKeys(['s' => 'pu-filter', 'noexp' => '1']));
+        $this->assertSame(['pu-filter:big'], $this->filteredKeys(['s' => 'pu-filter:', 'minsize' => '1000']));
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testDeleteMatchingKeys(): void {
+        for ($i = 0; $i < 5; $i++) {
+            $this->redis->set('pu-bulk:'.$i, 'x');
+        }
+
+        $this->redis->set('pu-keep', 'x');
+        $_GET = ['s' => 'pu-bulk:', 'match' => 'prefix'];
+
+        $message = (string) $this->callPrivate($this->dashboard, 'deleteMatchingKeys');
+
+        $this->assertStringContainsString('5 matching keys have been deleted', $message);
+        $this->assertSame(0, $this->redis->exists('pu-bulk:0'));
+        $this->assertSame(1, $this->redis->exists('pu-keep'));
+    }
+
+    /**
+     * With SCAN, the filters must find matches across the whole keyspace, not only in the first scanned batch.
+     *
+     * @throws Exception
+     */
+    public function testKeyFiltersWithScan(): void {
+        putenv('PCA_REDISOPTIONS_SCANSIZE=3');
+        Config::reset();
+
+        try {
+            for ($i = 0; $i < 10; $i++) {
+                $this->redis->set('pu-scan:'.$i, 'x');
+            }
+
+            for ($i = 0; $i < 20; $i++) {
+                $this->redis->set('pu-other:'.$i, 'x');
+            }
+
+            $this->redis->rpush('pu-scan:list', 'a');
+
+            $partial = new ReflectionProperty($this->dashboard, 'scan_partial');
+
+            // Three matches, the scan size, even though most scanned keys do not match.
+            $this->assertCount(3, $this->filteredKeys(['s' => '^pu-scan:\\d$', 'match' => 'regex']));
+            $this->assertTrue($partial->getValue($this->dashboard));
+
+            $this->assertSame(['pu-scan:list'], $this->filteredKeys(['type' => 'list']));
+            $this->assertFalse($partial->getValue($this->dashboard));
+
+            // Deleting covers every match, not only the listed ones.
+            $_GET = ['s' => '^pu-scan:\\d$', 'match' => 'regex'];
+            $message = (string) $this->callPrivate($this->dashboard, 'deleteMatchingKeys');
+
+            $this->assertStringContainsString('10 matching keys have been deleted', $message);
+            $this->assertSame(1, $this->redis->exists('pu-scan:list'));
+            $this->assertSame(1, $this->redis->exists('pu-other:0'));
+        } finally {
+            putenv('PCA_REDISOPTIONS_SCANSIZE');
+            Config::reset();
+        }
     }
 }

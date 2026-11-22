@@ -173,7 +173,7 @@ trait MemcachedTrait {
             'ttl'                  => static fn (string $line): int => (int) $field($line, 'exp'),
         ]);
 
-        $paginator = new Paginator($raw_key_lines, [['pp', 's', 'view', ...$this->filter_params], ['p' => '']]);
+        $paginator = new Paginator($raw_key_lines, [['pp', 'view', ...$this->keyFilters()->params()], ['p' => '']]);
         $paginated_raw_lines = $paginator->getPaginated();
 
         if (Http::get('view', Config::get('listview', 'table')) === 'tree') {
@@ -183,11 +183,11 @@ trait MemcachedTrait {
         }
 
         return [
-            'keys'      => $keys_to_display,
-            'all_keys'  => $this->memcached->getServerStats()['curr_items'],
-            'paginator' => $paginator->render(),
-            'view_key'  => Http::queryString([], ['view' => 'key', 'key' => '__key__']),
-        ] + $this->keyFiltersData(count($raw_key_lines));
+                'keys'      => $keys_to_display,
+                'all_keys'  => $this->memcached->getServerStats()['curr_items'],
+                'paginator' => $paginator->render(),
+                'view_key'  => Http::queryString([], ['view' => 'key', 'key' => '__key__']),
+            ] + $this->keyFiltersData(count($raw_key_lines));
     }
 
     /**
@@ -214,7 +214,7 @@ trait MemcachedTrait {
         $server = $this->servers[$this->current_server] ?? [];
 
         // The same check as in PHPMem, without the extension loaded it falls back to the raw protocol.
-        return ($server['extension'] ?? false) === true && extension_loaded('memcached');
+        return ($server['extension'] ?? false) && extension_loaded('memcached');
     }
 
     /**

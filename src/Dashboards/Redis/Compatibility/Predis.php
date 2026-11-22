@@ -114,6 +114,28 @@ class Predis extends Client implements RedisCompatibilityInterface {
         return $keys;
     }
 
+    /**
+     * @return iterable<int, array<int, string>>
+     *
+     * @throws Exception
+     */
+    public function scanBatches(string $pattern, int $count, ?string $type = null): iterable {
+        $cursor = '0';
+
+        do {
+            $args = ['SCAN', $cursor, 'MATCH', $pattern, 'COUNT', (string) $count, ...($type !== null ? ['TYPE', $type] : [])];
+            $reply = $this->executeRaw($args);
+
+            if (!is_array($reply) || !isset($reply[0], $reply[1]) || !is_array($reply[1])) {
+                return;
+            }
+
+            $cursor = (string) $reply[0];
+
+            yield array_map(strval(...), $reply[1]);
+        } while ($cursor !== '0');
+    }
+
     public function listRem(string $key, string $value, int $count): int {
         return $this->lrem($key, $count, $value);
     }

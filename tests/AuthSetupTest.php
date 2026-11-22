@@ -216,8 +216,8 @@ final class AuthSetupTest extends TestCase {
         $result = $this->save();
 
         $this->assertArrayHasKey('error', $result);
-        $this->assertStringContainsString("'authusers' => [", (string) $result['snippet']);
-        $this->assertStringContainsString("'admin' =>", (string) $result['snippet']);
+        $this->assertStringContainsString("'authusers' => [", $result['snippet']);
+        $this->assertStringContainsString("'admin' =>", $result['snippet']);
     }
 
     /**

@@ -10,16 +10,9 @@ namespace RobiNN\Pca\Dashboards\Memcached;
 
 use RobiNN\Pca\Format;
 use RobiNN\Pca\Helpers;
-use RobiNN\Pca\Http;
+use RobiNN\Pca\KeyFilters;
 
 trait MemcachedKeysList {
-    /**
-     * Query parameters of the key filters, kept by the paginator.
-     *
-     * @var array<int, string>
-     */
-    private array $filter_params = ['match', 'nf', 'noexp', 'expin', 'idle', 'minsize', 'maxsize'];
-
     /**
      * Keys in the dump that have already expired on the server clock, the server removes them lazily.
      */
@@ -29,52 +22,26 @@ trait MemcachedKeysList {
 
     /**
      * The search and filters from the URL.
-     *
-     * @return array{s: string, match: string, nf: bool, noexp: bool, expin: int, idle: int, minsize: int, maxsize: int}
      */
-    public function keyFilters(): array {
-        $match = (string) Http::get('match', 'contains');
-
-        return [
-            's'       => (string) Http::get('s', '', true),
-            'match'   => in_array($match, ['contains', 'prefix', 'regex'], true) ? $match : 'contains',
-            'nf'      => in_array(Http::get('nf', ''), ['1', 'on'], true),
-            'noexp'   => in_array(Http::get('noexp', ''), ['1', 'on'], true),
-            'expin'   => max(0, Http::get('expin', 0)),
-            'idle'    => max(0, Http::get('idle', 0)),
-            'minsize' => max(0, Http::get('minsize', 0)),
-            'maxsize' => max(0, Http::get('maxsize', 0)),
-        ];
+    public function keyFilters(): KeyFilters {
+        return new KeyFilters(['nf', 'noexp', 'expin', 'idle', 'minsize', 'maxsize']);
     }
 
     /**
-     * Template data of the filters panel, after getAllKeys() has run.
+     * Template data of the filters panel, after getAllKeys() has run. Filters need a metadump (>= 1.5.19).
      *
      * @return array<string, mixed>
      *
      * @throws MemcachedException
      */
     private function keyFiltersData(int $matching): array {
-        $filters = $this->keyFilters();
-        $filtered = $filters['s'] !== '' || $this->hasKeyFilters($filters);
+        if (version_compare($this->memcached->version(), '1.5.19', '<')) {
+            return ['key_filters' => null];
+        }
 
-        return [
-            'filters'      => $filters,
-            'filters_open' => $filters['match'] !== 'contains' || $this->hasKeyFilters($filters),
-            'can_filter'   => version_compare($this->memcached->version(), '1.5.19', '>='),
-            'matching'     => $filtered ? $matching : null,
-            'expired_keys' => $this->expired_keys,
-            'filter_query' => array_intersect_key($_GET, array_flip(['dashboard', 'server', 'tab', 'view', 'sortdir', 'sortcol', 'pp'])),
-        ];
-    }
+        $note = $this->expired_keys > 0 ? Format::number($this->expired_keys).' expired not shown' : '';
 
-    /**
-     * Whether a filter other than the search is set.
-     *
-     * @param array<string, mixed> $filters
-     */
-    private function hasKeyFilters(array $filters): bool {
-        return $filters['nf'] || $filters['noexp'] || $filters['expin'] > 0 || $filters['idle'] > 0 || $filters['minsize'] > 0 || $filters['maxsize'] > 0;
+        return ['key_filters' => $this->keyFilters()->view($matching, [], 'Delete', $note)];
     }
 
     /**
@@ -86,16 +53,17 @@ trait MemcachedKeysList {
      */
     public function getAllKeys(): array {
         $filters = $this->keyFilters();
-        $search = $filters['s'];
+        $search = $filters->values['s'];
         $this->template->addGlobal('search_value', $search);
 
         $lines = $this->memcached->getKeys();
         $now = $this->memcached->serverTime();
 
-        $matcher = $this->keyMatcher($search, $filters['match']);
+        $matcher = $filters->matcher();
+        $this->filter_error = $filters->error;
 
         // Keys are urlencoded in the lines but these characters never are, so preg_grep() can prefilter them.
-        if ($search !== '' && $filters['match'] !== 'regex' && preg_match('/^[A-Za-z0-9._~-]+$/', $search) === 1) {
+        if ($search !== '' && $filters->values['match'] !== 'regex' && preg_match('/^[A-Za-z0-9._~-]+$/', $search) === 1) {
             $candidates = preg_grep('/'.preg_quote($search, '/').'/i', $lines);
 
             if ($candidates !== false) {
@@ -103,7 +71,7 @@ trait MemcachedKeysList {
             }
         }
 
-        $with_filters = $this->hasKeyFilters($filters);
+        $with_filters = $filters->active();
         $this->expired_keys = 0;
         $filtered = [];
 
@@ -134,63 +102,32 @@ trait MemcachedKeysList {
         return $filtered;
     }
 
-    private function keyMatcher(string $search, string $mode): ?callable {
-        if ($search === '') {
-            return null;
-        }
-
-        if ($mode === 'prefix') {
-            return static fn (string $key): bool => stripos($key, $search) === 0;
-        }
-
-        if ($mode === 'regex') {
-            $pattern = '~'.str_replace('~', '\~', $search).'~';
-
-            if (@preg_match($pattern, '') === false) {
-                $this->filter_error = 'Invalid regular expression: '.preg_last_error_msg();
-
-                return static fn (string $key): bool => false;
-            }
-
-            return static fn (string $key): bool => preg_match($pattern, $key) === 1;
-        }
-
-        return static fn (string $key): bool => stripos($key, $search) !== false;
-    }
-
     /**
-     * @param array<string, mixed> $filters
+     * Only the fields a set filter needs are read from the line.
      */
-    private function lineMatchesFilters(string $line, array $filters, int $exp, int $now): bool {
-        if ($filters['nf'] && !str_contains($line, ' fetch=no')) {
-            return false;
-        }
+    private function lineMatchesFilters(string $line, KeyFilters $filters, int $exp, int $now): bool {
+        $values = $filters->values;
+        $meta = ['ttl' => $exp === -1 ? -1 : $exp - $now];
 
-        if ($filters['noexp'] && $exp !== -1) {
-            return false;
-        }
-
-        if ($filters['expin'] > 0 && ($exp === -1 || $exp - $now > $filters['expin'])) {
-            return false;
-        }
-
-        if ($filters['idle'] > 0) {
+        if ($values['idle'] > 0) {
             $last_access = $this->lineField($line, 'la') ?? 0;
 
-            if ($last_access === 0 || $now - $last_access <= $filters['idle']) {
+            if ($last_access === 0) {
                 return false;
             }
+
+            $meta['idle'] = $now - $last_access;
         }
 
-        if ($filters['minsize'] > 0 || $filters['maxsize'] > 0) {
-            $size = $this->lineField($line, 'size') ?? 0;
-
-            if ($size < $filters['minsize'] || ($filters['maxsize'] > 0 && $size > $filters['maxsize'])) {
-                return false;
-            }
+        if ($values['minsize'] > 0 || $values['maxsize'] > 0) {
+            $meta['size'] = $this->lineField($line, 'size') ?? 0;
         }
 
-        return true;
+        if ($values['nf']) {
+            $meta['read'] = !str_contains($line, ' fetch=no');
+        }
+
+        return $filters->matches($meta);
     }
 
     /**
@@ -208,9 +145,7 @@ trait MemcachedKeysList {
      * @throws MemcachedException
      */
     private function deleteMatchingKeys(): string {
-        $filters = $this->keyFilters();
-
-        if ($filters['s'] === '' && !$this->hasKeyFilters($filters)) {
+        if (!$this->keyFilters()->narrowed()) {
             return Helpers::alert('Set a search or a filter first, use "Delete all" to remove every key.', 'error');
         }
 

@@ -79,14 +79,13 @@ trait APCuTrait {
     /**
      * Entries with the fields of the key list, local or from the remote server.
      *
-     * @param string $search Case-insensitive substring of the key, filtered by APCu itself on this server.
+     * @param string|null $pattern A PCRE pattern the keys must match, matched by APCu itself on this server.
      *
      * @return APCUIterator|array<int, array<string, mixed>>
      */
-    public function entries(string $search = ''): APCUIterator|array {
+    public function entries(?string $pattern = null): APCUIterator|array {
         if ($this->remote === null) {
             $fields = APC_ITER_KEY | APC_ITER_TTL | APC_ITER_MEM_SIZE | APC_ITER_NUM_HITS | APC_ITER_ATIME | APC_ITER_CTIME;
-            $pattern = $search === '' ? null : '/'.preg_quote($search, '/').'/i';
 
             // Larger chunks than the default 100 lock the cache less often.
             return new APCUIterator($pattern, $fields, 1000, APC_LIST_ACTIVE);
@@ -94,11 +93,11 @@ trait APCuTrait {
 
         $entries = (array) ($this->remote->fetched('apcu')['keys'] ?? []);
 
-        if ($search === '') {
+        if ($pattern === null) {
             return $entries;
         }
 
-        return array_values(array_filter($entries, static fn (array $item): bool => stripos((string) ($item['key'] ?? ''), $search) !== false));
+        return array_values(array_filter($entries, static fn (array $item): bool => preg_match($pattern, (string) ($item['key'] ?? '')) === 1));
     }
 
     public function apcuVersion(): string {
@@ -144,7 +143,19 @@ trait APCuTrait {
 
         Helpers::importResultAlert();
 
+        if (isset($_POST['delete_matching']) && !$this->isRemote()) {
+            if (Csrf::validateToken(Http::post('csrf_token', ''))) {
+                $this->deleteMatchingKeys();
+            } else {
+                Helpers::alert('Invalid CSRF token.', 'error');
+            }
+        }
+
         $keys = $this->getAllKeys();
+
+        if ($this->filter_error !== null) {
+            Helpers::alert($this->filter_error, 'error');
+        }
 
         if (isset($_GET['export_btn']) && !$this->isRemote()) {
             $export_keys = array_map(static fn (array $item): array => [
@@ -164,7 +175,9 @@ trait APCuTrait {
             'ttl'                => static fn (array $item): int => (int) ($item['ttl'] ?? 0),
         ]);
 
-        $paginator = new Paginator($keys);
+        $filters = $this->keyFilters();
+        $matching = count($keys);
+        $paginator = new Paginator($keys, [['pp', 'view', ...$filters->params()], ['p' => '']]);
         $paginated_keys = $paginator->getPaginated();
 
         if (Http::get('view', Config::get('listview', 'table')) === 'tree') {
@@ -178,11 +191,12 @@ trait APCuTrait {
         $info = $this->cacheInfo();
 
         return [
-            'keys'      => $keys_to_display,
-            'all_keys'  => (int) $info['num_entries'],
-            'paginator' => $paginator->render(),
-            'view_key'  => $this->isRemote() ? null : Http::queryString([], ['view' => 'key', 'key' => '__key__']),
-            'is_remote' => $this->isRemote(),
+            'keys'        => $keys_to_display,
+            'all_keys'    => (int) $info['num_entries'],
+            'paginator'   => $paginator->render(),
+            'view_key'    => $this->isRemote() ? null : Http::queryString([], ['view' => 'key', 'key' => '__key__']),
+            'is_remote'   => $this->isRemote(),
+            'key_filters' => $filters->view($matching, ['nf' => 'Never hit'], $this->isRemote() ? null : 'Delete'),
         ];
     }
 

@@ -8,20 +8,76 @@ declare(strict_types=1);
 
 namespace RobiNN\Pca\Dashboards\APCu;
 
+use RobiNN\Pca\Format;
 use RobiNN\Pca\Helpers;
-use RobiNN\Pca\Http;
+use RobiNN\Pca\KeyFilters;
 
 trait APCuKeysList {
+    private ?string $filter_error = null;
+
+    /**
+     * The search and filters from the URL.
+     */
+    public function keyFilters(): KeyFilters {
+        return new KeyFilters(['nf', 'noexp', 'expin', 'idle', 'minsize', 'maxsize']);
+    }
+
     /**
      * @return array<int, array<string, string|int>>
      */
     public function getAllKeys(): array {
-        $search = Http::get('s', '');
-        $this->template->addGlobal('search_value', $search);
+        $filters = $this->keyFilters();
+        $this->template->addGlobal('search_value', $filters->values['s']);
 
-        $entries = $this->entries($search);
+        // APCUIterator matches the keys itself.
+        $entries = $this->entries($filters->pattern());
+        $this->filter_error = $filters->error;
 
-        return is_array($entries) ? $entries : iterator_to_array($entries, false);
+        if (!$filters->active()) {
+            return is_array($entries) ? $entries : iterator_to_array($entries, false);
+        }
+
+        $now = time();
+        $keys = [];
+
+        foreach ($entries as $item) {
+            $ttl = (int) ($item['ttl'] ?? 0);
+            $meta = [
+                'ttl'  => $ttl === 0 ? -1 : max(0, (int) ($item['creation_time'] ?? 0) + $ttl - $now),
+                'size' => (int) ($item['mem_size'] ?? 0),
+                'read' => (int) ($item['num_hits'] ?? 0) > 0,
+                'idle' => $now - (int) ($item['access_time'] ?? $now),
+            ];
+
+            if ($filters->matches($meta)) {
+                $keys[] = $item;
+            }
+        }
+
+        return $keys;
+    }
+
+    /**
+     * Delete every key that matches the search and filters.
+     */
+    private function deleteMatchingKeys(): string {
+        if (!$this->keyFilters()->narrowed()) {
+            return Helpers::alert('Set a search or a filter first, use "Delete all" to remove every key.', 'error');
+        }
+
+        $keys = $this->getAllKeys();
+
+        if ($this->filter_error !== null) {
+            return Helpers::alert($this->filter_error, 'error');
+        }
+
+        $deleted = 0;
+
+        foreach ($keys as $item) {
+            $deleted += apcu_delete((string) $item['key']) ? 1 : 0;
+        }
+
+        return Helpers::alert(sprintf('%s matching %s been deleted.', Format::number($deleted), $deleted === 1 ? 'key has' : 'keys have'), 'success');
     }
 
     /**

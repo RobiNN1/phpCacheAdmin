@@ -11,6 +11,7 @@ namespace RobiNN\Pca\Dashboards\Realpath;
 use RobiNN\Pca\Format;
 use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
+use RobiNN\Pca\KeyFilters;
 use RobiNN\Pca\Paginator;
 
 trait RealpathTrait {
@@ -58,12 +59,20 @@ trait RealpathTrait {
             return $this->template->render('partials/health', ['checks' => $this->getHealthChecks()]);
         }
 
-        $paginator = new Paginator($this->getAllKeys());
+        $keys = $this->getAllKeys();
+        $filters = $this->keyFilters();
+
+        if ($filters->error !== null) {
+            Helpers::alert($filters->error, 'error');
+        }
+
+        $paginator = new Paginator($keys, [['pp', ...$filters->params()], ['p' => '']]);
 
         return $this->template->render('dashboards/realpath', [
-            'keys'      => $paginator->getPaginated(),
-            'all_keys'  => count($this->all_keys),
-            'paginator' => $paginator->render(),
+            'keys'        => $paginator->getPaginated(),
+            'all_keys'    => count($this->all_keys),
+            'paginator'   => $paginator->render(),
+            'key_filters' => $filters->view(count($keys), ['type' => 'Kind'], null),
         ]);
     }
 
@@ -93,17 +102,22 @@ trait RealpathTrait {
         return Helpers::panels($panels);
     }
 
+    private function keyFilters(): KeyFilters {
+        return new KeyFilters(['type'], ['dir' => 'Directories', 'file' => 'Files']);
+    }
+
     /**
-     * @return array<int, array<string, string|int>>
+     * @return array<int, array<string, mixed>>
      */
     private function getAllKeys(): array {
         $keys = [];
-        $search = Http::get('s', '');
+        $filters = $this->keyFilters();
+        $matcher = $filters->matcher();
 
-        $this->template->addGlobal('search_value', $search);
+        $this->template->addGlobal('search_value', $filters->values['s']);
 
         foreach ($this->all_keys as $key_name => $key_data) {
-            if (stripos($key_name, $search) !== false) {
+            if (($matcher === null || $matcher((string) $key_name)) && $filters->matches(['type' => $key_data['is_dir'] ? 'dir' : 'file'])) {
                 $keys[] = [
                     'key'  => $key_name,
                     'info' => [

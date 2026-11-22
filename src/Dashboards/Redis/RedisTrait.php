@@ -161,13 +161,26 @@ trait RedisTrait {
 
         Helpers::importResultAlert();
 
+        if (isset($_POST['delete_matching'])) {
+            if (Csrf::validateToken(Http::post('csrf_token', ''))) {
+                $this->deleteMatchingKeys();
+            } else {
+                Helpers::alert('Invalid CSRF token.', 'error');
+            }
+        }
+
         $keys = Helpers::sortBeforePaginate($this->getAllKeys(isset($_GET['export_btn'])), ['link_title' => true]);
+
+        if ($this->filter_error !== null) {
+            Helpers::alert($this->filter_error, 'error');
+        }
 
         if (isset($_GET['export_btn'])) {
             Helpers::export($this->keysTableView($keys), 'redis_backup', fn (string $key): string => bin2hex($this->redis->dump($key)));
         }
 
-        $paginator = new Paginator($keys);
+        $filters = $this->keyFilters();
+        $paginator = new Paginator($keys, [['pp', 'view', ...$filters->params()], ['p' => '']]);
         $paginated_keys = $paginator->getPaginated();
 
         if (Http::get('view', Config::get('listview', 'table')) === 'tree') {
@@ -177,10 +190,11 @@ trait RedisTrait {
         }
 
         return [
-            'keys'      => $keys_to_display,
-            'all_keys'  => $this->redis->databaseSize(),
-            'paginator' => $paginator->render(),
-            'view_key'  => Http::queryString(['s'], ['view' => 'key', 'key' => '__key__']),
+            'keys'        => $keys_to_display,
+            'all_keys'    => $this->redis->databaseSize(),
+            'paginator'   => $paginator->render(),
+            'view_key'    => Http::queryString(['s'], ['view' => 'key', 'key' => '__key__']),
+            'key_filters' => $filters->view(count($keys), ['minsize' => 'Memory (bytes)'], partial: $this->scan_partial),
         ];
     }
 

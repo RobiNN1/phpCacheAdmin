@@ -8,8 +8,11 @@ declare(strict_types=1);
 
 namespace RobiNN\Pca\Dashboards\OPCache;
 
+use RobiNN\Pca\Csrf;
+use RobiNN\Pca\Format;
 use RobiNN\Pca\Helpers;
 use RobiNN\Pca\Http;
+use RobiNN\Pca\KeyFilters;
 use RobiNN\Pca\Paginator;
 
 trait OPCacheScripts {
@@ -24,14 +27,27 @@ trait OPCacheScripts {
         return str_starts_with(strtr($full_path, ['phar://' => '']), $pca_root);
     }
 
+    private ?string $filter_error = null;
+
     /**
-     * @return array<int, array<string, string|int>>
+     * The search and filters from the URL.
+     */
+    public function keyFilters(): KeyFilters {
+        return new KeyFilters(['nf', 'idle', 'minsize', 'maxsize']);
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
      */
     private function getCachedScripts(): array {
         $cached_scripts = [];
-        $search = Http::get('s', '');
+        $filters = $this->keyFilters();
+        $this->template->addGlobal('search_value', $filters->values['s']);
 
-        $this->template->addGlobal('search_value', $search);
+        $matcher = $filters->matcher();
+        $this->filter_error = $filters->error;
+        $with_filters = $filters->active();
+        $now = time();
 
         $status = $this->status(true);
 
@@ -45,24 +61,57 @@ trait OPCacheScripts {
                     continue;
                 }
 
-                if ($search === '' || stripos($script['full_path'], $search) !== false) {
-                    $cached_scripts[] = [
-                        'key'  => $script['full_path'],
-                        'info' => [
-                            'title'              => $full_path,
-                            'number_hits'        => $script['hits'],
-                            'bytes_memory'       => $script['memory_consumption'],
-                            'timediff_last_used' => $script['last_used_timestamp'],
-                            'time_created'       => $script['timestamp'] ?? 0,
-                        ],
-                    ];
+                if ($matcher !== null && !$matcher($script['full_path'])) {
+                    continue;
                 }
+
+                if ($with_filters && !$filters->matches([
+                        'idle' => $now - (int) $script['last_used_timestamp'],
+                        'size' => (int) $script['memory_consumption'],
+                        'read' => (int) $script['hits'] > 0,
+                    ])) {
+                    continue;
+                }
+
+                $cached_scripts[] = [
+                    'key'  => $script['full_path'],
+                    'info' => [
+                        'title'              => $full_path,
+                        'number_hits'        => $script['hits'],
+                        'bytes_memory'       => $script['memory_consumption'],
+                        'timediff_last_used' => $script['last_used_timestamp'],
+                        'time_created'       => $script['timestamp'] ?? 0,
+                    ],
+                ];
             }
         }
 
         unset($status);
 
         return Helpers::sortKeys($cached_scripts);
+    }
+
+    /**
+     * Invalidate every script that matches the search and filters.
+     */
+    private function invalidateMatchingScripts(): string {
+        if (!$this->keyFilters()->narrowed()) {
+            return Helpers::alert('Set a search or a filter first, use "Delete all" to reset the whole cache.', 'error');
+        }
+
+        $scripts = $this->getCachedScripts();
+
+        if ($this->filter_error !== null) {
+            return Helpers::alert($this->filter_error, 'error');
+        }
+
+        $invalidated = 0;
+
+        foreach ($scripts as $script) {
+            $invalidated += opcache_invalidate((string) $script['key'], true) ? 1 : 0;
+        }
+
+        return Helpers::alert(sprintf('%s matching %s been invalidated.', Format::number($invalidated), $invalidated === 1 ? 'script has' : 'scripts have'), 'success');
     }
 
     /**
@@ -75,8 +124,22 @@ trait OPCacheScripts {
             return ['tab_error' => self::NOT_AVAILABLE];
         }
 
+        if (isset($_POST['delete_matching']) && !$this->isRemote()) {
+            if (Csrf::validateToken(Http::post('csrf_token', ''))) {
+                $this->invalidateMatchingScripts();
+            } else {
+                Helpers::alert('Invalid CSRF token.', 'error');
+            }
+        }
+
         $cached_scripts = $this->getCachedScripts();
-        $paginator = new Paginator($cached_scripts, [['ignore', 'pp', 's'], ['p' => '']]);
+
+        if ($this->filter_error !== null) {
+            Helpers::alert($this->filter_error, 'error');
+        }
+
+        $filters = $this->keyFilters();
+        $paginator = new Paginator($cached_scripts, [['ignore', 'pp', ...$filters->params()], ['p' => '']]);
 
         return [
             'cached_scripts' => $paginator->getPaginated(),
@@ -84,6 +147,12 @@ trait OPCacheScripts {
             'paginator'      => $paginator->render(),
             'is_ignored'     => $this->ignorePcaScripts(),
             'is_remote'      => $this->isRemote(),
+            'key_filters'    => $filters->view(
+                count($cached_scripts),
+                ['nf' => 'Never hit', 'minsize' => 'Memory (bytes)'],
+                $this->isRemote() ? null : 'Invalidate',
+                noun: 'script'
+            ),
         ];
     }
 

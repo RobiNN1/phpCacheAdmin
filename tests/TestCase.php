@@ -10,9 +10,18 @@ namespace Tests;
 
 use JsonException;
 use Random\RandomException;
+use ReflectionException;
+use ReflectionMethod;
 use RobiNN\Pca\Helpers;
 
 abstract class TestCase extends \PHPUnit\Framework\TestCase {
+    /**
+     * @throws ReflectionException
+     */
+    public function callPrivate(object $object, string $method, mixed ...$args): mixed {
+        return (new ReflectionMethod($object, $method))->invoke($object, ...$args);
+    }
+
     public static function skipWithoutServer(string $address, string $name): void {
         $socket = @stream_socket_client('tcp://'.$address, $errno, $errstr, 1);
 

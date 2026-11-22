@@ -41,6 +41,15 @@ interface RedisCompatibilityInterface {
     public function scanKeys(string $pattern, int $count, ?int $limit = null): array;
 
     /**
+     * SCAN the whole keyspace, one batch of keys at a time, so that the caller can stop early.
+     *
+     * @param string|null $type Only keys of this type (SCAN TYPE, Redis >= 6.0). Clusters ignore it, so the caller checks the type too.
+     *
+     * @return iterable<int, array<int, string>>
+     */
+    public function scanBatches(string $pattern, int $count, ?string $type = null): iterable;
+
+    /**
      * Alias to a lRem().
      */
     public function listRem(string $key, string $value, int $count): int;

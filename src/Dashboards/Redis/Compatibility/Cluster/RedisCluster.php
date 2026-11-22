@@ -147,6 +147,23 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
     }
 
     /**
+     * The type is not passed on, phpredis does not support it for a cluster node.
+     *
+     * @return iterable<int, array<int, string>>
+     *
+     * @throws RedisClusterException
+     */
+    public function scanBatches(string $pattern, int $count, ?string $type = null): iterable {
+        foreach ($this->nodes as $node) {
+            $iterator = null;
+
+            while (false !== ($scan = $this->scan($iterator, $node, $pattern, $count))) {
+                yield array_map(strval(...), $scan);
+            }
+        }
+    }
+
+    /**
      * @throws RedisClusterException
      */
     public function listRem(string $key, string $value, int $count): int {

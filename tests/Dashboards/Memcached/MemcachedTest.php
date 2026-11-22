@@ -12,6 +12,7 @@ use Iterator;
 use JsonException;
 use PDO;
 use PHPUnit\Framework\Attributes\DataProvider;
+use ReflectionException;
 use RobiNN\Pca\Config;
 use RobiNN\Pca\Dashboards\DashboardException;
 use RobiNN\Pca\Dashboards\Memcached\MemcachedDashboard;
@@ -911,6 +912,7 @@ final class MemcachedTest extends TestCase {
 
     /**
      * @throws MemcachedException
+     * @throws ReflectionException
      */
     public function testExportAndImportKeepFlags(): void {
         $key = 'pu:mem:flags';
@@ -921,7 +923,7 @@ final class MemcachedTest extends TestCase {
         $exported = Helpers::export(
             [['key' => urlencode($key), 'ttl' => -1]],
             'memcached_backup',
-            fn (string $key): ?array => $this->callPrivate('exportValue', urldecode($key)),
+            fn (string $key): ?array => $this->callPrivate($this->dashboard, 'exportValue', urldecode($key)),
             true
         );
 
@@ -943,10 +945,6 @@ final class MemcachedTest extends TestCase {
 
         $this->memcached->delete($key);
         unlink($tmp_file_path);
-    }
-
-    private function callPrivate(string $method, mixed ...$args): mixed {
-        return (fn () => $this->{$method}(...$args))->call($this->dashboard);
     }
 
     /**
@@ -1006,6 +1004,7 @@ final class MemcachedTest extends TestCase {
 
     /**
      * @throws MemcachedException
+     * @throws ReflectionException
      */
     public function testDeleteMatchingKeys(): void {
         $this->skipBelowMemcached('1.5.19', 'Key filters');
@@ -1018,7 +1017,7 @@ final class MemcachedTest extends TestCase {
 
         $_GET = ['s' => 'pu-bulk:', 'match' => 'prefix'];
 
-        $this->assertStringContainsString('30 matching keys have been deleted', (string) $this->callPrivate('deleteMatchingKeys'));
+        $this->assertStringContainsString('30 matching keys have been deleted', (string) $this->callPrivate($this->dashboard, 'deleteMatchingKeys'));
         $this->assertFalse($this->memcached->exists('pu-bulk:0'));
         $this->assertFalse($this->memcached->exists('pu-bulk:29'));
         $this->assertTrue($this->memcached->exists('pu-keep'));
@@ -1028,11 +1027,12 @@ final class MemcachedTest extends TestCase {
 
     /**
      * @throws MemcachedException
+     * @throws ReflectionException
      */
     public function testDeleteMatchingKeysNeedsAFilter(): void {
         $this->memcached->set('pu-keep', 'x');
 
-        $this->assertStringContainsString('Set a search or a filter first', (string) $this->callPrivate('deleteMatchingKeys'));
+        $this->assertStringContainsString('Set a search or a filter first', (string) $this->callPrivate($this->dashboard, 'deleteMatchingKeys'));
         $this->assertTrue($this->memcached->exists('pu-keep'));
 
         $this->memcached->delete('pu-keep');
@@ -1170,6 +1170,7 @@ final class MemcachedTest extends TestCase {
 
     /**
      * @throws MemcachedException
+     * @throws ReflectionException
      */
     public function testEditFormDecompressesAndDropsTheCompressionBits(): void {
         $key = 'pu-form-compressed';
@@ -1179,7 +1180,7 @@ final class MemcachedTest extends TestCase {
         $_GET['form'] = 'edit';
         $_GET['key'] = $key;
 
-        $form = (string) $this->callPrivate('form');
+        $form = (string) $this->callPrivate($this->dashboard, 'form');
 
         $this->assertStringContainsString(trim($original), $form);
         $this->assertMatchesRegularExpression('/name="flags"[^>]*value="4"/', $form);

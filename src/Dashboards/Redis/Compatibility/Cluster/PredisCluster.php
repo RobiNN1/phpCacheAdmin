@@ -160,6 +160,30 @@ class PredisCluster extends PredisClient implements RedisCompatibilityInterface 
         return $keys;
     }
 
+    /**
+     * The type is not passed on, the keyspace iterator does not support it.
+     *
+     * @return iterable<int, array<int, string>>
+     */
+    public function scanBatches(string $pattern, int $count, ?string $type = null): iterable {
+        foreach ($this->nodes as $node) {
+            $batch = [];
+
+            foreach (new Keyspace($node, $pattern, $count) as $item) {
+                $batch[] = (string) $item;
+
+                if (count($batch) >= $count) {
+                    yield $batch;
+                    $batch = [];
+                }
+            }
+
+            if ($batch !== []) {
+                yield $batch;
+            }
+        }
+    }
+
     public function listRem(string $key, string $value, int $count): int {
         return $this->lrem($key, $count, $value);
     }

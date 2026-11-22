@@ -14,6 +14,7 @@ use Predis\Client as PredisClient;
 use Predis\Cluster\RedisStrategy;
 use Predis\Collection\Iterator\Keyspace;
 use Predis\Command\RawCommand;
+use Predis\Connection\ConnectionInterface;
 use Predis\NotSupportedException;
 use Predis\Response\Status;
 use RobiNN\Pca\Dashboards\DashboardException;
@@ -22,6 +23,7 @@ use RobiNN\Pca\Dashboards\Redis\Compatibility\RedisCompatibilityInterface;
 use RobiNN\Pca\Dashboards\Redis\Compatibility\RedisExtra;
 use RuntimeException;
 use Throwable;
+use Traversable;
 
 /**
  * @method bool restore(string $key, int $ttl, string $value)
@@ -158,6 +160,32 @@ class PredisCluster extends PredisClient implements RedisCompatibilityInterface 
         }
 
         return $keys;
+    }
+
+    public function noTouch(): void {
+        $command = ['CLIENT', 'NO-TOUCH', 'ON'];
+
+        $cluster = $this->getConnection();
+
+        if ($cluster instanceof Traversable) {
+            foreach ($cluster as $connection) {
+                try {
+                    if ($connection instanceof ConnectionInterface) {
+                        $connection->executeCommand(RawCommand::create(...$command));
+                    }
+                } catch (Throwable) {
+                    // Older than 7.2.
+                }
+            }
+        }
+
+        foreach ($this->nodes as $node) {
+            try {
+                $node->executeRaw($command);
+            } catch (Throwable) {
+                // Older than 7.2.
+            }
+        }
     }
 
     /**

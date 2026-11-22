@@ -7,6 +7,18 @@
     <title>{{ site_title }} - phpCacheAdmin</title>
     <link rel="icon" type="image/png" sizes="32x32" href="{{ config('pcapath', '') }}assets/favicon.png">
     <meta name="theme-color" content="#ffffff">
+    <script nonce="{{ nonce }}">
+        (() => {
+            const quiet = (transition) => {
+                transition?.ready.catch(() => {});
+                transition?.finished.catch(() => {});
+            };
+
+            quiet(document.activeViewTransition);
+            addEventListener('pagereveal', (e) => quiet(e.viewTransition));
+            addEventListener('pageswap', (e) => quiet(e.viewTransition));
+        })();
+    </script>
     <link rel="stylesheet" href="{{ asset('assets/css/styles.css') }}">
     <meta name="csrf-token" content="{{ csrf }}">
 

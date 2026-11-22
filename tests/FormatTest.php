@@ -18,13 +18,13 @@ final class FormatTest extends TestCase {
      * @return Iterator<string, array{0: string, 1: int}>
      */
     public static function bytesProvider(): Iterator {
-        yield 'bytes' => ['512,00B', 512];
+        yield 'bytes' => ['512B', 512];
         yield 'kilobytes' => ['1,50KB', 1536];
         yield 'megabytes' => ['127,38MB', 133_567_600];
         yield 'gigabytes' => ['2,50GB', 2_684_354_560];
         yield 'terabytes' => ['1,50TB', 1_649_267_441_664];
-        yield 'zero' => ['0,00B', 0];
-        yield 'just under a kilobyte' => ['1 023,00B', 1023];
+        yield 'zero' => ['0B', 0];
+        yield 'just under a kilobyte' => ['1 023B', 1023];
         yield 'exactly one kilobyte' => ['1,00KB', 1024];
         yield 'exactly one megabyte' => ['1,00MB', 1_048_576];
         yield 'exactly one gigabyte' => ['1,00GB', 1_073_741_824];

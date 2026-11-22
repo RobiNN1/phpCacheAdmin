@@ -146,6 +146,18 @@ class RedisCluster extends \RedisCluster implements RedisCompatibilityInterface 
         return $keys;
     }
 
+    public function noTouch(): void {
+        foreach ($this->nodes as $node) {
+            try {
+                $this->rawcommand($node, 'CLIENT', 'NO-TOUCH', 'ON');
+            } catch (RedisClusterException) {
+                // Older than 7.2.
+            }
+        }
+
+        $this->clearLastError();
+    }
+
     /**
      * The type is not passed on, phpredis does not support it for a cluster node.
      *

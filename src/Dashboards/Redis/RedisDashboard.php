@@ -113,6 +113,8 @@ class RedisDashboard implements DashboardInterface {
             throw new DashboardException('Redis extension or Predis is not installed.');
         }
 
+        $redis->noTouch();
+
         return $redis;
     }
 

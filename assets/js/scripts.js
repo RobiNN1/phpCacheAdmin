@@ -89,23 +89,23 @@ function number_format(number, decimals = 0) {
 }
 
 function format_bytes(bytes, decimals = 2) {
-    if (bytes > 1099511627776) {
+    if (bytes >= 1099511627776) {
         return number_format(bytes / 1099511627776, decimals) + 'TB';
     }
 
-    if (bytes > 1073741824) {
+    if (bytes >= 1073741824) {
         return number_format(bytes / 1073741824, decimals) + 'GB';
     }
 
-    if (bytes > 1048576) {
+    if (bytes >= 1048576) {
         return number_format(bytes / 1048576, decimals) + 'MB';
     }
 
-    if (bytes > 1024) {
+    if (bytes >= 1024) {
         return number_format(bytes / 1024, decimals) + 'KB';
     }
 
-    return number_format(bytes, decimals) + 'B';
+    return number_format(bytes, 0) + 'B';
 }
 
 class TreeView {

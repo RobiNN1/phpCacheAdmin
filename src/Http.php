@@ -141,7 +141,7 @@ class Http {
 
         $keep = ['dashboard', 'server', 'db', 's', 'sortdir', 'sortcol'];
         $query = array_intersect_key($cached_query, array_fill_keys(array_merge($keep, $preserve), true));
-        $query += $additional;
+        $query = array_replace($query, $additional);
 
         return $query !== [] ? '?'.http_build_query($query) : '';
     }

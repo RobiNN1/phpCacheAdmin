@@ -50,6 +50,11 @@ interface RedisCompatibilityInterface {
     public function scanBatches(string $pattern, int $count, ?string $type = null): iterable;
 
     /**
+     * Keep the dashboard's own commands (e.g. HLEN in the key list) from changing the LRU/LFU data of the keys.
+     */
+    public function noTouch(): void;
+
+    /**
      * Alias to a lRem().
      */
     public function listRem(string $key, string $value, int $count): int;

@@ -30,7 +30,7 @@ class Format {
             return sprintf('%sKB', self::number($bytes / 1024, $decimals));
         }
 
-        return sprintf('%sB', self::number($bytes, $decimals));
+        return sprintf('%sB', self::number($bytes));
     }
 
     /**

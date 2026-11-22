@@ -86,6 +86,16 @@ class Redis extends \Redis implements RedisCompatibilityInterface {
         }
     }
 
+    public function noTouch(): void {
+        try {
+            $this->rawcommand('CLIENT', 'NO-TOUCH', 'ON');
+        } catch (RedisException) {
+            // Older than 7.2.
+        }
+
+        $this->clearLastError();
+    }
+
     public function getType(string|int $type): string {
         return $this->data_types[$type] ?? 'unknown';
     }

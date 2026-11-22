@@ -626,7 +626,7 @@ abstract class RedisTestCase extends TestCase {
         $html = $this->dashboard->ajax();
 
         $this->assertStringContainsString('Encoding', $html);
-        $this->assertStringContainsString('12,00B', $html); // the size of the value itself
+        $this->assertStringContainsString('12B', $html); // the size of the value itself
     }
 
     /**
@@ -2519,5 +2519,29 @@ abstract class RedisTestCase extends TestCase {
 
         $this->assertStringContainsString('This value is binary data', $form);
         $this->assertStringNotContainsString('<textarea', $form);
+    }
+
+    /**
+     * The key list reads HLEN, SCARD, ... for its columns, which would reset the idle time of every listed key.
+     *
+     * @throws Exception
+     */
+    public function testBrowsingDoesNotTouchKeys(): void {
+        $version = (string) ($this->redis->getInfo('server')['redis_version'] ?? '0');
+
+        if (version_compare($version, '7.2.0', '<')) {
+            self::markTestSkipped('CLIENT NO-TOUCH requires Redis >= 7.2, the server runs '.$version.'.');
+        }
+
+        $this->redis->hSet('pu-no-touch', 'field', 'value');
+        sleep(2);
+
+        $this->dashboard->keysTableView(['pu-no-touch']);
+
+        $idle = $this->redis instanceof Predis || $this->redis instanceof PredisCluster
+            ? $this->redis->executeRaw(['OBJECT', 'IDLETIME', 'pu-no-touch'])
+            : $this->redis->object('idletime', 'pu-no-touch');
+
+        $this->assertGreaterThanOrEqual(2, (int) $idle);
     }
 }

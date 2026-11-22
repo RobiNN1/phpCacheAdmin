@@ -67,6 +67,14 @@ class Predis extends Client implements RedisCompatibilityInterface {
             ]);
     }
 
+    public function noTouch(): void {
+        try {
+            $this->executeRaw(['CLIENT', 'NO-TOUCH', 'ON']);
+        } catch (Throwable) {
+            // Older than 7.2.
+        }
+    }
+
     public function getType(string|int $type): string {
         return $this->data_types[$type] ?? 'unknown';
     }

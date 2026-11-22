@@ -33,6 +33,12 @@ final class HttpTest extends TestCase {
         $this->assertSame('?dashboard=redis&server=6&view=key&key=test', Http::queryString(['server', 'view'], ['key' => 'test']));
     }
 
+    public function testQueryStringAdditionalWinsOverKeptParams(): void {
+        $_SERVER['REQUEST_URI'] = '/?dashboard=redis&s=old&p=2';
+
+        $this->assertSame('?dashboard=redis&s=new', Http::queryString([], ['s' => 'new']));
+    }
+
     public function testGetString(): void {
         $_GET['test-string'] = 'data';
         $this->assertSame('data', Http::get('test-string', ''));

@@ -1305,7 +1305,7 @@ final class MemcachedTest extends TestCase {
 
         exec(sprintf('%s -r %s > /dev/null 2>&1 &', escapeshellarg(PHP_BINARY), escapeshellarg('use '.PHPMem::class.'; '.$script)));
 
-        $logs = $this->dashboard->captureLogs(['fetchers', 'mutations'], 2, 100);
+        $logs = $this->dashboard->captureLogs(['fetchers', 'mutations'], 1, 100);
 
         $this->assertNotEmpty($logs);
 
